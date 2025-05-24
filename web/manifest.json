@@ -1,6 +1,6 @@
 {
-    "name": "zonix",
-    "short_name": "zonix",
+    "name": "zonix_eats",
+    "short_name": "zonix_eats",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
