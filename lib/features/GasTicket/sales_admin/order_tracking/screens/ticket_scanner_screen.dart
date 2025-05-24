@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:zonix/features/GasTicket/sales_admin/order_tracking/api/sales_admin_service.dart';
-import 'package:zonix/features/GasTicket/gas_button/models/gas_ticket.dart';
-import 'package:zonix/features/GasTicket/sales_admin/order_tracking/screens/cylinder_gas_ticket_scanner_screen.dart';
+import 'package:zonix_eats/features/GasTicket/sales_admin/order_tracking/api/sales_admin_service.dart';
+import 'package:zonix_eats/features/GasTicket/gas_button/models/gas_ticket.dart';
+import 'package:zonix_eats/features/GasTicket/sales_admin/order_tracking/screens/cylinder_gas_ticket_scanner_screen.dart';
 import 'package:logger/logger.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';

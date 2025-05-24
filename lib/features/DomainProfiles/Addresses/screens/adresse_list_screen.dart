@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:zonix/features/DomainProfiles/Addresses/api/adresse_service.dart';
-import 'package:zonix/features/DomainProfiles/Addresses/models/adresse.dart';
-import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_create_screen.dart';
+import 'package:zonix_eats/features/DomainProfiles/Addresses/api/adresse_service.dart';
+import 'package:zonix_eats/features/DomainProfiles/Addresses/models/adresse.dart';
+import 'package:zonix_eats/features/DomainProfiles/Addresses/screens/adresse_create_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 

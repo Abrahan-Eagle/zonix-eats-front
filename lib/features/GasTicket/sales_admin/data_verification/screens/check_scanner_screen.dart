@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:zonix/features/GasTicket/sales_admin/data_verification/api/check_service.dart';
-import 'package:zonix/features/DomainProfiles/Documents/screens/document_list_screen.dart';
-import 'package:zonix/features/DomainProfiles/Emails/screens/email_list_screen.dart';
-import 'package:zonix/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
-import 'package:zonix/features/DomainProfiles/GasCylinder/screens/gas_cylinder_list_screen.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/screens/profile_page.dart';
-import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_list_screen.dart';
+import 'package:zonix_eats/features/GasTicket/sales_admin/data_verification/api/check_service.dart';
+import 'package:zonix_eats/features/DomainProfiles/Documents/screens/document_list_screen.dart';
+import 'package:zonix_eats/features/DomainProfiles/Emails/screens/email_list_screen.dart';
+import 'package:zonix_eats/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
+import 'package:zonix_eats/features/DomainProfiles/GasCylinder/screens/gas_cylinder_list_screen.dart';
+import 'package:zonix_eats/features/DomainProfiles/Profiles/screens/profile_page.dart';
+import 'package:zonix_eats/features/DomainProfiles/Addresses/screens/adresse_list_screen.dart';
 import 'package:logger/logger.dart'; // Librería Logger para depuración
 import 'package:shared_preferences/shared_preferences.dart';
 

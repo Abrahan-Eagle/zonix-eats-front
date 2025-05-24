@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/email.dart';
 import '../api/email_service.dart';
 import 'package:flutter_svg/flutter_svg.dart'; 
-import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix_eats/features/utils/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:logger/logger.dart';
 final logger = Logger();

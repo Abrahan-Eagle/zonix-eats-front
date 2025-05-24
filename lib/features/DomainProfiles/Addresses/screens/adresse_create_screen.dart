@@ -5,7 +5,7 @@ import '../api/adresse_service.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'location_module.dart'; // Importa el módulo de ubicación
 import 'package:geolocator/geolocator.dart'; // Importa la clase Position
-import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix_eats/features/utils/user_provider.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';

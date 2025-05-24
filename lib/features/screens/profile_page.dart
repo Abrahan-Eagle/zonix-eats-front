@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix/features/services/qr_profile_api_service.dart';
-import 'package:zonix/features/utils/user_provider.dart';
-import 'package:zonix/features/services/auth/google_sign_in_service.dart';
+import 'package:zonix_eats/features/services/qr_profile_api_service.dart';
+import 'package:zonix_eats/features/utils/user_provider.dart';
+import 'package:zonix_eats/features/services/auth/google_sign_in_service.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:zonix/features/utils/auth_utils.dart';
+import 'package:zonix_eats/features/utils/auth_utils.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // Importa QrImageView
-import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
+import 'package:zonix_eats/features/DomainProfiles/Profiles/api/profile_service.dart';
 
 
 final logger = Logger();

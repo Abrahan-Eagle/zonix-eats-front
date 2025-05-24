@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix/features/utils/user_provider.dart';
-import 'package:zonix/features/DomainProfiles/Documents/screens/document_create_screen.dart';
+import 'package:zonix_eats/features/utils/user_provider.dart';
+import 'package:zonix_eats/features/DomainProfiles/Documents/screens/document_create_screen.dart';
 import 'package:logger/logger.dart';
 
 class OnboardingPage4 extends StatelessWidget {
@@ -134,8 +134,8 @@ class OnboardingPage4 extends StatelessWidget {
 
 // import 'package:flutter/material.dart';
 // import 'package:provider/provider.dart';
-// import 'package:zonix/features/utils/user_provider.dart'; // Asegúrate de que la ruta sea correcta
-// import 'package:zonix/features/DomainProfiles/Documents/screens/document_create_screen.dart';
+// import 'package:zonix_eats/features/utils/user_provider.dart'; // Asegúrate de que la ruta sea correcta
+// import 'package:zonix_eats/features/DomainProfiles/Documents/screens/document_create_screen.dart';
 // import 'package:logger/logger.dart';
 // final logger = Logger();
 // class OnboardingPage4 extends StatelessWidget {

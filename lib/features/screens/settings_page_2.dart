@@ -3,17 +3,17 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix/features/DomainProfiles/Documents/screens/document_list_screen.dart';
-import 'package:zonix/features/DomainProfiles/Emails/screens/email_list_screen.dart';
-import 'package:zonix/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
-import 'package:zonix/features/utils/user_provider.dart';
-import 'package:zonix/features/DomainProfiles/GasCylinder/screens/gas_cylinder_list_screen.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/screens/profile_page.dart';
-import 'package:zonix/features/screens/sign_in_screen.dart';
-import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_list_screen.dart';
-import 'package:zonix/features/screens/about/about_page.dart';
-import 'package:zonix/features/screens/HelpAndFAQPage/help_and_faq_page.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
+import 'package:zonix_eats/features/DomainProfiles/Documents/screens/document_list_screen.dart';
+import 'package:zonix_eats/features/DomainProfiles/Emails/screens/email_list_screen.dart';
+import 'package:zonix_eats/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
+import 'package:zonix_eats/features/utils/user_provider.dart';
+import 'package:zonix_eats/features/DomainProfiles/GasCylinder/screens/gas_cylinder_list_screen.dart';
+import 'package:zonix_eats/features/DomainProfiles/Profiles/screens/profile_page.dart';
+import 'package:zonix_eats/features/screens/sign_in_screen.dart';
+import 'package:zonix_eats/features/DomainProfiles/Addresses/screens/adresse_list_screen.dart';
+import 'package:zonix_eats/features/screens/about/about_page.dart';
+import 'package:zonix_eats/features/screens/HelpAndFAQPage/help_and_faq_page.dart';
+import 'package:zonix_eats/features/DomainProfiles/Profiles/api/profile_service.dart';
 
 // Configuración del logger
 final logger = Logger();

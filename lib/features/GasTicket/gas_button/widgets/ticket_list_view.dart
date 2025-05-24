@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:zonix/features/GasTicket/gas_button/models/gas_ticket.dart';
-import 'package:zonix/features/GasTicket/gas_button/widgets/custom_gas_ticket_item.dart';
-import 'package:zonix/features/GasTicket/gas_button/screens/gas_ticket_detail_screen.dart';
+import 'package:zonix_eats/features/GasTicket/gas_button/models/gas_ticket.dart';
+import 'package:zonix_eats/features/GasTicket/gas_button/widgets/custom_gas_ticket_item.dart';
+import 'package:zonix_eats/features/GasTicket/gas_button/screens/gas_ticket_detail_screen.dart';
 
 class TicketListView extends StatefulWidget {
   final List<GasTicket> tickets;
@@ -54,9 +54,9 @@ class TicketListViewState extends State<TicketListView> {
 
 
 // import 'package:flutter/material.dart';
-// import 'package:zonix/features/GasTicket/gas_button/models/gas_ticket.dart';
-// import 'package:zonix/features/GasTicket/gas_button/widgets/custom_gas_ticket_item.dart';
-// import 'package:zonix/features/GasTicket/gas_button/screens/gas_ticket_detail_screen.dart';
+// import 'package:zonix_eats/features/GasTicket/gas_button/models/gas_ticket.dart';
+// import 'package:zonix_eats/features/GasTicket/gas_button/widgets/custom_gas_ticket_item.dart';
+// import 'package:zonix_eats/features/GasTicket/gas_button/screens/gas_ticket_detail_screen.dart';
 
 // class TicketListView extends StatefulWidget {
 //   final List<GasTicket> tickets;

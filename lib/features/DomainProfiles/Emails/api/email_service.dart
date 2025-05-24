@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:zonix/features/DomainProfiles/Addresses/api/adresse_service.dart';
-import 'package:zonix/features/DomainProfiles/Emails/models/email.dart';
+import 'package:zonix_eats/features/DomainProfiles/Addresses/api/adresse_service.dart';
+import 'package:zonix_eats/features/DomainProfiles/Emails/models/email.dart';
 
 final logger = Logger();
 

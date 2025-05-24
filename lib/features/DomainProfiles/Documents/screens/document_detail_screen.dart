@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart'; // Asegúrate de añadir esto a tu pubspec.yaml
-import 'package:zonix/features/DomainProfiles/Documents/models/document.dart';
+import 'package:zonix_eats/features/DomainProfiles/Documents/models/document.dart';
 
 class DocumentDetailScreen extends StatelessWidget {
   final Document document;

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:zonix/features/DomainProfiles/GasCylinder/api/gas_cylinder_service.dart';
-import 'package:zonix/features/DomainProfiles/GasCylinder/models/gas_cylinder.dart';
-import 'package:zonix/features/DomainProfiles/GasCylinder/screens/create_gas_cylinder_screen.dart';
-import 'package:zonix/features/DomainProfiles/GasCylinder/screens/gas_cylinder_detail_screen.dart'; // Importar la pantalla de detalles
-import 'package:zonix/features/DomainProfiles/GasCylinder/providers/qr_gas_cylinder.dart';
+import 'package:zonix_eats/features/DomainProfiles/GasCylinder/api/gas_cylinder_service.dart';
+import 'package:zonix_eats/features/DomainProfiles/GasCylinder/models/gas_cylinder.dart';
+import 'package:zonix_eats/features/DomainProfiles/GasCylinder/screens/create_gas_cylinder_screen.dart';
+import 'package:zonix_eats/features/DomainProfiles/GasCylinder/screens/gas_cylinder_detail_screen.dart'; // Importar la pantalla de detalles
+import 'package:zonix_eats/features/DomainProfiles/GasCylinder/providers/qr_gas_cylinder.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 class GasCylinderListScreen extends StatefulWidget {
