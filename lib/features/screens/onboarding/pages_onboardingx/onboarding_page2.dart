@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix_eats/features/DomainProfiles/Profiles/screens/create_profile_page.dart';
-import 'package:zonix_eats/features/utils/user_provider.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/screens/create_profile_page.dart';
+import 'package:zonix/features/utils/user_provider.dart';
 
 class OnboardingPage2 extends StatelessWidget {
   const OnboardingPage2({super.key});

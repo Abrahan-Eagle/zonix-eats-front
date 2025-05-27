@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
-import 'package:zonix_eats/features/DomainProfiles/GasCylinder/models/gas_cylinder.dart';
-import 'package:zonix_eats/features/DomainProfiles/GasCylinder/providers/qr_gas_cylinder.dart';
+import 'package:zonix/features/DomainProfiles/GasCylinder/models/gas_cylinder.dart';
+import 'package:zonix/features/DomainProfiles/GasCylinder/providers/qr_gas_cylinder.dart';
 import 'package:logger/logger.dart';
 import 'package:intl/intl.dart';
 

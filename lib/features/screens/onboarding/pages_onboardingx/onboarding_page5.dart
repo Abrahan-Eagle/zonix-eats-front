@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix_eats/features/utils/user_provider.dart';
-import 'package:zonix_eats/features/DomainProfiles/GasCylinder/screens/create_gas_cylinder_screen.dart';
+import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix/features/DomainProfiles/GasCylinder/screens/create_gas_cylinder_screen.dart';
 
 class OnboardingPage5 extends StatelessWidget {
   const OnboardingPage5({super.key});

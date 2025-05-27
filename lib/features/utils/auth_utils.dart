@@ -1,5 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:zonix_eats/features/services/auth/api_service.dart';
+import 'package:zonix/features/services/auth/api_service.dart';
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService _apiService = ApiService();

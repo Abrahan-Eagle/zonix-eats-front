@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
-import 'package:zonix_eats/features/GasTicket/dispatch_ticket_button/api/dispatch_ticket_service.dart';
-import 'package:zonix_eats/features/GasTicket/gas_button/models/gas_ticket.dart';
+import 'package:zonix/features/GasTicket/dispatch_ticket_button/api/dispatch_ticket_service.dart';
+import 'package:zonix/features/GasTicket/gas_button/models/gas_ticket.dart';
 import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
-import 'package:zonix_eats/features/GasTicket/gas_button/providers/status_provider.dart';
+import 'package:zonix/features/GasTicket/gas_button/providers/status_provider.dart';
 
 class DispatcherScreen extends StatefulWidget {
   const DispatcherScreen({super.key});

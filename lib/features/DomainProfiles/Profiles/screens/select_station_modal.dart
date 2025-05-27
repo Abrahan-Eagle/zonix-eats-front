@@ -3,7 +3,7 @@
 // import 'package:flutter_svg/flutter_svg.dart';
 // import 'package:http/http.dart' as http;
 // import '../api/profile_service.dart';
-// import 'package:zonix_eats/features/GasTicket/gas_button/api/gas_ticket_service.dart';
+// import 'package:zonix/features/GasTicket/gas_button/api/gas_ticket_service.dart';
 
 // class SelectStationModal extends StatefulWidget {
 //   final int userId;
@@ -197,7 +197,7 @@
 
 import 'package:flutter/material.dart';
 import '../api/profile_service.dart';
-import 'package:zonix_eats/features/GasTicket/gas_button/api/gas_ticket_service.dart';
+import 'package:zonix/features/GasTicket/gas_button/api/gas_ticket_service.dart';
 
 
 

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:zonix_eats/features/DomainProfiles/Documents/api/document_service.dart';
-import 'package:zonix_eats/features/DomainProfiles/Documents/models/document.dart';
-import 'package:zonix_eats/features/DomainProfiles/Documents/screens/document_create_screen.dart';
-import 'package:zonix_eats/features/DomainProfiles/Documents/screens/document_detail_screen.dart';
+import 'package:zonix/features/DomainProfiles/Documents/api/document_service.dart';
+import 'package:zonix/features/DomainProfiles/Documents/models/document.dart';
+import 'package:zonix/features/DomainProfiles/Documents/screens/document_create_screen.dart';
+import 'package:zonix/features/DomainProfiles/Documents/screens/document_detail_screen.dart';
 
 class DocumentListScreen extends StatefulWidget {
   final int userId;

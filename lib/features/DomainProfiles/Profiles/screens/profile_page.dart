@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart'; // Asegúrate de agregar esta dependencia en pubspec.yaml
-import 'package:zonix_eats/features/DomainProfiles/Profiles/api/profile_service.dart';
-import 'package:zonix_eats/features/DomainProfiles/Profiles/models/profile_model.dart';
-import 'package:zonix_eats/features/DomainProfiles/Profiles/screens/edit_profile_page.dart';
-import 'package:zonix_eats/features/DomainProfiles/Profiles/screens/create_profile_page.dart';
-import 'package:zonix_eats/features/DomainProfiles/Profiles/screens/select_station_modal.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/screens/edit_profile_page.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/screens/create_profile_page.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/screens/select_station_modal.dart';
 import 'package:logger/logger.dart';
 import 'package:intl/intl.dart';
 

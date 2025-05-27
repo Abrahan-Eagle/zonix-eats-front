@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix_eats/features/GasTicket/gas_button/api/gas_ticket_service.dart';
-import 'package:zonix_eats/features/GasTicket/gas_button/models/gas_ticket.dart';
-import 'package:zonix_eats/features/GasTicket/gas_button/widgets/ticket_list_view.dart';
-import 'package:zonix_eats/features/GasTicket/gas_button/screens/create_gas_ticket_screen.dart';
-import 'package:zonix_eats/features/utils/user_provider.dart';
+import 'package:zonix/features/GasTicket/gas_button/api/gas_ticket_service.dart';
+import 'package:zonix/features/GasTicket/gas_button/models/gas_ticket.dart';
+import 'package:zonix/features/GasTicket/gas_button/widgets/ticket_list_view.dart';
+import 'package:zonix/features/GasTicket/gas_button/screens/create_gas_ticket_screen.dart';
+import 'package:zonix/features/utils/user_provider.dart';
 
 class GasTicketListScreen extends StatefulWidget {
   const GasTicketListScreen({super.key});

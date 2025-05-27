@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
-import 'package:zonix_eats/features/DomainProfiles/Addresses/api/adresse_service.dart';
-import 'package:zonix_eats/features/DomainProfiles/Profiles/models/profile_model.dart';
-// import 'package:zonix_eats/features/DomainProfiles/Profiles/utils/constants.dart';
+import 'package:zonix/features/DomainProfiles/Addresses/api/adresse_service.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
+// import 'package:zonix/features/DomainProfiles/Profiles/utils/constants.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 

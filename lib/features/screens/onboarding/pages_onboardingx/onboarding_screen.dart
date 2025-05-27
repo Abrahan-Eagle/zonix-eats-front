@@ -7,10 +7,10 @@ import 'onboarding_page2x.dart';
 import 'onboarding_page3.dart';
 import 'onboarding_page4.dart';
 import 'onboarding_page5.dart';
-import 'package:zonix_eats/features/utils/user_provider.dart';
+import 'package:zonix/features/utils/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'onboarding_service.dart';
-import 'package:zonix_eats/main.dart';
+import 'package:zonix/features/ScreenDashboard/users/users_dashboard.dart';
 
 final OnboardingService _onboardingService = OnboardingService();
 
@@ -43,7 +43,7 @@ class OnboardingScreenState extends State<OnboardingScreen> {
       debugPrint("Onboarding completado con éxito.");
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const MainRouter()),
+        MaterialPageRoute(builder: (context) => const UsersDashboard()),
       );
     } catch (e) {
       debugPrint("Error al completar el onboarding: $e");

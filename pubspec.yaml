@@ -1,5 +1,5 @@
-name: zonix_eats
-description: "App de ZONIX-EATS"
+name: zonix
+description: "App de ZONIX"
 version: 1.0.0+1
 
 environment:
@@ -131,7 +131,7 @@ flutter:
 
 
 
-# name: zonix_eats
+# name: zonix
 # description: "A new Flutter project."
 # # The following line prevents the package from being accidentally published to
 # # pub.dev using `flutter pub publish`. This is preferred for private packages.

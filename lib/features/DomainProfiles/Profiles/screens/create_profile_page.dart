@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import 'package:zonix_eats/features/DomainProfiles/Profiles/api/profile_service.dart';
-import 'package:zonix_eats/features/DomainProfiles/Profiles/models/profile_model.dart';
-import 'package:zonix_eats/features/utils/user_provider.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
+import 'package:zonix/features/utils/user_provider.dart';
 import 'package:image/image.dart' as img;
 import 'package:intl/intl.dart';
 

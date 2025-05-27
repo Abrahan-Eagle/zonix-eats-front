@@ -1,12 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:zonix_eats/features/DomainProfiles/Documents/api/document_service.dart';
-import 'package:zonix_eats/features/DomainProfiles/Documents/widgets/mobile_scanner_xz.dart';
+import 'package:zonix/features/DomainProfiles/Documents/api/document_service.dart';
+import 'package:zonix/features/DomainProfiles/Documents/widgets/mobile_scanner_xz.dart';
 import '../models/document.dart';
 import 'package:flutter/services.dart'; // Importar para usar FilteringTextInputFormatter
 import 'package:logger/logger.dart';
 import 'package:image/image.dart' as img; // Importar el paquete de imagen
-import 'package:zonix_eats/features/utils/user_provider.dart';
+import 'package:zonix/features/utils/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
 import 'package:flutter/scheduler.dart';

@@ -1,6 +1,6 @@
   import 'package:flutter/material.dart';
   import 'package:flutter_svg/flutter_svg.dart';
-  import 'package:zonix_eats/features/GasTicket/gas_button/api/gas_ticket_service.dart';
+  import 'package:zonix/features/GasTicket/gas_button/api/gas_ticket_service.dart';
 
   class CreateGasTicketScreen extends StatefulWidget {
     final int userId;

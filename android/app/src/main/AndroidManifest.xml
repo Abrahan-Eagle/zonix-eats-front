@@ -29,7 +29,7 @@
 
     <application
         android:usesCleartextTraffic="true"
-        android:label="EatsZonix"
+        android:label="zonix"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true">

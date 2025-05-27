@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix_eats/features/DomainProfiles/Emails/screens/create_email_screen.dart';
-import 'package:zonix_eats/features/DomainProfiles/Phones/screens/create_phone_screen.dart';
-import 'package:zonix_eats/features/utils/user_provider.dart';
+import 'package:zonix/features/DomainProfiles/Emails/screens/create_email_screen.dart';
+import 'package:zonix/features/DomainProfiles/Phones/screens/create_phone_screen.dart';
+import 'package:zonix/features/utils/user_provider.dart';
 
 class OnboardingPage2x extends StatelessWidget {
   const OnboardingPage2x({super.key});
