@@ -17,12 +17,7 @@ final String baseUrl = const bool.fromEnvironment('dart.vm.product')
 
 class UserProvider with ChangeNotifier {
   bool _isAuthenticated = false;
-  bool _profileCreated = false;
-  bool _adresseCreated = false;
-  bool _documentCreated = false;
-  bool _gasCylindersCreated = false;
-  bool _phoneCreated = false;
-  bool _emailCreated = false;
+
 
   String _userName = '';
   String _userEmail = '';
@@ -35,12 +30,6 @@ class UserProvider with ChangeNotifier {
 
   // Getters para obtener la información del usuario
   bool get isAuthenticated => _isAuthenticated;
-  bool get profileCreated => _profileCreated;
-  bool get adresseCreated => _adresseCreated;
-  bool get documentCreated => _documentCreated;
-  bool get gasCylindersCreated => _gasCylindersCreated;
-  bool get phoneCreated => _phoneCreated;
-  bool get emailCreated => _emailCreated;
   String get userName => _userName;
   String get userEmail => _userEmail;
   String get userPhotoUrl => _userPhotoUrl;
@@ -50,44 +39,6 @@ class UserProvider with ChangeNotifier {
   
 
   
-  // Setter para actualizar el estado de creación de perfil
-  void setProfileCreated(bool value) {
-    _profileCreated = value;
-    _storage.write(key: 'profileCreated', value: value.toString()); // Guarda en almacenamiento seguro
-    notifyListeners();
-  }
-
-  // Setter para actualizar el estado de creación de perfil
-  void setAdresseCreated(bool value) {
-    _adresseCreated = value;
-    _storage.write(key: 'adresseCreated', value: value.toString()); // Guarda en almacenamiento seguro
-    notifyListeners();
-  }
-
-   void setDocumentCreated(bool value) {
-    _documentCreated = value;
-    _storage.write(key: 'documentCreated', value: value.toString()); // Guarda en almacenamiento seguro
-    notifyListeners();
-  }
-
-    void setGasCylindersCreated(bool value) {
-    _gasCylindersCreated = value;
-    _storage.write(key: 'gasCylindersCreated', value: value.toString()); // Guarda en almacenamiento seguro
-    notifyListeners();
-  }
-
-
-  void setPhoneCreated(bool value) {
-    _phoneCreated = value;
-    _storage.write(key: 'phoneCreated', value: value.toString()); // Guarda en almacenamiento seguro
-    notifyListeners();
-  }
-
-    void setEmailCreated(bool value) {
-    _emailCreated = value;
-    _storage.write(key: 'emailCreated', value: value.toString()); // Guarda en almacenamiento seguro
-    notifyListeners();
-  }
 
   // Verifica si el usuario está autenticado y carga los datos si es necesario
   Future<void> checkAuthentication() async {
@@ -115,12 +66,6 @@ Future<void> _loadUserData() async {
     _role = await AuthUtils.getUserRole() ?? '';
     _userId = await AuthUtils.getUserId() ?? 0; // Carga el ID del usuario
     _userGoogleId = await AuthUtils.getUserGoogleId() ?? ''; // Carga el ID del usuario
-    _profileCreated = (await _storage.read(key: 'profileCreated')) == 'true';
-    _adresseCreated = (await _storage.read(key: 'adresseCreated')) == 'true';
-    _documentCreated = (await _storage.read(key: 'documentCreated')) == 'true';
-    _gasCylindersCreated = (await _storage.read(key: 'gasCylindersCreated')) == 'true';
-    _phoneCreated = (await _storage.read(key: 'phoneCreated')) == 'true';
-    _emailCreated = (await _storage.read(key: 'emailCreated')) == 'true';
   } catch (e) {
     debugPrint('Error al cargar datos del usuario: $e');
   }
@@ -210,12 +155,6 @@ Future<Map<String, dynamic>> getUserDetails() async {
   // Limpia la información del usuario
    Future<void> _clearUserData() async {
     _isAuthenticated = false;
-    _profileCreated = false;
-    _adresseCreated = false;
-    _documentCreated = false;
-    _gasCylindersCreated = false;
-    _phoneCreated = false;
-    _emailCreated = false;
     _userName = '';
     _userEmail = '';
     _userPhotoUrl = '';
@@ -223,12 +162,7 @@ Future<Map<String, dynamic>> getUserDetails() async {
     _userGoogleId  = '';
 
     // Limpia en el almacenamiento seguro
-    await _storage.delete(key: 'profileCreated');
-    await _storage.delete(key: 'adresseCreated');
-    await _storage.delete(key: 'documentCreated');
-    await _storage.delete(key: 'gasCylindersCreated');
-    await _storage.delete(key: 'phoneCreated');
-    await _storage.delete(key: 'emailCreated');
+    
     await _storage.delete(key: 'token');
   }
 }

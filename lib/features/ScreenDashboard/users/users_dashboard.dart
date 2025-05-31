@@ -8,7 +8,7 @@ import 'package:zonix/features/screens/profile_page.dart';
 import 'package:zonix/features/screens/settings_page_2.dart';
 import 'package:zonix/features/screens/sign_in_screen.dart';
 import 'package:zonix/features/GasTicket/another_button/screens/other_screen.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
+// import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final logger = Logger();
@@ -39,7 +39,7 @@ class UsersDashboardState extends State<UsersDashboard> {
       if (id == null || id is! int) {
         throw Exception('El ID del usuario es inválido: $id');
       }
-      _profile = await ProfileService().getProfileById(id);
+      // _profile = await ProfileService().getProfileById(id);
       setState(() {});
     } catch (e) {
       logger.e('Error obteniendo el ID del usuario: $e');

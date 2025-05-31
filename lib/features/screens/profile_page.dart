@@ -40,7 +40,7 @@ Future<void> _initializeData() async {
   void initState() {
     super.initState();
     _initializeData();
-    _checkAuthentication();
+   
   }
 
   Future<void> _checkAuthentication() async {

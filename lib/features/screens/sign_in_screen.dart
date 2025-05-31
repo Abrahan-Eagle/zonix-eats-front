@@ -6,7 +6,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:zonix/features/utils/auth_utils.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_button/sign_in_button.dart';
-import 'package:zonix/features/screens/onboarding/pages_onboardingx/onboarding_screen.dart';
+import 'package:zonix/features/screens/onboarding/onboarding_screen.dart';
 import 'package:zonix/features/ScreenDashboard/users/users_dashboard.dart';
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();

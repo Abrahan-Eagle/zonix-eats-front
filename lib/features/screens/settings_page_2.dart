@@ -3,17 +3,17 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix/features/DomainProfiles/Documents/screens/document_list_screen.dart';
-import 'package:zonix/features/DomainProfiles/Emails/screens/email_list_screen.dart';
-import 'package:zonix/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
+// import 'package:zonix/features/DomainProfiles/Documents/screens/document_list_screen.dart';
+// import 'package:zonix/features/DomainProfiles/Emails/screens/email_list_screen.dart';
+// import 'package:zonix/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
 import 'package:zonix/features/utils/user_provider.dart';
-import 'package:zonix/features/DomainProfiles/GasCylinder/screens/gas_cylinder_list_screen.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/screens/profile_page.dart';
+// import 'package:zonix/features/DomainProfiles/GasCylinder/screens/gas_cylinder_list_screen.dart';
+// import 'package:zonix/features/DomainProfiles/Profiles/screens/profile_page.dart';
 import 'package:zonix/features/screens/sign_in_screen.dart';
-import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_list_screen.dart';
+// import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_list_screen.dart';
 import 'package:zonix/features/screens/about/about_page.dart';
 import 'package:zonix/features/screens/HelpAndFAQPage/help_and_faq_page.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
+// import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 
 // Configuración del logger
 final logger = Logger();
@@ -56,7 +56,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
 
         _email = userDetails['users']['email'];
         // Obtén el perfil usando el ID del usuario
-        _profile = await ProfileService().getProfileById(id);
+        // _profile = await ProfileService().getProfileById(id);
             
         setState(() {});
       } catch (e) {
@@ -159,126 +159,126 @@ Widget build(BuildContext context) {
               ),
               const SizedBox(height: 16),
               // Sección de Configuración General
-              Material(
-                color: Colors.transparent,
-                elevation: 2,
-                child: Container(
-                  width: MediaQuery.sizeOf(context).width,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.background,
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Configuración General",
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      ...[
-                        {
-                          "title": "Perfil",
-                          "icon": Icons.person_outline_rounded,
-                          "onTap": () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ProfilePagex(userId: userProvider.userId),
-                              ),
-                            );
-                          },
-                        },
-                        {
-                          "title": "Documentos",
-                          "icon": Icons.folder_outlined,
-                          "onTap": () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    DocumentListScreen(userId: userProvider.userId),
-                              ),
-                            );
-                          },
-                        },
-                        {
-                          "title": "Dirección",
-                          "icon": Icons.location_on_outlined,
-                          "onTap": () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    AddressPage(userId: userProvider.userId),
-                              ),
-                            );
-                          },
-                        },
-                        {
-                          "title": "Bombonas de gas",
-                          "icon": Icons.local_gas_station_outlined,
-                          "onTap": () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    GasCylinderListScreen(userId: userProvider.userId),
-                              ),
-                            );
-                          },
-                        },
-                        {
-                          "title": "Teléfonos",
-                          "icon": Icons.phone_outlined,
-                          "onTap": () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    PhoneScreen(userId: userProvider.userId),
-                              ),
-                            );
-                          },
-                        },
-                        {
-                          "title": "Correos electrónicos",
-                          "icon": Icons.email_outlined,
-                          "onTap": () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    EmailListScreen(userId: userProvider.userId),
-                              ),
-                            );
-                          },
-                        },
-                      ].map((item) {
-                        return ListTile(
-                          leading: Icon(
-                            item["icon"] as IconData,
-                            color: theme.colorScheme.primary,
-                          ),
-                          title: Text(
-                            item["title"] as String,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                          onTap: item["onTap"] as GestureTapCallback?,
-                        );
-                      }),
-                    ],
-                  ),
-                ),
-              ),
+              // Material(
+              //   color: Colors.transparent,
+              //   elevation: 2,
+              //   child: Container(
+              //     width: MediaQuery.sizeOf(context).width,
+              //     decoration: BoxDecoration(
+              //       color: theme.colorScheme.background,
+              //       borderRadius: BorderRadius.circular(8.0),
+              //     ),
+              //     padding: const EdgeInsets.all(16.0),
+              //     child: Column(
+              //       crossAxisAlignment: CrossAxisAlignment.start,
+              //       children: [
+              //         Text(
+              //           "Configuración General",
+              //           style: theme.textTheme.titleMedium?.copyWith(
+              //             color: theme.colorScheme.primary,
+              //             fontWeight: FontWeight.bold,
+              //           ),
+              //         ),
+              //         const SizedBox(height: 16),
+              //         ...[
+              //           {
+              //             "title": "Perfil",
+              //             "icon": Icons.person_outline_rounded,
+              //             "onTap": () {
+              //               Navigator.push(
+              //                 context,
+              //                 MaterialPageRoute(
+              //                   builder: (context) =>
+              //                       ProfilePagex(userId: userProvider.userId),
+              //                 ),
+              //               );
+              //             },
+              //           },
+              //           {
+              //             "title": "Documentos",
+              //             "icon": Icons.folder_outlined,
+              //             "onTap": () {
+              //               Navigator.push(
+              //                 context,
+              //                 MaterialPageRoute(
+              //                   builder: (context) =>
+              //                       DocumentListScreen(userId: userProvider.userId),
+              //                 ),
+              //               );
+              //             },
+              //           },
+              //           {
+              //             "title": "Dirección",
+              //             "icon": Icons.location_on_outlined,
+              //             "onTap": () {
+              //               Navigator.push(
+              //                 context,
+              //                 MaterialPageRoute(
+              //                   builder: (context) =>
+              //                       AddressPage(userId: userProvider.userId),
+              //                 ),
+              //               );
+              //             },
+              //           },
+              //           {
+              //             "title": "Bombonas de gas",
+              //             "icon": Icons.local_gas_station_outlined,
+              //             "onTap": () {
+              //               Navigator.push(
+              //                 context,
+              //                 MaterialPageRoute(
+              //                   builder: (context) =>
+              //                       GasCylinderListScreen(userId: userProvider.userId),
+              //                 ),
+              //               );
+              //             },
+              //           },
+              //           {
+              //             "title": "Teléfonos",
+              //             "icon": Icons.phone_outlined,
+              //             "onTap": () {
+              //               Navigator.push(
+              //                 context,
+              //                 MaterialPageRoute(
+              //                   builder: (context) =>
+              //                       PhoneScreen(userId: userProvider.userId),
+              //                 ),
+              //               );
+              //             },
+              //           },
+              //           {
+              //             "title": "Correos electrónicos",
+              //             "icon": Icons.email_outlined,
+              //             "onTap": () {
+              //               Navigator.push(
+              //                 context,
+              //                 MaterialPageRoute(
+              //                   builder: (context) =>
+              //                       EmailListScreen(userId: userProvider.userId),
+              //                 ),
+              //               );
+              //             },
+              //           },
+              //         ].map((item) {
+              //           return ListTile(
+              //             leading: Icon(
+              //               item["icon"] as IconData,
+              //               color: theme.colorScheme.primary,
+              //             ),
+              //             title: Text(
+              //               item["title"] as String,
+              //               style: theme.textTheme.bodyMedium?.copyWith(
+              //                 fontWeight: FontWeight.bold,
+              //               ),
+              //             ),
+              //             trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+              //             onTap: item["onTap"] as GestureTapCallback?,
+              //           );
+              //         }),
+              //       ],
+              //     ),
+              //   ),
+              // ),
               const SizedBox(height: 16),
               // Sección de Administración y Seguridad
               Material(
