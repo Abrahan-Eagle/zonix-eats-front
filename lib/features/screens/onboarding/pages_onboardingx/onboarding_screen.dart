@@ -62,6 +62,14 @@ class OnboardingScreenState extends State<OnboardingScreen> {
       child: Scaffold(
         body: PageView(
           controller: _controller,
+          
+          onPageChanged: (index) {
+            setState(() {
+              _currentPage = index;
+            });
+          },
+
+
           // onPageChanged: (index) {
           //   // Si el usuario intenta deslizarse más allá de OnboardingPage2 y no tiene un perfil creado, se lo regresa.
           //   if (index > 2 && !userProvider.profileCreated) {
@@ -77,20 +85,26 @@ class OnboardingScreenState extends State<OnboardingScreen> {
           //     });
           //   }
           // },
-          onPageChanged: (index) {
-            if (index > 2 && !userProvider.profileCreated) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Por favor, crea tu perfil antes de continuar.'),
-                ),
-              );
-              _controller.jumpToPage(2);
-            } else {
-              setState(() {
-                _currentPage = index;
-              });
-            }
-          },
+          
+          
+          
+          //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX      
+          // onPageChanged: (index) {
+          //   if (index > 2 && !userProvider.profileCreated) {
+          //     ScaffoldMessenger.of(context).showSnackBar(
+          //       const SnackBar(
+          //         content: Text('Por favor, crea tu perfil antes de continuar.'),
+          //       ),
+          //     );
+          //     _controller.jumpToPage(2);
+          //   } else {
+          //     setState(() {
+          //       _currentPage = index;
+          //     });
+          //   }
+          // },
+
+          
 
           children: onboardingPages,
         ),
@@ -108,14 +122,14 @@ class OnboardingScreenState extends State<OnboardingScreen> {
               ElevatedButton(
                 onPressed: () async {
                   // Bloqueo del avance en OnboardingPage2 si el perfil no está creado
-                  if (_currentPage == 2 && !userProvider.profileCreated) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Por favor, crea tu perfil antes de continuar.'),
-                      ),
-                    );
-                    return;
-                  }
+                  // if (_currentPage == 2 && !userProvider.profileCreated) {
+                  //   ScaffoldMessenger.of(context).showSnackBar(
+                  //     const SnackBar(
+                  //       content: Text('Por favor, crea tu perfil antes de continuar.'),
+                  //     ),
+                  //   );
+                  //   return;
+                  // }
 
                   if (_currentPage == onboardingPages.length - 1) {
                     // Completar el onboarding si estamos en la última página
