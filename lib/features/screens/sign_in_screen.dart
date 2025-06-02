@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
+import 'package:zonix/main.dart';
 import 'package:zonix/features/services/auth/google_sign_in_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:zonix/features/utils/auth_utils.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_button/sign_in_button.dart';
-import 'package:zonix/features/screens/onboarding/onboarding_screen.dart';
-import 'package:zonix/features/ScreenDashboard/users/users_dashboard.dart';
+import 'package:zonix/features/screens/onboarding/pages_onboardingx/onboarding_screen.dart';
+
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
@@ -84,7 +85,7 @@ class SignInScreenState extends State<SignInScreen> {
       } else {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const UsersDashboard()),
+          MaterialPageRoute(builder: (context) => const MainRouter()),
         );
       }
     } else {
