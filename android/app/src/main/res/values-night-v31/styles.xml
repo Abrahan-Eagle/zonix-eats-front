@@ -6,10 +6,10 @@
         <item name="android:windowFullscreen">true</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
         <item name="android:windowLayoutInDisplayCutoutMode">shortEdges</item>
-        <item name="android:windowSplashScreenBackground">#0a0a0a</item>
+        <item name="android:windowSplashScreenBackground">#ff6100</item>
         <item name="android:windowSplashScreenBrandingImage">@drawable/android12branding</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/android12splash</item>
-        <item name="android:windowSplashScreenIconBackgroundColor">#0a0a0a</item>
+        <item name="android:windowSplashScreenIconBackgroundColor">#ff6100</item>
     </style>
     <!-- Theme applied to the Android Window as soon as the process has started.
          This theme determines the color of the Android Window while your
