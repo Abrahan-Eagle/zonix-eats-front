@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:logger/logger.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
 import 'package:zonix/main.dart';
@@ -248,62 +249,116 @@ class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixi
     );
   }
 
-  Widget _buildMinimalHeader(bool isSmallScreen) {
-    return Container(
-      padding: EdgeInsets.symmetric(vertical: isSmallScreen ? 8 : 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            '16:24',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: isSmallScreen ? 14 : 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          // Container(
-          //   padding: EdgeInsets.symmetric(
-          //     horizontal: isSmallScreen ? 8 : 12, 
-          //     vertical: isSmallScreen ? 4 : 6),
-          //   decoration: BoxDecoration(
-          //     color: const Color(0xFFFFC93C).withOpacity(0.2),
-          //     borderRadius: BorderRadius.circular(20),
-          //   ),
-          //   child: Text(
-          //     'FOOD APP',
-          //     style: TextStyle(
-          //       color: const Color(0xFFFFC93C),
-          //       fontSize: isSmallScreen ? 10 : 12,
-          //       fontWeight: FontWeight.w700,
-          //       letterSpacing: 1,
-          //     ),
-          //   ),
-          // ),
 
 
-          Container(
-  padding: EdgeInsets.symmetric(
-    horizontal: isSmallScreen ? 8 : 12, 
-    vertical: isSmallScreen ? 4 : 6,
-  ),
-  decoration: BoxDecoration(
-    // color: const Color(0xFFFFC93C).withOpacity(0.2),
- color: const Color(0xFFFF6B35),
 
-    borderRadius: BorderRadius.circular(20),
-  ),
-  child: Image.asset(
-    'assets/images/dart_dark-android.png', // Reemplaza con la ruta de tu imagen
-    width: isSmallScreen ? 80 : 100,   // Ajusta el ancho según necesites
-    height: isSmallScreen ? 30 : 40,   // Ajusta el alto según necesites
-    fit: BoxFit.contain,               // Para mantener la proporción
+
+
+
+
+
+// Widget _buildMinimalHeader(bool isSmallScreen) {
+//   return Row(
+//     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//     crossAxisAlignment: CrossAxisAlignment.center,
+//     children: [
+//       // Hora
+//       Text(
+//         '16:24',
+//         style: TextStyle(
+//           color: Colors.white,
+//           fontSize: isSmallScreen ? 14 : 16,
+//           fontWeight: FontWeight.w500,
+//         ),
+//       ),
+      
+//       // Logo
+//       Image.asset(
+//         'assets/images/logo_login.png',
+//         width: isSmallScreen ? 100 : 100,
+//         height: isSmallScreen ? 100 : 100,
+//         fit: BoxFit.contain,
+//       ),
+//     ],
+//   );
+// }
+
+
+// Widget _buildMinimalHeader(bool isSmallScreen) {
+//   return Row(
+//     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//     crossAxisAlignment: CrossAxisAlignment.center,
+//     children: [
+//       Text(
+//         '16:24',
+//         style: TextStyle(
+//           color: Colors.white,
+//           fontSize: isSmallScreen ? 14 : 16,
+//           fontWeight: FontWeight.w500,
+//         ),
+//       ),
+      
+//       Transform.translate(
+//         offset: Offset(0, -15), // Ajusta este número: más negativo = más arriba
+//         child: Image.asset(
+//           'assets/images/logo_login.png',
+//           width: isSmallScreen ? 90 : 90,
+//           height: isSmallScreen ? 90 : 90,
+//           fit: BoxFit.contain,
+//         ),
+//       ),
+//     ],
+//   );
+// }
+
+
+Widget _buildMinimalHeader(bool isSmallScreen) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    crossAxisAlignment: CrossAxisAlignment.center,
+    children: [
+      
+      
+      Transform.translate(
+  offset: const Offset(0, -25), // Ajusta este valor
+  child: Text(
+    TimeOfDay.now().format(context),
+    style: TextStyle(
+      color: Colors.white,
+      fontSize: isSmallScreen ? 14 : 16,
+      fontWeight: FontWeight.w500,
+    ),
   ),
 ),
-        ],
+      
+      Transform.translate(
+        offset: const Offset(0, -25),
+        child: Image.asset(
+          'assets/images/logo_login.png',
+          width: isSmallScreen ? 90 : 90,
+          height: isSmallScreen ? 90 : 90,
+          fit: BoxFit.contain,
+        ),
       ),
-    );
-  }
+    ],
+  );
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   Widget _buildCentralCircle(double screenWidth, bool isSmallScreen, bool isLargeScreen, bool isVerySmallScreen) {
     return Center(
@@ -327,27 +382,28 @@ ScaleTransition(
         : isLargeScreen 
             ? screenWidth * 0.3 
             : screenWidth * 0.5,
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      color: const Color(0xFFFF6B35),
-      boxShadow: [
-        BoxShadow(
-          color: const Color(0xFFFF6B35).withOpacity(0.4),
-          blurRadius: 40,
-          spreadRadius: 10,
-        ),
-      ],
-    ),
+    // decoration: BoxDecoration(
+    //   shape: BoxShape.circle,
+    //   color: const Color(0xFFFF6B35),
+    //   boxShadow: [
+    //     BoxShadow(
+    //       color: const Color(0xFFFF6B35).withOpacity(0.4),
+    //       blurRadius: 40,
+    //       spreadRadius: 10,
+    //     ),
+    //   ],
+    // ),
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Logo principal (ahora más grande)
-        Image.asset(
-          'assets/images/logo_login.png',
-          width: isSmallScreen ? 400 : 480,
-          height: isSmallScreen ? 145 : 175,
-          fit: BoxFit.contain,
-        ),
+       Image.asset(
+  'assets/images/logo_login2.png',
+ width: isSmallScreen ? 600 : 700,
+  height: isSmallScreen ? 219 : 256,
+  fit: BoxFit.contain,
+),
+
       ],
     ),
   ),
