@@ -108,6 +108,8 @@ flutter_launcher_icons:
 flutter:
   uses-material-design: true
   assets:
+    - assets/images/logo_login.png
+    - assets/images/dart_dark-android.png
     - assets/images/splash_logo.png
     - assets/images/splash_logo_dark.png
     - assets/images/undraw_launching_szjw.png
