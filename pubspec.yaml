@@ -108,6 +108,9 @@ flutter_launcher_icons:
 flutter:
   uses-material-design: true
   assets:
+    - assets/onboarding/onboarding_eats.png
+    - assets/onboarding/onboarding_eats2.png
+    - assets/onboarding/onboarding_eats_familia.png
     - assets/images/logo_login.png
     - assets/images/logo_login2.png
     - assets/images/dart_dark-android.png

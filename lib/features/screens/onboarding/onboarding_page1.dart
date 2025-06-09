@@ -45,7 +45,7 @@ class _OnboardingPage1State extends State<OnboardingPage1>
     final isSmallPhone = size.width < 360;
     
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: const Color(0xFFFF6B35),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -70,10 +70,10 @@ class _OnboardingPage1State extends State<OnboardingPage1>
                             child: Column(
                               children: [
                                 // Header con logo
-                                _buildHeader(isTablet, isSmallPhone),
+                                // _buildHeader(isTablet, isSmallPhone),
                                 
                                 // Espaciador flexible
-                                const Flexible(flex: 1, child: SizedBox()),
+                                // const Flexible(flex: 1, child: SizedBox()),
                                 
                                 // Ilustración principal
                                 _buildMainIllustration(size, isTablet, isSmallPhone),
@@ -111,130 +111,139 @@ class _OnboardingPage1State extends State<OnboardingPage1>
     );
   }
 
-  Widget _buildHeader(bool isTablet, bool isSmallPhone) {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: isTablet ? 20 : (isSmallPhone ? 12 : 16)),
-      child: Text(
-        'FoodZone',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: isTablet ? 32 : (isSmallPhone ? 22 : 26),
-          fontWeight: FontWeight.bold,
-          color: const Color(0xFFE74C3C),
-          letterSpacing: 1.2,
-        ),
-      ),
-    );
-  }
+  // Widget _buildHeader(bool isTablet, bool isSmallPhone) {
+  //   return Container(
+  //     width: double.infinity,
+  //     padding: EdgeInsets.symmetric(vertical: isTablet ? 20 : (isSmallPhone ? 12 : 16)),
+  //     child: Text(
+  //       'FoodZone',
+  //       textAlign: TextAlign.center,
+  //       style: TextStyle(
+  //         fontSize: isTablet ? 32 : (isSmallPhone ? 22 : 26),
+  //         fontWeight: FontWeight.bold,
+  //         color: const Color(0xFFE74C3C),
+  //         letterSpacing: 1.2,
+  //       ),
+  //     ),
+  //   );
+  // }
+
+  // Widget _buildMainIllustration(Size size, bool isTablet, bool isSmallPhone) {
+  //   final illustrationSize = isTablet 
+  //       ? size.width * 0.35 
+  //       : isSmallPhone 
+  //           ? size.width * 0.6 
+  //           : size.width * 0.65;
+    
+  //   return Container(
+  //     width: illustrationSize,
+  //     height: illustrationSize,
+  //     decoration: BoxDecoration(
+  //       color: const Color(0xFFE74C3C),
+  //       borderRadius: BorderRadius.circular(illustrationSize * 0.5),
+  //       boxShadow: [
+  //         BoxShadow(
+  //           color: const Color(0xFFE74C3C).withOpacity(0.25),
+  //           blurRadius: 30,
+  //           offset: const Offset(0, 15),
+  //           spreadRadius: 5,
+  //         ),
+  //       ],
+  //     ),
+  //     child: Stack(
+  //       alignment: Alignment.center,
+  //       children: [
+  //         // Elementos decorativos
+  //         Positioned(
+  //           top: illustrationSize * 0.15,
+  //           right: illustrationSize * 0.15,
+  //           child: Container(
+  //             width: isSmallPhone ? 8 : 12,
+  //             height: isSmallPhone ? 8 : 12,
+  //             decoration: const BoxDecoration(
+  //               color: Colors.white,
+  //               shape: BoxShape.circle,
+  //             ),
+  //           ),
+  //         ),
+  //         Positioned(
+  //           bottom: illustrationSize * 0.25,
+  //           left: illustrationSize * 0.12,
+  //           child: Container(
+  //             width: isSmallPhone ? 6 : 8,
+  //             height: isSmallPhone ? 6 : 8,
+  //             decoration: const BoxDecoration(
+  //               color: Colors.white,
+  //               shape: BoxShape.circle,
+  //             ),
+  //           ),
+  //         ),
+          
+  //         // Icono principal
+  //         Container(
+  //           padding: EdgeInsets.all(isTablet ? 40 : (isSmallPhone ? 25 : 30)),
+  //           decoration: BoxDecoration(
+  //             color: Colors.white.withOpacity(0.2),
+  //             borderRadius: BorderRadius.circular(illustrationSize * 0.25),
+  //           ),
+  //           child: Icon(
+  //             Icons.restaurant_menu,
+  //             size: isTablet ? 100 : (isSmallPhone ? 60 : 75),
+  //             color: Colors.white,
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
+
 
   Widget _buildMainIllustration(Size size, bool isTablet, bool isSmallPhone) {
-    final illustrationSize = isTablet 
-        ? size.width * 0.35 
-        : isSmallPhone 
-            ? size.width * 0.6 
-            : size.width * 0.65;
-    
-    return Container(
-      width: illustrationSize,
-      height: illustrationSize,
-      decoration: BoxDecoration(
-        color: const Color(0xFFE74C3C),
-        borderRadius: BorderRadius.circular(illustrationSize * 0.5),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFE74C3C).withOpacity(0.25),
-            blurRadius: 30,
-            offset: const Offset(0, 15),
-            spreadRadius: 5,
-          ),
-        ],
-      ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Elementos decorativos
-          Positioned(
-            top: illustrationSize * 0.15,
-            right: illustrationSize * 0.15,
-            child: Container(
-              width: isSmallPhone ? 8 : 12,
-              height: isSmallPhone ? 8 : 12,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: illustrationSize * 0.25,
-            left: illustrationSize * 0.12,
-            child: Container(
-              width: isSmallPhone ? 6 : 8,
-              height: isSmallPhone ? 6 : 8,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
-          
-          // Icono principal
-          Container(
-            padding: EdgeInsets.all(isTablet ? 40 : (isSmallPhone ? 25 : 30)),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(illustrationSize * 0.25),
-            ),
-            child: Icon(
-              Icons.restaurant_menu,
-              size: isTablet ? 100 : (isSmallPhone ? 60 : 75),
-              color: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  final imageSize = isTablet
+      ? size.width * 0.35
+      : isSmallPhone
+          ? size.width * 0.6
+          : size.width * 0.65;
+
+  return Image.asset(
+    'assets/onboarding/onboarding_eats.png',
+    width: imageSize,
+    height: imageSize,
+    fit: BoxFit.contain, // Ajusta la imagen sin deformarla
+  );
+}
 
   Widget _buildMainContent(bool isTablet, bool isSmallPhone) {
     return Column(
       children: [
         Text(
-          '¡Bienvenido a FoodZone!',
+          '¡Bienvenido a Zonix Eats!',
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: isTablet ? 36 : (isSmallPhone ? 24 : 28),
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF2C3E50),
+            color: Colors.white, 
             height: 1.2,
           ),
         ),
         
         SizedBox(height: isTablet ? 20 : (isSmallPhone ? 12 : 16)),
         
-        Container(
+            Container(
           padding: EdgeInsets.all(isTablet ? 24 : (isSmallPhone ? 16 : 20)),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Colors.white.withOpacity(0.15), // Fondo semitransparente
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: const Color(0xFFE8E8E8),
+              color: Colors.white.withOpacity(0.3),
               width: 1,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 5),
-              ),
-            ],
           ),
           child: Text(
             'Tu comida favorita a un toque de distancia. Descubre sabores increíbles, entrega rápida y la mejor experiencia culinaria.',
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: const Color(0xFF7F8C8D),
+              color: Colors.white, // Texto blanco
               fontSize: isTablet ? 18 : (isSmallPhone ? 13 : 15),
               height: 1.5,
               fontWeight: FontWeight.w400,
@@ -245,42 +254,75 @@ class _OnboardingPage1State extends State<OnboardingPage1>
     );
   }
 
-  Widget _buildFeatures(bool isTablet, bool isSmallPhone) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  // Widget _buildFeatures(bool isTablet, bool isSmallPhone) {
+  //   return Row(
+  //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //     children: [
+  //       Flexible(
+  //         child: _buildFeatureIcon(
+  //           Icons.flash_on,
+  //           'Rápido',
+  //           const Color(0xFFF39C12),
+  //           isTablet,
+  //           isSmallPhone,
+  //         ),
+  //       ),
+  //       SizedBox(width: isSmallPhone ? 8 : 16),
+  //       Flexible(
+  //         child: _buildFeatureIcon(
+  //           Icons.favorite,
+  //           'Delicioso',
+  //           const Color(0xFFE74C3C),
+  //           isTablet,
+  //           isSmallPhone,
+  //         ),
+  //       ),
+  //       SizedBox(width: isSmallPhone ? 8 : 16),
+  //       Flexible(
+  //         child: _buildFeatureIcon(
+  //           Icons.shield_outlined,
+  //           'Seguro',
+  //           const Color(0xFF27AE60),
+  //           isTablet,
+  //           isSmallPhone,
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
+
+Widget _buildFeatures(bool isTablet, bool isSmallPhone) {
+    return Wrap(
+      spacing: isTablet ? 32 : (isSmallPhone ? 24 : 28), // Aumenté el espacio horizontal
+      runSpacing: isTablet ? 24 : (isSmallPhone ? 16 : 20), // Aumenté el espacio vertical
+      alignment: WrapAlignment.center,
       children: [
-        Flexible(
-          child: _buildFeatureIcon(
-            Icons.flash_on,
-            'Rápido',
-            const Color(0xFFF39C12),
-            isTablet,
-            isSmallPhone,
-          ),
+        _buildFeatureIcon(
+          Icons.flash_on,
+          'Rápido',
+          Colors.white,
+          isTablet,
+          isSmallPhone,
         ),
-        SizedBox(width: isSmallPhone ? 8 : 16),
-        Flexible(
-          child: _buildFeatureIcon(
-            Icons.favorite,
-            'Delicioso',
-            const Color(0xFFE74C3C),
-            isTablet,
-            isSmallPhone,
-          ),
+        _buildFeatureIcon(
+          Icons.favorite,
+          'Delicioso',
+          Colors.white,
+          isTablet,
+          isSmallPhone,
         ),
-        SizedBox(width: isSmallPhone ? 8 : 16),
-        Flexible(
-          child: _buildFeatureIcon(
-            Icons.shield_outlined,
-            'Seguro',
-            const Color(0xFF27AE60),
-            isTablet,
-            isSmallPhone,
-          ),
+        _buildFeatureIcon(
+          Icons.shield_outlined,
+          'Seguro',
+          Colors.white,
+          isTablet,
+          isSmallPhone,
         ),
       ],
     );
   }
+
+
 
   Widget _buildFeatureIcon(IconData icon, String label, Color color, bool isTablet, bool isSmallPhone) {
     return Column(
@@ -306,7 +348,7 @@ class _OnboardingPage1State extends State<OnboardingPage1>
         Text(
           label,
           style: TextStyle(
-            color: const Color(0xFF2C3E50),
+            color: Colors.white, 
             fontSize: isTablet ? 14 : (isSmallPhone ? 10 : 12),
             fontWeight: FontWeight.w600,
           ),

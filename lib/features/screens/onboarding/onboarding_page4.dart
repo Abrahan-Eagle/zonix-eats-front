@@ -15,9 +15,9 @@ class OnboardingPage4 extends StatelessWidget {
             begin: Alignment.bottomLeft,
             end: Alignment.topRight,
             colors: [
-              Color(0xFFFF9A8B), // Rosa coral
-              Color(0xFFFECDA3), // Melocotón
-              Color(0xFFFDA085), // Naranja suave
+             Color(0xFF1B365D),
+             Color(0xFF2E86C1),
+             Color(0xFF5DADE2),
             ],
           ),
         ),
@@ -36,102 +36,115 @@ class OnboardingPage4 extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SizedBox(height: screenHeight * 0.02),
-                    
-                    // Ilustración animada de delivery
+
+                  // Imagen de delivery
                     Container(
                       height: screenHeight * 0.28,
                       width: double.infinity,
-                      child: Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          // Círculos de fondo animados
-                          Positioned(
-                            top: screenHeight * 0.04,
-                            left: screenWidth * 0.08,
-                            child: Container(
-                              width: screenWidth * 0.15,
-                              height: screenWidth * 0.15,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(screenWidth * 0.075),
-                              ),
-                            ),
-                          ),
-                          Positioned(
-                            bottom: screenHeight * 0.05,
-                            right: screenWidth * 0.1,
-                            child: Container(
-                              width: screenWidth * 0.1,
-                              height: screenWidth * 0.1,
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.15),
-                                borderRadius: BorderRadius.circular(screenWidth * 0.05),
-                              ),
-                            ),
-                          ),
-                          
-                          // Delivery rider
-                          Container(
-                            padding: EdgeInsets.all(screenWidth * 0.08),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(100),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
-                                width: 2,
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.two_wheeler,
-                                  size: screenWidth * 0.2,
-                                  color: Colors.white,
-                                ),
-                                SizedBox(height: screenHeight * 0.01),
-                                Container(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: screenWidth * 0.03,
-                                    vertical: screenHeight * 0.008,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(15),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withOpacity(0.1),
-                                        blurRadius: 5,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(
-                                        Icons.timer,
-                                        size: screenWidth * 0.04,
-                                        color: const Color(0xFFFF6B6B),
-                                      ),
-                                      SizedBox(width: screenWidth * 0.01),
-                                      Text(
-                                        '15-30 min',
-                                        style: TextStyle(
-                                          color: const Color(0xFFFF6B6B),
-                                          fontSize: screenWidth * 0.03,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                      child: Center(
+                        child: Image.asset(
+                          'assets/onboarding/onboarding_eats2.png',
+                          width: screenWidth * 0.8,  // Ajusta el ancho según necesites
+                          fit: BoxFit.contain,       // Mantiene la relación de aspecto
+                        ),
                       ),
                     ),
+
+                    // // Ilustración animada de delivery
+                    // Container(
+                    //   height: screenHeight * 0.28,
+                    //   width: double.infinity,
+                    //   child: Stack(
+                    //     alignment: Alignment.center,
+                    //     children: [
+                    //       // Círculos de fondo animados
+                    //       Positioned(
+                    //         top: screenHeight * 0.04,
+                    //         left: screenWidth * 0.08,
+                    //         child: Container(
+                    //           width: screenWidth * 0.15,
+                    //           height: screenWidth * 0.15,
+                    //           decoration: BoxDecoration(
+                    //             color: Colors.white.withOpacity(0.2),
+                    //             borderRadius: BorderRadius.circular(screenWidth * 0.075),
+                    //           ),
+                    //         ),
+                    //       ),
+                    //       Positioned(
+                    //         bottom: screenHeight * 0.05,
+                    //         right: screenWidth * 0.1,
+                    //         child: Container(
+                    //           width: screenWidth * 0.1,
+                    //           height: screenWidth * 0.1,
+                    //           decoration: BoxDecoration(
+                    //             color: Colors.white.withOpacity(0.15),
+                    //             borderRadius: BorderRadius.circular(screenWidth * 0.05),
+                    //           ),
+                    //         ),
+                    //       ),
+                          
+                    //       // Delivery rider
+                    //       Container(
+                    //         padding: EdgeInsets.all(screenWidth * 0.08),
+                    //         decoration: BoxDecoration(
+                    //           color: Colors.white.withOpacity(0.2),
+                    //           borderRadius: BorderRadius.circular(100),
+                    //           border: Border.all(
+                    //             color: Colors.white.withOpacity(0.3),
+                    //             width: 2,
+                    //           ),
+                    //         ),
+                    //         child: Column(
+                    //           mainAxisSize: MainAxisSize.min,
+                    //           children: [
+                    //             Icon(
+                    //               Icons.two_wheeler,
+                    //               size: screenWidth * 0.2,
+                    //               color: Colors.white,
+                    //             ),
+                    //             SizedBox(height: screenHeight * 0.01),
+                    //             Container(
+                    //               padding: EdgeInsets.symmetric(
+                    //                 horizontal: screenWidth * 0.03,
+                    //                 vertical: screenHeight * 0.008,
+                    //               ),
+                    //               decoration: BoxDecoration(
+                    //                 color: Colors.white,
+                    //                 borderRadius: BorderRadius.circular(15),
+                    //                 boxShadow: [
+                    //                   BoxShadow(
+                    //                     color: Colors.black.withOpacity(0.1),
+                    //                     blurRadius: 5,
+                    //                     offset: const Offset(0, 2),
+                    //                   ),
+                    //                 ],
+                    //               ),
+                    //               child: Row(
+                    //                 mainAxisSize: MainAxisSize.min,
+                    //                 children: [
+                    //                   Icon(
+                    //                     Icons.timer,
+                    //                     size: screenWidth * 0.04,
+                    //                     color: const Color(0xFFFF6B6B),
+                    //                   ),
+                    //                   SizedBox(width: screenWidth * 0.01),
+                    //                   Text(
+                    //                     '15-30 min',
+                    //                     style: TextStyle(
+                    //                       color: const Color(0xFFFF6B6B),
+                    //                       fontSize: screenWidth * 0.03,
+                    //                       fontWeight: FontWeight.bold,
+                    //                     ),
+                    //                   ),
+                    //                 ],
+                    //               ),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       ),
+                    //     ],
+                    //   ),
+                    // ),
                     
                     SizedBox(height: screenHeight * 0.04),
                     

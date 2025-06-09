@@ -138,8 +138,11 @@ class OnboardingScreenState extends State<OnboardingScreen> {
                         effect: ExpandingDotsEffect(
                           dotHeight: 6,
                           dotWidth: 6,
-                          activeDotColor: theme.primaryColor,
-                          dotColor: theme.dividerColor,
+                          // activeDotColor: theme.primaryColor,
+                          // dotColor: theme.dividerColor,
+
+                          activeDotColor: Colors.white, // Punto activo blanco
+                        dotColor: Colors.white.withOpacity(0.5), // Puntos inactivos semitransparentes
                           spacing: 8,
                           expansionFactor: 3,
                         ),
@@ -204,30 +207,241 @@ class WelcomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
+    final size = MediaQuery.of(context).size;
+    
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: RadialGradient(
+          center: Alignment.center,
+          radius: 1.2,
+          colors: [
+            Color(0xFF0F172A), // Azul muy oscuro (espacio)
+            Color(0xFF1E293B), // Azul oscuro
+            Color(0xFF334155), // Azul medio
+          ],
+          stops: [0.0, 0.6, 1.0],
+        ),
+      ),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Espaciado superior flexible
+              const Spacer(flex: 1),
+              
+              // Imagen de familia con efecto planetario
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    colors: [
+                      const Color(0xFFF59E0B).withOpacity(0.2), // Naranja suave
+                      const Color(0xFF3B82F6).withOpacity(0.1), // Azul suave
+                      Colors.transparent,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(100),
+                  border: Border.all(
+                    color: const Color(0xFFF59E0B).withOpacity(0.3),
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFF59E0B).withOpacity(0.4),
+                      blurRadius: 30,
+                      spreadRadius: 5,
+                    ),
+                    BoxShadow(
+                      color: const Color(0xFF3B82F6).withOpacity(0.3),
+                      blurRadius: 15,
+                      spreadRadius: -5,
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(80),
+                  child: Image.asset(
+                    'assets/onboarding/onboarding_eats_familia.png',
+                    height: size.height * 0.22,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 40),
+              
+              // Título con temática espacial
+              Column(
+                children: [
+                  Text(
+                    '🪐 Bienvenido al',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      fontWeight: FontWeight.w400,
+                      fontSize: 22,
+                      color: Colors.white.withOpacity(0.8),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  RichText(
+                    textAlign: TextAlign.center,
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: 'Universo ',
+                          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 34,
+                            color: Colors.white,
+                            height: 1.1,
+                          ),
+                        ),
+                        TextSpan(
+                          text: 'ZONIX',
+                          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 34,
+                            color: const Color(0xFFF59E0B), // Naranja del logo
+                            height: 1.1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 24),
+              
+              // Badge espacial
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color(0xFFEF4444), // Rojo
+                      Color(0xFFF59E0B), // Naranja
+                      Color(0xFFFBBF24), // Amarillo
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFF59E0B).withOpacity(0.5),
+                      blurRadius: 15,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: const Text(
+                  '🚀 ¡Comida a la velocidad de la luz!',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black26,
+                        blurRadius: 2,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              
+              const SizedBox(height: 36),
+              
+              // Elementos de trust con temática espacial
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF1E293B).withOpacity(0.8),
+                      const Color(0xFF334155).withOpacity(0.6),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(25),
+                  border: Border.all(
+                    color: const Color(0xFFF59E0B).withOpacity(0.4),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFF59E0B).withOpacity(0.2),
+                      blurRadius: 20,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    _buildTrustElement('🛸', 'Entrega\nUltra Rápida'),
+                    _buildTrustElement('🌟', 'Experiencia\nEstelar'),
+                    _buildTrustElement('🪐', 'Miles de\nSabores'),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 32),
+              
+              // Descripción espacial
+              Text(
+                'Conecta con tu familia a través de la comida 👨‍👩‍👧‍👦\n¡Sabores que unen planetas! 🌍✨',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  color: Colors.white.withOpacity(0.85),
+                  fontSize: 16,
+                  height: 1.5,
+                  fontWeight: FontWeight.w400,
+                ),
+              ),
+              
+              // Espaciado inferior flexible
+              const Spacer(flex: 2),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+  
+  Widget _buildTrustElement(String emoji, String text) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          colors: [
+            const Color(0xFFF59E0B).withOpacity(0.2),
+            Colors.transparent,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: const Color(0xFFF59E0B).withOpacity(0.4),
+          width: 1,
+        ),
+      ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          SvgPicture.asset(
-            'assets/onboarding/welcome_image.svg',
-            height: 200,
-          ),
-          const SizedBox(height: 32),
           Text(
-            '¡Bienvenido a Zonix!',
-            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            emoji,
+            style: const TextStyle(fontSize: 28),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
           Text(
-            'La forma más rápida y segura de gestionar tus bombonas de gas. '
-            'Aquí puedes gestionar tus citas de manera eficiente.',
+            text,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.grey[600],
-                ),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              height: 1.2,
+            ),
           ),
         ],
       ),
