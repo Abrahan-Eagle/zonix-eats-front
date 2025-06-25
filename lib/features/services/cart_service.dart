@@ -27,6 +27,24 @@ class CartService extends ChangeNotifier {
     notifyListeners();
   }
 
+  void decrementQuantity(CartItem product) {
+    final index = _cart.indexWhere((item) => item.id == product.id);
+    if (index != -1) {
+      final current = _cart[index];
+      if (current.quantity > 1) {
+        _cart[index] = CartItem(
+          id: current.id,
+          nombre: current.nombre,
+          precio: current.precio,
+          quantity: current.quantity - 1,
+        );
+      } else {
+        _cart.removeAt(index);
+      }
+      notifyListeners();
+    }
+  }
+
   Future<void> addToRemoteCart(CartItem product) async {
     final headers = await AuthHelper.getAuthHeaders();
     final url = Uri.parse('$_baseUrl/api/buyer/cart/add');

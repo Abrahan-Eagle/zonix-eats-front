@@ -15,58 +15,70 @@ class CartPage extends StatelessWidget {
       appBar: AppBar(title: const Text('Carrito')),
       body: cartItems.isEmpty
           ? const Center(child: Text('El carrito está vacío'))
-          : ListView.builder(
-              itemCount: cartItems.length,
-              itemBuilder: (context, index) {
-                final item = cartItems[index];
-                return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: ListTile(
-                    title: Text(item.nombre),
-                    subtitle: Text('Precio: \\${item.precio ?? '-'}'),
-                    leading: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.remove),
-                          onPressed: () {
-                            if (item.quantity > 1) {
-                              cartService.removeFromCart(CartItem(
-                                id: item.id,
-                                nombre: item.nombre,
-                                precio: item.precio,
-                                quantity: item.quantity - 1,
-                              ));
-                            }
-                          },
+          : Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: cartItems.length,
+                    itemBuilder: (context, index) {
+                      final item = cartItems[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: ListTile(
+                          title: Text(item.nombre),
+                          subtitle: Text('Precio: ₡${item.precio != null ? item.precio!.toStringAsFixed(2) : '-'}'),
+                          leading: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.remove),
+                                onPressed: () {
+                                  cartService.decrementQuantity(item);
+                                },
+                              ),
+                              Text('${item.quantity}'),
+                              IconButton(
+                                icon: const Icon(Icons.add),
+                                onPressed: () {
+                                  cartService.removeFromCart(item);
+                                  cartService.addToCart(CartItem(
+                                    id: item.id,
+                                    nombre: item.nombre,
+                                    precio: item.precio,
+                                    quantity: item.quantity + 1,
+                                  ));
+                                },
+                              ),
+                            ],
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () {
+                              cartService.removeFromCart(item);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Producto eliminado del carrito')),
+                              );
+                            },
+                          ),
                         ),
-                        Text('${item.quantity}'),
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: () {
-                            cartService.removeFromCart(item);
-                            cartService.addToCart(CartItem(
-                              id: item.id,
-                              nombre: item.nombre,
-                              precio: item.precio,
-                              quantity: item.quantity + 1,
-                            ));
-                          },
-                        ),
-                      ],
-                    ),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () {
-                        cartService.removeFromCart(item);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Producto eliminado del carrito')),
-                        );
-                      },
-                    ),
+                      );
+                    },
                   ),
-                );
-              },
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const Text('Total: ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      Text(
+                        '₡${cartItems.fold<double>(0, (sum, item) => sum + (item.precio ?? 0) * item.quantity).toStringAsFixed(2)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
       bottomNavigationBar: cartItems.isNotEmpty
           ? Padding(
