@@ -14,11 +14,30 @@ class ProductsPage extends StatefulWidget {
 
 class _ProductsPageState extends State<ProductsPage> {
   late Future<List<Product>> _productsFuture;
+  final Map<int, int> _productQuantities = {};
 
   @override
   void initState() {
     super.initState();
     _productsFuture = ProductService().fetchProducts();
+  }
+
+  void _incrementQuantity(int productId) {
+    setState(() {
+      _productQuantities[productId] = (_productQuantities[productId] ?? 1) + 1;
+    });
+  }
+
+  void _decrementQuantity(int productId) {
+    setState(() {
+      if ((_productQuantities[productId] ?? 1) > 1) {
+        _productQuantities[productId] = _productQuantities[productId]! - 1;
+      }
+    });
+  }
+
+  int _getQuantity(int productId) {
+    return _productQuantities[productId] ?? 1;
   }
 
   @override
@@ -59,18 +78,33 @@ class _ProductsPageState extends State<ProductsPage> {
             itemCount: products.length,
             itemBuilder: (context, index) {
               final product = products[index];
+              final quantity = _getQuantity(product.id);
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
                   title: Text(product.nombre),
                   subtitle: Text('Precio: \\${product.precio ?? '-'}'),
+                  leading: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove),
+                        onPressed: () => _decrementQuantity(product.id),
+                      ),
+                      Text('$quantity'),
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: () => _incrementQuantity(product.id),
+                      ),
+                    ],
+                  ),
                   trailing: ElevatedButton(
                     onPressed: () {
                       cartService.addToCart(CartItem(
                         id: product.id,
                         nombre: product.nombre,
                         precio: product.precio,
-                        quantity: 1,
+                        quantity: quantity,
                       ));
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Producto agregado al carrito')),

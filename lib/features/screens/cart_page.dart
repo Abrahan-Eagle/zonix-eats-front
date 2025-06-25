@@ -24,6 +24,37 @@ class CartPage extends StatelessWidget {
                   child: ListTile(
                     title: Text(item.nombre),
                     subtitle: Text('Precio: \\${item.precio ?? '-'}'),
+                    leading: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.remove),
+                          onPressed: () {
+                            if (item.quantity > 1) {
+                              cartService.removeFromCart(CartItem(
+                                id: item.id,
+                                nombre: item.nombre,
+                                precio: item.precio,
+                                quantity: item.quantity - 1,
+                              ));
+                            }
+                          },
+                        ),
+                        Text('${item.quantity}'),
+                        IconButton(
+                          icon: const Icon(Icons.add),
+                          onPressed: () {
+                            cartService.removeFromCart(item);
+                            cartService.addToCart(CartItem(
+                              id: item.id,
+                              nombre: item.nombre,
+                              precio: item.precio,
+                              quantity: item.quantity + 1,
+                            ));
+                          },
+                        ),
+                      ],
+                    ),
                     trailing: IconButton(
                       icon: const Icon(Icons.delete),
                       onPressed: () {
