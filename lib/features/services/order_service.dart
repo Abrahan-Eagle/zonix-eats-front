@@ -3,18 +3,19 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../models/order.dart';
+import '../../models/cart_item.dart';
 import '../../helpers/auth_helper.dart';
 
 class OrderService extends ChangeNotifier {
   String get _baseUrl => dotenv.env['API_URL_LOCAL'] ?? 'http://localhost:8000/api';
 
-  Future<void> createOrder(List<Map<String, dynamic>> items) async {
+  Future<void> createOrder(List<CartItem> items) async {
     final headers = await AuthHelper.getAuthHeaders();
     final url = Uri.parse('$_baseUrl/api/buyer/orders');
     final body = jsonEncode({
       'items': items.map((e) => {
-        'product_id': e['id'],
-        'quantity': 1,
+        'product_id': e.id,
+        'quantity': e.quantity,
       }).toList(),
     });
     final response = await http.post(

@@ -9,6 +9,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // Importa QrImageView
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
+import '../../features/DomainProfiles/Profiles/models/profile_model.dart';
 
 
 final logger = Logger();
@@ -26,7 +27,7 @@ class ProfilePage1State extends State<ProfilePage1> {
   GoogleSignInAccount? currentUser;
   bool isAuthenticated = false;
   String? _profileId;
-
+  late Future<Profile?> _profileFuture;
 
 Future<void> _initializeData() async {
   await _checkAuthentication();
@@ -41,6 +42,8 @@ Future<void> _initializeData() async {
     super.initState();
     _initializeData();
     _checkAuthentication();
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    _profileFuture = ProfileService().getProfileById(userProvider.userId);
   }
 
   Future<void> _checkAuthentication() async {
@@ -75,187 +78,6 @@ Future<void> _initializeData() async {
     setState(() {}); // Actualiza la interfaz de usuario
   }
 
-//   @override
-//   Widget build(BuildContext context) {
-//     final userProvider = Provider.of<UserProvider>(context);
-//     return Scaffold(
-//       body: Column(
-//         children: [
-//           const Expanded(flex: 2, child: _TopPortion()),
-//           Expanded(
-//             flex: 3,
-//             child: Padding(
-//               padding: const EdgeInsets.all(8.0),
-//               child: Column(
-//                 children: [
-//                   // Nombre del usuario
-//                   Text(
-//                     userProvider.userName.isNotEmpty
-//                         ? userProvider.userName
-//                         : (currentUser != null && currentUser!.displayName != null
-//                             ? currentUser!.displayName!
-//                             : "Usuario"), // Valor predeterminado
-//                     style: Theme.of(context)
-//                         .textTheme
-//                         .titleLarge
-//                         ?.copyWith(fontWeight: FontWeight.bold),
-//                   ),
-//                   const SizedBox(height: 8),
-//                   // ID del usuario
-//                   Text(
-//                     userProvider.userId != null && userProvider.userId.toString().isNotEmpty
-//                         ? "ID: ${userProvider.userId}"
-//                         : "ID no disponible",
-//                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
-//                   ),
-//                   const SizedBox(height: 16),
-//                   // ID de perfil (si está disponible)
-//                   if (_profileId != null)
-//                     Column(
-//                       children: [
-//                         Text(
-//                           "Profile ID: $_profileId",
-//                           style: Theme.of(context).textTheme.bodyMedium,
-//                         ),
-//                         const SizedBox(height: 8),
-//                         QrImageView(
-//                           data: _profileId!,
-//                           size: 200.0,
-//                           version: QrVersions.auto,
-//                           foregroundColor: Theme.of(context).brightness == Brightness.dark
-//                               ? Colors.white // Color blanco si el tema es oscuro
-//                               : Colors.black, // Color negro si el tema es claro
-//                           backgroundColor: Colors.transparent,
-//                         ),
-//                       ],
-//                     ),
-//                 ],
-//               ),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
-
-
-// class _TopPortion extends StatefulWidget {
-//   const _TopPortion({Key? key}) : super(key: key);
-
-//   @override
-//   _TopPortionState createState() => _TopPortionState();
-// }
-
-// class _TopPortionState extends State<_TopPortion> {
-//   dynamic _profile;
-//   GoogleSignInAccount? currentUser;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _initializeData();
-//   }
-
-//   Future<void> _initializeData() async {
-//     final userProvider = Provider.of<UserProvider>(context, listen: false);
-//     currentUser = await GoogleSignInService.getCurrentUser();
-
-//     try {
-//       // Obtén el perfil
-//       _profile = await ProfileService().getProfileById(userProvider.userId);
-//       setState(() {});  // Actualiza la UI una vez que se haya cargado el perfil
-//     } catch (e) {
-//       logger.e('Error al obtener el perfil: $e');
-//       setState(() {});  // Si hay error, aún actualizar la UI
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-
-//     return Stack(
-//       fit: StackFit.expand,
-//       children: [
-//         Container(
-//           margin: const EdgeInsets.only(bottom: 50),
-//           decoration: const BoxDecoration(
-//             gradient: LinearGradient(
-//               begin: Alignment.bottomCenter,
-//               end: Alignment.topCenter,
-//               colors: [Color(0xff0043ba), Color(0xff006df1)],
-//             ),
-//             borderRadius: BorderRadius.only(
-//               bottomLeft: Radius.circular(50),
-//               bottomRight: Radius.circular(50),
-//             ),
-//           ),
-//         ),
-//         Align(
-//           alignment: Alignment.bottomCenter,
-//           child: SizedBox(
-//             width: 150,
-//             height: 150,
-//             child: Stack(
-//               fit: StackFit.expand,
-//               children: [
-//                 Container(
-//                   decoration: BoxDecoration(
-//                     color: Colors.black,
-//                     shape: BoxShape.circle,
-//                     image: DecorationImage(
-//                       fit: BoxFit.cover,
-//                       image: _getProfileImage(_profile?.photo, currentUser?.photoUrl),
-//                     ),
-//                   ),
-//                 ),
-
-
-
-
-
-//                 Positioned(
-//                   bottom: 0,
-//                   right: 0,
-//                   child: CircleAvatar(
-//                     radius: 20,
-//                     backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-//                     child: Container(
-//                       margin: const EdgeInsets.all(8.0),
-//                       decoration: const BoxDecoration(
-//                         color: Colors.green,
-//                         shape: BoxShape.circle,
-//                       ),
-//                     ),
-//                   ),
-//                 ),
-//               ],
-//             ),
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-
-
-//   ImageProvider<Object> _getProfileImage(String? profilePhoto, String? googlePhotoUrl) {
-//   if (profilePhoto != null && profilePhoto.isNotEmpty) {
-//     logger.i('Usando foto del perfil: $profilePhoto');
-//     // Usando FadeInImage con la imagen de perfil
-//     return NetworkImage(profilePhoto); // Este sigue siendo un ImageProvider
-//   }
-  
-//   if (googlePhotoUrl != null && googlePhotoUrl.isNotEmpty) {
-//     logger.i('Usando foto de Google: $googlePhotoUrl');
-//     // Usando FadeInImage con la foto de Google
-//     return NetworkImage(googlePhotoUrl); // Este sigue siendo un ImageProvider
-//   }
-
-//   logger.w('Usando imagen predeterminada');
-//   return const AssetImage('assets/default_avatar.png');
-// }
-
 @override
 Widget build(BuildContext context) {
   final userProvider = Provider.of<UserProvider>(context);
@@ -269,7 +91,7 @@ Widget build(BuildContext context) {
         onPressed: () => Navigator.pop(context),
       ),
       title: Text(
-        'Mi Código QR',
+        'Mi Perfil',
         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -277,80 +99,69 @@ Widget build(BuildContext context) {
       ),
       elevation: 2,
     ),
-    body: Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Text(
-              userProvider.userName.isNotEmpty
-                  ? userProvider.userName
-                  : (currentUser != null && currentUser!.displayName != null
-                  ? currentUser!.displayName!
-                  : "Usuario"), // Valor predeterminado
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontSize: 40,
-                    fontWeight: FontWeight.bold,
+    body: FutureBuilder<Profile?>(
+      future: _profileFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error, color: Colors.red, size: 48),
+                const SizedBox(height: 8),
+                Text('Error: \\${snapshot.error}', style: const TextStyle(color: Colors.red)),
+                const SizedBox(height: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      final userProvider = Provider.of<UserProvider>(context, listen: false);
+                      _profileFuture = ProfileService().getProfileById(userProvider.userId);
+                    });
+                  },
+                  child: const Text('Reintentar'),
+                ),
+              ],
+            ),
+          );
+        } else if (!snapshot.hasData || snapshot.data == null) {
+          return const Center(child: Text('No se encontró el perfil'));
+        }
+        final profile = snapshot.data!;
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  profile.firstName + ' ' + profile.lastName,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'ID: \\${profile.id}',
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                if (profile.photo != null && profile.photo!.isNotEmpty)
+                  CircleAvatar(
+                    radius: 60,
+                    backgroundImage: NetworkImage(profile.photo!),
                   ),
+                const SizedBox(height: 16),
+                _infoRow('Fecha de nacimiento', profile.dateOfBirth),
+                _infoRow('Estado civil', profile.maritalStatus),
+                _infoRow('Sexo', profile.sex),
+              ],
             ),
-
-
-            const SizedBox(height: 4),
-            Text(
-              userProvider.userEmail != null
-                  ? "Email: ${userProvider.userEmail}" // Asegurar que es String
-                  : "Email no disponible",
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
-            ),
-            const SizedBox(height: 32),
-            Material(
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Center(
-                  child: QrImageView(
-                    data: userProvider.userId.toString(),// Asegurar que es String
-                    size: 250.0,
-                    version: QrVersions.auto,
-                    foregroundColor: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white
-                        : Colors.black,
-                    backgroundColor: Colors.transparent,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 32),
-            Material(
-              elevation: 2,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    _infoRow("Google ID", userProvider.userGoogleId.toString()),
-
-                    const SizedBox(height: 12),
-                    _infoRow("Última actualización", "Hoy 10:30 AM"),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     ),
   );
 }

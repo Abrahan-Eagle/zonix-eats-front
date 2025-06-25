@@ -3,6 +3,7 @@ import '../services/product_service.dart';
 import '../services/cart_service.dart';
 import 'package:provider/provider.dart';
 import '../../models/product.dart';
+import '../../models/cart_item.dart';
 
 class ProductsPage extends StatefulWidget {
   const ProductsPage({Key? key}) : super(key: key);
@@ -65,11 +66,12 @@ class _ProductsPageState extends State<ProductsPage> {
                   subtitle: Text('Precio: \\${product.precio ?? '-'}'),
                   trailing: ElevatedButton(
                     onPressed: () {
-                      cartService.addToCart({
-                        'id': product.id,
-                        'nombre': product.nombre,
-                        'precio': product.precio,
-                      });
+                      cartService.addToCart(CartItem(
+                        id: product.id,
+                        nombre: product.nombre,
+                        precio: product.precio,
+                        quantity: 1,
+                      ));
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Producto agregado al carrito')),
                       );
