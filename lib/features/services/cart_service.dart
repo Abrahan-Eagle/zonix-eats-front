@@ -4,19 +4,20 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../helpers/auth_helper.dart';
+import '../../models/cart_item.dart';
 
 class CartService extends ChangeNotifier {
-  final List<Map<String, dynamic>> _cart = [];
+  final List<CartItem> _cart = [];
   String get _baseUrl => dotenv.env['API_URL_LOCAL'] ?? 'http://localhost:8000/api';
 
-  UnmodifiableListView<Map<String, dynamic>> get items => UnmodifiableListView(_cart);
+  UnmodifiableListView<CartItem> get items => UnmodifiableListView(_cart);
 
-  void addToCart(Map<String, dynamic> product) {
+  void addToCart(CartItem product) {
     _cart.add(product);
     notifyListeners();
   }
 
-  void removeFromCart(Map<String, dynamic> product) {
+  void removeFromCart(CartItem product) {
     _cart.remove(product);
     notifyListeners();
   }
@@ -26,12 +27,12 @@ class CartService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addToRemoteCart(Map<String, dynamic> product) async {
+  Future<void> addToRemoteCart(CartItem product) async {
     final headers = await AuthHelper.getAuthHeaders();
     final url = Uri.parse('$_baseUrl/api/buyer/cart/add');
     final response = await http.post(
       url,
-      body: jsonEncode({'product_id': product['id'], 'quantity': 1}),
+      body: jsonEncode({'product_id': product.id, 'quantity': product.quantity}),
       headers: headers,
     );
     if (response.statusCode != 200 && response.statusCode != 201) {
@@ -39,7 +40,7 @@ class CartService extends ChangeNotifier {
     }
   }
 
-  Future<List<dynamic>> fetchRemoteCart() async {
+  Future<List<CartItem>> fetchRemoteCart() async {
     final headers = await AuthHelper.getAuthHeaders();
     final url = Uri.parse('$_baseUrl/api/buyer/cart');
     final response = await http.get(
@@ -47,7 +48,12 @@ class CartService extends ChangeNotifier {
       headers: headers,
     );
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+      if (data is List) {
+        return data.map<CartItem>((item) => CartItem.fromJson(item)).toList();
+      } else {
+        return [];
+      }
     } else {
       throw Exception('Error al obtener el carrito remoto');
     }
