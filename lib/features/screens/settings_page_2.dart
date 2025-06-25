@@ -243,19 +243,6 @@ class _SettingsPage2State extends State<SettingsPage2> {
                             },
                           },
                           {
-                            "title": "Bombonas de gas",
-                            "icon": Icons.local_gas_station_outlined,
-                            "onTap": () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      GasCylinderListScreen(userId: userProvider.userId),
-                                ),
-                              );
-                            },
-                          },
-                          {
                             "title": "Teléfonos",
                             "icon": Icons.phone_outlined,
                             "onTap": () {
