@@ -1,5 +1,3 @@
-
-
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
@@ -29,347 +27,371 @@ class SettingsPage2 extends StatefulWidget {
 
 
 class _SettingsPage2State extends State<SettingsPage2> {
-   dynamic _profile;
-   String? _email;
- 
+  dynamic _profile;
+  String? _email;
+  bool _loading = true;
+  String? _error;
 
-
-@override
+  @override
   void initState() {
     super.initState();
-   _loadProfile();
+    _loadProfile();
   }
 
-   Future<void> _loadProfile() async {
-      try {
-        final userProvider = Provider.of<UserProvider>(context, listen: false);
-
-        // Obtén los detalles del usuario y verifica su contenido
-        final userDetails = await userProvider.getUserDetails();
-       
-
-        // Extrae y valida el ID del usuario
-        final id = userDetails['userId'];
-        if (id == null || id is! int) {
-          throw Exception('El ID del usuario es inválido: $id');
-        }
-
-        _email = userDetails['users']['email'];
-        // Obtén el perfil usando el ID del usuario
-        _profile = await ProfileService().getProfileById(id);
-            
-        setState(() {});
-      } catch (e) {
-        logger.e('Error obteniendo el ID del usuario: $e');
+  Future<void> _loadProfile() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final userDetails = await userProvider.getUserDetails();
+      final id = userDetails['userId'];
+      if (id == null || id is! int) {
+        throw Exception('El ID del usuario es inválido: $id');
       }
+      _email = userDetails['users']['email'];
+      _profile = await ProfileService().getProfileById(id);
+    } catch (e) {
+      logger.e('Error obteniendo el ID del usuario: $e');
+      _error = 'Error al cargar el perfil';
+    } finally {
+      setState(() {
+        _loading = false;
+      });
     }
+  }
 
-
-@override
-Widget build(BuildContext context) {
-  final theme = Theme.of(context);
-
-  return Consumer<UserProvider>(
-    builder: (context, userProvider, child) {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    if (_loading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (_error != null) {
       return Scaffold(
-        // appBar: AppBar(
-        //   title: const Text("Configuraciones"),
-        //   backgroundColor: theme.colorScheme.primaryContainer,
-        // ),
-
-        appBar: AppBar(
-          title: const Text("Configuraciones"),
-          backgroundColor: theme.colorScheme.primaryContainer,
-          titleTextStyle: const TextStyle(
-            fontWeight: FontWeight.bold, // Negrita
-            fontSize: 26, // Tamaño del texto
-            color: Colors.white, // Texto blanco
+        appBar: AppBar(title: const Text("Configuraciones")),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error, color: Colors.red, size: 48),
+              const SizedBox(height: 8),
+              Text(_error!, style: const TextStyle(color: Colors.red)),
+              const SizedBox(height: 8),
+              ElevatedButton(
+                onPressed: _loadProfile,
+                child: const Text('Reintentar'),
+              ),
+            ],
           ),
         ),
+      );
+    }
 
-        body: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Material con información de usuario
-              Material(
-                color: Colors.transparent,
-                elevation: 2,
-                child: Container(
-                  width: MediaQuery.sizeOf(context).width,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.background,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 16),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primaryContainer,
-                            borderRadius: BorderRadius.circular(30),
-                          ),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(30),
-                            // child: Image.network(
-                            //   'https://images.unsplash.com/photo-1658932447624-152eaf36cf4e?w=500&h=500',
-                            //   width: 60,
-                            //   height: 60,
-                            //   fit: BoxFit.cover,
-                            // ),
-                            child: CircleAvatar(
-                              radius: 30,
-                              backgroundImage: _getProfileImage(
-                                _profile?.photo, 
-                              ),
-                              child: (_profile?.photo == null)
-                                  ? const Icon(Icons.person, color: Colors.white) // Ícono predeterminado
-                                  : null,
+    return Consumer<UserProvider>(
+      builder: (context, userProvider, child) {
+        return Scaffold(
+          // appBar: AppBar(
+          //   title: const Text("Configuraciones"),
+          //   backgroundColor: theme.colorScheme.primaryContainer,
+          // ),
+
+          appBar: AppBar(
+            title: const Text("Configuraciones"),
+            backgroundColor: theme.colorScheme.primaryContainer,
+            titleTextStyle: const TextStyle(
+              fontWeight: FontWeight.bold, // Negrita
+              fontSize: 26, // Tamaño del texto
+              color: Colors.white, // Texto blanco
+            ),
+          ),
+
+          body: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Material con información de usuario
+                Material(
+                  color: Colors.transparent,
+                  elevation: 2,
+                  child: Container(
+                    width: MediaQuery.sizeOf(context).width,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.background,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 16),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 60,
+                            height: 60,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(30),
                             ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(30),
+                              // child: Image.network(
+                              //   'https://images.unsplash.com/photo-1658932447624-152eaf36cf4e?w=500&h=500',
+                              //   width: 60,
+                              //   height: 60,
+                              //   fit: BoxFit.cover,
+                              // ),
+                              child: CircleAvatar(
+                                radius: 30,
+                                backgroundImage: _getProfileImage(
+                                  _profile?.photo, 
+                                ),
+                                child: (_profile?.photo == null)
+                                    ? const Icon(Icons.person, color: Colors.white) // Ícono predeterminado
+                                    : null,
+                              ),
 
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                                Text(
-                                    '${_profile?.firstName ?? ''} ${_profile?.lastName ?? ''}', // Concatenar con espacio entre nombres
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 24,
+                          const SizedBox(width: 16),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                                  Text(
+                                      '${_profile?.firstName ?? ''} ${_profile?.lastName ?? ''}', // Concatenar con espacio entre nombres
+                                      style: theme.textTheme.titleMedium?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 24,
+                                      ),
                                     ),
-                                  ),
 
-                            Text(
-                              _email ?? 'Correo no disponible', // Usamos _email si está disponible
+                              Text(
+                                _email ?? 'Correo no disponible', // Usamos _email si está disponible
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.secondary,
+                                ),
+                              ),
+
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Sección de Configuración General
+                Material(
+                  color: Colors.transparent,
+                  elevation: 2,
+                  child: Container(
+                    width: MediaQuery.sizeOf(context).width,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.background,
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Configuración General",
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ...[
+                          {
+                            "title": "Perfil",
+                            "icon": Icons.person_outline_rounded,
+                            "onTap": () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      ProfilePagex(userId: userProvider.userId),
+                                ),
+                              );
+                            },
+                          },
+                          {
+                            "title": "Documentos",
+                            "icon": Icons.folder_outlined,
+                            "onTap": () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      DocumentListScreen(userId: userProvider.userId),
+                                ),
+                              );
+                            },
+                          },
+                          {
+                            "title": "Dirección",
+                            "icon": Icons.location_on_outlined,
+                            "onTap": () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      AddressPage(userId: userProvider.userId),
+                                ),
+                              );
+                            },
+                          },
+                          {
+                            "title": "Bombonas de gas",
+                            "icon": Icons.local_gas_station_outlined,
+                            "onTap": () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      GasCylinderListScreen(userId: userProvider.userId),
+                                ),
+                              );
+                            },
+                          },
+                          {
+                            "title": "Teléfonos",
+                            "icon": Icons.phone_outlined,
+                            "onTap": () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      PhoneScreen(userId: userProvider.userId),
+                                ),
+                              );
+                            },
+                          },
+                          {
+                            "title": "Correos electrónicos",
+                            "icon": Icons.email_outlined,
+                            "onTap": () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      EmailListScreen(userId: userProvider.userId),
+                                ),
+                              );
+                            },
+                          },
+                        ].map((item) {
+                          return ListTile(
+                            leading: Icon(
+                              item["icon"] as IconData,
+                              color: theme.colorScheme.primary,
+                            ),
+                            title: Text(
+                              item["title"] as String,
                               style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.secondary,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-
-                          ],
-                        ),
+                            trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                            onTap: item["onTap"] as GestureTapCallback?,
+                          );
+                        }),
                       ],
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              // Sección de Configuración General
-              Material(
-                color: Colors.transparent,
-                elevation: 2,
-                child: Container(
-                  width: MediaQuery.sizeOf(context).width,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.background,
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Configuración General",
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
+                const SizedBox(height: 16),
+                // Sección de Administración y Seguridad
+                Material(
+                  color: Colors.transparent,
+                  elevation: 2,
+                  child: Container(
+                    width: MediaQuery.sizeOf(context).width,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.background,
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Administración y Seguridad",
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                      ...[
-                        {
-                          "title": "Perfil",
-                          "icon": Icons.person_outline_rounded,
-                          "onTap": () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    ProfilePagex(userId: userProvider.userId),
-                              ),
-                            );
-                          },
-                        },
-                        {
-                          "title": "Documentos",
-                          "icon": Icons.folder_outlined,
-                          "onTap": () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    DocumentListScreen(userId: userProvider.userId),
-                              ),
-                            );
-                          },
-                        },
-                        {
-                          "title": "Dirección",
-                          "icon": Icons.location_on_outlined,
-                          "onTap": () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    AddressPage(userId: userProvider.userId),
-                              ),
-                            );
-                          },
-                        },
-                        {
-                          "title": "Bombonas de gas",
-                          "icon": Icons.local_gas_station_outlined,
-                          "onTap": () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    GasCylinderListScreen(userId: userProvider.userId),
-                              ),
-                            );
-                          },
-                        },
-                        {
-                          "title": "Teléfonos",
-                          "icon": Icons.phone_outlined,
-                          "onTap": () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    PhoneScreen(userId: userProvider.userId),
-                              ),
-                            );
-                          },
-                        },
-                        {
-                          "title": "Correos electrónicos",
-                          "icon": Icons.email_outlined,
-                          "onTap": () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    EmailListScreen(userId: userProvider.userId),
-                              ),
-                            );
-                          },
-                        },
-                      ].map((item) {
-                        return ListTile(
+                        const SizedBox(height: 16),
+                        ListTile(
                           leading: Icon(
-                            item["icon"] as IconData,
+                            Icons.notifications_none_rounded,
                             color: theme.colorScheme.primary,
                           ),
                           title: Text(
-                            item["title"] as String,
+                            "Notificaciones",
                             style: theme.textTheme.bodyMedium?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                          onTap: item["onTap"] as GestureTapCallback?,
-                        );
-                      }),
-                    ],
+                          onTap: () {
+                            logger.i("Notificaciones seleccionadas");
+                          },
+                        ),
+                        ListTile(
+                          leading: Icon(
+                            Icons.help_outline_rounded,
+                            color: theme.colorScheme.primary,
+                          ),
+                          title: Text(
+                            "Ayuda y Comentarios",
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const HelpAndFAQPage(),
+                              ),
+                            );
+                          },
+                        ),
+                        ListTile(
+                          leading: Icon(
+                            Icons.info_outline_rounded,
+                            color: theme.colorScheme.primary,
+                          ),
+                          title: Text(
+                            "Acerca de",
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const MyApp(),
+                              ),
+                            );
+                          },
+                        ),
+                      
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              // Sección de Administración y Seguridad
-              Material(
-                color: Colors.transparent,
-                elevation: 2,
-                child: Container(
-                  width: MediaQuery.sizeOf(context).width,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.background,
-                    borderRadius: BorderRadius.circular(8.0),
-                  ),
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Administración y Seguridad",
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      ListTile(
-                        leading: Icon(
-                          Icons.notifications_none_rounded,
-                          color: theme.colorScheme.primary,
-                        ),
-                        title: Text(
-                          "Notificaciones",
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                        onTap: () {
-                          logger.i("Notificaciones seleccionadas");
-                        },
-                      ),
-                      ListTile(
-                        leading: Icon(
-                          Icons.help_outline_rounded,
-                          color: theme.colorScheme.primary,
-                        ),
-                        title: Text(
-                          "Ayuda y Comentarios",
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const HelpAndFAQPage(),
-                            ),
-                          );
-                        },
-                      ),
-                      ListTile(
-                        leading: Icon(
-                          Icons.info_outline_rounded,
-                          color: theme.colorScheme.primary,
-                        ),
-                        title: Text(
-                          "Acerca de",
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const MyApp(),
-                            ),
-                          );
-                        },
-                      ),
-                    
-                    ],
-                  ),
-                ),
-              ),
 
 
 
 
- const SizedBox(height: 16),
+     const SizedBox(height: 16),
 
 
 
@@ -426,12 +448,12 @@ Material(
 
  const SizedBox(height: 20),
 
-            ],
+              ],
+            ),
           ),
-        ),
-      );
-    },
-  );
+        );
+      },
+    );
 }
 
 
