@@ -16,6 +16,8 @@ import 'package:zonix/features/screens/products_page.dart';
 import 'package:zonix/features/screens/cart_page.dart';
 import 'package:zonix/features/screens/orders_page.dart';
 import 'package:zonix/features/screens/restaurants_page.dart';
+import 'package:zonix/features/services/cart_service.dart';
+import 'package:zonix/features/services/order_service.dart';
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
@@ -48,10 +50,13 @@ Future<void> main() async {
   ]);
 
   await dotenv.load();
-  //  HttpOverrides.global = MyHttpOverrides();
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => UserProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => CartService()),
+        ChangeNotifierProvider(create: (_) => OrderService()),
+      ],
       child: const MyApp(),
     ),
   );
