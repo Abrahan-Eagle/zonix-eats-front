@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../models/order.dart';
 import '../../helpers/auth_helper.dart';
 
 class OrderService extends ChangeNotifier {
@@ -26,7 +27,7 @@ class OrderService extends ChangeNotifier {
     }
   }
 
-  Future<List<dynamic>> fetchOrders() async {
+  Future<List<Order>> fetchOrders() async {
     final headers = await AuthHelper.getAuthHeaders();
     final url = Uri.parse('$_baseUrl/api/buyer/orders');
     final response = await http.get(
@@ -34,7 +35,12 @@ class OrderService extends ChangeNotifier {
       headers: headers,
     );
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final data = jsonDecode(response.body);
+      if (data is List) {
+        return data.map<Order>((item) => Order.fromJson(item)).toList();
+      } else {
+        return [];
+      }
     } else {
       throw Exception('Error al obtener órdenes');
     }

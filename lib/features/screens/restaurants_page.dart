@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/restaurant_service.dart';
+import '../../models/restaurant.dart';
 
 class RestaurantsPage extends StatefulWidget {
   const RestaurantsPage({Key? key}) : super(key: key);
@@ -9,7 +10,7 @@ class RestaurantsPage extends StatefulWidget {
 }
 
 class _RestaurantsPageState extends State<RestaurantsPage> {
-  late Future<List<dynamic>> _restaurantsFuture;
+  late Future<List<Restaurant>> _restaurantsFuture;
 
   @override
   void initState() {
@@ -21,13 +22,31 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Restaurantes')),
-      body: FutureBuilder<List<dynamic>>(
+      body: FutureBuilder<List<Restaurant>>(
         future: _restaurantsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error, color: Colors.red, size: 48),
+                  const SizedBox(height: 8),
+                  Text('Error: \\${snapshot.error}', style: const TextStyle(color: Colors.red)),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _restaurantsFuture = RestaurantService().fetchRestaurants();
+                      });
+                    },
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            );
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No hay restaurantes disponibles'));
           }
@@ -39,9 +58,9 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
-                  title: Text(restaurant['nombre'] ?? 'Sin nombre'),
-                  subtitle: Text(restaurant['direccion'] ?? ''),
-                  trailing: Text(restaurant['telefono'] ?? ''),
+                  title: Text(restaurant.nombre),
+                  subtitle: Text(restaurant.direccion ?? ''),
+                  trailing: Text(restaurant.descripcion ?? ''),
                 ),
               );
             },
