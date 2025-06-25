@@ -28,6 +28,7 @@ class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixi
   late AnimationController _rotateController;
   late Animation<double> _pulseAnimation;
   late Animation<double> _rotateAnimation;
+  String? _loginError;
 
   @override
   void initState() {
@@ -86,7 +87,9 @@ class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixi
     try {
       await GoogleSignInService.signInWithGoogle();
       _currentUser = await GoogleSignInService.getCurrentUser();
-      setState(() {});
+      setState(() {
+        _loginError = null;
+      });
 
       if (_currentUser != null) {
         await AuthUtils.saveUserName(_currentUser!.displayName ?? 'Nombre no disponible');
@@ -121,9 +124,15 @@ class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixi
         }
       } else {
         logger.i('Inicio de sesión cancelado o fallido');
+        setState(() {
+          _loginError = 'Inicio de sesión cancelado o fallido';
+        });
       }
     } catch (e) {
       logger.e('Error durante el manejo del inicio de sesión: $e');
+      setState(() {
+        _loginError = 'Error durante el inicio de sesión';
+      });
     }
   }
 
@@ -160,6 +169,16 @@ class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixi
                       children: [
                         // Header minimalista
                         _buildMinimalHeader(isSmallScreen),
+                        
+                        if (_loginError != null) ...[
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Text(
+                              _loginError!,
+                              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
                         
                         // Contenido central con Expanded
                         Expanded(
@@ -249,70 +268,7 @@ class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixi
     );
   }
 
-
-
-
-
-
-
-
-
-// Widget _buildMinimalHeader(bool isSmallScreen) {
-//   return Row(
-//     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//     crossAxisAlignment: CrossAxisAlignment.center,
-//     children: [
-//       // Hora
-//       Text(
-//         '16:24',
-//         style: TextStyle(
-//           color: Colors.white,
-//           fontSize: isSmallScreen ? 14 : 16,
-//           fontWeight: FontWeight.w500,
-//         ),
-//       ),
-      
-//       // Logo
-//       Image.asset(
-//         'assets/images/logo_login.png',
-//         width: isSmallScreen ? 100 : 100,
-//         height: isSmallScreen ? 100 : 100,
-//         fit: BoxFit.contain,
-//       ),
-//     ],
-//   );
-// }
-
-
-// Widget _buildMinimalHeader(bool isSmallScreen) {
-//   return Row(
-//     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//     crossAxisAlignment: CrossAxisAlignment.center,
-//     children: [
-//       Text(
-//         '16:24',
-//         style: TextStyle(
-//           color: Colors.white,
-//           fontSize: isSmallScreen ? 14 : 16,
-//           fontWeight: FontWeight.w500,
-//         ),
-//       ),
-      
-//       Transform.translate(
-//         offset: Offset(0, -15), // Ajusta este número: más negativo = más arriba
-//         child: Image.asset(
-//           'assets/images/logo_login.png',
-//           width: isSmallScreen ? 90 : 90,
-//           height: isSmallScreen ? 90 : 90,
-//           fit: BoxFit.contain,
-//         ),
-//       ),
-//     ],
-//   );
-// }
-
-
-Widget _buildMinimalHeader(bool isSmallScreen) {
+  Widget _buildMinimalHeader(bool isSmallScreen) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
     crossAxisAlignment: CrossAxisAlignment.center,
@@ -343,22 +299,6 @@ Widget _buildMinimalHeader(bool isSmallScreen) {
     ],
   );
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   Widget _buildCentralCircle(double screenWidth, bool isSmallScreen, bool isLargeScreen, bool isVerySmallScreen) {
     return Center(
