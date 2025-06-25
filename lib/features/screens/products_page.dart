@@ -25,24 +25,6 @@ class _ProductsPageState extends State<ProductsPage> {
     _productsFuture = (widget.productService ?? ProductService()).fetchProducts();
   }
 
-  void _incrementQuantity(int productId) {
-    setState(() {
-      _productQuantities[productId] = (_productQuantities[productId] ?? 1) + 1;
-    });
-  }
-
-  void _decrementQuantity(int productId) {
-    setState(() {
-      if ((_productQuantities[productId] ?? 1) > 1) {
-        _productQuantities[productId] = _productQuantities[productId]! - 1;
-      }
-    });
-  }
-
-  int _getQuantity(int productId) {
-    return _productQuantities[productId] ?? 1;
-  }
-
   @override
   Widget build(BuildContext context) {
     final cartService = Provider.of<CartService>(context);
@@ -50,8 +32,10 @@ class _ProductsPageState extends State<ProductsPage> {
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ...aquí puedes agregar encabezado y buscador si lo deseas...
+          
+            // Listado de productos en grid moderno
             Expanded(
               child: FutureBuilder<List<Product>>(
                 future: _productsFuture,
@@ -82,52 +66,101 @@ class _ProductsPageState extends State<ProductsPage> {
                     return const Center(child: Text('No hay productos disponibles'));
                   }
                   final products = snapshot.data!;
-                  return ListView.builder(
+                  return GridView.builder(
                     padding: const EdgeInsets.fromLTRB(24, 11, 24, 0),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 16,
+                      crossAxisSpacing: 15,
+                      childAspectRatio: 0.85, // Ajustado para más alto
+                    ),
                     itemCount: products.length,
                     itemBuilder: (context, index) {
                       final product = products[index];
-                      final quantity = _getQuantity(product.id);
-                      return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
-                        child: ListTile(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ProductDetailPage(product: product),
-                              ),
-                            );
-                          },
-                          leading: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.remove),
-                                onPressed: () => _decrementQuantity(product.id),
-                              ),
-                              Text('$quantity'),
-                              IconButton(
-                                icon: const Icon(Icons.add),
-                                onPressed: () => _incrementQuantity(product.id),
+                      return GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ProductDetailPage(product: product),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
+                            boxShadow: const [
+                              BoxShadow(
+                                blurRadius: 10,
+                                color: Colors.black12,
+                                offset: Offset(0, 4),
                               ),
                             ],
+                            borderRadius: BorderRadius.circular(16),
                           ),
-                          title: Text(product.nombre),
-                          subtitle: Text('${product.precio ?? '-'} \$'),
-                          trailing: ElevatedButton(
-                            onPressed: () {
-                              cartService.addToCart(CartItem(
-                                id: product.id,
-                                nombre: product.nombre,
-                                precio: product.precio,
-                                quantity: quantity,
-                              ));
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Producto agregado al carrito')),
-                              );
-                            },
-                            child: const Text('Agregar'),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(16),
+                                  child: product.imagen != null
+                                      ? Image.network(
+                                          product.imagen!,
+                                          width: double.infinity,
+                                          height: 90, // Reducido para evitar overflow
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Container(
+                                          width: double.infinity,
+                                          height: 90,
+                                          color: Colors.grey.shade200,
+                                          child: const Icon(Icons.image, size: 48),
+                                        ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 4), // Menos espacio
+                                  child: Text(
+                                    product.nombre,
+                                    style: const TextStyle(fontWeight: FontWeight.w500),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Text(
+                                  '${product.precio ?? '-'} \$',
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                                ),
+                                Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: Container(
+                                    width: 30,
+                                    height: 30,
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context).colorScheme.primary,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: IconButton(
+                                      icon: const Icon(Icons.add_shopping_cart, color: Colors.white, size: 15),
+                                      onPressed: () {
+                                        cartService.addToCart(CartItem(
+                                          id: product.id,
+                                          nombre: product.nombre,
+                                          precio: product.precio,
+                                          quantity: 1,
+                                        ));
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Producto agregado al carrito')),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       );
