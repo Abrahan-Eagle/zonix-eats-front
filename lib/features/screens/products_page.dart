@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/product_service.dart';
 import '../services/cart_service.dart';
 import 'package:provider/provider.dart';
+import '../../models/product.dart';
 
 class ProductsPage extends StatefulWidget {
   const ProductsPage({Key? key}) : super(key: key);
@@ -11,7 +12,7 @@ class ProductsPage extends StatefulWidget {
 }
 
 class _ProductsPageState extends State<ProductsPage> {
-  late Future<List<dynamic>> _productsFuture;
+  late Future<List<Product>> _productsFuture;
 
   @override
   void initState() {
@@ -24,13 +25,31 @@ class _ProductsPageState extends State<ProductsPage> {
     final cartService = Provider.of<CartService>(context);
     return Scaffold(
       appBar: AppBar(title: const Text('Productos')),
-      body: FutureBuilder<List<dynamic>>(
+      body: FutureBuilder<List<Product>>(
         future: _productsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error: \\${snapshot.error}'));
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error, color: Colors.red, size: 48),
+                  const SizedBox(height: 8),
+                  Text('Error: \\${snapshot.error}', style: const TextStyle(color: Colors.red)),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      setState(() {
+                        _productsFuture = ProductService().fetchProducts();
+                      });
+                    },
+                    child: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            );
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('No hay productos disponibles'));
           }
@@ -42,13 +61,17 @@ class _ProductsPageState extends State<ProductsPage> {
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
-                  title: Text(product['nombre'] ?? 'Sin nombre'),
-                  subtitle: Text('Precio: \\${product['precio'] ?? '-'}'),
+                  title: Text(product.nombre),
+                  subtitle: Text('Precio: \\${product.precio ?? '-'}'),
                   trailing: ElevatedButton(
                     onPressed: () {
-                      cartService.addToCart(product);
+                      cartService.addToCart({
+                        'id': product.id,
+                        'nombre': product.nombre,
+                        'precio': product.precio,
+                      });
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Producto agregado al carrito')),
+                        const SnackBar(content: Text('Producto agregado al carrito')),
                       );
                     },
                     child: const Text('Agregar'),

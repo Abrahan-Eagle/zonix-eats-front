@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../helpers/auth_helper.dart';
 
 final logger = Logger();
 const FlutterSecureStorage _storage = FlutterSecureStorage(); // Inicializa _storage
@@ -47,6 +48,16 @@ Future<String?> sendUserIdToBackend(int userId) async {
   }
 }
 
-
-    
+  Future<Map<String, dynamic>> fetchProfileByQr(String qrCode) async {
+    final headers = await AuthHelper.getAuthHeaders();
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/buyer/profiles/$qrCode'),
+      headers: headers,
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al obtener perfil por QR');
+    }
+  }
 }
