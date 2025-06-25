@@ -1,8 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-<<<<<<< HEAD
-import '../../lib/features/services/product_service.dart';
-=======
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../lib/features/services/product_service.dart';
@@ -29,7 +26,6 @@ class ProductServiceMock extends ProductService {
     }
   }
 }
->>>>>>> mi-arreglo
 
 void main() {
   setUpAll(() async {
