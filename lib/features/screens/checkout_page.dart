@@ -44,6 +44,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
   @override
   Widget build(BuildContext context) {
     final cartService = Provider.of<CartService>(context);
+    final cartItems = cartService.items;
+    final totalItems = cartItems.fold<int>(0, (sum, item) => sum + item.quantity);
+    final subtotal = cartItems.fold<double>(0, (sum, item) => sum + (item.precio ?? 0) * item.quantity);
+    final tax = subtotal * 0.05; // ejemplo: 5% de impuestos
+    final delivery = 0.0;
+    final totalPayment = subtotal + tax + delivery;
     return Scaffold(
       appBar: AppBar(title: const Text('Checkout')),
       body: Padding(
@@ -89,16 +95,51 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 )).toList(),
               ),
             ),
-            // Mostrar el total
+            // Resumen de orden moderno
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              child: Column(
                 children: [
-                  const Text('Total: ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                  Text(
-                    '₡${cartService.items.fold<double>(0, (sum, item) => sum + (item.precio ?? 0) * item.quantity).toStringAsFixed(2)}',
-                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text('Total de productos:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      ),
+                      Text('$totalItems', style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text('Subtotal', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      ),
+                      Text(subtotal.toStringAsFixed(2), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text('Impuesto', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      ),
+                      Text(tax.toStringAsFixed(2), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text('Envío', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      ),
+                      Text(delivery.toStringAsFixed(2), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+                    ],
+                  ),
+                  const Divider(height: 0.1, thickness: 1),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text('Total a pagar:', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.green)),
+                      ),
+                      Text(totalPayment.toStringAsFixed(2), style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500)),
+                    ],
                   ),
                 ],
               ),
