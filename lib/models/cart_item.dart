@@ -3,12 +3,14 @@ class CartItem {
   final String nombre;
   final double? precio;
   final int quantity;
+  final String? imagen; // Nueva propiedad para la imagen
 
   CartItem({
     required this.id,
     required this.nombre,
     this.precio,
     required this.quantity,
+    this.imagen, // Nuevo parámetro opcional
   });
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
@@ -21,6 +23,7 @@ class CartItem {
               ? double.tryParse(json['precio'])
               : json['precio'],
       quantity: json['quantity'] ?? 1,
+      imagen: json['imagen'], // Nuevo campo
     );
   }
 }
