@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/product_service.dart';
+import '../services/cart_service.dart';
 import '../../models/product.dart';
+import '../../models/cart_item.dart';
 
 class RestaurantDetailsPage extends StatefulWidget {
   final int commerceId;
@@ -68,6 +71,15 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          // Navegar al carrito
+          Navigator.pushNamed(context, '/cart');
+        },
+        icon: const Icon(Icons.shopping_cart),
+        label: const Text('Ver carrito'),
+        backgroundColor: Colors.orange,
+      ),
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -76,141 +88,178 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
             pinned: true,
             backgroundColor: widget.abierto ? Colors.green.shade600 : Colors.red.shade600,
             flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: widget.abierto 
-                        ? [Colors.green.shade400, Colors.green.shade700]
-                        : [Colors.red.shade400, Colors.red.shade700],
+              background: Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: widget.abierto 
+                            ? [Colors.green.shade400, Colors.green.shade700]
+                            : [Colors.red.shade400, Colors.red.shade700],
+                      ),
+                    ),
                   ),
-                ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 60),
-                        Row(
-                          children: [
-                            Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                              ),
-                              child: widget.logoUrl != null
-                                  ? ClipRRect(
-                                      borderRadius: BorderRadius.circular(12),
-                                      child: Image.network(
-                                        widget.logoUrl!,
-                                        fit: BoxFit.cover,
-                                      ),
-                                    )
-                                  : const Icon(
-                                      Icons.store,
-                                      size: 40,
-                                      color: Colors.grey,
-                                    ),
+                  Positioned(
+                    top: 40,
+                    right: 20,
+                    child: widget.rating != null
+                        ? Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.orange,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    widget.nombreLocal,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
+                            child: Row(
+                              children: [
+                                const Icon(Icons.star, size: 16, color: Colors.white),
+                                const SizedBox(width: 4),
+                                Text(
+                                  widget.rating!.toStringAsFixed(1),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                        decoration: BoxDecoration(
-                                          color: widget.abierto ? Colors.green : Colors.red,
-                                          borderRadius: BorderRadius.circular(12),
+                                ),
+                              ],
+                            ),
+                          )
+                        : const SizedBox.shrink(),
+                  ),
+                  SafeArea(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 60),
+                          Row(
+                            children: [
+                              Container(
+                                width: 80,
+                                height: 80,
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: widget.logoUrl != null
+                                    ? ClipRRect(
+                                        borderRadius: BorderRadius.circular(12),
+                                        child: Image.network(
+                                          widget.logoUrl!,
+                                          fit: BoxFit.cover,
                                         ),
-                                        child: Text(
-                                          widget.abierto ? 'ABIERTO' : 'CERRADO',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
+                                      )
+                                    : const Icon(
+                                        Icons.store,
+                                        size: 40,
+                                        color: Colors.grey,
                                       ),
-                                      if (widget.rating != null) ...[
-                                        const SizedBox(width: 8),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      widget.nombreLocal,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Row(
+                                      children: [
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                           decoration: BoxDecoration(
-                                            color: Colors.orange,
+                                            color: widget.abierto ? Colors.green : Colors.red,
                                             borderRadius: BorderRadius.circular(12),
                                           ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(Icons.star, size: 12, color: Colors.white),
-                                              const SizedBox(width: 2),
-                                              Text(
-                                                widget.rating!.toStringAsFixed(1),
-                                                style: const TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ],
+                                          child: Text(
+                                            widget.abierto ? 'ABIERTO' : 'CERRADO',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
                                           ),
                                         ),
+                                        if (widget.tiempoEntrega != null) ...[
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.blue.shade100,
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                const Icon(Icons.timer, size: 14, color: Colors.blue),
+                                                const SizedBox(width: 2),
+                                                Text(
+                                                  widget.tiempoEntrega!,
+                                                  style: const TextStyle(
+                                                    color: Colors.blue,
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ],
-                                    ],
-                                  ),
-                                ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.9),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Column(
-                            children: [
-                              _buildInfoRow(Icons.location_on, widget.direccion),
-                              const SizedBox(height: 8),
-                              _buildInfoRow(Icons.phone, widget.telefono),
-                              if (widget.tiempoEntrega != null) ...[
-                                const SizedBox(height: 8),
-                                _buildInfoRow(Icons.access_time, 'Entrega: ${widget.tiempoEntrega}'),
-                              ],
                             ],
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: 20),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.9),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              children: [
+                                _buildInfoRow(Icons.location_on, widget.direccion),
+                                const SizedBox(height: 8),
+                                _buildInfoRow(Icons.phone, widget.telefono),
+                                if (widget.horario != null) ...[
+                                  const SizedBox(height: 8),
+                                  _buildInfoRow(Icons.access_time, 'Horario: ${widget.horario}'),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                ],
               ),
             ),
           ),
@@ -457,18 +506,37 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             color: Colors.green.shade600,
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.shade100,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Text(
-                            'Agregar',
-                            style: TextStyle(
-                              color: Colors.orange,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                        GestureDetector(
+                          onTap: () {
+                            final cartService = Provider.of<CartService>(context, listen: false);
+                            cartService.addToCart(CartItem(
+                              id: product.id,
+                              nombre: product.nombre,
+                              precio: product.precio,
+                              quantity: 1,
+                              imagen: product.imagen,
+                            ));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Producto agregado al carrito'),
+                                backgroundColor: Colors.green,
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade100,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Text(
+                              'Agregar',
+                              style: TextStyle(
+                                color: Colors.orange,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                              ),
                             ),
                           ),
                         ),
@@ -493,6 +561,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
         initialChildSize: 0.6,
         maxChildSize: 0.9,
         minChildSize: 0.3,
+        expand: false,
         builder: (context, scrollController) => Container(
           decoration: const BoxDecoration(
             color: Colors.white,
@@ -573,7 +642,21 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         child: ElevatedButton(
                           onPressed: () {
                             Navigator.pop(context);
-                            // Aquí agregar al carrito
+                            final cartService = Provider.of<CartService>(context, listen: false);
+                            cartService.addToCart(CartItem(
+                              id: product.id,
+                              nombre: product.nombre,
+                              precio: product.precio,
+                              quantity: 1,
+                              imagen: product.imagen,
+                            ));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Producto agregado al carrito'),
+                                backgroundColor: Colors.green,
+                                duration: const Duration(seconds: 1),
+                              ),
+                            );
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange,
