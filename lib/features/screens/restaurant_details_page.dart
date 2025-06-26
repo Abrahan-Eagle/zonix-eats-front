@@ -1,3 +1,24 @@
+/// Vista de detalles de un restaurante/comercio.
+/// 
+/// Muestra la información principal del restaurante, su logo, estado (abierto/cerrado),
+/// rating, tiempo de entrega, dirección, teléfono y horario. Permite buscar y filtrar productos
+/// por categoría, ver detalles de cada producto y agregarlos al carrito.
+/// 
+/// Estructura principal:
+/// - SliverAppBar: Header con logo, nombre, estado, rating, tiempo de entrega y datos básicos.
+/// - Barra de búsqueda: Permite buscar productos por nombre o descripción.
+/// - Filtros de categoría: Chips horizontales para filtrar productos por categoría.
+/// - Listado de productos: Cards con imagen, nombre, descripción, precio y botón para agregar al carrito.
+/// - Modal de detalles: Al tocar un producto, muestra detalles ampliados y botón para agregar al carrito.
+/// - Botón flotante: Acceso rápido al carrito.
+/// 
+/// Notas de personalización:
+/// - Para subir/bajar el logo, ajusta el valor de `margin` en el Container del logo.
+/// - Para cambiar colores, modifica los valores en el método build según el modo claro/oscuro.
+/// - Para agregar más datos del restaurante, amplía los parámetros del widget y el header.
+///
+///
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/product_service.dart';
@@ -136,7 +157,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   ),
                   SafeArea(
                     child: Padding(
-                      padding: const EdgeInsets.all(20.0),
+                      padding: const EdgeInsets.all(10.0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -243,15 +264,20 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               color: Colors.white.withOpacity(0.9),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Column(
+                            child: Row(
                               children: [
-                                _buildInfoRow(Icons.location_on, widget.direccion),
-                                const SizedBox(height: 8),
-                                _buildInfoRow(Icons.phone, widget.telefono),
-                                if (widget.horario != null) ...[
-                                  const SizedBox(height: 8),
-                                  _buildInfoRow(Icons.access_time, 'Horario: ${widget.horario}'),
-                                ],
+                                Icon(Icons.location_on, color: Colors.grey.shade600, size: 20),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    widget.direccion,
+                                    style: TextStyle(
+                                      color: Colors.grey.shade800,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
                               ],
                             ),
                           ),
@@ -259,6 +285,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       ),
                     ),
                   ),
+                 
                 ],
               ),
             ),
