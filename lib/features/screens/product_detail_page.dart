@@ -81,6 +81,19 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             ),
                           ),
                           const SizedBox(height: 8),
+                          // Encima de la descripción
+                          const Text(
+                            'Descripción',
+                            textAlign: TextAlign.start,
+                            style: TextStyle(
+                              fontFamily: 'SF Pro Display',
+                              fontSize: 18,
+                              letterSpacing: 0.0,
+                              fontWeight: FontWeight.w500,
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
                           Text(
                             widget.product.descripcion ?? 'Sin descripción',
                             style: const TextStyle(fontSize: 16, color: Colors.black54),
