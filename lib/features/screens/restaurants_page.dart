@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/restaurant_service.dart';
 import '../../models/restaurant.dart';
+import 'restaurant_details_page.dart';
 
 class RestaurantsPage extends StatefulWidget {
   const RestaurantsPage({Key? key}) : super(key: key);
@@ -61,6 +62,24 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                   title: Text(restaurant.nombre),
                   subtitle: Text(restaurant.direccion ?? ''),
                   trailing: Text(restaurant.descripcion ?? ''),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => RestaurantDetailsPage(
+                          commerceId: restaurant.id,
+                          nombreLocal: restaurant.nombre,
+                          direccion: restaurant.direccion ?? '',
+                          telefono: '', // Ajusta si tienes el campo
+                          abierto: true, // Ajusta si tienes el campo
+                          horario: null, // Ajusta si tienes el campo
+                          logoUrl: restaurant.imagen,
+                          rating: null, // Ajusta si tienes el campo
+                          tiempoEntrega: null, // Ajusta si tienes el campo
+                        ),
+                      ),
+                    );
+                  },
                 ),
               );
             },
