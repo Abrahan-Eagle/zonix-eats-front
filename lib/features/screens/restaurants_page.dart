@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/restaurant_service.dart';
 import '../../models/restaurant.dart';
 import 'restaurant_details_page.dart';
-
+import 'package:logger/logger.dart';
 class RestaurantsPage extends StatefulWidget {
   const RestaurantsPage({Key? key}) : super(key: key);
 
@@ -12,11 +12,45 @@ class RestaurantsPage extends StatefulWidget {
 
 class _RestaurantsPageState extends State<RestaurantsPage> {
   late Future<List<Restaurant>> _restaurantsFuture;
+  final Logger _logger = Logger();
 
   @override
   void initState() {
     super.initState();
-    _restaurantsFuture = RestaurantService().fetchRestaurants();
+    // _restaurantsFuture = RestaurantService().fetchRestaurants();
+    _loadRestaurants();
+  }
+
+  Future<void> _loadRestaurants() async {
+    try {
+      _logger.i('🔄 Iniciando carga de restaurantes...');
+      _restaurantsFuture = RestaurantService().fetchRestaurants();
+      
+      // Opción 1: Loguear cuando se completa el Future
+      _restaurantsFuture.then((restaurants) {
+        _logger.d('✅ Datos recibidos de fetchRestaurants():');
+        _logger.d('📌 Cantidad de restaurantes: ${restaurants.length}');
+        
+        for (var i = 0; i < restaurants.length; i++) {
+          _logger.v('''
+          🏷 Restaurante #${i + 1}:
+          - ID: ${restaurants[i].id}
+          - Nombre: ${restaurants[i].nombreLocal}
+          - Dirección: ${restaurants[i].direccion ?? 'N/A'}
+          - Teléfono: ${restaurants[i].telefono ?? 'N/A'}
+          - Abierto: ${restaurants[i].abierto ?? 'N/A'}
+          - Logo: ${restaurants[i].logoUrl ?? 'N/A'}
+          - Descripción: ${restaurants[i].descripcion ?? 'N/A'}
+          - Horario: ${restaurants[i].horario != null ? restaurants[i].horario.toString() : 'N/A'}
+          ''');
+        }
+      }).catchError((error) {
+        _logger.e('❌ Error al cargar restaurantes: $error');
+      });
+      
+    } catch (e) {
+      _logger.e('❌ Error en initState al cargar restaurantes: $e');
+    }
   }
 
   @override
@@ -40,7 +74,9 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                   ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        _restaurantsFuture = RestaurantService().fetchRestaurants();
+                        // _restaurantsFuture = RestaurantService().fetchRestaurants();
+
+                        _loadRestaurants();
                       });
                     },
                     child: const Text('Reintentar'),
@@ -59,21 +95,38 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
-                  title: Text(restaurant.nombre),
+                  title: Text(restaurant.nombreLocal),
                   subtitle: Text(restaurant.direccion ?? ''),
                   trailing: Text(restaurant.descripcion ?? ''),
                   onTap: () {
+
+                     final logger = Logger();
+
+
+                      logger.d('''
+                        🚀 Navegando a RestaurantDetailsPage con:
+                        - commerceId: ${restaurant.id}
+                        - nombreLocal: ${restaurant.nombreLocal}
+                        - direccion: ${restaurant.direccion ?? 'null'}
+                        - telefono: ${restaurant.telefono ?? 'null'}
+                        - abierto: ${restaurant.abierto}
+                        - horario: ${restaurant.horario ?? 'null'}
+                        - logoUrl: ${restaurant.logoUrl ?? 'null'}
+                        - rating: null
+                        - tiempoEntrega: null
+                        ''');
+
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => RestaurantDetailsPage(
                           commerceId: restaurant.id,
-                          nombreLocal: restaurant.nombre,
+                          nombreLocal: restaurant.nombreLocal,
                           direccion: restaurant.direccion ?? '',
                           telefono: '', // Ajusta si tienes el campo
                           abierto: true, // Ajusta si tienes el campo
                           horario: null, // Ajusta si tienes el campo
-                          logoUrl: restaurant.imagen,
+                          logoUrl: restaurant.logoUrl,
                           rating: null, // Ajusta si tienes el campo
                           tiempoEntrega: null, // Ajusta si tienes el campo
                         ),
