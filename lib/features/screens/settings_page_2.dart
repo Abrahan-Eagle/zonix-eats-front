@@ -38,29 +38,71 @@ class _SettingsPage2State extends State<SettingsPage2> {
     _loadProfile();
   }
 
+  // Future<void> _loadProfile() async {
+  //   setState(() {
+  //     _loading = true;
+  //     _error = null;
+  //   });
+  //   try {
+  //     final userProvider = Provider.of<UserProvider>(context, listen: false);
+  //     final userDetails = await userProvider.getUserDetails();
+  //     final id = userDetails['userId'];
+  //     if (id == null || id is! int) {
+  //       throw Exception('El ID del usuario es inválido: $id');
+  //     }
+  //     _email = userDetails['users']['email'];
+  //     _profile = await ProfileService().getProfileById(id);
+  //     logger.e('Error obteniendo el ID del usuario: $_profile');
+  //   } catch (e) {
+  //     logger.e('Error obteniendo el ID del usuario: $e');
+  //     _error = 'Error al cargar el perfil';
+  //   } finally {
+  //     setState(() {
+  //       _loading = false;
+  //     });
+  //   }
+  // }
+
   Future<void> _loadProfile() async {
+  setState(() {
+    _loading = true;
+    _error = null;
+  });
+  try {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userDetails = await userProvider.getUserDetails();
+    
+    // More flexible ID handling
+    final id = userDetails['userId'];
+    if (id == null) {
+      throw Exception('No se pudo obtener el ID del usuario');
+    }
+    
+    // Convert to int if necessary
+    final userId = id is int ? id : int.tryParse(id.toString());
+    if (userId == null) {
+      throw Exception('El ID del usuario no es válido: $id');
+    }
+    
+    _email = userDetails['users']['email'];
+    _profile = await ProfileService().getProfileById(userId);
+    
+    // Log success as info, not error
+    logger.i('Perfil cargado correctamente: $_profile');
+    
+  } catch (e, stackTrace) {
+    // logger.e('Error al cargar el perfil', error: e, stackTrace: stackTrace);
     setState(() {
-      _loading = true;
-      _error = null;
+      // _error = 'Error al cargar el perfil: ${e.toString()}';
     });
-    try {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final userDetails = await userProvider.getUserDetails();
-      final id = userDetails['userId'];
-      if (id == null || id is! int) {
-        throw Exception('El ID del usuario es inválido: $id');
-      }
-      _email = userDetails['users']['email'];
-      _profile = await ProfileService().getProfileById(id);
-    } catch (e) {
-      logger.e('Error obteniendo el ID del usuario: $e');
-      _error = 'Error al cargar el perfil';
-    } finally {
+  } finally {
+    if (mounted) {
       setState(() {
         _loading = false;
       });
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
