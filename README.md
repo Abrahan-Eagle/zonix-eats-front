@@ -44,12 +44,69 @@ assets/           # Imágenes, fuentes, íconos
 
 ---
 
-## 🧪 Cómo correr los tests
+## 🧪 Testing y Mocks
 
+### Ejecutar Tests
 ```bash
 flutter test
 ```
-Todos los tests relevantes deben pasar. Los tests de servicios usan mocks para evitar dependencias de red.
+
+### Estrategia de Testing
+Los tests están diseñados para ser **estables, rápidos y confiables** sin depender de servicios externos:
+
+#### Mocks Implementados
+- **Servicios HTTP**: Usamos `MockClient` para simular respuestas de API
+- **Almacenamiento Seguro**: Mockeamos `flutter_secure_storage` para tests
+- **Plugins Externos**: Simulamos GoogleSignIn y otros plugins cuando es necesario
+
+#### Ejemplos de Mocks
+
+**OrderService Mock:**
+```dart
+class MockOrderService extends OrderService {
+  @override
+  Future<List<Order>> fetchOrders() async {
+    return [Order(id: 1, estado: 'pendiente', total: 100, items: [])];
+  }
+}
+```
+
+**UserProvider Mock:**
+```dart
+class UserProviderMock extends UserProvider {
+  @override
+  Future<Map<String, dynamic>> getUserDetails() async {
+    return {
+      'users': {'id': 1, 'role': 'users'},
+      'role': 'users',
+      'userId': 1,
+    };
+  }
+}
+```
+
+#### Configuración de Tests
+```dart
+setUp(() {
+  // Mock secure storage
+  const MethodChannel channel = MethodChannel('plugins.it_nomads.com/flutter_secure_storage');
+  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+    channel,
+    (MethodCall methodCall) async {
+      if (methodCall.method == 'read') {
+        return 'mock_token';
+      }
+      return null;
+    },
+  );
+});
+```
+
+### Convenciones de Testing
+- **Tests Unitarios**: Para lógica de negocio y servicios
+- **Tests de Widgets**: Para componentes UI simples
+- **Mocks**: Para servicios externos (HTTP, storage, plugins)
+- **Nombres**: Descriptivos en español (ej: "Puede crear orden con items")
 
 ---
 

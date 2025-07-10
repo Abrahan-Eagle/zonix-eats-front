@@ -26,4 +26,29 @@ class CartItem {
       imagen: json['imagen'], // Nuevo campo
     );
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is CartItem &&
+        other.id == id &&
+        other.nombre == nombre &&
+        other.precio == precio &&
+        other.quantity == quantity &&
+        other.imagen == imagen;
+  }
+
+  @override
+  int get hashCode {
+    return id.hashCode ^
+        nombre.hashCode ^
+        precio.hashCode ^
+        quantity.hashCode ^
+        imagen.hashCode;
+  }
+
+  @override
+  String toString() {
+    return 'CartItem(id: $id, nombre: $nombre, precio: $precio, quantity: $quantity, imagen: $imagen)';
+  }
 }

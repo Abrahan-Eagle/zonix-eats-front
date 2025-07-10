@@ -4,11 +4,15 @@ import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/models/cart_item.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   setUpAll(() async {
     await dotenv.load(fileName: ".env");
   });
+  
   group('CartService', () {
     late CartService cartService;
+    
     setUp(() {
       cartService = CartService();
     });
