@@ -197,7 +197,6 @@
 
 import 'package:flutter/material.dart';
 import '../api/profile_service.dart';
-import 'package:zonix/features/GasTicket/gas_button/api/gas_ticket_service.dart';
 
 
 
@@ -211,7 +210,6 @@ class SelectStationModal extends StatefulWidget {
 }
 
 class _SelectStationModalState extends State<SelectStationModal> {
-   final GasTicketService _ticketService = GasTicketService();
   List<Map<String, dynamic>> _stations = [];
   int? _selectedStationId; // Puede ser null inicialmente
   bool _isLoading = true;
@@ -230,7 +228,7 @@ class _SelectStationModalState extends State<SelectStationModal> {
     });
 
     try {
-      final stations = await _ticketService.fetchStations();
+      final stations = await ProfileService().fetchStations();
        logger.i('Estaciones cargadas: $stations');
       setState(() {
         _stations = stations;

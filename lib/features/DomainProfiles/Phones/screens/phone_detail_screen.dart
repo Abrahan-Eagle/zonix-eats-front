@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:zonix/features/DomainProfiles/GasCylinder/models/gas_cylinder.dart';
 
 class GasCylinderDetailScreen extends StatelessWidget {
-  final GasCylinder cylinder;
+  final Map<String, dynamic> cylinder;
 
   const GasCylinderDetailScreen({super.key, required this.cylinder});
 
@@ -28,17 +27,17 @@ class GasCylinderDetailScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildDetailItem(context, 'Código: ${cylinder.gasCylinderCode}', isHeader: true),
-                _buildDetailItem(context, 'Cantidad: ${cylinder.cylinderQuantity ?? 'N/A'}'),
+                _buildDetailItem(context, 'Código: ${cylinder['gasCylinderCode']}', isHeader: true),
+                _buildDetailItem(context, 'Cantidad: ${cylinder['cylinderQuantity'] ?? 'N/A'}'),
                 _buildDetailItem(
                   context,
-                  'Estado: ${cylinder.approved ? 'Aprobada' : 'No Aprobada'}',
-                  textColor: cylinder.approved ? Colors.green : Colors.red,
+                  'Estado: ${cylinder['approved'] ? 'Aprobada' : 'No Aprobada'}',
+                  textColor: cylinder['approved'] ? Colors.green : Colors.red,
                 ),
-                _buildDetailItem(context, 'Tipo de cilindro: ${cylinder.cylinderType ?? 'N/A'}'),
-                _buildDetailItem(context, 'Tamaño de cilindro: ${cylinder.cylinderWeight ?? 'N/A'}'),
-                _buildDetailItem(context, 'Fecha de producción: ${_formatDate(cylinder.manufacturingDate)}'),
-                _buildDetailItem(context, 'Fecha de Creación: ${_formatDate(cylinder.createdAt)}'),
+                _buildDetailItem(context, 'Tipo de cilindro: ${cylinder['cylinderType'] ?? 'N/A'}'),
+                _buildDetailItem(context, 'Tamaño de cilindro: ${cylinder['cylinderWeight'] ?? 'N/A'}'),
+                _buildDetailItem(context, 'Fecha de producción: ${_formatDate(cylinder['manufacturingDate'])}'),
+                _buildDetailItem(context, 'Fecha de Creación: ${_formatDate(cylinder['createdAt'])}'),
                 const SizedBox(height: 20),
                 _buildImageButton(context), // Botón de imagen
               ],
@@ -73,7 +72,7 @@ class GasCylinderDetailScreen extends StatelessWidget {
             children: [
               Expanded(
                 child: Image.network(
-                  cylinder.photoGasCylinder ?? '', // URL de la imagen
+                  cylinder['photoGasCylinder'] ?? '', // URL de la imagen
                   fit: BoxFit.contain, // Ajusta la imagen sin recortarla
                   errorBuilder: (context, error, stackTrace) {
                     return const Center(
