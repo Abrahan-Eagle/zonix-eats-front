@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../models/notification_item.dart';
-import '../services/notification_service.dart';
+import 'package:zonix/models/notification_item.dart';
+import 'package:zonix/features/services/notification_service.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({Key? key}) : super(key: key);

@@ -3,8 +3,8 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
-import '../../lib/features/services/product_service.dart';
-import '../../lib/models/product.dart';
+import 'package:zonix/features/services/product_service.dart';
+import 'package:zonix/models/product.dart';
 
 class ProductServiceMock extends ProductService {
   @override

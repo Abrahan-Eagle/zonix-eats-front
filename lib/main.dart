@@ -7,18 +7,18 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:flutter/services.dart';
-import 'package:zonix/features/screens/profile_page.dart';
-import 'package:zonix/features/screens/settings_page_2.dart';
-import 'package:zonix/features/screens/sign_in_screen.dart';
+import 'package:zonix/features/screens/profile/profile_page.dart';
+import 'package:zonix/features/screens/settings/settings_page_2.dart';
+import 'package:zonix/features/screens/auth/sign_in_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
-import 'package:zonix/features/screens/products_page.dart';
-import 'package:zonix/features/screens/cart_page.dart';
-import 'package:zonix/features/screens/orders_page.dart';
-import 'package:zonix/features/screens/restaurants_page.dart';
+import 'package:zonix/features/screens/products/products_page.dart';
+import 'package:zonix/features/screens/cart/cart_page.dart';
+import 'package:zonix/features/screens/orders/orders_page.dart';
+import 'package:zonix/features/screens/restaurants/restaurants_page.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/order_service.dart';
-import 'features/screens/commerce_orders_page.dart';
+import 'package:zonix/features/screens/orders/commerce_orders_page.dart';
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
@@ -84,11 +84,16 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.system,
       home: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
-          logger.i('isAuthenticated: ${userProvider.isAuthenticated}');
+          logger.i('isAuthenticated:  [32m [1m [4m [7m${userProvider.isAuthenticated} [0m');
           if (userProvider.isAuthenticated) {
-            // return const MainRouter();
-            // Para pruebas, mostrar la pantalla de órdenes del comercio:
-            return const CommerceOrdersPage();
+            if (userProvider.userRole == 'users') {
+              return const MainRouter();
+            } else if (userProvider.userRole == 'commerce') {
+              return const CommerceOrdersPage();
+            } else {
+              // Rol desconocido, fallback
+              return const MainRouter();
+            }
           } else {
             return const SignInScreen();
           }

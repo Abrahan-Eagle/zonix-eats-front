@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/order_service.dart';
-import '../../models/order.dart';
+import 'package:zonix/features/services/order_service.dart';
+import 'package:zonix/models/order.dart';
 
 class CommerceOrdersPage extends StatefulWidget {
   const CommerceOrdersPage({Key? key}) : super(key: key);

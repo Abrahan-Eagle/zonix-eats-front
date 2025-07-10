@@ -21,10 +21,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/product_service.dart';
-import '../services/cart_service.dart';
-import '../../models/product.dart';
-import '../../models/cart_item.dart';
+import 'package:zonix/features/services/product_service.dart';
+import 'package:zonix/features/services/cart_service.dart';
+import 'package:zonix/models/product.dart';
+import 'package:zonix/models/cart_item.dart';
+import 'package:zonix/models/restaurant.dart';
 
 class RestaurantDetailsPage extends StatefulWidget {
   final int commerceId;

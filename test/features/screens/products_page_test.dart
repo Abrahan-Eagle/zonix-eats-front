@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:provider/single_child_widget.dart';
-import '../../../lib/features/screens/products_page.dart';
-import '../../../lib/models/product.dart';
-import '../../../lib/features/services/cart_service.dart';
-import '../../../lib/features/services/product_service.dart';
+import 'package:zonix/features/screens/products/products_page.dart';
+import 'package:zonix/models/product.dart';
+import 'package:zonix/features/services/cart_service.dart';
+import 'package:zonix/features/services/product_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MockProductService extends ProductService {

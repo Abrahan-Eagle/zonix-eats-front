@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import '../../lib/features/services/cart_service.dart';
-import '../../lib/models/cart_item.dart';
+import 'package:zonix/features/services/cart_service.dart';
+import 'package:zonix/models/cart_item.dart';
 
 void main() {
   setUpAll(() async {

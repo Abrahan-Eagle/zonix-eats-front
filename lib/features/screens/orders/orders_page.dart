@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/order_service.dart';
-import '../../models/order.dart';
+import 'package:zonix/features/services/order_service.dart';
+import 'package:zonix/models/order.dart';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 

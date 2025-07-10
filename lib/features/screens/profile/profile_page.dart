@@ -9,7 +9,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // Importa QrImageView
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
-import '../../features/DomainProfiles/Profiles/models/profile_model.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
 
 
 final logger = Logger();

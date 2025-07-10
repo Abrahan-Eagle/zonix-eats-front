@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/cart_service.dart';
-import '../services/order_service.dart';
-import '../../models/cart_item.dart';
+import 'package:zonix/features/services/cart_service.dart';
+import 'package:zonix/features/services/order_service.dart';
+import 'package:zonix/models/cart_item.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({Key? key}) : super(key: key);

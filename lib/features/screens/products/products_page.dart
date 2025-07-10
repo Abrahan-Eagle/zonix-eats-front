@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
-import '../services/product_service.dart';
-import '../services/cart_service.dart';
-import '../../models/product.dart';
-import '../../models/cart_item.dart';
+import 'package:zonix/features/services/cart_service.dart';
+import 'package:zonix/features/services/product_service.dart';
+import 'package:zonix/models/product.dart';
+import 'package:zonix/models/cart_item.dart';
 import 'product_detail_page.dart';
 
 class ProductsPage extends StatefulWidget {
