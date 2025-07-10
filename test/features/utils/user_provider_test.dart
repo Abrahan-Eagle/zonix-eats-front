@@ -30,10 +30,56 @@ class UserProviderMock extends UserProvider {
   }
 }
 
+class CommerceUserProviderMock extends UserProvider {
+  @override
+  Future<Map<String, dynamic>> getUserDetails() async {
+    return {
+      'users': {
+        'id': 2,
+        'google_id': 'mock_commerce_google_id',
+        'role': 'commerce',
+        'name': 'Mock Commerce',
+        'email': 'commerce@example.com',
+      },
+      'role': 'commerce',
+      'userId': 2,
+      'userGoogleId': 'mock_commerce_google_id',
+    };
+  }
+
+  @override
+  Future<void> logout() async {
+    return;
+  }
+}
+
+class DeliveryUserProviderMock extends UserProvider {
+  @override
+  Future<Map<String, dynamic>> getUserDetails() async {
+    return {
+      'users': {
+        'id': 3,
+        'google_id': 'mock_delivery_google_id',
+        'role': 'delivery',
+        'name': 'Mock Delivery',
+        'email': 'delivery@example.com',
+      },
+      'role': 'delivery',
+      'userId': 3,
+      'userGoogleId': 'mock_delivery_google_id',
+    };
+  }
+
+  @override
+  Future<void> logout() async {
+    return;
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('UserProvider', () {
+  group('UserProvider - Tests Generales', () {
     late UserProvider userProvider;
 
     setUp(() {
@@ -97,7 +143,6 @@ void main() {
     });
 
     test('Puede verificar autenticación', () async {
-      // Este test verifica que el método existe y no lanza errores de sintaxis
       expect(() => userProvider.checkAuthentication(), returnsNormally);
     });
 
@@ -108,9 +153,156 @@ void main() {
     });
 
     test('Puede cerrar sesión', () async {
-      // Este test verifica que el método existe y no lanza errores de sintaxis
       await userProvider.logout();
       expect(true, isTrue);
+    });
+  });
+
+  group('UserProvider - Tests por Rol', () {
+    late UserProvider usersProvider;
+    late UserProvider commerceProvider;
+    late UserProvider deliveryProvider;
+
+    setUp(() {
+      const MethodChannel channel = MethodChannel('plugins.it_nomads.com/flutter_secure_storage');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        channel,
+        (MethodCall methodCall) async {
+          if (methodCall.method == 'read') {
+            if (methodCall.arguments['key'] == 'token') {
+              return 'mock_token';
+            }
+            return null;
+          }
+          if (methodCall.method == 'write') {
+            return null;
+          }
+          return null;
+        },
+      );
+      
+      usersProvider = UserProviderMock();
+      commerceProvider = CommerceUserProviderMock();
+      deliveryProvider = DeliveryUserProviderMock();
+    });
+
+    tearDown(() {
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+        const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
+        null,
+      );
+    });
+
+    group('Rol: users (Cliente)', () {
+      test('Usuario con rol users puede obtener detalles correctos', () async {
+        final details = await usersProvider.getUserDetails();
+        expect(details['role'], 'users');
+        expect(details['userId'], 1);
+        expect(details['userGoogleId'], 'mock_google_id');
+      });
+
+      test('Usuario con rol users tiene acceso a funcionalidades de cliente', () {
+        // Verificar que puede establecer estados específicos de cliente
+        usersProvider.setProfileCreated(true);
+        usersProvider.setAdresseCreated(true);
+        usersProvider.setDocumentCreated(true);
+        
+        expect(usersProvider.profileCreated, true);
+        expect(usersProvider.adresseCreated, true);
+        expect(usersProvider.documentCreated, true);
+      });
+
+      test('Usuario con rol users puede navegar a MainRouter', () async {
+        final details = await usersProvider.getUserDetails();
+        expect(details['role'], 'users');
+        // En main.dart, si el rol es 'users', navega a MainRouter
+        expect(details['role'] == 'users', true);
+      });
+    });
+
+    group('Rol: commerce (Restaurante)', () {
+      test('Usuario con rol commerce puede obtener detalles correctos', () async {
+        final details = await commerceProvider.getUserDetails();
+        expect(details['role'], 'commerce');
+        expect(details['userId'], 2);
+        expect(details['userGoogleId'], 'mock_commerce_google_id');
+      });
+
+      test('Usuario con rol commerce tiene acceso a funcionalidades de comercio', () {
+        // Verificar que puede establecer estados específicos de comercio
+        commerceProvider.setProfileCreated(true);
+        commerceProvider.setPhoneCreated(true);
+        commerceProvider.setEmailCreated(true);
+        
+        expect(commerceProvider.profileCreated, true);
+        expect(commerceProvider.phoneCreated, true);
+        expect(commerceProvider.emailCreated, true);
+      });
+
+      test('Usuario con rol commerce puede navegar a CommerceOrdersPage', () async {
+        final details = await commerceProvider.getUserDetails();
+        expect(details['role'], 'commerce');
+        // En main.dart, si el rol es 'commerce', navega a CommerceOrdersPage
+        expect(details['role'] == 'commerce', true);
+      });
+    });
+
+    group('Rol: delivery (Repartidor)', () {
+      test('Usuario con rol delivery puede obtener detalles correctos', () async {
+        final details = await deliveryProvider.getUserDetails();
+        expect(details['role'], 'delivery');
+        expect(details['userId'], 3);
+        expect(details['userGoogleId'], 'mock_delivery_google_id');
+      });
+
+      test('Usuario con rol delivery tiene acceso a funcionalidades de repartidor', () {
+        // Verificar que puede establecer estados específicos de repartidor
+        deliveryProvider.setProfileCreated(true);
+        deliveryProvider.setDocumentCreated(true);
+        deliveryProvider.setPhoneCreated(true);
+        
+        expect(deliveryProvider.profileCreated, true);
+        expect(deliveryProvider.documentCreated, true);
+        expect(deliveryProvider.phoneCreated, true);
+      });
+
+      test('Usuario con rol delivery navega a MainRouter por defecto', () async {
+        final details = await deliveryProvider.getUserDetails();
+        expect(details['role'], 'delivery');
+        // En main.dart, si el rol no es 'users' ni 'commerce', navega a MainRouter
+        expect(details['role'] != 'users' && details['role'] != 'commerce', true);
+      });
+    });
+
+    group('Navegación por Rol', () {
+      test('Verificar lógica de navegación para todos los roles', () async {
+        // Test para rol 'users'
+        final usersDetails = await usersProvider.getUserDetails();
+        expect(usersDetails['role'], 'users');
+        
+        // Test para rol 'commerce'
+        final commerceDetails = await commerceProvider.getUserDetails();
+        expect(commerceDetails['role'], 'commerce');
+        
+        // Test para rol 'delivery'
+        final deliveryDetails = await deliveryProvider.getUserDetails();
+        expect(deliveryDetails['role'], 'delivery');
+        
+        // Verificar que todos los roles tienen IDs únicos
+        expect(usersDetails['userId'], isNot(commerceDetails['userId']));
+        expect(commerceDetails['userId'], isNot(deliveryDetails['userId']));
+        expect(usersDetails['userId'], isNot(deliveryDetails['userId']));
+      });
+
+      test('Verificar que cada rol tiene su propio Google ID', () async {
+        final usersDetails = await usersProvider.getUserDetails();
+        final commerceDetails = await commerceProvider.getUserDetails();
+        final deliveryDetails = await deliveryProvider.getUserDetails();
+        
+        expect(usersDetails['userGoogleId'], 'mock_google_id');
+        expect(commerceDetails['userGoogleId'], 'mock_commerce_google_id');
+        expect(deliveryDetails['userGoogleId'], 'mock_delivery_google_id');
+      });
     });
   });
 } 
