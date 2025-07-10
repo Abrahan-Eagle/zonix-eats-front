@@ -1,51 +1,66 @@
-# zonix
+# Zonix Eats Frontend (Flutter)
 
-A new Flutter project.
+Aplicación móvil de Zonix Eats desarrollada en Flutter. Permite a clientes, comercios y repartidores interactuar con la plataforma de pedidos y entregas en tiempo real.
 
-## Getting Started
+---
 
-This project is a starting point for a Flutter application.
+## 📦 Estructura del proyecto
 
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-
-# Zonix Eats Frontend
-
-## Descripción
-Frontend de Zonix Eats, desarrollado en Flutter. Permite a usuarios navegar productos, hacer pedidos y gestionar su cuenta.
-
-## Instalación
-```bash
-cd zonix-eats-front
-flutter pub get
-flutter run # para desarrollo
-flutter test # para tests
+```
+lib/
+  core/           # Utilidades, helpers, temas, constantes globales
+  models/         # Modelos de datos (Product, User, etc.)
+  features/       # Features principales agrupadas por dominio
+    products/
+      screens/
+      services/
+      widgets/
+    cart/
+    auth/
+    profile/
+    ...           # Otras features (delivery, orders, etc.)
+  helpers/        # Funciones utilitarias generales
+  main.dart
+assets/           # Imágenes, fuentes, íconos
+ test/            # Tests unitarios y de widgets (refleja la estructura de lib/)
 ```
 
-## Variables de Entorno
-- API_URL_LOCAL, API_URL_PROD
+---
 
-## Estructura
-- lib/features: Pantallas y servicios
-- lib/models: Modelos de datos
-- lib/helpers: Utilidades
-- test/: Pruebas unitarias y de integración
+## 🚀 Cómo correr la app
 
-## Testing
+1. Instala dependencias:
+   ```bash
+   flutter pub get
+   ```
+2. Corre la app en modo desarrollo:
+   ```bash
+   flutter run
+   ```
+3. Compila para producción:
+   ```bash
+   flutter build apk --release
+   ```
+
+---
+
+## 🧪 Cómo correr los tests
+
 ```bash
 flutter test
 ```
+Todos los tests relevantes deben pasar. Los tests de servicios usan mocks para evitar dependencias de red.
 
-## Buenas Prácticas
-- Usa logger para debug
-- Valida formularios y errores de red
-- Elimina código y pantallas ajenas al dominio
+---
 
-## Créditos
-- Imágenes de productos: [TheMealDB](https://www.themealdb.com/api.php)
+## 📝 Convenciones y buenas prácticas
+- Agrupa el código por dominio/feature.
+- Usa nombres claros y descriptivos para archivos y carpetas.
+- Mantén los tests junto a la lógica que prueban.
+- Usa mocks para servicios externos en los tests.
+- Documenta cualquier convención especial aquí.
+
+---
+
+## 📄 Contacto y soporte
+Para dudas o soporte, contacta a tu equipo de desarrollo o abre un issue en el repositorio.
