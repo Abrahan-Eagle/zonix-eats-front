@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:provider/single_child_widget.dart';
 import '../../../lib/features/screens/products_page.dart';
 import '../../../lib/models/product.dart';
 import '../../../lib/features/services/cart_service.dart';
+import '../../../lib/features/services/product_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MockProductService extends ProductService {
   @override
@@ -16,16 +19,18 @@ class MockProductService extends ProductService {
 }
 
 void main() {
+  setUpAll(() async {
+    await dotenv.load(fileName: ".env");
+  });
   testWidgets('ProductsPage muestra productos reales y navega a detalles', (WidgetTester tester) async {
-    // Inyecta el ProductService mockeado
+    // Inyecta el ProductService mockeado directamente
     await tester.pumpWidget(
       MultiProvider(
         providers: [
-          Provider<CartService>(create: (_) => CartService()),
-          Provider<ProductService>(create: (_) => MockProductService()),
+          ChangeNotifierProvider<CartService>(create: (_) => CartService()),
         ],
         child: MaterialApp(
-          home: ProductsPage(),
+          home: ProductsPage(productService: MockProductService()),
         ),
       ),
     );
@@ -36,8 +41,8 @@ void main() {
     // Verifica que los productos se muestran
     expect(find.text('Hamburguesa'), findsOneWidget);
     expect(find.text('Pizza'), findsOneWidget);
-    expect(find.text('50.0'), findsOneWidget);
-    expect(find.text('80.0'), findsOneWidget);
+    expect(find.text(r'50.0 $'), findsOneWidget);
+    expect(find.text(r'80.0 $'), findsOneWidget);
 
     // Toca la card de 'Hamburguesa' y verifica navegación a detalles
     await tester.tap(find.text('Hamburguesa'));

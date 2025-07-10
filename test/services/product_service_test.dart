@@ -2,15 +2,19 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
 import '../../lib/features/services/product_service.dart';
 import '../../lib/models/product.dart';
 
 class ProductServiceMock extends ProductService {
   @override
   Future<List<Product>> fetchProducts() async {
-    // Sobrescribe el método para usar headers fijos
+    // Mock de respuesta exitosa
+    final mockClient = MockClient((request) async {
+      return http.Response('[{"id":1,"nombre":"Mocked Product","disponible":true,"precio":10.0}]', 200);
+    });
     final headers = {'Content-Type': 'application/json'};
-    final response = await http.get(
+    final response = await mockClient.get(
       Uri.parse(apiUrl),
       headers: headers,
     );
