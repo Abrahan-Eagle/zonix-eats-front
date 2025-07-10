@@ -4,6 +4,8 @@ class Order {
   final double? total;
   final DateTime? createdAt;
   final List<OrderItem>? items;
+  final String? comprobanteUrl;
+  final String? estado;
 
   Order({
     required this.id,
@@ -11,6 +13,8 @@ class Order {
     this.total,
     this.createdAt,
     this.items,
+    this.comprobanteUrl,
+    this.estado,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
@@ -24,6 +28,8 @@ class Order {
               : json['total'],
       createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at']) : null,
       items: (json['items'] as List?)?.map((e) => OrderItem.fromJson(e)).toList(),
+      comprobanteUrl: json['comprobante_url'],
+      estado: json['estado'],
     );
   }
 }

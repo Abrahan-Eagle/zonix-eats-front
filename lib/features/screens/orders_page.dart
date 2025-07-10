@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/order_service.dart';
 import '../../models/order.dart';
+import 'dart:io';
+import 'package:file_picker/file_picker.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({Key? key}) : super(key: key);
@@ -62,7 +64,35 @@ class _OrdersPageState extends State<OrdersPage> {
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: ListTile(
                   title: Text('Orden #${order.id}'),
-                  subtitle: Text('Estado: ${order.status ?? 'Desconocido'}'),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Estado: ${order.estado ?? order.status ?? 'Desconocido'}'),
+                      if (order.comprobanteUrl != null)
+                        Text('Comprobante: Subido'),
+                      if ((order.estado ?? '').contains('pendiente_pago') || (order.estado ?? '').contains('comprobante_subido'))
+                        ElevatedButton(
+                          onPressed: () async {
+                            final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf']);
+                            if (result != null && result.files.single.path != null) {
+                              final file = result.files.single;
+                              final fileType = file.extension == 'pdf' ? 'pdf' : (file.extension ?? 'jpg');
+                              try {
+                                await Provider.of<OrderService>(context, listen: false).uploadComprobante(order.id, file.path!, fileType);
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Comprobante subido correctamente')));
+                                setState(() {
+                                  final orderService = Provider.of<OrderService>(context, listen: false);
+                                  _ordersFuture = orderService.fetchOrders();
+                                });
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al subir comprobante')));
+                              }
+                            }
+                          },
+                          child: const Text('Subir comprobante de pago'),
+                        ),
+                    ],
+                  ),
                   trailing: Text('Total: ${order.total ?? '-'}'),
                 ),
               );

@@ -18,6 +18,7 @@ import 'package:zonix/features/screens/orders_page.dart';
 import 'package:zonix/features/screens/restaurants_page.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/order_service.dart';
+import 'features/screens/commerce_orders_page.dart';
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
@@ -85,7 +86,9 @@ class MyApp extends StatelessWidget {
         builder: (context, userProvider, child) {
           logger.i('isAuthenticated: ${userProvider.isAuthenticated}');
           if (userProvider.isAuthenticated) {
-            return const MainRouter();
+            // return const MainRouter();
+            // Para pruebas, mostrar la pantalla de órdenes del comercio:
+            return const CommerceOrdersPage();
           } else {
             return const SignInScreen();
           }
