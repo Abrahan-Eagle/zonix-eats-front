@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:zonix/features/services/commerce_service.dart';
+import 'package:zonix/models/commerce.dart';
+import 'package:zonix/models/order.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/utils/user_provider.dart';
-import 'package:zonix/features/services/order_service.dart';
-import 'package:zonix/models/order.dart';
 
 class CommerceDashboardPage extends StatefulWidget {
   const CommerceDashboardPage({Key? key}) : super(key: key);
@@ -13,8 +14,10 @@ class CommerceDashboardPage extends StatefulWidget {
 
 class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
   bool _isLoading = true;
-  Map<String, dynamic> _stats = {};
+  final CommerceService _commerceService = CommerceService();
+  Commerce? _commerce;
   List<Order> _recentOrders = [];
+  Map<String, dynamic> _statistics = {};
 
   @override
   void initState() {
@@ -28,43 +31,17 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
     });
 
     try {
-      // Simular carga de datos del dashboard
-      await Future.delayed(const Duration(seconds: 1));
+      // Load commerce data (assuming commerce ID 1 for demo)
+      _commerce = await _commerceService.getCommerceById(1);
+      
+      // Load statistics
+      _statistics = await _commerceService.getCommerceStatistics(1);
+      
+      // Load recent orders
+      _recentOrders = await _commerceService.getOrdersByCommerce(1);
+      _recentOrders = _recentOrders.take(5).toList(); // Get only 5 most recent
       
       setState(() {
-        _stats = {
-          'totalSales': 125000.0,
-          'totalOrders': 45,
-          'pendingOrders': 8,
-          'completedOrders': 37,
-          'averageOrderValue': 2777.78,
-          'monthlyGrowth': 12.5,
-        };
-        
-        _recentOrders = [
-          Order(
-            id: 1,
-            status: 'pending',
-            total: 15000.0,
-            createdAt: DateTime.now().subtract(const Duration(hours: 2)),
-            items: [],
-          ),
-          Order(
-            id: 2,
-            status: 'completed',
-            total: 8500.0,
-            createdAt: DateTime.now().subtract(const Duration(hours: 4)),
-            items: [],
-          ),
-          Order(
-            id: 3,
-            status: 'pending',
-            total: 22000.0,
-            createdAt: DateTime.now().subtract(const Duration(hours: 6)),
-            items: [],
-          ),
-        ];
-        
         _isLoading = false;
       });
     } catch (e) {
@@ -77,7 +54,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
     }
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(String title, String value, IconData icon, Color color, {String? subtitle}) {
     return Card(
       elevation: 4,
       child: Padding(
@@ -89,12 +66,14 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
               children: [
                 Icon(icon, color: color, size: 24),
                 const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey,
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey,
+                    ),
                   ),
                 ),
               ],
@@ -108,6 +87,16 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
                 color: color,
               ),
             ),
+            if (subtitle != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -115,66 +104,160 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
   }
 
   Widget _buildRecentOrderCard(Order order) {
-    Color statusColor = order.status == 'completed' 
-        ? Colors.green 
-        : order.status == 'pending' 
-            ? Colors.orange 
-            : Colors.red;
-    
-    String statusText = order.status == 'completed' 
-        ? 'Completada' 
-        : order.status == 'pending' 
-            ? 'Pendiente' 
-            : 'Cancelada';
-
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: statusColor.withOpacity(0.2),
+          backgroundColor: _getStatusColor(order.status).withOpacity(0.2),
           child: Icon(
-            order.status == 'completed' 
-                ? Icons.check_circle 
-                : Icons.pending,
-            color: statusColor,
+            _getStatusIcon(order.status),
+            color: _getStatusColor(order.status),
           ),
         ),
         title: Text(
-          'Orden #${order.id}',
+          'Orden ${order.orderNumber}',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('₡${(order.total ?? 0.0).toStringAsFixed(2)}'),
+            Text('\$${order.total.toStringAsFixed(2)}'),
             Text(
-              '${order.createdAt?.day ?? 0}/${order.createdAt?.month ?? 0}/${order.createdAt?.year ?? 0} ${order.createdAt?.hour ?? 0}:${order.createdAt?.minute ?? 0}',
+              '${order.createdAt.day}/${order.createdAt.month}/${order.createdAt.year} ${order.createdAt.hour}:${order.createdAt.minute.toString().padLeft(2, '0')}',
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),
         trailing: Chip(
           label: Text(
-            statusText,
+            order.statusText,
             style: TextStyle(color: Colors.white, fontSize: 12),
           ),
-          backgroundColor: statusColor,
+          backgroundColor: _getStatusColor(order.status),
         ),
         onTap: () {
-          // Navegar a detalles de la orden
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Ver detalles de orden #${order.id}')),
-          );
+          _showOrderDetails(order);
         },
       ),
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'delivered':
+        return Colors.green;
+      case 'out_for_delivery':
+        return Colors.purple;
+      case 'ready':
+        return Colors.blue;
+      case 'preparing':
+        return Colors.orange;
+      case 'confirmed':
+        return Colors.blue;
+      case 'pending':
+        return Colors.orange;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  IconData _getStatusIcon(String status) {
+    switch (status) {
+      case 'delivered':
+        return Icons.check_circle;
+      case 'out_for_delivery':
+        return Icons.delivery_dining;
+      case 'ready':
+        return Icons.ready;
+      case 'preparing':
+        return Icons.restaurant;
+      case 'confirmed':
+        return Icons.confirmation_number;
+      case 'pending':
+        return Icons.pending;
+      case 'cancelled':
+        return Icons.cancel;
+      default:
+        return Icons.info;
+    }
+  }
+
+  void _showOrderDetails(Order order) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Orden ${order.orderNumber}'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Estado: ${order.statusText}'),
+              Text('Total: \$${order.total.toStringAsFixed(2)}'),
+              Text('Dirección: ${order.deliveryAddress}'),
+              Text('Método de pago: ${order.paymentMethod}'),
+              if (order.specialInstructions != null)
+                Text('Instrucciones: ${order.specialInstructions}'),
+              const SizedBox(height: 16),
+              const Text('Productos:', style: TextStyle(fontWeight: FontWeight.bold)),
+              ...order.items.map((item) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(child: Text(item.productName)),
+                    Text('x${item.quantity}'),
+                    Text('\$${item.total.toStringAsFixed(2)}'),
+                  ],
+                ),
+              )),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cerrar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _updateOrderStatus(order);
+            },
+            child: const Text('Actualizar Estado'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _updateOrderStatus(Order order) {
+    final statuses = ['pending', 'confirmed', 'preparing', 'ready', 'out_for_delivery', 'delivered'];
+    final currentIndex = statuses.indexOf(order.status);
+    final nextStatus = currentIndex < statuses.length - 1 ? statuses[currentIndex + 1] : order.status;
+    
+    _commerceService.updateOrderStatus(order.id, nextStatus).then((_) {
+      _loadDashboardData();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Estado actualizado a: ${Order.fromJson({'status': nextStatus}).statusText}')),
+      );
+    }).catchError((e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al actualizar estado: $e')),
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        title: Text(_commerce?.name ?? 'Dashboard'),
+        backgroundColor: Colors.red[700],
+        foregroundColor: Colors.white,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -191,9 +274,54 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Resumen de métricas
+                    // Commerce Info
+                    if (_commerce != null) ...[
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 30,
+                                backgroundImage: NetworkImage(_commerce!.logo),
+                                onBackgroundImageError: (_, __) {},
+                                child: _commerce!.logo.isEmpty ? Text(_commerce!.name[0]) : null,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _commerce!.name,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      _commerce!.category,
+                                      style: TextStyle(color: Colors.grey[600]),
+                                    ),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.star, color: Colors.amber, size: 16),
+                                        Text(' ${_commerce!.rating.toStringAsFixed(1)} (${_commerce!.reviewCount})'),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    
+                    // Statistics
                     const Text(
-                      'Resumen del Día',
+                      'Estadísticas',
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -201,7 +329,6 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
                     ),
                     const SizedBox(height: 16),
                     
-                    // Grid de estadísticas
                     GridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -211,82 +338,35 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
                       childAspectRatio: 1.5,
                       children: [
                         _buildStatCard(
-                          'Ventas Totales',
-                          '₡${_stats['totalSales']?.toStringAsFixed(0) ?? '0'}',
-                          Icons.attach_money,
-                          Colors.green,
-                        ),
-                        _buildStatCard(
-                          'Órdenes',
-                          '${_stats['totalOrders'] ?? 0}',
+                          'Órdenes Totales',
+                          '${_statistics['total_orders'] ?? 0}',
                           Icons.shopping_cart,
                           Colors.blue,
                         ),
                         _buildStatCard(
-                          'Pendientes',
-                          '${_stats['pendingOrders'] ?? 0}',
-                          Icons.pending,
+                          'Ingresos',
+                          '\$${(_statistics['total_revenue'] ?? 0.0).toStringAsFixed(0)}',
+                          Icons.attach_money,
+                          Colors.green,
+                        ),
+                        _buildStatCard(
+                          'Valor Promedio',
+                          '\$${(_statistics['average_order_value'] ?? 0.0).toStringAsFixed(0)}',
+                          Icons.trending_up,
                           Colors.orange,
                         ),
                         _buildStatCard(
-                          'Completadas',
-                          '${_stats['completedOrders'] ?? 0}',
-                          Icons.check_circle,
-                          Colors.green,
+                          'Productos',
+                          '${_statistics['total_products'] ?? 0}',
+                          Icons.inventory,
+                          Colors.purple,
                         ),
                       ],
                     ),
                     
                     const SizedBox(height: 24),
                     
-                    // Crecimiento mensual
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Row(
-                          children: [
-                            Icon(
-                              _stats['monthlyGrowth'] > 0 
-                                  ? Icons.trending_up 
-                                  : Icons.trending_down,
-                              color: _stats['monthlyGrowth'] > 0 
-                                  ? Colors.green 
-                                  : Colors.red,
-                              size: 32,
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Crecimiento Mensual',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    '${_stats['monthlyGrowth']?.toStringAsFixed(1) ?? '0'}%',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: _stats['monthlyGrowth'] > 0 
-                                          ? Colors.green 
-                                          : Colors.red,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Órdenes recientes
+                    // Recent Orders
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -299,22 +379,81 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
                         ),
                         TextButton(
                           onPressed: () {
-                            // Navegar a todas las órdenes
+                            // Navigate to orders page
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Ver todas las órdenes')),
+                              const SnackBar(content: Text('Navegando a órdenes...')),
                             );
                           },
-                          child: const Text('Ver todas'),
+                          child: const Text('Ver Todas'),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 16),
                     
-                    const SizedBox(height: 8),
+                    if (_recentOrders.isEmpty)
+                      const Card(
+                        child: Padding(
+                          padding: EdgeInsets.all(32),
+                          child: Center(
+                            child: Text(
+                              'No hay órdenes recientes',
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      ..._recentOrders.map((order) => _buildRecentOrderCard(order)),
                     
-                    // Lista de órdenes recientes
-                    ..._recentOrders.map((order) => _buildRecentOrderCard(order)),
+                    const SizedBox(height: 24),
                     
-                    const SizedBox(height: 100), // Espacio para el FAB
+                    // Quick Actions
+                    const Text(
+                      'Acciones Rápidas',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              // Navigate to inventory
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Navegando a inventario...')),
+                              );
+                            },
+                            icon: const Icon(Icons.inventory),
+                            label: const Text('Inventario'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red[700],
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              // Navigate to reports
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Navegando a reportes...')),
+                              );
+                            },
+                            icon: const Icon(Icons.analytics),
+                            label: const Text('Reportes'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red[700],
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
