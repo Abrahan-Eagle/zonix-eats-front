@@ -12,6 +12,9 @@ import 'package:zonix/features/screens/about/about_page.dart';
 import 'package:zonix/features/screens/help/help_and_faq_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
+import 'package:zonix/features/screens/onboarding/form/commerce_registration_page.dart';
+import 'package:zonix/features/screens/onboarding/form/delivery_company_registration_page.dart';
+import 'package:zonix/features/screens/onboarding/form/delivery_agent_registration_page.dart';
 
 // Configuración del logger
 final logger = Logger();
@@ -284,19 +287,47 @@ class _SettingsPage2State extends State<SettingsPage2> {
                               );
                             },
                           },
-                          {
-                            "title": "Bombonas de gas",
-                            "icon": Icons.local_gas_station_outlined,
-                            "onTap": () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      GasCylinderListScreen(userId: userProvider.userId),
-                                ),
-                              );
+                          // Quitar Bombonas de gas
+                          // Agregar acceso condicional a formularios de registro/edición según rol
+                          if (userProvider.userRole == 'commerce')
+                            {
+                              "title": "Datos del Comercio",
+                              "icon": Icons.store,
+                              "onTap": () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const CommerceRegistrationPage(),
+                                  ),
+                                );
+                              },
                             },
-                          },
+                          if (userProvider.userRole == 'delivery_company')
+                            {
+                              "title": "Datos de Empresa de Delivery",
+                              "icon": Icons.local_shipping,
+                              "onTap": () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const DeliveryCompanyRegistrationPage(),
+                                  ),
+                                );
+                              },
+                            },
+                          if (userProvider.userRole == 'delivery_agent')
+                            {
+                              "title": "Datos de Repartidor",
+                              "icon": Icons.delivery_dining,
+                              "onTap": () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const DeliveryAgentRegistrationPage(),
+                                  ),
+                                );
+                              },
+                            },
                           {
                             "title": "Teléfonos",
                             "icon": Icons.phone_outlined,
