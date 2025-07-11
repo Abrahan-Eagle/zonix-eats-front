@@ -371,6 +371,25 @@ import 'package:zonix/features/screens/cart/checkout_page.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/features/screens/orders/commerce_orders_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_dashboard_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_inventory_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_reports_page.dart';
+import 'package:zonix/features/screens/delivery/delivery_orders_page.dart';
+import 'package:zonix/features/screens/delivery/delivery_history_page.dart';
+import 'package:zonix/features/screens/delivery/delivery_routes_page.dart';
+import 'package:zonix/features/screens/delivery/delivery_earnings_page.dart';
+import 'package:zonix/features/screens/transport/transport_fleet_page.dart';
+import 'package:zonix/features/screens/transport/transport_orders_page.dart';
+import 'package:zonix/features/screens/transport/transport_analytics_page.dart';
+import 'package:zonix/features/screens/transport/transport_settings_page.dart';
+import 'package:zonix/features/screens/affiliate/affiliate_dashboard_page.dart';
+import 'package:zonix/features/screens/affiliate/affiliate_commissions_page.dart';
+import 'package:zonix/features/screens/affiliate/affiliate_support_page.dart';
+import 'package:zonix/features/screens/affiliate/affiliate_statistics_page.dart';
+import 'package:zonix/features/screens/admin/admin_dashboard_page.dart';
+import 'package:zonix/features/screens/admin/admin_users_page.dart';
+import 'package:zonix/features/screens/admin/admin_security_page.dart';
+import 'package:zonix/features/screens/admin/admin_analytics_page.dart';
 
 import 'package:zonix/features/screens/help/help_and_faq_page.dart';
 
@@ -597,27 +616,27 @@ class MainRouterState extends State<MainRouter> {
             label: 'Flota',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: 'Conductores',
+            icon: Icon(Icons.assignment),
+            label: 'Pedidos',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.route),
-            label: 'Rutas',
+            icon: Icon(Icons.analytics),
+            label: 'Analíticas',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.assessment),
-            label: 'Métricas',
+            icon: Icon(Icons.settings),
+            label: 'Configuración',
           ),
         ];
         break;
       case 4: // Afiliado a Delivery
         items = [
           const BottomNavigationBarItem(
-            icon: Icon(Icons.handshake),
-            label: 'Afiliaciones',
+            icon: Icon(Icons.dashboard),
+            label: 'Dashboard',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.trending_up),
+            icon: Icon(Icons.percent),
             label: 'Comisiones',
           ),
           const BottomNavigationBarItem(
@@ -625,7 +644,7 @@ class MainRouterState extends State<MainRouter> {
             label: 'Soporte',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
+            icon: Icon(Icons.analytics),
             label: 'Estadísticas',
           ),
         ];
@@ -916,15 +935,15 @@ class MainRouterState extends State<MainRouter> {
                 if (_selectedLevel == 1) {
                   switch (_bottomNavIndex) {
                     case 0:
-                      return const CommerceOrdersPage(); // Dashboard
+                      return const CommerceDashboardPage(); // Dashboard
                     case 1:
-                      return const Center(child: Text('Inventario - En desarrollo'));
+                      return const CommerceInventoryPage(); // Inventario
                     case 2:
                       return const CommerceOrdersPage(); // Órdenes
                     case 3:
-                      return const Center(child: Text('Reportes - En desarrollo'));
+                      return const CommerceReportsPage(); // Reportes
                     default:
-                      return const CommerceOrdersPage();
+                      return const CommerceDashboardPage();
                   }
                 }
 
@@ -932,15 +951,15 @@ class MainRouterState extends State<MainRouter> {
                 if (_selectedLevel == 2) {
                   switch (_bottomNavIndex) {
                     case 0:
-                      return const Center(child: Text('Entregas - En desarrollo'));
+                      return const DeliveryOrdersPage(); // Entregas
                     case 1:
-                      return const Center(child: Text('Historial - En desarrollo'));
+                      return const DeliveryHistoryPage(); // Historial
                     case 2:
-                      return const Center(child: Text('Rutas - En desarrollo'));
+                      return const DeliveryRoutesPage(); // Rutas
                     case 3:
-                      return const Center(child: Text('Ganancias - En desarrollo'));
+                      return const DeliveryEarningsPage(); // Ganancias
                     default:
-                      return const Center(child: Text('Entregas - En desarrollo'));
+                      return const DeliveryOrdersPage();
                   }
                 }
 
@@ -948,15 +967,15 @@ class MainRouterState extends State<MainRouter> {
                 if (_selectedLevel == 3) {
                   switch (_bottomNavIndex) {
                     case 0:
-                      return const Center(child: Text('Flota - En desarrollo'));
+                      return const TransportFleetPage(); // Flota
                     case 1:
-                      return const Center(child: Text('Conductores - En desarrollo'));
+                      return const TransportOrdersPage(); // Gestión de Pedidos
                     case 2:
-                      return const Center(child: Text('Rutas - En desarrollo'));
+                      return const TransportAnalyticsPage(); // Analíticas
                     case 3:
-                      return const Center(child: Text('Métricas - En desarrollo'));
+                      return const TransportSettingsPage(); // Configuración
                     default:
-                      return const Center(child: Text('Flota - En desarrollo'));
+                      return const TransportFleetPage();
                   }
                 }
 
@@ -964,15 +983,15 @@ class MainRouterState extends State<MainRouter> {
                 if (_selectedLevel == 4) {
                   switch (_bottomNavIndex) {
                     case 0:
-                      return const Center(child: Text('Afiliaciones - En desarrollo'));
+                      return const AffiliateDashboardPage(); // Dashboard
                     case 1:
-                      return const Center(child: Text('Comisiones - En desarrollo'));
+                      return const AffiliateCommissionsPage(); // Comisiones
                     case 2:
-                      return const Center(child: Text('Soporte - En desarrollo'));
+                      return const AffiliateSupportPage(); // Soporte
                     case 3:
-                      return const Center(child: Text('Estadísticas - En desarrollo'));
+                      return const AffiliateStatisticsPage(); // Estadísticas
                     default:
-                      return const Center(child: Text('Afiliaciones - En desarrollo'));
+                      return const AffiliateDashboardPage();
                   }
                 }
 
@@ -980,15 +999,15 @@ class MainRouterState extends State<MainRouter> {
                 if (_selectedLevel == 5) {
                   switch (_bottomNavIndex) {
                     case 0:
-                      return const Center(child: Text('Panel Admin - En desarrollo'));
+                      return const AdminDashboardPage(); // Panel Admin
                     case 1:
-                      return const Center(child: Text('Usuarios - En desarrollo'));
+                      return const AdminUsersPage(); // Usuarios
                     case 2:
-                      return const Center(child: Text('Seguridad - En desarrollo'));
+                      return const AdminSecurityPage(); // Seguridad
                     case 3:
-                      return const Center(child: Text('Sistema - En desarrollo'));
+                      return const AdminAnalyticsPage(); // Sistema/Analíticas
                     default:
-                      return const Center(child: Text('Panel Admin - En desarrollo'));
+                      return const AdminDashboardPage();
                   }
                 }
 
