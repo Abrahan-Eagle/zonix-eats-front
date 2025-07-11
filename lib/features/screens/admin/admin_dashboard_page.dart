@@ -1,181 +1,323 @@
 import 'package:flutter/material.dart';
+import 'package:zonix/features/services/admin_service.dart';
 
 class AdminDashboardPage extends StatefulWidget {
-  const AdminDashboardPage({super.key});
-
   @override
-  State<AdminDashboardPage> createState() => _AdminDashboardPageState();
+  _AdminDashboardPageState createState() => _AdminDashboardPageState();
 }
 
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
-  String _selectedPeriod = 'Hoy';
-  final List<String> _periods = ['Hoy', 'Esta Semana', 'Este Mes', 'Este Año'];
+  final AdminService _adminService = AdminService();
+  Map<String, dynamic>? _systemStats;
+  Map<String, dynamic>? _analytics;
+  Map<String, dynamic>? _systemHealth;
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDashboardData();
+  }
+
+  Future<void> _loadDashboardData() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+
+      final systemStats = await _adminService.getSystemStatistics();
+      final analytics = await _adminService.getAnalytics();
+      final systemHealth = await _adminService.getSystemHealth();
+
+      setState(() {
+        _systemStats = systemStats;
+        _analytics = analytics;
+        _systemHealth = systemHealth;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Panel de Administración'),
-        backgroundColor: Colors.red[700],
+        title: Text('Panel de Administración'),
+        backgroundColor: Colors.red,
         foregroundColor: Colors.white,
-        elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () {
-              _showNotifications();
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Datos actualizados')),
-              );
-            },
+            icon: Icon(Icons.refresh),
+            onPressed: _loadDashboardData,
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Period Selector
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                children: [
-                  const Text('Período: ', style: TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      value: _selectedPeriod,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error, size: 64, color: Colors.red),
+                      SizedBox(height: 16),
+                      Text('Error: $_error'),
+                      SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: _loadDashboardData,
+                        child: Text('Reintentar'),
                       ),
-                      items: _periods.map((period) {
-                        return DropdownMenuItem(value: period, child: Text(period));
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedPeriod = value!;
-                        });
-                      },
+                    ],
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _loadDashboardData,
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildSystemHealthCard(),
+                        SizedBox(height: 24),
+                        _buildSystemStatsGrid(),
+                        SizedBox(height: 24),
+                        _buildUserDistributionChart(),
+                        SizedBox(height: 24),
+                        _buildQuickActions(),
+                        SizedBox(height: 24),
+                        _buildRecentActivity(),
+                        SizedBox(height: 24),
+                        _buildAnalyticsChart(),
+                      ],
                     ),
                   ),
-                ],
-              ),
-            ),
-            
-            const SizedBox(height: 24),
-            
-            // System Overview
-            const Text('Resumen del Sistema', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-              childAspectRatio: 1.5,
-              children: [
-                _buildMetricCard('Usuarios Activos', '12,450', '+8%', Colors.blue, Icons.people),
-                _buildMetricCard('Órdenes Totales', '8,920', '+15%', Colors.green, Icons.shopping_cart),
-                _buildMetricCard('Ingresos', '\$45,230', '+12%', Colors.orange, Icons.attach_money),
-                _buildMetricCard('Comercios', '156', '+5%', Colors.purple, Icons.store),
-              ],
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // System Status
-            const Text('Estado del Sistema', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            
-            _buildSystemStatusCard(),
-            
-            const SizedBox(height: 24),
-            
-            // Recent Activity
-            const Text('Actividad Reciente', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            
-            _buildRecentActivityCard(),
-            
-            const SizedBox(height: 24),
-            
-            // Quick Actions
-            const Text('Acciones Rápidas', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            
-            _buildQuickActionsCard(),
-            
-            const SizedBox(height: 24),
-            
-            // Performance Metrics
-            const Text('Métricas de Rendimiento', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            
-            _buildPerformanceMetricsCard(),
-            
-            const SizedBox(height: 24),
-            
-            // Alerts & Issues
-            const Text('Alertas y Problemas', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            
-            _buildAlertsCard(),
-          ],
-        ),
-      ),
+                ),
     );
   }
 
-  Widget _buildMetricCard(String title, String value, String change, Color color, IconData icon) {
-    final isPositive = change.startsWith('+');
-    
+  Widget _buildSystemHealthCard() {
+    if (_systemHealth == null) return SizedBox.shrink();
+
     return Card(
       elevation: 4,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.monitor_heart, color: Colors.green, size: 24),
+                SizedBox(width: 8),
+                Text(
+                  'Estado del Sistema',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Spacer(),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    'Saludable',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildHealthMetric('Uptime', _systemHealth!['uptime'], Icons.timer),
+                ),
+                Expanded(
+                  child: _buildHealthMetric('Respuesta', _systemHealth!['response_time'], Icons.speed),
+                ),
+                Expanded(
+                  child: _buildHealthMetric('Conexiones', _systemHealth!['active_connections'].toString(), Icons.people),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildResourceUsage('CPU', _systemHealth!['cpu_usage'], Colors.blue),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: _buildResourceUsage('Memoria', _systemHealth!['memory_usage'], Colors.green),
+                ),
+                SizedBox(width: 16),
+                Expanded(
+                  child: _buildResourceUsage('Disco', _systemHealth!['disk_usage'], Colors.orange),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHealthMetric(String label, String value, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, color: Colors.grey[600], size: 20),
+        SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResourceUsage(String label, String value, Color color) {
+    final percentage = double.tryParse(value.replaceAll('%', '')) ?? 0.0;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        SizedBox(height: 4),
+        Row(
+          children: [
+            Expanded(
+              child: LinearProgressIndicator(
+                value: percentage / 100,
+                backgroundColor: Colors.grey[300],
+                valueColor: AlwaysStoppedAnimation<Color>(color),
+              ),
+            ),
+            SizedBox(width: 8),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSystemStatsGrid() {
+    if (_systemStats == null) return SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Estadísticas del Sistema',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 16),
+        GridView.count(
+          shrinkWrap: true,
+          physics: NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 1.5,
+          children: [
+            _buildStatCard(
+              'Total Usuarios',
+              _systemStats!['total_users'].toString(),
+              Icons.people,
+              Colors.blue,
+            ),
+            _buildStatCard(
+              'Usuarios Activos',
+              _systemStats!['active_users'].toString(),
+              Icons.check_circle,
+              Colors.green,
+            ),
+            _buildStatCard(
+              'Usuarios Suspendidos',
+              _systemStats!['suspended_users'].toString(),
+              Icons.block,
+              Colors.red,
+            ),
+            _buildStatCard(
+              'Verificados',
+              _systemStats!['verification_status']['verified'].toString(),
+              Icons.verified,
+              Colors.orange,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 32, color: color),
-            const SizedBox(height: 8),
+            Icon(icon, color: color, size: 32),
+            SizedBox(height: 8),
             Text(
               value,
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color),
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               title,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
-            ),
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: isPositive ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                change,
-                style: TextStyle(
-                  color: isPositive ? Colors.green : Colors.red,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 10,
-                ),
-              ),
             ),
           ],
         ),
@@ -183,411 +325,72 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Widget _buildSystemStatusCard() {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildStatusItem('Servidor Principal', 'Operativo', Icons.check_circle, Colors.green),
-            _buildStatusItem('Base de Datos', 'Operativo', Icons.check_circle, Colors.green),
-            _buildStatusItem('API Gateway', 'Operativo', Icons.check_circle, Colors.green),
-            _buildStatusItem('Sistema de Pagos', 'Operativo', Icons.check_circle, Colors.green),
-            _buildStatusItem('Notificaciones', 'Advertencia', Icons.warning, Colors.orange),
-            _buildStatusItem('Backup Automático', 'Operativo', Icons.check_circle, Colors.green),
-            
-            const SizedBox(height: 16),
-            
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.green[50],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.info, color: Colors.green[700]),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Sistema funcionando correctamente. Tiempo de actividad: 99.8%',
-                      style: TextStyle(color: Colors.green[700], fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget _buildUserDistributionChart() {
+    if (_systemStats == null || _systemStats!['user_distribution'] == null) return SizedBox.shrink();
 
-  Widget _buildStatusItem(String service, String status, IconData icon, Color color) {
-    return ListTile(
-      leading: Icon(icon, color: color),
-      title: Text(service),
-      trailing: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Text(
-          status,
-          style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRecentActivityCard() {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 6,
-              itemBuilder: (context, index) {
-                final activities = [
-                  {'type': 'Usuario', 'action': 'Nuevo registro', 'details': 'Juan Pérez se registró', 'time': '2 min'},
-                  {'type': 'Orden', 'action': 'Orden completada', 'details': 'Pedido #1234 entregado', 'time': '5 min'},
-                  {'type': 'Comercio', 'action': 'Comercio aprobado', 'details': 'Pizza Express activado', 'time': '15 min'},
-                  {'type': 'Sistema', 'action': 'Backup completado', 'details': 'Respaldo automático exitoso', 'time': '1 hora'},
-                  {'type': 'Pago', 'action': 'Transacción procesada', 'details': 'Pago de \$45.00 procesado', 'time': '2 horas'},
-                  {'type': 'Soporte', 'action': 'Ticket resuelto', 'details': 'Ticket #5678 cerrado', 'time': '3 horas'},
-                ];
-                
-                final activity = activities[index];
-                
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: _getActivityColor(activity['type']!),
-                    child: Icon(_getActivityIcon(activity['type']!), color: Colors.white, size: 16),
-                  ),
-                  title: Text(activity['action']!),
-                  subtitle: Text('${activity['details']} • Hace ${activity['time']}'),
-                  trailing: Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () {
-                    _showActivityDetails(activity);
-                  },
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Color _getActivityColor(String type) {
-    switch (type) {
-      case 'Usuario':
-        return Colors.blue;
-      case 'Orden':
-        return Colors.green;
-      case 'Comercio':
-        return Colors.purple;
-      case 'Sistema':
-        return Colors.orange;
-      case 'Pago':
-        return Colors.green;
-      case 'Soporte':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  IconData _getActivityIcon(String type) {
-    switch (type) {
-      case 'Usuario':
-        return Icons.person_add;
-      case 'Orden':
-        return Icons.shopping_cart;
-      case 'Comercio':
-        return Icons.store;
-      case 'Sistema':
-        return Icons.settings;
-      case 'Pago':
-        return Icons.payment;
-      case 'Soporte':
-        return Icons.support_agent;
-      default:
-        return Icons.info;
-    }
-  }
-
-  Widget _buildQuickActionsCard() {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: _buildActionButton(
-                    'Gestionar Usuarios',
-                    Icons.people,
-                    Colors.blue,
-                    () => _showUserManagement(),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildActionButton(
-                    'Ver Reportes',
-                    Icons.assessment,
-                    Colors.green,
-                    () => _showReports(),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildActionButton(
-                    'Configuración',
-                    Icons.settings,
-                    Colors.orange,
-                    () => _showSystemSettings(),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _buildActionButton(
-                    'Soporte',
-                    Icons.support_agent,
-                    Colors.purple,
-                    () => _showSupport(),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButton(String title, IconData icon, Color color, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border.all(color: color.withOpacity(0.3)),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 24),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPerformanceMetricsCard() {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Métricas de Rendimiento', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            
-            _buildMetricRow('Tiempo de Respuesta API', '120ms', 'Excelente'),
-            _buildMetricRow('Uso de CPU', '45%', 'Normal'),
-            _buildMetricRow('Uso de Memoria', '68%', 'Normal'),
-            _buildMetricRow('Espacio en Disco', '78%', 'Advertencia'),
-            _buildMetricRow('Conexiones Activas', '1,234', 'Normal'),
-            _buildMetricRow('Errores por Hora', '2', 'Bajo'),
-            
-            const SizedBox(height: 16),
-            
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.orange[50],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.warning, color: Colors.orange[700]),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'El espacio en disco está al 78%. Considera limpiar archivos temporales.',
-                      style: TextStyle(color: Colors.orange[700], fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMetricRow(String metric, String value, String status) {
-    Color statusColor;
-    switch (status) {
-      case 'Excelente':
-        statusColor = Colors.green;
-        break;
-      case 'Normal':
-        statusColor = Colors.blue;
-        break;
-      case 'Advertencia':
-        statusColor = Colors.orange;
-        break;
-      case 'Bajo':
-        statusColor = Colors.green;
-        break;
-      default:
-        statusColor = Colors.grey;
-    }
-    
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(metric),
-          Row(
-            children: [
-              Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  status,
-                  style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Distribución de Usuarios por Rol',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAlertsCard() {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Alertas y Problemas', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-            
-            _buildAlertItem(
-              'Espacio en disco bajo',
-              'El servidor principal tiene 78% de uso',
-              'Media',
-              Colors.orange,
-            ),
-            _buildAlertItem(
-              'Tiempo de respuesta lento',
-              'La API está respondiendo en 120ms',
-              'Baja',
-              Colors.yellow,
-            ),
-            _buildAlertItem(
-              'Backup programado',
-              'Respaldo automático en 2 horas',
-              'Info',
-              Colors.blue,
-            ),
-            
-            const SizedBox(height: 16),
-            
-            Row(
+        ),
+        SizedBox(height: 16),
+        Card(
+          elevation: 2,
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
               children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: () {
-                      _showAllAlerts();
-                    },
-                    child: const Text('Ver Todas'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      _acknowledgeAlerts();
-                    },
-                    style: ElevatedButton.styleFrom(backgroundColor: Colors.red[700]),
-                    child: const Text('Reconocer', style: TextStyle(color: Colors.white)),
-                  ),
-                ),
+                _buildDistributionItem('Compradores', _systemStats!['user_distribution']['buyers'], Colors.blue),
+                _buildDistributionItem('Comercios', _systemStats!['user_distribution']['commerce'], Colors.green),
+                _buildDistributionItem('Delivery', _systemStats!['user_distribution']['delivery'], Colors.orange),
+                _buildDistributionItem('Transporte', _systemStats!['user_distribution']['transport'], Colors.purple),
+                _buildDistributionItem('Afiliados', _systemStats!['user_distribution']['affiliate'], Colors.red),
               ],
             ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 
-  Widget _buildAlertItem(String title, String description, String priority, Color color) {
+  Widget _buildDistributionItem(String label, int count, Color color) {
+    final total = _systemStats!['total_users'];
+    final percentage = total > 0 ? (count / total * 100) : 0.0;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           Container(
-            width: 8,
-            height: 8,
+            width: 12,
+            height: 12,
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),
-                Text(description, style: TextStyle(color: Colors.grey[600], fontSize: 12)),
-              ],
+            child: Text(
+              label,
+              style: TextStyle(fontWeight: FontWeight.w500),
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              priority,
-              style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold),
+          Text(
+            '$count',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          SizedBox(width: 8),
+          Text(
+            '(${percentage.toStringAsFixed(1)}%)',
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 12,
             ),
           ),
         ],
@@ -595,121 +398,251 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  void _showNotifications() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Notificaciones del Sistema'),
-        content: const Text('No hay notificaciones nuevas'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
+  Widget _buildQuickActions() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Acciones Rápidas',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
-        ],
+        ),
+        SizedBox(height: 16),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionButton(
+                'Gestionar Usuarios',
+                Icons.people,
+                Colors.blue,
+                () => _navigateToUserManagement(),
+              ),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: _buildActionButton(
+                'Seguridad',
+                Icons.security,
+                Colors.red,
+                () => _navigateToSecurity(),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionButton(
+                'Analytics',
+                Icons.analytics,
+                Colors.green,
+                () => _navigateToAnalytics(),
+              ),
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: _buildActionButton(
+                'Configuración',
+                Icons.settings,
+                Colors.grey,
+                () => _navigateToSettings(),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton(String title, IconData icon, Color color, VoidCallback onPressed) {
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, color: Colors.white),
+      label: Text(
+        title,
+        style: TextStyle(color: Colors.white),
+      ),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: color,
+        padding: EdgeInsets.symmetric(vertical: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
       ),
     );
+  }
+
+  Widget _buildRecentActivity() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Actividad Reciente del Sistema',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 16),
+        Card(
+          elevation: 2,
+          child: ListView.builder(
+            shrinkWrap: true,
+            physics: NeverScrollableScrollPhysics(),
+            itemCount: 5,
+            itemBuilder: (context, index) {
+              final activities = [
+                {'action': 'Nuevo usuario registrado', 'user': 'Juan Pérez', 'time': '2 min'},
+                {'action': 'Usuario suspendido', 'user': 'Ana Martínez', 'time': '15 min'},
+                {'action': 'Login exitoso', 'user': 'María González', 'time': '1 hora'},
+                {'action': 'Cambio de contraseña', 'user': 'Carlos Rodríguez', 'time': '2 horas'},
+                {'action': 'Login fallido', 'user': 'Luis Fernández', 'time': '3 horas'},
+              ];
+
+              final activity = activities[index];
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: _getActivityColor(activity['action']!),
+                  child: Icon(
+                    _getActivityIcon(activity['action']!),
+                    color: Colors.white,
+                    size: 16,
+                  ),
+                ),
+                title: Text(activity['action']!),
+                subtitle: Text('${activity['user']} • Hace ${activity['time']}'),
+                trailing: Icon(Icons.chevron_right, color: Colors.grey),
+                onTap: () => _showActivityDetails(activity),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAnalyticsChart() {
+    if (_analytics == null) return SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Crecimiento de Usuarios',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        SizedBox(height: 16),
+        Card(
+          elevation: 2,
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Column(
+              children: _analytics!['user_growth'].map<Widget>((data) {
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          data['date'],
+                          style: TextStyle(fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Text(
+                          '${data['value']} usuarios',
+                          textAlign: TextAlign.right,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Color _getActivityColor(String action) {
+    if (action.contains('suspendido')) return Colors.red;
+    if (action.contains('exitoso')) return Colors.green;
+    if (action.contains('fallido')) return Colors.orange;
+    if (action.contains('registrado')) return Colors.blue;
+    return Colors.grey;
+  }
+
+  IconData _getActivityIcon(String action) {
+    if (action.contains('suspendido')) return Icons.block;
+    if (action.contains('exitoso')) return Icons.check_circle;
+    if (action.contains('fallido')) return Icons.error;
+    if (action.contains('registrado')) return Icons.person_add;
+    if (action.contains('contraseña')) return Icons.lock;
+    return Icons.info;
   }
 
   void _showActivityDetails(Map<String, String> activity) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(activity['action']!),
-        content: Text('${activity['details']}\n\nHora: ${activity['time']}'),
+        title: Text('Detalles de Actividad'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Acción: ${activity['action']}'),
+            Text('Usuario: ${activity['user']}'),
+            Text('Tiempo: Hace ${activity['time']}'),
+          ],
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
+            child: Text('Cerrar'),
           ),
         ],
       ),
     );
   }
 
-  void _showUserManagement() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Gestión de Usuarios'),
-        content: const Text('Accediendo al panel de gestión de usuarios...'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showReports() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Reportes del Sistema'),
-        content: const Text('Generando reportes...'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showSystemSettings() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Configuración del Sistema'),
-        content: const Text('Accediendo a la configuración...'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showSupport() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Soporte Técnico'),
-        content: const Text('Conectando con soporte técnico...'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showAllAlerts() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Todas las Alertas'),
-        content: const Text('Mostrando todas las alertas del sistema...'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cerrar'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _acknowledgeAlerts() {
+  void _navigateToUserManagement() {
+    // TODO: Navigate to user management page
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Alertas reconocidas')),
+      SnackBar(content: Text('Navegando a Gestión de Usuarios')),
+    );
+  }
+
+  void _navigateToSecurity() {
+    // TODO: Navigate to security page
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Navegando a Seguridad')),
+    );
+  }
+
+  void _navigateToAnalytics() {
+    // TODO: Navigate to analytics page
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Navegando a Analytics')),
+    );
+  }
+
+  void _navigateToSettings() {
+    // TODO: Navigate to settings page
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Navegando a Configuración')),
     );
   }
 } 
