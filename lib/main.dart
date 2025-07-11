@@ -371,6 +371,16 @@ import 'package:zonix/features/screens/cart/checkout_page.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/features/screens/orders/commerce_orders_page.dart';
+import 'package:zonix/features/services/commerce_service.dart';
+import 'package:zonix/features/services/delivery_service.dart';
+import 'package:zonix/features/services/transport_service.dart';
+import 'package:zonix/features/services/affiliate_service.dart';
+import 'package:zonix/features/services/admin_service.dart';
+import 'package:zonix/features/services/notification_service.dart';
+import 'package:zonix/features/services/location_service.dart';
+import 'package:zonix/features/services/payment_service.dart';
+import 'package:zonix/features/services/chat_service.dart';
+import 'package:zonix/features/services/analytics_service.dart';
 import 'package:zonix/features/screens/commerce/commerce_dashboard_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_inventory_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_reports_page.dart';
@@ -443,6 +453,16 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => CartService()),
         ChangeNotifierProvider(create: (_) => OrderService()),
+        ChangeNotifierProvider(create: (_) => CommerceService()),
+        ChangeNotifierProvider(create: (_) => DeliveryService()),
+        ChangeNotifierProvider(create: (_) => TransportService()),
+        ChangeNotifierProvider(create: (_) => AffiliateService()),
+        ChangeNotifierProvider(create: (_) => AdminService()),
+        ChangeNotifierProvider(create: (_) => NotificationService()),
+        ChangeNotifierProvider(create: (_) => LocationService()),
+        ChangeNotifierProvider(create: (_) => PaymentService()),
+        ChangeNotifierProvider(create: (_) => ChatService()),
+        ChangeNotifierProvider(create: (_) => AnalyticsService()),
       ],
       child: const MyApp(),
     ),
