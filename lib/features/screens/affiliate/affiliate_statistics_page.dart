@@ -304,14 +304,14 @@ class _AffiliateStatisticsPageState extends State<AffiliateStatisticsPage> {
                   leading: CircleAvatar(
                     backgroundColor: Colors.purple[100],
                     child: Text(
-                      referral['name']!.split(' ').map((e) => e[0]).join(''),
+                      (referral['name'] as String).split(' ').map((e) => e[0]).join(''),
                       style: TextStyle(color: Colors.purple[700], fontWeight: FontWeight.bold),
                     ),
                   ),
-                  title: Text(referral['name']!),
+                  title: Text(referral['name'] as String),
                   subtitle: Text('${referral['referrals']} referidos • ${referral['conversion']}% conversión'),
                   trailing: Text(
-                    '\$${referral['earnings']!.toStringAsFixed(0)}',
+                    '\$${(referral['earnings'] as double).toStringAsFixed(0)}',
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 );

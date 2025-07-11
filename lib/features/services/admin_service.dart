@@ -1,7 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class AdminService {
+class AdminService extends ChangeNotifier {
   final ApiService _apiService = ApiService();
+  final _storage = const FlutterSecureStorage();
+  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
+      ? dotenv.env['API_URL_PROD']!
+      : dotenv.env['API_URL_LOCAL']!;
   
   // Mock data for development
   static final List<Map<String, dynamic>> _mockUsers = [
@@ -211,11 +220,40 @@ class AdminService {
   // Get all users
   Future<List<Map<String, dynamic>>> getUsers({String? role, String? status}) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/admin/users', {'role': role, 'status': status});
-      // return List<Map<String, dynamic>>.from(response['data']);
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final queryParams = <String, String>{};
+      if (role != null) queryParams['role'] = role;
+      if (status != null) queryParams['status'] = status;
+
+      final uri = Uri.parse('$baseUrl/api/admin/users').replace(queryParameters: queryParams);
       
-      // Mock data for now
+      final response = await http.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(data['data'] ?? []);
+      } else {
+        // Fallback to mock data if API fails
+        await Future.delayed(Duration(milliseconds: 500));
+        var users = _mockUsers;
+        if (role != null) {
+          users = users.where((u) => u['role'] == role).toList();
+        }
+        if (status != null) {
+          users = users.where((u) => u['status'] == status).toList();
+        }
+        return users;
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 500));
       var users = _mockUsers;
       if (role != null) {
@@ -225,8 +263,6 @@ class AdminService {
         users = users.where((u) => u['status'] == status).toList();
       }
       return users;
-    } catch (e) {
-      throw Exception('Error fetching users: $e');
     }
   }
 

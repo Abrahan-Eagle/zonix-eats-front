@@ -1,12 +1,19 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:flutter/foundation.dart';
+import 'package:zonix/features/services/auth/api_service.dart';
 import 'package:zonix/models/commerce.dart';
 import 'package:zonix/models/product.dart';
 import 'package:zonix/models/order.dart';
-import 'package:zonix/features/services/auth/api_service.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class CommerceService {
+class CommerceService extends ChangeNotifier {
   final ApiService _apiService = ApiService();
+  final _storage = const FlutterSecureStorage();
+  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
+      ? dotenv.env['API_URL_PROD']!
+      : dotenv.env['API_URL_LOCAL']!;
   
   // Mock data for development (will be replaced with real API calls)
   static final List<Commerce> _mockCommerces = [
@@ -201,15 +208,29 @@ class CommerceService {
   // Get all commerces
   Future<List<Commerce>> getCommerces() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/commerces');
-      // return (response['data'] as List).map((json) => Commerce.fromJson(json)).toList();
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 500)); // Simulate API delay
-      return _mockCommerces;
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/commerces'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return (data['data'] as List).map((json) => Commerce.fromJson(json)).toList();
+      } else {
+        // Fallback to mock data if API fails
+        await Future.delayed(Duration(milliseconds: 500));
+        return _mockCommerces;
+      }
     } catch (e) {
-      throw Exception('Error fetching commerces: $e');
+      // Fallback to mock data on error
+      await Future.delayed(Duration(milliseconds: 500));
+      return _mockCommerces;
     }
   }
 

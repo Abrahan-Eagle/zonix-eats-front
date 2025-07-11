@@ -15,7 +15,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   @override
   void initState() {
     super.initState();
-    _notificationsFuture = NotificationService.getNotifications();
+    _notificationsFuture = NotificationService().getNotificationItems();
   }
 
   @override

@@ -449,7 +449,7 @@ class _AffiliateSupportPageState extends State<AffiliateSupportPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Niveles de Afiliado'),
-        content: const SingleChildScrollView(
+        content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,

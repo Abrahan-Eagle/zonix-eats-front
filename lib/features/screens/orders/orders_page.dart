@@ -67,10 +67,8 @@ class _OrdersPageState extends State<OrdersPage> {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Estado: ${order.estado ?? order.status ?? 'Desconocido'}'),
-                      if (order.comprobanteUrl != null)
-                        Text('Comprobante: Subido'),
-                      if ((order.estado ?? '').contains('pendiente_pago') || (order.estado ?? '').contains('comprobante_subido'))
+                      Text('Estado: ${order.status}'),
+                      if (order.paymentStatus == 'pending')
                         ElevatedButton(
                           onPressed: () async {
                             final result = await FilePicker.platform.pickFiles(type: FileType.custom, allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf']);

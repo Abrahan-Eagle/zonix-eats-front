@@ -72,7 +72,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     final allProducts = await ProductService().fetchProducts();
     final commerceProducts = allProducts.where((p) => p.commerceId == widget.commerceId).toList();
     // Extraer categorías únicas
-    final categories = commerceProducts.map((p) => p.categoria ?? 'Sin categoría').toSet().toList();
+    final categories = commerceProducts.map((p) => p.category).toSet().toList();
     setState(() {
       _categories = ['Todos', ...categories];
     });
@@ -82,10 +82,10 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   List<Product> _filterProducts(List<Product> products) {
     return products.where((product) {
       final matchesCategory = _selectedCategory == 'Todos' || 
-        (product.categoria ?? 'Sin categoría') == _selectedCategory;
+        (product.category) == _selectedCategory;
       final matchesSearch = _searchQuery.isEmpty || 
-        product.nombre.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-        (product.descripcion?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
+        product.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+        (product.description?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false);
       return matchesCategory && matchesSearch;
     }).toList();
   }
@@ -483,11 +483,11 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   borderRadius: BorderRadius.circular(12),
                   color: Colors.grey.shade100,
                 ),
-                child: product.imagen != null
+                child: product.image.isNotEmpty
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.network(
-                          product.imagen!,
+                          product.image,
                           fit: BoxFit.cover,
                           errorBuilder: (context, error, stackTrace) {
                             return const Icon(Icons.fastfood, size: 40, color: Colors.grey);
@@ -502,7 +502,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      product.nombre,
+                      product.name,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -510,10 +510,10 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (product.descripcion != null && product.descripcion!.isNotEmpty) ...[
+                    if (product.description != null && product.description!.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
-                        product.descripcion!,
+                        product.description!,
                         style: TextStyle(
                           color: Colors.grey.shade600,
                           fontSize: 14,
@@ -527,7 +527,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '₡${product.precio?.toStringAsFixed(2) ?? '-'}',
+                          '₡${product.price.toStringAsFixed(2)}',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -539,10 +539,10 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             final cartService = Provider.of<CartService>(context, listen: false);
                             cartService.addToCart(CartItem(
                               id: product.id,
-                              nombre: product.nombre,
-                              precio: product.precio,
+                              nombre: product.name,
+                              precio: product.price,
                               quantity: 1,
-                              imagen: product.imagen,
+                              imagen: product.image,
                             ));
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -613,7 +613,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (product.imagen != null)
+                      if (product.image.isNotEmpty)
                         Container(
                           width: double.infinity,
                           height: 200,
@@ -624,7 +624,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(16),
                             child: Image.network(
-                              product.imagen!,
+                              product.image,
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
                                 return const Icon(Icons.fastfood, size: 80, color: Colors.grey);
@@ -634,7 +634,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         ),
                       const SizedBox(height: 20),
                       Text(
-                        product.nombre,
+                        product.name,
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -642,14 +642,14 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '₡${product.precio?.toStringAsFixed(2) ?? '-'}',
+                        '₡${product.price.toStringAsFixed(2)}',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: Colors.green.shade600,
                         ),
                       ),
-                      if (product.descripcion != null && product.descripcion!.isNotEmpty) ...[
+                      if (product.description != null && product.description!.isNotEmpty) ...[
                         const SizedBox(height: 16),
                         const Text(
                           'Descripción',
@@ -660,7 +660,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          product.descripcion!,
+                          product.description!,
                           style: const TextStyle(fontSize: 14),
                         ),
                       ],
@@ -673,10 +673,10 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             final cartService = Provider.of<CartService>(context, listen: false);
                             cartService.addToCart(CartItem(
                               id: product.id,
-                              nombre: product.nombre,
-                              precio: product.precio,
+                              nombre: product.name,
+                              precio: product.price,
                               quantity: 1,
-                              imagen: product.imagen,
+                              imagen: product.image,
                             ));
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(

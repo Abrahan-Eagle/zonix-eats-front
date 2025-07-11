@@ -74,7 +74,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   @override
   Widget build(BuildContext context) {
     final cartService = Provider.of<CartService>(context, listen: false);
-    final double total = (widget.product.precio ?? 0) * _quantity;
+    final double total = (widget.product.price) * _quantity;
     
     return Scaffold(
       appBar: AppBar(
@@ -103,9 +103,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Widget _buildProductImage() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
-      child: widget.product.imagen != null
+      child: widget.product.image.isNotEmpty
           ? Image.network(
-              widget.product.imagen!,
+              widget.product.image,
               width: double.infinity,
               height: 250,
               fit: BoxFit.cover,
@@ -133,7 +133,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                widget.product.nombre,
+                widget.product.name,
                 style: const TextStyle(
                   fontSize: 22, 
                   fontWeight: FontWeight.bold,
@@ -199,7 +199,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         ),
         const SizedBox(height: 4),
         Text(
-          widget.product.descripcion ?? 'Sin descripción',
+          widget.product.description ?? 'Sin descripción',
           style: const TextStyle(
             fontSize: 16, 
             color: Colors.black54,
@@ -274,8 +274,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         onPressed: () {
           cartService.addToCart(CartItem(
             id: widget.product.id,
-            nombre: widget.product.nombre,
-            precio: widget.product.precio,
+            nombre: widget.product.name,
+            precio: widget.product.price,
             quantity: _quantity,
           ));
           ScaffoldMessenger.of(context).showSnackBar(

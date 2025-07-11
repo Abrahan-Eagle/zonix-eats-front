@@ -170,7 +170,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
       case 'out_for_delivery':
         return Icons.delivery_dining;
       case 'ready':
-        return Icons.ready;
+        return Icons.check_circle;
       case 'preparing':
         return Icons.restaurant;
       case 'confirmed':

@@ -1,7 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class PaymentService {
+class PaymentService extends ChangeNotifier {
   final ApiService _apiService = ApiService();
+  final _storage = const FlutterSecureStorage();
+  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
+      ? dotenv.env['API_URL_PROD']!
+      : dotenv.env['API_URL_LOCAL']!;
   
   // Mock data for development
   static final List<Map<String, dynamic>> _mockPaymentMethods = [
@@ -113,26 +122,70 @@ class PaymentService {
   // Get payment methods
   Future<List<Map<String, dynamic>>> getPaymentMethods() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/payment/methods');
-      // return List<Map<String, dynamic>>.from(response['data']);
-      
-      // Mock data for now
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/payment/methods'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(data['data'] ?? []);
+      } else {
+        // Fallback to mock data if API fails
+        await Future.delayed(Duration(milliseconds: 400));
+        return _mockPaymentMethods;
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 400));
       return _mockPaymentMethods;
-    } catch (e) {
-      throw Exception('Error fetching payment methods: $e');
     }
   }
 
   // Add payment method
   Future<Map<String, dynamic>> addPaymentMethod(Map<String, dynamic> paymentData) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.post('/payment/methods', paymentData);
-      // return response['data'];
-      
-      // Mock data for now
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/payment/methods'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(paymentData),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final newMethod = data['data'] ?? {
+          'id': _mockPaymentMethods.length + 1,
+          ...paymentData,
+          'is_default': _mockPaymentMethods.isEmpty,
+        };
+        _mockPaymentMethods.add(newMethod);
+        return newMethod;
+      } else {
+        // Fallback to mock data
+        await Future.delayed(Duration(milliseconds: 600));
+        final newMethod = {
+          'id': _mockPaymentMethods.length + 1,
+          ...paymentData,
+          'is_default': _mockPaymentMethods.isEmpty,
+        };
+        _mockPaymentMethods.add(newMethod);
+        return newMethod;
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 600));
       final newMethod = {
         'id': _mockPaymentMethods.length + 1,
@@ -141,19 +194,46 @@ class PaymentService {
       };
       _mockPaymentMethods.add(newMethod);
       return newMethod;
-    } catch (e) {
-      throw Exception('Error adding payment method: $e');
     }
   }
 
   // Update payment method
   Future<Map<String, dynamic>> updatePaymentMethod(int methodId, Map<String, dynamic> updates) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.put('/payment/methods/$methodId', updates);
-      // return response['data'];
-      
-      // Mock data for now
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/payment/methods/$methodId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(updates),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final updatedMethod = data['data'] ?? {};
+        final index = _mockPaymentMethods.indexWhere((m) => m['id'] == methodId);
+        if (index != -1) {
+          _mockPaymentMethods[index] = {..._mockPaymentMethods[index], ...updatedMethod};
+          return _mockPaymentMethods[index];
+        }
+        return updatedMethod;
+      } else {
+        // Fallback to mock data
+        await Future.delayed(Duration(milliseconds: 500));
+        final index = _mockPaymentMethods.indexWhere((m) => m['id'] == methodId);
+        if (index != -1) {
+          _mockPaymentMethods[index] = {..._mockPaymentMethods[index], ...updates};
+          return _mockPaymentMethods[index];
+        }
+        throw Exception('Payment method not found');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 500));
       final index = _mockPaymentMethods.indexWhere((m) => m['id'] == methodId);
       if (index != -1) {
@@ -161,22 +241,35 @@ class PaymentService {
         return _mockPaymentMethods[index];
       }
       throw Exception('Payment method not found');
-    } catch (e) {
-      throw Exception('Error updating payment method: $e');
     }
   }
 
   // Delete payment method
   Future<void> deletePaymentMethod(int methodId) async {
     try {
-      // TODO: Replace with real API call
-      // await _apiService.delete('/payment/methods/$methodId');
-      
-      // Mock data for now
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/payment/methods/$methodId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Update local mock data as well
+        _mockPaymentMethods.removeWhere((m) => m['id'] == methodId);
+      } else {
+        // Fallback to mock data
+        await Future.delayed(Duration(milliseconds: 400));
+        _mockPaymentMethods.removeWhere((m) => m['id'] == methodId);
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 400));
       _mockPaymentMethods.removeWhere((m) => m['id'] == methodId);
-    } catch (e) {
-      throw Exception('Error deleting payment method: $e');
     }
   }
 

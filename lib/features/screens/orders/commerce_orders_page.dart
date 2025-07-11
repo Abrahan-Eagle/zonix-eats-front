@@ -65,12 +65,12 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage> {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Estado: ${order.estado ?? order.status ?? 'Desconocido'}'),
-                      if (order.comprobanteUrl != null)
+                      Text('Estado: ${order.status}'),
+                      if (order.paymentStatus == 'pending')
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Comprobante: Subido'),
+                            Text('Comprobante: Pendiente'),
                             Row(
                               children: [
                                 ElevatedButton(

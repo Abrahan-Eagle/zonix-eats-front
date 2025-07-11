@@ -971,7 +971,7 @@ class MainRouterState extends State<MainRouter> {
                 if (_selectedLevel == 2) {
                   switch (_bottomNavIndex) {
                     case 0:
-                      return const DeliveryOrdersPage(); // Entregas
+                      return DeliveryOrdersPage(); // Entregas
                     case 1:
                       return const DeliveryHistoryPage(); // Historial
                     case 2:
@@ -979,7 +979,7 @@ class MainRouterState extends State<MainRouter> {
                     case 3:
                       return const DeliveryEarningsPage(); // Ganancias
                     default:
-                      return const DeliveryOrdersPage();
+                      return DeliveryOrdersPage();
                   }
                 }
 
@@ -987,7 +987,7 @@ class MainRouterState extends State<MainRouter> {
                 if (_selectedLevel == 3) {
                   switch (_bottomNavIndex) {
                     case 0:
-                      return const TransportFleetPage(); // Flota
+                      return TransportFleetPage(); // Flota
                     case 1:
                       return const TransportOrdersPage(); // Gestión de Pedidos
                     case 2:
@@ -995,7 +995,7 @@ class MainRouterState extends State<MainRouter> {
                     case 3:
                       return const TransportSettingsPage(); // Configuración
                     default:
-                      return const TransportFleetPage();
+                      return TransportFleetPage();
                   }
                 }
 
@@ -1003,7 +1003,7 @@ class MainRouterState extends State<MainRouter> {
                 if (_selectedLevel == 4) {
                   switch (_bottomNavIndex) {
                     case 0:
-                      return const AffiliateDashboardPage(); // Dashboard
+                      return AffiliateDashboardPage(); // Dashboard
                     case 1:
                       return const AffiliateCommissionsPage(); // Comisiones
                     case 2:
@@ -1011,7 +1011,7 @@ class MainRouterState extends State<MainRouter> {
                     case 3:
                       return const AffiliateStatisticsPage(); // Estadísticas
                     default:
-                      return const AffiliateDashboardPage();
+                      return AffiliateDashboardPage();
                   }
                 }
 
@@ -1019,7 +1019,7 @@ class MainRouterState extends State<MainRouter> {
                 if (_selectedLevel == 5) {
                   switch (_bottomNavIndex) {
                     case 0:
-                      return const AdminDashboardPage(); // Panel Admin
+                      return AdminDashboardPage(); // Panel Admin
                     case 1:
                       return const AdminUsersPage(); // Usuarios
                     case 2:
@@ -1027,7 +1027,7 @@ class MainRouterState extends State<MainRouter> {
                     case 3:
                       return const AdminAnalyticsPage(); // Sistema/Analíticas
                     default:
-                      return const AdminDashboardPage();
+                      return AdminDashboardPage();
                   }
                 }
 

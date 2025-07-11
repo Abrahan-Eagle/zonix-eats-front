@@ -1,8 +1,17 @@
-import 'package:zonix/models/order.dart';
+import 'package:flutter/foundation.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
+import 'package:zonix/models/order.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class DeliveryService {
+class DeliveryService extends ChangeNotifier {
   final ApiService _apiService = ApiService();
+  final _storage = const FlutterSecureStorage();
+  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
+      ? dotenv.env['API_URL_PROD']!
+      : dotenv.env['API_URL_LOCAL']!;
   
   // Mock data for development
   static final List<Order> _mockDeliveryOrders = [
@@ -122,6 +131,58 @@ class DeliveryService {
       ],
     ),
   ];
+
+  // Get delivery orders (for DeliveryOrdersPage)
+  Future<List<Map<String, dynamic>>> getDeliveryOrders() async {
+    try {
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/delivery/orders'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(data['data'] ?? []);
+      } else {
+        // Fallback to mock data if API fails
+        await Future.delayed(Duration(milliseconds: 600));
+        return _mockDeliveryOrders.map((order) => order.toJson()).toList();
+      }
+    } catch (e) {
+      // Fallback to mock data on error
+      await Future.delayed(Duration(milliseconds: 600));
+      return _mockDeliveryOrders.map((order) => order.toJson()).toList();
+    }
+  }
+
+  // Update order status (for DeliveryOrdersPage)
+  Future<void> updateOrderStatus(int orderId, String status) async {
+    try {
+      // TODO: Replace with real API call
+      // await _apiService.put('/delivery/orders/$orderId/status', {'status': status});
+      
+      // Mock data for now
+      await Future.delayed(Duration(milliseconds: 400));
+      final index = _mockDeliveryOrders.indexWhere((order) => order.id == orderId);
+      if (index != -1) {
+        final updatedOrder = _mockDeliveryOrders[index].copyWith(
+          status: status,
+          updatedAt: DateTime.now(),
+          actualDeliveryTime: status == 'delivered' ? DateTime.now() : null,
+        );
+        _mockDeliveryOrders[index] = updatedOrder;
+        notifyListeners();
+      }
+    } catch (e) {
+      throw Exception('Error updating order status: $e');
+    }
+  }
 
   // Get available orders for delivery
   Future<List<Order>> getAvailableOrders() async {

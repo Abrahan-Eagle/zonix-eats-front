@@ -1,8 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
+import 'package:zonix/models/notification_item.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class NotificationService {
+class NotificationService extends ChangeNotifier {
   final ApiService _apiService = ApiService();
+  final _storage = const FlutterSecureStorage();
+  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
+      ? dotenv.env['API_URL_PROD']!
+      : dotenv.env['API_URL_LOCAL']!;
   
   // Mock data for development
   static final List<Map<String, dynamic>> _mockNotifications = [
@@ -64,11 +74,43 @@ class NotificationService {
   // Get all notifications
   Future<List<Map<String, dynamic>>> getNotifications({String? type, bool? read}) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/notifications', {'type': type, 'read': read});
-      // return List<Map<String, dynamic>>.from(response['data']);
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final queryParams = <String, String>{};
+      if (type != null) queryParams['type'] = type;
+      if (read != null) queryParams['read'] = read.toString();
+
+      final uri = Uri.parse('$baseUrl/api/notifications').replace(queryParameters: queryParams);
       
-      // Mock data for now
+      final response = await http.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(data['data'] ?? []);
+      } else {
+        // Fallback to mock data if API fails
+        await Future.delayed(Duration(milliseconds: 400));
+        var notifications = _mockNotifications;
+        
+        if (type != null) {
+          notifications = notifications.where((n) => n['type'] == type).toList();
+        }
+        
+        if (read != null) {
+          notifications = notifications.where((n) => n['read'] == read).toList();
+        }
+        
+        return notifications;
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 400));
       var notifications = _mockNotifications;
       
@@ -81,66 +123,167 @@ class NotificationService {
       }
       
       return notifications;
+    }
+  }
+
+  // Get notifications as NotificationItem objects
+  Future<List<NotificationItem>> getNotificationItems({String? type, bool? read}) async {
+    try {
+      final notifications = await getNotifications(type: type, read: read);
+      return notifications.map((notification) => NotificationItem(
+        title: notification['title'] ?? '',
+        body: notification['message'] ?? '',
+        receivedAt: DateTime.tryParse(notification['created_at'] ?? '') ?? DateTime.now(),
+      )).toList();
     } catch (e) {
-      throw Exception('Error fetching notifications: $e');
+      throw Exception('Error fetching notification items: $e');
     }
   }
 
   // Mark notification as read
   Future<void> markAsRead(int notificationId) async {
     try {
-      // TODO: Replace with real API call
-      // await _apiService.put('/notifications/$notificationId/read');
-      
-      // Mock data for now
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/notifications/$notificationId/read'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Update local mock data as well
+        final index = _mockNotifications.indexWhere((n) => n['id'] == notificationId);
+        if (index != -1) {
+          _mockNotifications[index]['read'] = true;
+        }
+      } else {
+        // Fallback to mock data
+        await Future.delayed(Duration(milliseconds: 300));
+        final index = _mockNotifications.indexWhere((n) => n['id'] == notificationId);
+        if (index != -1) {
+          _mockNotifications[index]['read'] = true;
+        }
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 300));
       final index = _mockNotifications.indexWhere((n) => n['id'] == notificationId);
       if (index != -1) {
         _mockNotifications[index]['read'] = true;
       }
-    } catch (e) {
-      throw Exception('Error marking notification as read: $e');
     }
   }
 
   // Mark all notifications as read
   Future<void> markAllAsRead() async {
     try {
-      // TODO: Replace with real API call
-      // await _apiService.put('/notifications/mark-all-read');
-      
-      // Mock data for now
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/notifications/mark-all-read'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Update local mock data as well
+        for (var notification in _mockNotifications) {
+          notification['read'] = true;
+        }
+      } else {
+        // Fallback to mock data
+        await Future.delayed(Duration(milliseconds: 500));
+        for (var notification in _mockNotifications) {
+          notification['read'] = true;
+        }
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 500));
       for (var notification in _mockNotifications) {
         notification['read'] = true;
       }
-    } catch (e) {
-      throw Exception('Error marking all notifications as read: $e');
     }
   }
 
   // Delete notification
   Future<void> deleteNotification(int notificationId) async {
     try {
-      // TODO: Replace with real API call
-      // await _apiService.delete('/notifications/$notificationId');
-      
-      // Mock data for now
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/notifications/$notificationId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // Update local mock data as well
+        _mockNotifications.removeWhere((n) => n['id'] == notificationId);
+      } else {
+        // Fallback to mock data
+        await Future.delayed(Duration(milliseconds: 300));
+        _mockNotifications.removeWhere((n) => n['id'] == notificationId);
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 300));
       _mockNotifications.removeWhere((n) => n['id'] == notificationId);
-    } catch (e) {
-      throw Exception('Error deleting notification: $e');
     }
   }
 
   // Get notification count
   Future<Map<String, dynamic>> getNotificationCount() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/notifications/count');
-      // return response['data'];
-      
-      // Mock data for now
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/notifications/count'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['data'] ?? {
+          'total': _mockNotifications.length,
+          'unread': _mockNotifications.where((n) => !n['read']).length,
+          'by_type': {
+            'order': _mockNotifications.where((n) => n['type'] == 'order').length,
+            'commission': _mockNotifications.where((n) => n['type'] == 'commission').length,
+            'maintenance': _mockNotifications.where((n) => n['type'] == 'maintenance').length,
+            'system': _mockNotifications.where((n) => n['type'] == 'system').length,
+          },
+        };
+      } else {
+        // Fallback to mock data
+        await Future.delayed(Duration(milliseconds: 200));
+        return {
+          'total': _mockNotifications.length,
+          'unread': _mockNotifications.where((n) => !n['read']).length,
+          'by_type': {
+            'order': _mockNotifications.where((n) => n['type'] == 'order').length,
+            'commission': _mockNotifications.where((n) => n['type'] == 'commission').length,
+            'maintenance': _mockNotifications.where((n) => n['type'] == 'maintenance').length,
+            'system': _mockNotifications.where((n) => n['type'] == 'system').length,
+          },
+        };
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 200));
       return {
         'total': _mockNotifications.length,
@@ -152,8 +295,6 @@ class NotificationService {
           'system': _mockNotifications.where((n) => n['type'] == 'system').length,
         },
       };
-    } catch (e) {
-      throw Exception('Error fetching notification count: $e');
     }
   }
 

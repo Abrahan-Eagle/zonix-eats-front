@@ -1,7 +1,8 @@
 import 'package:zonix/models/order.dart';
+import 'package:flutter/foundation.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
 
-class TransportService {
+class TransportService extends ChangeNotifier {
   final ApiService _apiService = ApiService();
   
   // Mock data for development

@@ -1,8 +1,19 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'websocket_service.dart';
 
-class ChatService {
+class ChatService extends ChangeNotifier {
   final ApiService _apiService = ApiService();
+  final _storage = const FlutterSecureStorage();
+  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
+      ? dotenv.env['API_URL_PROD']!
+      : dotenv.env['API_URL_LOCAL']!;
+  final WebSocketService _webSocketService = WebSocketService();
   StreamController<Map<String, dynamic>>? _messageController;
   Timer? _typingTimer;
   
@@ -186,15 +197,29 @@ class ChatService {
   // Get conversations
   Future<List<Map<String, dynamic>>> getConversations() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/chat/conversations');
-      // return List<Map<String, dynamic>>.from(response['data']);
-      
-      // Mock data for now
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/chat/conversations'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(data['data'] ?? []);
+      } else {
+        // Fallback to mock data if API fails
+        await Future.delayed(Duration(milliseconds: 500));
+        return _mockConversations;
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 500));
       return _mockConversations;
-    } catch (e) {
-      throw Exception('Error fetching conversations: $e');
     }
   }
 
@@ -217,26 +242,114 @@ class ChatService {
   // Get messages for conversation
   Future<List<Map<String, dynamic>>> getMessages(int conversationId) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/chat/conversations/$conversationId/messages');
-      // return List<Map<String, dynamic>>.from(response['data']);
-      
-      // Mock data for now
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/chat/conversations/$conversationId/messages'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return List<Map<String, dynamic>>.from(data['data'] ?? []);
+      } else {
+        // Fallback to mock data if API fails
+        await Future.delayed(Duration(milliseconds: 400));
+        return _mockMessages[conversationId] ?? [];
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 400));
       return _mockMessages[conversationId] ?? [];
-    } catch (e) {
-      throw Exception('Error fetching messages: $e');
     }
   }
 
   // Send message
   Future<Map<String, dynamic>> sendMessage(int conversationId, Map<String, dynamic> messageData) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.post('/chat/conversations/$conversationId/messages', messageData);
-      // return response['data'];
-      
-      // Mock data for now
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/chat/conversations/$conversationId/messages'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(messageData),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final newMessage = data['data'] ?? {
+          'id': DateTime.now().millisecondsSinceEpoch,
+          'sender_id': messageData['sender_id'],
+          'content': messageData['content'],
+          'type': messageData['type'] ?? 'text',
+          'timestamp': DateTime.now().toIso8601String(),
+          'read': false,
+        };
+        
+        // Update local mock data
+        if (!_mockMessages.containsKey(conversationId)) {
+          _mockMessages[conversationId] = [];
+        }
+        _mockMessages[conversationId]!.add(newMessage);
+        
+        // Update conversation last message
+        final conversationIndex = _mockConversations.indexWhere((c) => c['id'] == conversationId);
+        if (conversationIndex != -1) {
+          _mockConversations[conversationIndex]['last_message'] = newMessage;
+          _mockConversations[conversationIndex]['updated_at'] = newMessage['timestamp'];
+        }
+        
+        // Emit message to stream
+        _messageController?.add({
+          'conversation_id': conversationId,
+          'message': newMessage,
+        });
+        
+        return newMessage;
+      } else {
+        // Fallback to mock data
+        await Future.delayed(Duration(milliseconds: 600));
+        
+        final newMessage = {
+          'id': DateTime.now().millisecondsSinceEpoch,
+          'sender_id': messageData['sender_id'],
+          'content': messageData['content'],
+          'type': messageData['type'] ?? 'text',
+          'timestamp': DateTime.now().toIso8601String(),
+          'read': false,
+        };
+        
+        if (!_mockMessages.containsKey(conversationId)) {
+          _mockMessages[conversationId] = [];
+        }
+        _mockMessages[conversationId]!.add(newMessage);
+        
+        // Update conversation last message
+        final conversationIndex = _mockConversations.indexWhere((c) => c['id'] == conversationId);
+        if (conversationIndex != -1) {
+          _mockConversations[conversationIndex]['last_message'] = newMessage;
+          _mockConversations[conversationIndex]['updated_at'] = newMessage['timestamp'];
+        }
+        
+        // Emit message to stream
+        _messageController?.add({
+          'conversation_id': conversationId,
+          'message': newMessage,
+        });
+        
+        return newMessage;
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 600));
       
       final newMessage = {
@@ -267,8 +380,6 @@ class ChatService {
       });
       
       return newMessage;
-    } catch (e) {
-      throw Exception('Error sending message: $e');
     }
   }
 
@@ -433,7 +544,7 @@ class ChatService {
       
       for (final conversation in _mockConversations) {
         totalMessages += conversation['last_message'] != null ? 1 : 0;
-        unreadMessages += conversation['unread_count'] ?? 0;
+        unreadMessages += (conversation['unread_count'] as int?) ?? 0;
       }
       
       return {

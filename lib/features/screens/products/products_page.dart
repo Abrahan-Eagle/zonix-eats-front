@@ -106,9 +106,9 @@ class _ProductsPageState extends State<ProductsPage> {
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(16),
-                                  child: product.imagen != null
+                                  child: product.image.isNotEmpty
                                       ? Image.network(
-                                          product.imagen!,
+                                          product.image,
                                           width: double.infinity,
                                           height: 90, // Reducido para evitar overflow
                                           fit: BoxFit.cover,
@@ -123,14 +123,14 @@ class _ProductsPageState extends State<ProductsPage> {
                                 Padding(
                                   padding: const EdgeInsets.only(top: 4), // Menos espacio
                                   child: Text(
-                                    product.nombre,
+                                    product.name,
                                     style: const TextStyle(fontWeight: FontWeight.w500),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 Text(
-                                  '${product.precio ?? '-'} \$',
+                                  '${product.price.toStringAsFixed(2)} \$',
                                   style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                                 ),
                                 Align(
@@ -148,8 +148,8 @@ class _ProductsPageState extends State<ProductsPage> {
                                       onPressed: () {
                                         cartService.addToCart(CartItem(
                                           id: product.id,
-                                          nombre: product.nombre,
-                                          precio: product.precio,
+                                          nombre: product.name,
+                                          precio: product.price,
                                           quantity: 1,
                                         ));
                                         ScaffoldMessenger.of(context).showSnackBar(

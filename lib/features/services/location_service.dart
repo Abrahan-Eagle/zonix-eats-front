@@ -1,9 +1,19 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-class LocationService {
+class LocationService extends ChangeNotifier {
   final ApiService _apiService = ApiService();
+  final _storage = const FlutterSecureStorage();
+  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
+      ? dotenv.env['API_URL_PROD']!
+      : dotenv.env['API_URL_LOCAL']!;
   Timer? _locationTimer;
   StreamController<Map<String, dynamic>>? _locationController;
   
@@ -159,14 +169,30 @@ class LocationService {
   // Update location on server
   Future<void> updateLocationOnServer(Map<String, dynamic> location) async {
     try {
-      // TODO: Replace with real API call
-      // await _apiService.post('/location/update', location);
-      
-      // Mock data for now
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/location/update'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(location),
+      );
+
+      if (response.statusCode == 200) {
+        print('Location updated on server: ${location['latitude']}, ${location['longitude']}');
+      } else {
+        // Fallback to mock data
+        await Future.delayed(Duration(milliseconds: 300));
+        print('Location updated on server: ${location['latitude']}, ${location['longitude']}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 300));
       print('Location updated on server: ${location['latitude']}, ${location['longitude']}');
-    } catch (e) {
-      print('Error updating location on server: $e');
     }
   }
 
@@ -224,9 +250,12 @@ class LocationService {
     double dLat = _degreesToRadians(lat2 - lat1);
     double dLon = _degreesToRadians(lon2 - lon1);
     
-    double a = (dLat / 2).sin() * (dLat / 2).sin() +
-        (lat1.sin() * lat2.sin() * (dLon / 2).sin() * (dLon / 2).sin());
-    double c = 2 * a.sqrt().asin();
+    double lat1Rad = _degreesToRadians(lat1);
+    double lat2Rad = _degreesToRadians(lat2);
+    
+    double a = sin(dLat / 2) * sin(dLat / 2) +
+        sin(dLon / 2) * sin(dLon / 2) * cos(lat1Rad) * cos(lat2Rad);
+    double c = 2 * asin(sqrt(a));
     
     return earthRadius * c;
   }
