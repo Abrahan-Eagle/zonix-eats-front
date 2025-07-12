@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../config/app_config.dart';
+import 'package:logger/logger.dart';
+import '../config/app_config.dart';
 
 class WebSocketService {
   static final WebSocketService _instance = WebSocketService._internal();
@@ -10,18 +11,23 @@ class WebSocketService {
   WebSocketService._internal();
 
   final _storage = const FlutterSecureStorage();
+  final _logger = Logger();
+  
   WebSocketChannel? _channel;
   StreamController<Map<String, dynamic>>? _messageController;
   Timer? _reconnectTimer;
   bool _isConnected = false;
   int _reconnectAttempts = 0;
   static const int _maxReconnectAttempts = 5;
+  
+  // Subscribed channels
+  final Set<String> _subscribedChannels = <String>{};
 
   // Getters
   bool get isConnected => _isConnected;
   Stream<Map<String, dynamic>>? get messageStream => _messageController?.stream;
 
-  // Connect to WebSocket
+  // Connect to Laravel Echo Server
   Future<void> connect() async {
     if (_isConnected) return;
 
@@ -31,8 +37,11 @@ class WebSocketService {
         throw Exception('Token no encontrado');
       }
 
-      final url = '${AppConfig.websocketUrl}/app/local?protocol=7&client=js&version=4.3.1&flash=false';
-      _channel = WebSocketChannel.connect(Uri.parse(url));
+      // Build WebSocket URL for Laravel Echo Server
+      final wsUrl = _buildWebSocketUrl();
+      _logger.i('Connecting to WebSocket: $wsUrl');
+      
+      _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
 
       // Send authentication
       await _sendAuthMessage(token);
@@ -48,20 +57,30 @@ class WebSocketService {
       _reconnectAttempts = 0;
       _messageController = StreamController<Map<String, dynamic>>.broadcast();
 
-      print('WebSocket conectado exitosamente');
+      _logger.i('WebSocket connected successfully');
     } catch (e) {
-      print('Error conectando WebSocket: $e');
+      _logger.e('Error connecting WebSocket: $e');
       _scheduleReconnect();
     }
   }
 
+  // Build WebSocket URL for Laravel Echo Server
+  String _buildWebSocketUrl() {
+    final protocol = AppConfig.echoProtocol == 'https' ? 'wss' : 'ws';
+    final host = AppConfig.echoHost;
+    final port = AppConfig.echoPort;
+    
+    return '$protocol://$host:$port/app/${AppConfig.echoAppId}?protocol=7&client=js&version=4.3.1&flash=false';
+  }
+
   // Send authentication message
   Future<void> _sendAuthMessage(String token) async {
+    final userId = await _getUserId();
     final authMessage = {
       'event': 'pusher:subscribe',
       'data': {
         'auth': token,
-        'channel': 'private-user.${await _getUserId()}',
+        'channel': 'private-user.$userId',
       },
     };
     _channel?.sink.add(jsonEncode(authMessage));
@@ -69,40 +88,56 @@ class WebSocketService {
 
   // Get user ID from storage
   Future<String> _getUserId() async {
-    // TODO: Implement user ID retrieval from storage
-    return '1';
+    final userId = await _storage.read(key: 'userId');
+    return userId ?? '1';
   }
 
   // Handle incoming messages
   void _handleMessage(dynamic message) {
     try {
       final data = jsonDecode(message);
+      _logger.d('WebSocket message received: $data');
       
       // Handle different message types
       switch (data['event']) {
-        case 'chat.message':
+        case 'OrderCreated':
           _messageController?.add({
-            'type': 'chat',
+            'type': 'order_created',
             'data': data['data'],
           });
           break;
-        case 'order.status_changed':
+        case 'OrderStatusChanged':
           _messageController?.add({
-            'type': 'order_update',
+            'type': 'order_status_changed',
             'data': data['data'],
           });
           break;
-        case 'delivery.location_update':
+        case 'PaymentValidated':
           _messageController?.add({
-            'type': 'location_update',
+            'type': 'payment_validated',
             'data': data['data'],
           });
           break;
-        case 'notification.new':
+        case 'NewMessage':
           _messageController?.add({
-            'type': 'notification',
+            'type': 'chat_message',
             'data': data['data'],
           });
+          break;
+        case 'DeliveryLocationUpdated':
+          _messageController?.add({
+            'type': 'delivery_location',
+            'data': data['data'],
+          });
+          break;
+        case 'pusher:connection_established':
+          _logger.i('WebSocket connection established');
+          break;
+        case 'pusher:subscription_succeeded':
+          _logger.i('Channel subscription succeeded: ${data['channel']}');
+          break;
+        case 'pusher:subscription_error':
+          _logger.e('Channel subscription error: ${data['data']}');
           break;
         default:
           _messageController?.add({
@@ -111,20 +146,20 @@ class WebSocketService {
           });
       }
     } catch (e) {
-      print('Error parsing WebSocket message: $e');
+      _logger.e('Error parsing WebSocket message: $e');
     }
   }
 
   // Handle WebSocket errors
   void _handleError(dynamic error) {
-    print('WebSocket error: $error');
+    _logger.e('WebSocket error: $error');
     _isConnected = false;
     _scheduleReconnect();
   }
 
   // Handle WebSocket disconnect
   void _handleDisconnect() {
-    print('WebSocket desconectado');
+    _logger.i('WebSocket disconnected');
     _isConnected = false;
     _scheduleReconnect();
   }
@@ -132,52 +167,125 @@ class WebSocketService {
   // Schedule reconnection
   void _scheduleReconnect() {
     if (_reconnectAttempts >= _maxReconnectAttempts) {
-      print('Máximo número de intentos de reconexión alcanzado');
+      _logger.e('Maximum reconnection attempts reached');
       return;
     }
 
     _reconnectTimer?.cancel();
     _reconnectTimer = Timer(Duration(seconds: _reconnectAttempts * 2 + 1), () {
       _reconnectAttempts++;
-      print('Intentando reconectar WebSocket (intento $_reconnectAttempts)');
+      _logger.i('Attempting WebSocket reconnection (attempt $_reconnectAttempts)');
       connect();
     });
   }
 
-  // Send message
-  Future<void> sendMessage(String event, Map<String, dynamic> data) async {
+  // Subscribe to private channel
+  Future<void> subscribeToPrivateChannel(String channelName) async {
     if (!_isConnected) {
-      throw Exception('WebSocket no conectado');
+      throw Exception('WebSocket not connected');
+    }
+
+    final token = await _storage.read(key: 'token');
+    if (token == null) {
+      throw Exception('Token not found');
     }
 
     final message = {
-      'event': event,
-      'data': data,
+      'event': 'pusher:subscribe',
+      'data': {
+        'auth': token,
+        'channel': 'private-$channelName',
+      },
     };
 
     _channel?.sink.add(jsonEncode(message));
+    _subscribedChannels.add('private-$channelName');
+    _logger.i('Subscribed to private channel: private-$channelName');
   }
 
-  // Subscribe to channel
-  Future<void> subscribeToChannel(String channelName) async {
+  // Subscribe to presence channel
+  Future<void> subscribeToPresenceChannel(String channelName) async {
+    if (!_isConnected) {
+      throw Exception('WebSocket not connected');
+    }
+
+    final token = await _storage.read(key: 'token');
+    if (token == null) {
+      throw Exception('Token not found');
+    }
+
+    final message = {
+      'event': 'pusher:subscribe',
+      'data': {
+        'auth': token,
+        'channel': 'presence-$channelName',
+      },
+    };
+
+    _channel?.sink.add(jsonEncode(message));
+    _subscribedChannels.add('presence-$channelName');
+    _logger.i('Subscribed to presence channel: presence-$channelName');
+  }
+
+  // Subscribe to public channel
+  Future<void> subscribeToPublicChannel(String channelName) async {
+    if (!_isConnected) {
+      throw Exception('WebSocket not connected');
+    }
+
     final message = {
       'event': 'pusher:subscribe',
       'data': {
         'channel': channelName,
       },
     };
+
     _channel?.sink.add(jsonEncode(message));
+    _subscribedChannels.add(channelName);
+    _logger.i('Subscribed to public channel: $channelName');
   }
 
   // Unsubscribe from channel
   Future<void> unsubscribeFromChannel(String channelName) async {
+    if (!_isConnected) {
+      return;
+    }
+
     final message = {
       'event': 'pusher:unsubscribe',
       'data': {
         'channel': channelName,
       },
     };
+
     _channel?.sink.add(jsonEncode(message));
+    _subscribedChannels.remove(channelName);
+    _logger.i('Unsubscribed from channel: $channelName');
+  }
+
+  // Subscribe to order updates
+  Future<void> subscribeToOrder(int orderId) async {
+    await subscribeToPrivateChannel('orders.$orderId');
+  }
+
+  // Subscribe to user updates
+  Future<void> subscribeToUser(int userId) async {
+    await subscribeToPrivateChannel('user.$userId');
+  }
+
+  // Subscribe to commerce updates
+  Future<void> subscribeToCommerce(int commerceId) async {
+    await subscribeToPrivateChannel('commerce.$commerceId');
+  }
+
+  // Subscribe to delivery updates
+  Future<void> subscribeToDelivery(int deliveryAgentId) async {
+    await subscribeToPrivateChannel('delivery.$deliveryAgentId');
+  }
+
+  // Subscribe to order chat
+  Future<void> subscribeToOrderChat(int orderId) async {
+    await subscribeToPresenceChannel('chat.$orderId');
   }
 
   // Disconnect
@@ -187,32 +295,10 @@ class WebSocketService {
     _messageController?.close();
     _isConnected = false;
     _reconnectAttempts = 0;
+    _subscribedChannels.clear();
+    _logger.i('WebSocket disconnected');
   }
 
-  // Send chat message
-  Future<void> sendChatMessage(int conversationId, String content, {String type = 'text'}) async {
-    await sendMessage('chat.send_message', {
-      'conversation_id': conversationId,
-      'content': content,
-      'type': type,
-    });
-  }
-
-  // Send location update
-  Future<void> sendLocationUpdate(double latitude, double longitude) async {
-    await sendMessage('delivery.update_location', {
-      'latitude': latitude,
-      'longitude': longitude,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
-
-  // Send order status update
-  Future<void> sendOrderStatusUpdate(int orderId, String status) async {
-    await sendMessage('order.update_status', {
-      'order_id': orderId,
-      'status': status,
-      'timestamp': DateTime.now().toIso8601String(),
-    });
-  }
+  // Get subscribed channels
+  Set<String> get subscribedChannels => Set.from(_subscribedChannels);
 } 

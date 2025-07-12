@@ -1,245 +1,191 @@
 import 'package:flutter/material.dart';
 
-class GasCylinderDetailScreen extends StatelessWidget {
-  final Map<String, dynamic> cylinder;
+class PhoneDetailScreen extends StatelessWidget {
+  final Map<String, dynamic> phone;
 
-  const GasCylinderDetailScreen({super.key, required this.cylinder});
+  const PhoneDetailScreen({super.key, required this.phone});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalle de Bombona'),
+        title: const Text('Detalle de Teléfono'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
       ),
-      body: _buildCylinderDetails(context),
-    );
-  }
-
-  Widget _buildCylinderDetails(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      height: double.infinity,
-      child: Stack(
-        children: [
-          _buildBackgroundImage(context), // Imagen de fondo
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Header con información principal
+            _buildDetailItem(context, 'Teléfono: ${phone['phone']}', isHeader: true),
+            
+            const SizedBox(height: 20),
+            
+            // Información del teléfono
+            _buildDetailItem(context, 'Tipo: ${phone['type'] ?? 'N/A'}'),
+            _buildDetailItem(context, 'Verificado: ${phone['verified'] ? 'Sí' : 'No'}'),
+            _buildDetailItem(context, 'Principal: ${phone['primary'] ? 'Sí' : 'No'}'),
+            
+            if (phone['verified_at'] != null)
+              _buildDetailItem(context, 'Verificado el: ${phone['verified_at']}'),
+            
+            const SizedBox(height: 20),
+            
+            // Botones de acción
+            Row(
               children: [
-                _buildDetailItem(context, 'Código: ${cylinder['gasCylinderCode']}', isHeader: true),
-                _buildDetailItem(context, 'Cantidad: ${cylinder['cylinderQuantity'] ?? 'N/A'}'),
-                _buildDetailItem(
-                  context,
-                  'Estado: ${cylinder['approved'] ? 'Aprobada' : 'No Aprobada'}',
-                  textColor: cylinder['approved'] ? Colors.green : Colors.red,
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      // Acción para editar teléfono
+                    },
+                    icon: const Icon(Icons.edit),
+                    label: const Text('Editar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
                 ),
-                _buildDetailItem(context, 'Tipo de cilindro: ${cylinder['cylinderType'] ?? 'N/A'}'),
-                _buildDetailItem(context, 'Tamaño de cilindro: ${cylinder['cylinderWeight'] ?? 'N/A'}'),
-                _buildDetailItem(context, 'Fecha de producción: ${_formatDate(cylinder['manufacturingDate'])}'),
-                _buildDetailItem(context, 'Fecha de Creación: ${_formatDate(cylinder['createdAt'])}'),
-                const SizedBox(height: 20),
-                _buildImageButton(context), // Botón de imagen
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      // Acción para eliminar teléfono
+                    },
+                    icon: const Icon(Icons.delete),
+                    label: const Text('Eliminar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildImageButton(BuildContext context) {
-    return Center(
-      child: IconButton(
-        iconSize: 100,
-        icon: const Icon(Icons.image, color: Colors.blue),
-        onPressed: () => _showImageDialog(context),
-      ),
-    );
-  }
-
-
- void _showImageDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return Dialog(
-        insetPadding: const EdgeInsets.all(10), // Reduce los márgenes del diálogo
-        child: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.9, // 90% del ancho de la pantalla
-          height: MediaQuery.of(context).size.height * 0.7, // 70% de la altura
-          child: Column(
-            children: [
-              Expanded(
-                child: Image.network(
-                  cylinder['photoGasCylinder'] ?? '', // URL de la imagen
-                  fit: BoxFit.contain, // Ajusta la imagen sin recortarla
-                  errorBuilder: (context, error, stackTrace) {
-                    return const Center(
-                      child: Text('Imagen no disponible'),
-                    );
-                  },
+            
+            const SizedBox(height: 20),
+            
+            // Imagen del teléfono (si existe)
+            if (phone['photoPhone'] != null && phone['photoPhone'].isNotEmpty)
+              Container(
+                width: double.infinity,
+                height: 200,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey.shade300),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    phone['photoPhone'] ?? '', // URL de la imagen
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return Container(
+                        color: Colors.grey.shade200,
+                        child: const Center(
+                          child: Icon(
+                            Icons.phone,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cerrar', style: TextStyle(fontSize: 18)),
-              ),
-            ],
-          ),
+          ],
         ),
-      );
-    },
-  );
-}
+      ),
+    );
+  }
 
-
-
-  Widget _buildDetailItem(BuildContext context, String text,
-      {bool isHeader = false, Color? textColor}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10.0),
+  Widget _buildDetailItem(BuildContext context, String text, {bool isHeader = false}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16.0),
+      margin: const EdgeInsets.only(bottom: 8.0),
+      decoration: BoxDecoration(
+        color: isHeader ? Colors.blue.shade50 : Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isHeader ? Colors.blue.shade200 : Colors.grey.shade300,
+        ),
+      ),
       child: Text(
         text,
         style: TextStyle(
-          fontSize: isHeader ? 20 : 16,
+          fontSize: isHeader ? 18 : 16,
           fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
-          color: textColor ?? Theme.of(context).textTheme.bodyMedium?.color,
+          color: isHeader ? Colors.blue.shade800 : Colors.black87,
         ),
       ),
     );
-  }
-
-  Widget _buildBackgroundImage(BuildContext context) {
-    Color logoColor = Theme.of(context).brightness == Brightness.dark
-        ? Colors.white
-        : Colors.black;
-
-    return Positioned(
-      right: -110,
-      bottom: -30,
-      child: SizedBox(
-        width: 425,
-        height: 425,
-        child: Opacity(
-          opacity: 0.3,
-          child: Image.asset(
-            'assets/images/splash_logo_dark.png',
-            fit: BoxFit.cover,
-            color: logoColor,
-            colorBlendMode: BlendMode.modulate,
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'N/A';
-    return date.toLocal().toString().split(' ')[0];
   }
 }
 
-
-// import 'package:flutter/material.dart';
-// import 'package:zonix/features/DomainProfiles/GasCylinder/models/gas_cylinder.dart';
-
-// class GasCylinderDetailScreen extends StatelessWidget {
-//   final GasCylinder cylinder;
-
-//   const GasCylinderDetailScreen({super.key, required this.cylinder});
-
+// Código comentado para referencia futura
+// import 'package:zonix/features/DomainProfiles/Phone/models/phone.dart';
+// 
+// class PhoneDetailScreen extends StatelessWidget {
+//   final Phone phone;
+// 
+//   const PhoneDetailScreen({super.key, required this.phone});
+// 
 //   @override
 //   Widget build(BuildContext context) {
 //     return Scaffold(
 //       appBar: AppBar(
-//         title: const Text('Detalle de Bombona'),
+//         title: const Text('Detalle de Teléfono'),
+//         backgroundColor: Colors.blue,
+//         foregroundColor: Colors.white,
 //       ),
-//       body: _buildCylinderDetails(context),
+//       body: SingleChildScrollView(
+//         padding: const EdgeInsets.all(16.0),
+//         child: Column(
+//           crossAxisAlignment: CrossAxisAlignment.start,
+//           children: [
+//             // Header con información principal
+//             _buildDetailItem(context, 'Teléfono: ${phone.phone}', isHeader: true),
+//             
+//             const SizedBox(height: 20),
+//             
+//             // Información del teléfono
+//             _buildDetailItem(context, 'Tipo: ${phone.type ?? 'N/A'}'),
+//             _buildDetailItem(context, 'Verificado: ${phone.verified ? 'Sí' : 'No'}'),
+//             _buildDetailItem(context, 'Principal: ${phone.primary ? 'Sí' : 'No'}'),
+//             
+//             if (phone.verifiedAt != null)
+//               _buildDetailItem(context, 'Verificado el: ${phone.verifiedAt}'),
+//           ],
+//         ),
+//       ),
 //     );
 //   }
-
-//   Widget _buildCylinderDetails(BuildContext context) {
-//     return SizedBox(
+// 
+//   Widget _buildDetailItem(BuildContext context, String text, {bool isHeader = false}) {
+//     return Container(
 //       width: double.infinity,
-//       height: double.infinity, // Asegura que ocupe toda la pantalla
-//       child: Stack(
-//         children: [
-//           _buildBackgroundImage(context), // Imagen de fondo
-//           Padding(
-//             padding: const EdgeInsets.all(16.0), // Ajuste del padding
-//             child: Column(
-//               crossAxisAlignment: CrossAxisAlignment.start,
-//               children: [
-//                 _buildDetailItem(context, 
-//                   'Código: ${cylinder.gasCylinderCode}', 
-//                   isHeader: true,
-//                 ),
-//                 _buildDetailItem(context, 
-//                   'Cantidad: ${cylinder.cylinderQuantity ?? 'N/A'}'),
-//                 _buildDetailItem(
-//                   context,
-//                   'Estado: ${cylinder.approved ? 'Aprobada' : 'No Aprobada'}',
-//                   textColor: cylinder.approved ? Colors.green : Colors.red,
-//                 ),
-//                 _buildDetailItem(context, 
-//                   'Tipo de cilindro: ${cylinder.cylinderType ?? 'N/A'}'),
-//                 _buildDetailItem(context, 
-//                   'Tamaño de cilindro: ${cylinder.cylinderWeight ?? 'N/A'}'),
-//                 _buildDetailItem(context, 
-//                   'Fecha de producción: ${_formatDate(cylinder.manufacturingDate)}'),
-//                 _buildDetailItem(context, 
-//                   'Fecha de Creación: ${_formatDate(cylinder.createdAt)}'),
-//               ],
-//             ),
-//           ),
-//         ],
+//       padding: const EdgeInsets.all(16.0),
+//       margin: const EdgeInsets.only(bottom: 8.0),
+//       decoration: BoxDecoration(
+//         color: isHeader ? Colors.blue.shade50 : Colors.white,
+//         borderRadius: BorderRadius.circular(8),
+//         border: Border.all(
+//           color: isHeader ? Colors.blue.shade200 : Colors.grey.shade300,
+//         ),
 //       ),
-//     );
-//   }
-
-//   Widget _buildDetailItem(BuildContext context, String text, 
-//       {bool isHeader = false, Color? textColor}) {
-//     return Padding(
-//       padding: const EdgeInsets.symmetric(vertical: 10.0),
 //       child: Text(
 //         text,
 //         style: TextStyle(
-//           fontSize: isHeader ? 20 : 16,
+//           fontSize: isHeader ? 18 : 16,
 //           fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
-//           color: textColor ?? Theme.of(context).textTheme.bodyMedium?.color,
+//           color: isHeader ? Colors.blue.shade800 : Colors.black87,
 //         ),
 //       ),
 //     );
-//   }
-
-//   Widget _buildBackgroundImage(BuildContext context) {
-//     // Define el color basado en el tema actual
-//     Color logoColor = Theme.of(context).brightness == Brightness.dark
-//         ? Colors.white
-//         : Colors.black;
-
-//     return Positioned(
-//       right: -110,
-//       bottom: -30,
-//       child: SizedBox(
-//         width: 425,
-//         height: 425,
-//         child: Opacity(
-//           opacity: 0.3,
-//           child: Image.asset(
-//             'assets/images/splash_logo_dark.png',
-//             fit: BoxFit.cover,
-//             color: logoColor,
-//             colorBlendMode: BlendMode.modulate,
-//           ),
-//         ),
-//       ),
-//     );
-//   }
-
-//   String _formatDate(DateTime? date) {
-//     if (date == null) return 'N/A';
-//     return date.toLocal().toString().split(' ')[0]; // Formato: YYYY-MM-DD
 //   }
 // }

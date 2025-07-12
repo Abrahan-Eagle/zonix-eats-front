@@ -349,9 +349,7 @@ import 'package:flutter/services.dart';
 // import 'dart:io';
 // import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-// import 'package:zonix/features/GasTicket/sales_admin/order_tracking/screens/ticket_scanner_screen.dart';
-// import 'package:zonix/features/GasTicket/dispatch_ticket_button/screens/dispatch_ticket_scanner_screen.dart';
-// import 'package:zonix/features/GasTicket/sales_admin/data_verification/screens/check_scanner_screen.dart';
+
 import 'package:zonix/features/screens/profile/profile_page.dart';
 import 'package:zonix/features/screens/settings/settings_page_2.dart';
 import 'package:zonix/features/screens/auth/sign_in_screen.dart';
@@ -402,6 +400,7 @@ import 'package:zonix/features/screens/admin/admin_security_page.dart';
 import 'package:zonix/features/screens/admin/admin_analytics_page.dart';
 
 import 'package:zonix/features/screens/help/help_and_faq_page.dart';
+import 'package:zonix/features/services/websocket_service.dart';
 
 /*
  * ZONIX EATS - Aplicación Multi-Rol
@@ -463,6 +462,8 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => PaymentService()),
         ChangeNotifierProvider(create: (_) => ChatService()),
         ChangeNotifierProvider(create: (_) => AnalyticsService()),
+        // WebSocket Service como singleton
+        Provider<WebSocketService>.value(value: WebSocketService()),
       ],
       child: const MyApp(),
     ),

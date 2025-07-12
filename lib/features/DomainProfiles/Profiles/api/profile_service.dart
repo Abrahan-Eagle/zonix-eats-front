@@ -187,28 +187,4 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
   }
 }
 
-
-Future<List<Map<String, dynamic>>> fetchStations() async {
-  final String apiUrl = '$baseUrl/api/tickets';
-   String? token = await _getToken();
-   
-    final response = await http.get(
-      Uri.parse('$apiUrl/stations/getGasStations'),
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      },
-    );
-
-     if (response.statusCode == 200) {
-      List<dynamic> data = jsonDecode(response.body);
-      return data.map((e) => e as Map<String, dynamic>).toList();
-    } else {
-      throw Exception('Failed to load gas stations');
-    }
-
-  
-  }
-
-
 }

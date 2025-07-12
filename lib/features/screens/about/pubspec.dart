@@ -4,21 +4,26 @@ class Pubspec {
   static const String versionBuild = '1';
   static const List<String> authorsName = ['Ing. Abrahan Pulido'];
   static const String description = '''
-Zonix es una aplicación innovadora para la gestión y el agendamiento de citas para la compra de bombonas de gas. Diseñada para simplificar el proceso tanto para los usuarios como para los administradores, Zonix automatiza la asignación de horarios y puestos de recogida según la disponibilidad diaria, permitiendo un flujo de trabajo eficiente y controlado.
+Zonix es una aplicación innovadora para la gestión y el agendamiento de pedidos de comida a domicilio. Diseñada para simplificar el proceso tanto para los usuarios como para los restaurantes, Zonix automatiza la asignación de horarios y puestos de entrega según la disponibilidad diaria, permitiendo una experiencia fluida y eficiente.
 
-Con Zonix, los usuarios pueden:
-- Registrar sus bombonas y generar citas de compra de forma sencilla.
-- Consultar la disponibilidad de citas en función de su ubicación.
-- Visualizar y gestionar sus citas programadas.
-- Acceder a un sistema de notificaciones sobre su cita y estatus de la jornada.
+## Características Principales
 
-Funciones principales:
-- **Gestión de citas:** Agendamiento y asignación de horarios automáticos, con un límite diario de citas.
-- **Control administrativo:** El administrador puede aprobar datos, controlar el ciclo de trabajo, y cerrar la caja al final de la jornada.
-- **Validación de disponibilidad:** Verificación de la dirección del usuario para determinar la disponibilidad de citas.
-- **Asignación de horarios:** Horarios automáticos con intervalos de 1 minuto entre cada cita, comenzando desde las 9:00 am.
+- **Gestión de Pedidos**: Sistema completo para crear, gestionar y rastrear pedidos
+- **Entrega a Domicilio**: Coordinación automática con repartidores
+- **Pagos Seguros**: Múltiples métodos de pago integrados
+- **Notificaciones en Tiempo Real**: Actualizaciones instantáneas del estado del pedido
+- **Gestión de Restaurantes**: Panel completo para administrar menús y pedidos
+- **Sistema de Repartidores**: Coordinación eficiente de entregas
 
-Esta aplicación es una solución completa para la compra eficiente y organizada de bombonas de gas, diseñada para ahorrar tiempo y esfuerzo tanto para los usuarios como para los administradores.
+## Tecnologías
+
+- **Frontend**: Flutter para aplicaciones móviles multiplataforma
+- **Backend**: Laravel con API REST
+- **Base de Datos**: MySQL
+- **WebSockets**: Laravel Echo Server para notificaciones en tiempo real
+- **Autenticación**: Laravel Sanctum
+
+Esta aplicación es una solución completa para la gestión eficiente y organizada de pedidos de comida, diseñada para ahorrar tiempo y esfuerzo tanto para los usuarios como para los restaurantes.
 
 © {{year}} Ing. Abrahan Pulido. Todos los derechos reservados.
   ''';

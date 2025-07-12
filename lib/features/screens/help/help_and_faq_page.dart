@@ -50,7 +50,7 @@ class HelpAndFAQPage extends StatelessWidget {
               'Para agendar una cita en Zonix, sigue estos pasos:\n\n'
               '1. Inicia sesión en tu cuenta.\n'
               '2. Selecciona "Agendar Cita" en el menú principal.\n'
-              '3. Selecciona la bombona de gas que deseas reservar y la fecha y hora de la cita.\n'
+              '3. Selecciona el restaurante que deseas y la fecha y hora de la cita.\n'
               '4. Revisa la información y haz clic en "Confirmar Cita".\n'
               '5. Recibirás un mensaje de confirmación de tu cita.',
             ),

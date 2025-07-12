@@ -548,19 +548,3 @@ ImageProvider<Object> _getProfileImage(String? profilePhoto) {
   logger.w('Usando imagen predeterminada');
   return const AssetImage('assets/default_avatar.png'); 
 }
-
-// Widget placeholder para GasCylinderListScreen
-class GasCylinderListScreen extends StatelessWidget {
-  final int userId;
-  const GasCylinderListScreen({Key? key, required this.userId}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Bombonas de gas')),
-      body: Center(
-        child: Text('Pantalla de bombonas de gas para usuario: $userId'),
-      ),
-    );
-  }
-}

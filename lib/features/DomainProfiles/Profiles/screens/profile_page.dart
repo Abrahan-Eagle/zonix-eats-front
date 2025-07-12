@@ -4,7 +4,6 @@ import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart'
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/edit_profile_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/create_profile_page.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/screens/select_station_modal.dart';
 import 'package:logger/logger.dart';
 import 'package:intl/intl.dart';
 
@@ -94,13 +93,7 @@ class ProfilePagex extends StatelessWidget {
                         top: 215, // Ajusta esta posición según sea necesario
                         child: FloatingActionButton(
                           onPressed: () async {
-                            // Mostrar modal con select
-                            showDialog(
-                              context: context,
-                              builder: (context) {
-                                return SelectStationModal(userId: userId);
-                              },
-                            );
+                            // Función eliminada - ya no se necesita seleccionar estación
                           },
                           backgroundColor: Colors.green,
                           child: const Icon(Icons.check),
