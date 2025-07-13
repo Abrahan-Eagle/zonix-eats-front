@@ -63,22 +63,37 @@ class ProductService {
     );
     
     _logger.i('Status code: ${response.statusCode}');
+    _logger.i('Response body: ${response.body}');
     
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
+      _logger.i('Decoded data type: ${data.runtimeType}');
+      _logger.i('Decoded data: $data');
       
-      // Handle the new API response structure
+      // Handle different response structures
       Map<String, dynamic> productData;
-      if (data['success'] == true && data['data'] != null) {
-        productData = data['data'];
+      
+      if (data is Map<String, dynamic>) {
+        // Check if it's wrapped in success/data structure
+        if (data['success'] == true && data['data'] != null) {
+          productData = data['data'];
+        } else {
+          // Direct product object
+          productData = data;
+        }
+      } else if (data is List && data.isNotEmpty) {
+        // If backend returns an array, take the first item
+        _logger.w('Backend returned array instead of object, taking first item');
+        productData = data[0];
       } else {
-        // Fallback to direct data if not wrapped
-        productData = data;
+        throw Exception('Invalid response format from backend');
       }
       
+      _logger.i('Final product data: $productData');
       return Product.fromJson(productData);
     } else {
       _logger.e('Error al cargar producto: ${response.statusCode}');
+      _logger.e('Error response body: ${response.body}');
       throw Exception('Error al cargar producto: ${response.statusCode}');
     }
   }

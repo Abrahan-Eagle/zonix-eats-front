@@ -6,6 +6,7 @@ import 'package:zonix/models/cart_item.dart';
 import 'package:zonix/models/restaurant.dart';
 import 'package:zonix/features/services/restaurant_service.dart';
 import 'package:zonix/features/screens/restaurants/restaurant_details_page.dart';
+import 'package:zonix/features/utils/network_image_with_fallback.dart';
 import 'package:logger/logger.dart';
 
 class ProductDetailPage extends StatefulWidget {
@@ -101,28 +102,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget _buildProductImage() {
-    return ClipRRect(
+    return ProductImage(
+      imageUrl: widget.product.image,
+      productName: widget.product.name,
+      width: double.infinity,
+      height: 250,
       borderRadius: BorderRadius.circular(16),
-      child: widget.product.image.isNotEmpty
-          ? Image.network(
-              widget.product.image,
-              width: double.infinity,
-              height: 250,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _buildPlaceholderImage(),
-            )
-          : _buildPlaceholderImage(),
     );
   }
 
-  Widget _buildPlaceholderImage() {
-    return Container(
-      width: double.infinity,
-      height: 250,
-      color: Colors.grey.shade200,
-      child: const Icon(Icons.image, size: 100),
-    );
-  }
+
 
   Widget _buildProductInfo(double total) {
     return Row(

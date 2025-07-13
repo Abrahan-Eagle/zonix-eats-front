@@ -5,6 +5,7 @@ import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/product_service.dart';
 import 'package:zonix/models/product.dart';
 import 'package:zonix/models/cart_item.dart';
+import 'package:zonix/features/utils/network_image_with_fallback.dart';
 import 'product_detail_page.dart';
 
 class ProductsPage extends StatefulWidget {
@@ -106,19 +107,12 @@ class _ProductsPageState extends State<ProductsPage> {
                               children: [
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(16),
-                                  child: product.image.isNotEmpty
-                                      ? Image.network(
-                                          product.image,
-                                          width: double.infinity,
-                                          height: 90, // Reducido para evitar overflow
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Container(
-                                          width: double.infinity,
-                                          height: 90,
-                                          color: Colors.grey.shade200,
-                                          child: const Icon(Icons.image, size: 48),
-                                        ),
+                                  child: ProductImage(
+                                    imageUrl: product.image,
+                                    productName: product.name,
+                                    width: double.infinity,
+                                    height: 90,
+                                  ),
                                 ),
                                 Padding(
                                   padding: const EdgeInsets.only(top: 4), // Menos espacio

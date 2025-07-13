@@ -46,16 +46,31 @@ class Product {
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
+    // Helper function to safely convert to double
+    double parseDouble(dynamic value) {
+      if (value == null) return 0.0;
+      if (value is double) return value;
+      if (value is int) return value.toDouble();
+      if (value is String) {
+        try {
+          return double.parse(value);
+        } catch (e) {
+          return 0.0;
+        }
+      }
+      return 0.0;
+    }
+
     return Product(
       id: json['id'] ?? 0,
       commerceId: json['commerce_id'] ?? 0,
       name: json['name'] ?? '',
       description: json['description'] ?? '',
-      price: (json['price'] ?? 0.0).toDouble(),
-      originalPrice: json['original_price'] != null ? (json['original_price'] as num).toDouble() : null,
+      price: parseDouble(json['price']),
+      originalPrice: json['original_price'] != null ? parseDouble(json['original_price']) : null,
       image: json['image'] ?? '',
       category: json['category'] ?? '',
-      isAvailable: json['is_available'] ?? false,
+      isAvailable: json['available'] ?? json['is_available'] ?? false,
       stock: json['stock'] ?? 0,
       tags: List<String>.from(json['tags'] ?? []),
       nutritionalInfo: json['nutritional_info'],
@@ -64,7 +79,7 @@ class Product {
       isVegan: json['is_vegan'] ?? false,
       isGlutenFree: json['is_gluten_free'] ?? false,
       preparationTime: json['preparation_time'] ?? 0,
-      rating: (json['rating'] ?? 0.0).toDouble(),
+      rating: parseDouble(json['rating']),
       reviewCount: json['review_count'] ?? 0,
       createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
       updatedAt: DateTime.parse(json['updated_at'] ?? DateTime.now().toIso8601String()),
