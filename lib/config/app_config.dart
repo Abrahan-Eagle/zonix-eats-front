@@ -40,4 +40,7 @@ class AppConfig {
   // Retry Configuration
   static int get maxRetryAttempts => EnvConfig.maxRetryAttempts;
   static int get retryDelayMs => EnvConfig.retryDelayMs;
+  
+  // Request Timeout Configuration
+  static const int requestTimeout = 30000; // 30 segundos
 } 

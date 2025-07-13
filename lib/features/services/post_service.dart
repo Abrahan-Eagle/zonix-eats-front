@@ -2,16 +2,13 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../helpers/auth_helper.dart';
+import '../../config/app_config.dart';
 
 class PostService {
-  final String _baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
-
   // GET /api/buyer/posts - Listar posts
   Future<List<Map<String, dynamic>>> getPosts() async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('$_baseUrl/api/buyer/posts');
+    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/posts');
     final response = await http.get(
       url,
       headers: headers,
@@ -32,7 +29,7 @@ class PostService {
   // GET /api/buyer/posts/{id} - Obtener detalle de post
   Future<Map<String, dynamic>> getPostById(int postId) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('$_baseUrl/api/buyer/posts/$postId');
+    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/posts/$postId');
     final response = await http.get(
       url,
       headers: headers,
@@ -53,7 +50,7 @@ class PostService {
   // POST /api/buyer/posts/{id}/favorite - Marcar/desmarcar favorito
   Future<bool> toggleFavorite(int postId) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('$_baseUrl/api/buyer/posts/$postId/favorite');
+    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/posts/$postId/favorite');
     final response = await http.post(
       url,
       headers: headers,
@@ -74,7 +71,7 @@ class PostService {
   // GET /api/buyer/favorites - Listar favoritos
   Future<List<Map<String, dynamic>>> getFavorites() async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('$_baseUrl/api/buyer/favorites');
+    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/favorites');
     final response = await http.get(
       url,
       headers: headers,

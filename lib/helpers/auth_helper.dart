@@ -3,17 +3,22 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class AuthHelper {
   static final storage = const FlutterSecureStorage();
   
-  // Token de prueba temporal para desarrollo
-  static const String _testToken = '4|mfQNidd6dzR91KyVVDaQLWrK0THNGUw0muz4WEgu609f1add';
-
   static Future<Map<String, String>> getAuthHeaders() async {
-    // Token temporal para desarrollo - reemplazar con autenticación real
-    const String tempToken = '2|vzuY1CyKpnzApz8uemUegZhbZQK2tBVcNNZcWkbg71802543';
-    
-    return {
-      'Authorization': 'Bearer $tempToken',
-      'Accept': 'application/json',
-      'Content-Type': 'application/json',
-    };
+    try {
+      // Obtener el token real del storage
+      final token = await storage.read(key: 'token');
+      
+      if (token == null) {
+        throw Exception('Token no encontrado. El usuario no está autenticado.');
+      }
+      
+      return {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      };
+    } catch (e) {
+      throw Exception('Error al obtener headers de autenticación: $e');
+    }
   }
 }

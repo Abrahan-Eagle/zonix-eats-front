@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../helpers/auth_helper.dart';
 import '../../models/cart_item.dart';
+import '../../config/app_config.dart';
 
 class CartService extends ChangeNotifier {
   final List<CartItem> _cart = [];
@@ -54,7 +55,7 @@ class CartService extends ChangeNotifier {
   // POST /api/buyer/cart/add
   Future<void> addToRemoteCart(CartItem product) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('$_baseUrl/api/buyer/cart/add');
+    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/cart/add');
     final response = await http.post(
       url,
       body: jsonEncode({
@@ -80,7 +81,7 @@ class CartService extends ChangeNotifier {
   // GET /api/buyer/cart
   Future<List<CartItem>> fetchRemoteCart() async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('$_baseUrl/api/buyer/cart');
+    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/cart');
     final response = await http.get(
       url,
       headers: headers,
@@ -109,7 +110,7 @@ class CartService extends ChangeNotifier {
   // PUT /api/buyer/cart/update-quantity
   Future<void> updateQuantity(int productId, int quantity) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('$_baseUrl/api/buyer/cart/update-quantity');
+    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/cart/update-quantity');
     final response = await http.put(
       url,
       body: jsonEncode({
@@ -148,7 +149,7 @@ class CartService extends ChangeNotifier {
   // DELETE /api/buyer/cart/{productId}
   Future<void> removeFromRemoteCart(int productId) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('$_baseUrl/api/buyer/cart/$productId');
+    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/cart/$productId');
     final response = await http.delete(
       url,
       headers: headers,
@@ -171,7 +172,7 @@ class CartService extends ChangeNotifier {
   // POST /api/buyer/cart/notes
   Future<void> addNotes(String notes) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('$_baseUrl/api/buyer/cart/notes');
+    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/cart/notes');
     final response = await http.post(
       url,
       body: jsonEncode({'notes': notes}),
@@ -204,7 +205,7 @@ class CartService extends ChangeNotifier {
   // Método para limpiar carrito remoto
   Future<void> clearRemoteCart() async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('$_baseUrl/api/buyer/cart');
+    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/cart');
     final response = await http.delete(
       url,
       headers: headers,

@@ -2,17 +2,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../helpers/auth_helper.dart';
+import '../../config/app_config.dart';
 
 class FavoritesService {
-  final String _baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
-
   // GET /api/buyer/favorites - Obtener favoritos del usuario
   Future<List<Map<String, dynamic>>> getFavorites() async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('$_baseUrl/api/buyer/favorites');
+      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/favorites');
       
       final response = await http.get(
         url,
@@ -40,7 +37,7 @@ class FavoritesService {
   Future<Map<String, dynamic>> toggleFavorite(int postId) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('$_baseUrl/api/buyer/posts/$postId/favorite');
+      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/posts/$postId/favorite');
       
       final response = await http.post(
         url,

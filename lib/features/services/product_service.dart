@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logger/logger.dart';
 import '../../models/product.dart';
 import '../../helpers/auth_helper.dart';
+import '../../config/app_config.dart';
 
 final String baseUrl = const bool.fromEnvironment('dart.vm.product')
       ? dotenv.env['API_URL_PROD']!
@@ -11,7 +12,7 @@ final String baseUrl = const bool.fromEnvironment('dart.vm.product')
 final Logger _logger = Logger();
 
 class ProductService {
-  final String apiUrl = '$baseUrl/api/buyer/products';
+  final String apiUrl = '${AppConfig.baseUrl}/api/buyer/products';
 
   // GET /api/buyer/products - Listar productos
   Future<List<Product>> fetchProducts() async {

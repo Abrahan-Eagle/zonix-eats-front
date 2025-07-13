@@ -2,16 +2,13 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../helpers/auth_helper.dart';
+import '../../config/app_config.dart';
 
 class TrackingService {
-  final String _baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
-
   // GET /api/buyer/orders/{orderId}/tracking - Obtener tracking de la orden
   Future<Map<String, dynamic>> getOrderTracking(int orderId) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('$_baseUrl/api/buyer/orders/$orderId/tracking');
+    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/orders/$orderId/tracking');
     final response = await http.get(
       url,
       headers: headers,
@@ -32,7 +29,7 @@ class TrackingService {
   // POST /api/buyer/orders/{orderId}/tracking/location - Actualizar ubicación de entrega
   Future<void> updateDeliveryLocation(int orderId, double latitude, double longitude) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('$_baseUrl/api/buyer/orders/$orderId/tracking/location');
+    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/orders/$orderId/tracking/location');
     final response = await http.post(
       url,
       body: jsonEncode({

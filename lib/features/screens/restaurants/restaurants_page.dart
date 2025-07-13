@@ -9,6 +9,7 @@ import 'package:zonix/models/restaurant.dart';
 import 'restaurant_details_page.dart';
 import 'package:zonix/features/services/product_service.dart';
 import 'package:zonix/models/product.dart';
+import '../../services/test_auth_service.dart';
 
 class RestaurantsPage extends StatefulWidget {
   const RestaurantsPage({Key? key}) : super(key: key);
@@ -33,7 +34,7 @@ class Debouncer {
 }
 
 class _RestaurantsPageState extends State<RestaurantsPage> {
-  late Future<List<Restaurant>> _restaurantsFuture;
+  Future<List<Restaurant>>? _restaurantsFuture;
   final Logger _logger = Logger();
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
@@ -67,9 +68,24 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
     try {
       _logger.i('🔄 Iniciando carga de restaurantes...');
       setState(() => _isRefreshing = true);
-      _restaurantsFuture = RestaurantService().fetchRestaurants();
       
-      _restaurantsFuture.then((restaurants) {
+      // Primero probar la autenticación
+      _logger.i('🔍 Probando autenticación...');
+      final authResult = await TestAuthService.testAuth();
+      
+      if (authResult.containsKey('error')) {
+        _logger.e('❌ Error de autenticación: $authResult');
+        setState(() => _isRefreshing = false);
+        return;
+      }
+      
+      _logger.i('✅ Autenticación exitosa, cargando restaurantes...');
+      
+      setState(() {
+        _restaurantsFuture = RestaurantService().fetchRestaurants();
+      });
+      
+      _restaurantsFuture?.then((restaurants) {
         _logger.d('✅ Datos recibidos de fetchRestaurants()');
         _logger.d('📌 Cantidad de restaurantes: ${restaurants.length}');
       }).catchError((error) {
@@ -385,38 +401,40 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
 
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              sliver: FutureBuilder<List<Restaurant>>(
-                future: _restaurantsFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting && !_isRefreshing) {
-                    return SliverToBoxAdapter(child: _buildShimmerLoading());
-                  }
+              sliver: _restaurantsFuture == null
+                ? SliverToBoxAdapter(child: _buildShimmerLoading())
+                : FutureBuilder<List<Restaurant>>(
+                    future: _restaurantsFuture,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting && !_isRefreshing) {
+                        return SliverToBoxAdapter(child: _buildShimmerLoading());
+                      }
 
-                  if (snapshot.hasError) {
-                    return SliverFillRemaining(child: _buildErrorWidget(snapshot.error!));
-                  }
+                      if (snapshot.hasError) {
+                        return SliverFillRemaining(child: _buildErrorWidget(snapshot.error!));
+                      }
 
-                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return SliverFillRemaining(child: _buildEmptyState());
-                  }
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return SliverFillRemaining(child: _buildEmptyState());
+                      }
 
-                  final filteredRestaurants = _filterRestaurants(snapshot.data!);
-                  
-                  if (filteredRestaurants.isEmpty) {
-                    return SliverFillRemaining(child: _buildEmptyState());
-                  }
+                      final filteredRestaurants = _filterRestaurants(snapshot.data!);
+                      
+                      if (filteredRestaurants.isEmpty) {
+                        return SliverFillRemaining(child: _buildEmptyState());
+                      }
 
-                  return SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _buildRestaurantCard(filteredRestaurants[index]),
-                      ),
-                      childCount: filteredRestaurants.length,
-                    ),
-                  );
-                },
-              ),
+                      return SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) => Padding(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: _buildRestaurantCard(filteredRestaurants[index]),
+                          ),
+                          childCount: filteredRestaurants.length,
+                        ),
+                      );
+                    },
+                  ),
             ),
           ],
         ),
