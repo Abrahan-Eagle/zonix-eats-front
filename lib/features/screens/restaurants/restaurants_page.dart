@@ -10,6 +10,8 @@ import 'restaurant_details_page.dart';
 import 'package:zonix/features/services/product_service.dart';
 import 'package:zonix/models/product.dart';
 import '../../services/test_auth_service.dart';
+import 'package:zonix/features/utils/debouncer.dart';
+import 'package:zonix/features/utils/network_image_with_fallback.dart';
 
 class RestaurantsPage extends StatefulWidget {
   const RestaurantsPage({Key? key}) : super(key: key);
@@ -227,30 +229,13 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
             // Imagen del restaurante
             AspectRatio(
               aspectRatio: 16/9,
-              child: restaurant.logoUrl != null 
-                ? Image.network(
-                    restaurant.logoUrl!,
-                    fit: BoxFit.cover,
-                    loadingBuilder: (_, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded / 
-                              loadingProgress.expectedTotalBytes!
-                            : null,
-                        ),
-                      );
-                    },
-                    errorBuilder: (_, __, ___) => Container(
-                      color: Colors.grey[200],
-                      child: const Icon(Icons.restaurant, size: 50, color: Colors.grey),
-                    ),
-                  )
-                : Container(
-                    color: Colors.grey[200],
-                    child: const Icon(Icons.restaurant, size: 50, color: Colors.grey),
-                  ),
+              child: RestaurantImage(
+                imageUrl: restaurant.logoUrl ?? '',
+                restaurantName: restaurant.nombreLocal,
+                width: double.infinity,
+                height: double.infinity,
+                borderRadius: BorderRadius.zero,
+              ),
             ),
 
             // Información del restaurante
@@ -402,26 +387,45 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
             SliverPadding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               sliver: _restaurantsFuture == null
-                ? SliverToBoxAdapter(child: _buildShimmerLoading())
+                ? SliverToBoxAdapter(
+                    child: SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.6,
+                      child: _buildShimmerLoading(),
+                    ),
+                  )
                 : FutureBuilder<List<Restaurant>>(
                     future: _restaurantsFuture,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting && !_isRefreshing) {
-                        return SliverToBoxAdapter(child: _buildShimmerLoading());
+                        return SliverToBoxAdapter(
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.6,
+                            child: _buildShimmerLoading(),
+                          ),
+                        );
                       }
 
                       if (snapshot.hasError) {
-                        return SliverFillRemaining(child: _buildErrorWidget(snapshot.error!));
+                        return SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: _buildErrorWidget(snapshot.error!),
+                        );
                       }
 
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return SliverFillRemaining(child: _buildEmptyState());
+                        return SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: _buildEmptyState(),
+                        );
                       }
 
                       final filteredRestaurants = _filterRestaurants(snapshot.data!);
                       
                       if (filteredRestaurants.isEmpty) {
-                        return SliverFillRemaining(child: _buildEmptyState());
+                        return SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: _buildEmptyState(),
+                        );
                       }
 
                       return SliverList(

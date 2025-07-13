@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import '../../config/app_config.dart';
+import 'dart:math' as math;
 
 class WebSocketService {
   static final WebSocketService _instance = WebSocketService._internal();
@@ -16,9 +18,12 @@ class WebSocketService {
   WebSocketChannel? _channel;
   StreamController<Map<String, dynamic>>? _messageController;
   Timer? _reconnectTimer;
+  Timer? _heartbeatTimer;
   bool _isConnected = false;
   int _reconnectAttempts = 0;
   static const int _maxReconnectAttempts = 5;
+  static const int _connectionTimeout = 10; // segundos
+  static const int _heartbeatInterval = 30; // segundos
   
   // Subscribed channels
   final Set<String> _subscribedChannels = <String>{};
@@ -34,34 +39,73 @@ class WebSocketService {
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) {
-        throw Exception('Token no encontrado');
+        _logger.w('Token no encontrado, WebSocket no conectará');
+        return;
       }
 
       // Build WebSocket URL for Laravel Echo Server
       final wsUrl = _buildWebSocketUrl();
       _logger.i('Connecting to WebSocket: $wsUrl');
       
-      _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+      // Crear conexión con timeout
+      final completer = Completer<void>();
+      Timer? timeoutTimer;
+      
+      timeoutTimer = Timer(Duration(seconds: _connectionTimeout), () {
+        if (!completer.isCompleted) {
+          completer.completeError(TimeoutException('WebSocket connection timeout'));
+        }
+      });
 
-      // Send authentication
-      await _sendAuthMessage(token);
+      try {
+        _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+        
+        // Verificar conexión exitosa
+        await _channel!.ready;
+        timeoutTimer.cancel();
+        
+        // Send authentication
+        await _sendAuthMessage(token);
 
-      // Listen for messages
-      _channel!.stream.listen(
-        (message) => _handleMessage(message),
-        onError: (error) => _handleError(error),
-        onDone: () => _handleDisconnect(),
-      );
+        // Listen for messages
+        _channel!.stream.listen(
+          (message) => _handleMessage(message),
+          onError: (error) => _handleError(error),
+          onDone: () => _handleDisconnect(),
+        );
 
-      _isConnected = true;
-      _reconnectAttempts = 0;
-      _messageController = StreamController<Map<String, dynamic>>.broadcast();
+        _isConnected = true;
+        _reconnectAttempts = 0;
+        _messageController = StreamController<Map<String, dynamic>>.broadcast();
+        
+        // Iniciar heartbeat
+        _startHeartbeat();
 
-      _logger.i('WebSocket connected successfully');
+        _logger.i('WebSocket connected successfully');
+        completer.complete();
+      } catch (e) {
+        timeoutTimer.cancel();
+        throw e;
+      }
     } catch (e) {
       _logger.e('Error connecting WebSocket: $e');
       _scheduleReconnect();
     }
+  }
+
+  // Start heartbeat to keep connection alive
+  void _startHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = Timer.periodic(Duration(seconds: _heartbeatInterval), (timer) {
+      if (_isConnected && _channel != null) {
+        try {
+          _channel!.sink.add(jsonEncode({'event': 'ping'}));
+        } catch (e) {
+          _logger.w('Heartbeat failed: $e');
+          _handleDisconnect();
+        }
+      }
+    });
   }
 
   // Build WebSocket URL for Laravel Echo Server
@@ -71,15 +115,19 @@ class WebSocketService {
 
   // Send authentication message
   Future<void> _sendAuthMessage(String token) async {
-    final userId = await _getUserId();
-    final authMessage = {
-      'event': 'pusher:subscribe',
-      'data': {
-        'auth': token,
-        'channel': 'private-user.$userId',
-      },
-    };
-    _channel?.sink.add(jsonEncode(authMessage));
+    try {
+      final userId = await _getUserId();
+      final authMessage = {
+        'event': 'pusher:subscribe',
+        'data': {
+          'auth': token,
+          'channel': 'private-user.$userId',
+        },
+      };
+      _channel?.sink.add(jsonEncode(authMessage));
+    } catch (e) {
+      _logger.e('Error sending auth message: $e');
+    }
   }
 
   // Get user ID from storage
@@ -92,6 +140,12 @@ class WebSocketService {
   void _handleMessage(dynamic message) {
     try {
       final data = jsonDecode(message);
+      
+      // Ignorar pings/pongs
+      if (data['event'] == 'pong') {
+        return;
+      }
+      
       _logger.d('WebSocket message received: $data');
       
       // Handle different message types
@@ -150,6 +204,7 @@ class WebSocketService {
   void _handleError(dynamic error) {
     _logger.e('WebSocket error: $error');
     _isConnected = false;
+    _stopHeartbeat();
     _scheduleReconnect();
   }
 
@@ -157,10 +212,17 @@ class WebSocketService {
   void _handleDisconnect() {
     _logger.i('WebSocket disconnected');
     _isConnected = false;
+    _stopHeartbeat();
     _scheduleReconnect();
   }
 
-  // Schedule reconnection
+  // Stop heartbeat
+  void _stopHeartbeat() {
+    _heartbeatTimer?.cancel();
+    _heartbeatTimer = null;
+  }
+
+  // Schedule reconnection with exponential backoff
   void _scheduleReconnect() {
     if (_reconnectAttempts >= _maxReconnectAttempts) {
       _logger.e('Maximum reconnection attempts reached');
@@ -168,11 +230,17 @@ class WebSocketService {
     }
 
     _reconnectTimer?.cancel();
-    _reconnectTimer = Timer(Duration(seconds: _reconnectAttempts * 2 + 1), () {
+    final delay = Duration(seconds: _calculateReconnectDelay());
+    _reconnectTimer = Timer(delay, () {
       _reconnectAttempts++;
       _logger.i('Attempting WebSocket reconnection (attempt $_reconnectAttempts)');
       connect();
     });
+  }
+
+  // Calculate reconnect delay with exponential backoff
+  int _calculateReconnectDelay() {
+    return math.min(math.pow(2, _reconnectAttempts).toInt(), 60);
   }
 
   // Subscribe to private channel
