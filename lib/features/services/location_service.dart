@@ -179,51 +179,64 @@ class LocationService extends ChangeNotifier {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: jsonEncode(location),
+        body: jsonEncode({
+          'latitude': location['latitude'],
+          'longitude': location['longitude'],
+          'accuracy': location['accuracy'],
+          'altitude': location['altitude'],
+          'speed': location['speed'],
+          'heading': location['heading'],
+        }),
       );
 
-      if (response.statusCode == 200) {
-        print('Location updated on server: ${location['latitude']}, ${location['longitude']}');
-      } else {
-        // Fallback to mock data
-        await Future.delayed(Duration(milliseconds: 300));
-        print('Location updated on server: ${location['latitude']}, ${location['longitude']}');
+      if (response.statusCode != 200) {
+        throw Exception('Error updating location: ${response.statusCode}');
       }
     } catch (e) {
-      // Fallback to mock data on error
-      await Future.delayed(Duration(milliseconds: 300));
-      print('Location updated on server: ${location['latitude']}, ${location['longitude']}');
+      throw Exception('Error updating location: $e');
     }
   }
 
   // Get nearby places
   Future<List<Map<String, dynamic>>> getNearbyPlaces({
-    double? latitude,
-    double? longitude,
-    double radius = 1.0,
+    required double latitude,
+    required double longitude,
+    double radius = 5.0,
     String? type,
   }) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/places/nearby', {
-      //   'latitude': latitude ?? _mockCurrentLocation['latitude'],
-      //   'longitude': longitude ?? _mockCurrentLocation['longitude'],
-      //   'radius': radius,
-      //   'type': type,
-      // });
-      // return List<Map<String, dynamic>>.from(response['data']);
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final queryParams = <String, String>{
+        'latitude': latitude.toString(),
+        'longitude': longitude.toString(),
+        'radius': radius.toString(),
+      };
+      if (type != null) queryParams['type'] = type;
+
+      final uri = Uri.parse('$baseUrl/api/location/nearby-places').replace(queryParameters: queryParams);
       
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 800));
-      var places = _mockNearbyPlaces;
-      
-      if (type != null) {
-        places = places.where((p) => p['type'] == type).toList();
+      final response = await http.get(
+        uri,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return List<Map<String, dynamic>>.from(data['data']);
+        } else {
+          return [];
+        }
+      } else {
+        throw Exception('Error getting nearby places: ${response.statusCode}');
       }
-      
-      return places;
     } catch (e) {
-      throw Exception('Error fetching nearby places: $e');
+      throw Exception('Error getting nearby places: $e');
     }
   }
 
@@ -307,40 +320,42 @@ class LocationService extends ChangeNotifier {
 
   // Calculate route between two points
   Future<Map<String, dynamic>> calculateRoute({
-    required double startLat,
-    required double startLon,
-    required double endLat,
-    required double endLon,
+    required double originLat,
+    required double originLng,
+    required double destinationLat,
+    required double destinationLng,
     String mode = 'driving',
   }) async {
     try {
-      // TODO: Replace with real routing API call
-      // final response = await _apiService.get('/routing/calculate', {
-      //   'start_lat': startLat,
-      //   'start_lon': startLon,
-      //   'end_lat': endLat,
-      //   'end_lon': endLon,
-      //   'mode': mode,
-      // });
-      // return response['data'];
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 1000));
-      final distance = calculateDistance(startLat, startLon, endLat, endLon);
-      final estimatedTime = (distance * 2).round(); // Rough estimate: 2 min per km
-      
-      return {
-        'distance': distance,
-        'estimated_time': estimatedTime,
-        'waypoints': [
-          {
-            'latitude': (startLat + endLat) / 2,
-            'longitude': (startLon + endLon) / 2,
-          },
-        ],
-        'polyline': 'mock_polyline_data',
-        'mode': mode,
-      };
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/location/calculate-route'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'origin_lat': originLat,
+          'origin_lng': originLng,
+          'destination_lat': destinationLat,
+          'destination_lng': destinationLng,
+          'mode': mode,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return data['data'];
+        } else {
+          throw Exception('Error calculating route: Invalid response');
+        }
+      } else {
+        throw Exception('Error calculating route: ${response.statusCode}');
+      }
     } catch (e) {
       throw Exception('Error calculating route: $e');
     }
@@ -349,43 +364,29 @@ class LocationService extends ChangeNotifier {
   // Get delivery zones
   Future<List<Map<String, dynamic>>> getDeliveryZones() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/delivery/zones');
-      // return List<Map<String, dynamic>>.from(response['data']);
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 400));
-      return [
-        {
-          'id': 1,
-          'name': 'Zona Centro',
-          'center': {'latitude': -12.0464, 'longitude': -77.0428},
-          'radius': 5.0,
-          'delivery_fee': 2.0,
-          'estimated_time': 30,
-          'is_active': true,
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/location/delivery-zones'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
         },
-        {
-          'id': 2,
-          'name': 'Zona Norte',
-          'center': {'latitude': -12.0400, 'longitude': -77.0400},
-          'radius': 3.0,
-          'delivery_fee': 3.5,
-          'estimated_time': 45,
-          'is_active': true,
-        },
-        {
-          'id': 3,
-          'name': 'Zona Sur',
-          'center': {'latitude': -12.0500, 'longitude': -77.0500},
-          'radius': 4.0,
-          'delivery_fee': 2.5,
-          'estimated_time': 40,
-          'is_active': false,
-        },
-      ];
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return List<Map<String, dynamic>>.from(data['data']);
+        } else {
+          return [];
+        }
+      } else {
+        throw Exception('Error getting delivery zones: ${response.statusCode}');
+      }
     } catch (e) {
-      throw Exception('Error fetching delivery zones: $e');
+      throw Exception('Error getting delivery zones: $e');
     }
   }
 

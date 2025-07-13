@@ -93,36 +93,16 @@ class NotificationService extends ChangeNotifier {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return List<Map<String, dynamic>>.from(data['data'] ?? []);
+        if (data['success'] == true && data['data'] != null) {
+          return List<Map<String, dynamic>>.from(data['data']);
+        } else {
+          return [];
+        }
       } else {
-        // Fallback to mock data if API fails
-        await Future.delayed(Duration(milliseconds: 400));
-        var notifications = _mockNotifications;
-        
-        if (type != null) {
-          notifications = notifications.where((n) => n['type'] == type).toList();
-        }
-        
-        if (read != null) {
-          notifications = notifications.where((n) => n['read'] == read).toList();
-        }
-        
-        return notifications;
+        throw Exception('Error al obtener notificaciones: ${response.statusCode}');
       }
     } catch (e) {
-      // Fallback to mock data on error
-      await Future.delayed(Duration(milliseconds: 400));
-      var notifications = _mockNotifications;
-      
-      if (type != null) {
-        notifications = notifications.where((n) => n['type'] == type).toList();
-      }
-      
-      if (read != null) {
-        notifications = notifications.where((n) => n['read'] == read).toList();
-      }
-      
-      return notifications;
+      throw Exception('Error al obtener notificaciones: $e');
     }
   }
 
@@ -146,7 +126,7 @@ class NotificationService extends ChangeNotifier {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
-      final response = await http.put(
+      final response = await http.post(
         Uri.parse('$baseUrl/api/notifications/$notificationId/read'),
         headers: {
           'Authorization': 'Bearer $token',
@@ -154,27 +134,11 @@ class NotificationService extends ChangeNotifier {
         },
       );
 
-      if (response.statusCode == 200) {
-        // Update local mock data as well
-        final index = _mockNotifications.indexWhere((n) => n['id'] == notificationId);
-        if (index != -1) {
-          _mockNotifications[index]['read'] = true;
-        }
-      } else {
-        // Fallback to mock data
-        await Future.delayed(Duration(milliseconds: 300));
-        final index = _mockNotifications.indexWhere((n) => n['id'] == notificationId);
-        if (index != -1) {
-          _mockNotifications[index]['read'] = true;
-        }
+      if (response.statusCode != 200) {
+        throw Exception('Error al marcar notificación como leída: ${response.statusCode}');
       }
     } catch (e) {
-      // Fallback to mock data on error
-      await Future.delayed(Duration(milliseconds: 300));
-      final index = _mockNotifications.indexWhere((n) => n['id'] == notificationId);
-      if (index != -1) {
-        _mockNotifications[index]['read'] = true;
-      }
+      throw Exception('Error al marcar notificación como leída: $e');
     }
   }
 
@@ -227,18 +191,11 @@ class NotificationService extends ChangeNotifier {
         },
       );
 
-      if (response.statusCode == 200) {
-        // Update local mock data as well
-        _mockNotifications.removeWhere((n) => n['id'] == notificationId);
-      } else {
-        // Fallback to mock data
-        await Future.delayed(Duration(milliseconds: 300));
-        _mockNotifications.removeWhere((n) => n['id'] == notificationId);
+      if (response.statusCode != 200) {
+        throw Exception('Error al eliminar notificación: ${response.statusCode}');
       }
     } catch (e) {
-      // Fallback to mock data on error
-      await Future.delayed(Duration(milliseconds: 300));
-      _mockNotifications.removeWhere((n) => n['id'] == notificationId);
+      throw Exception('Error al eliminar notificación: $e');
     }
   }
 
@@ -460,6 +417,40 @@ class NotificationService extends ChangeNotifier {
         return Colors.green;
       default:
         return Colors.grey;
+    }
+  }
+
+  // Create test notification (for testing purposes)
+  Future<void> createTestNotification({
+    required String title,
+    required String body,
+    String? type,
+    Map<String, dynamic>? data,
+  }) async {
+    try {
+      final token = await _storage.read(key: 'token');
+      if (token == null) throw Exception('Token no encontrado');
+
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/notifications'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'title': title,
+          'body': body,
+          'type': type,
+          'data': data,
+        }),
+      );
+
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        throw Exception('Error al crear notificación: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error al crear notificación: $e');
     }
   }
 }
