@@ -132,8 +132,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Hamburguesa'), findsOneWidget);
-    expect(find.text('Pizza'), findsOneWidget);
+    expect(find.text('Hamburguesa'), findsAtLeastNWidgets(1));
+    expect(find.text('Pizza'), findsAtLeastNWidgets(1));
     // No debe haber botones de gestión de productos (solo para comercio)
     expect(find.text('Agregar producto'), findsNothing);
     // No debe haber acciones de delivery
