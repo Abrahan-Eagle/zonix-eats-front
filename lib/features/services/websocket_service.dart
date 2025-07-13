@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
-import '../config/app_config.dart';
+import '../../config/app_config.dart';
 
 class WebSocketService {
   static final WebSocketService _instance = WebSocketService._internal();
@@ -66,11 +66,7 @@ class WebSocketService {
 
   // Build WebSocket URL for Laravel Echo Server
   String _buildWebSocketUrl() {
-    final protocol = AppConfig.echoProtocol == 'https' ? 'wss' : 'ws';
-    final host = AppConfig.echoHost;
-    final port = AppConfig.echoPort;
-    
-    return '$protocol://$host:$port/app/${AppConfig.echoAppId}?protocol=7&client=js&version=4.3.1&flash=false';
+    return AppConfig.websocketUrl;
   }
 
   // Send authentication message
@@ -243,6 +239,11 @@ class WebSocketService {
     _channel?.sink.add(jsonEncode(message));
     _subscribedChannels.add(channelName);
     _logger.i('Subscribed to public channel: $channelName');
+  }
+
+  // Alias method for subscribeToChannel to maintain compatibility
+  Future<void> subscribeToChannel(String channelName) async {
+    await subscribeToPublicChannel(channelName);
   }
 
   // Unsubscribe from channel

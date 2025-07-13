@@ -8,7 +8,13 @@ import '../../models/cart_item.dart';
 
 class CartService extends ChangeNotifier {
   final List<CartItem> _cart = [];
-  String get _baseUrl => dotenv.env['API_URL_LOCAL'] ?? 'http://localhost:8000/api';
+
+
+final String _baseUrl = const bool.fromEnvironment('dart.vm.product')
+    ? dotenv.env['API_URL_PROD']!
+    : dotenv.env['API_URL_LOCAL']!;
+
+  // String get _baseUrl => dotenv.env['API_URL_LOCAL'] ?? 'http://localhost:8000';
 
   UnmodifiableListView<CartItem> get items => UnmodifiableListView(_cart);
 
@@ -67,11 +73,14 @@ class CartService extends ChangeNotifier {
     );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      if (data is List) {
-        return data.map<CartItem>((item) => CartItem.fromJson(item)).toList();
-      } else {
-        return [];
+      // Handle the new API response structure with success and data wrapper
+      if (data['success'] == true && data['data'] != null) {
+        final cartData = data['data'];
+        if (cartData is List) {
+          return cartData.map<CartItem>((item) => CartItem.fromJson(item)).toList();
+        }
       }
+      return [];
     } else {
       throw Exception('Error al obtener el carrito remoto');
     }

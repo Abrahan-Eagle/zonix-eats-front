@@ -4,6 +4,7 @@ import 'package:zonix/models/order.dart';
 import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/features/services/websocket_service.dart';
 import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix/config/app_config.dart';
 import 'package:zonix/helpers/auth_helper.dart';
 import 'dart:async'; // Added for StreamSubscription
 
@@ -75,7 +76,7 @@ class _OrdersPageState extends State<OrdersPage> {
       
       if (user != null) {
         // Suscribirse a actualizaciones de órdenes del usuario
-        await _webSocketService!.subscribeToChannel('orders.user.${user.id}');
+        await _webSocketService!.subscribeToChannel('orders.user.${user['id']}');
         
         _webSocketSubscription = _webSocketService!.messageStream?.listen((message) {
           _handleWebSocketMessage(message);
@@ -245,7 +246,7 @@ class _OrdersPageState extends State<OrdersPage> {
               ),
               const SizedBox(height: 8),
               Text(
-                order.commerce?.name ?? 'Restaurante',
+                order.commerce?['name'] ?? 'Restaurante',
                 style: Theme.of(context).textTheme.bodyLarge,
               ),
               const SizedBox(height: 4),

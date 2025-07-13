@@ -4,15 +4,15 @@
 
 class EnvConfig {
   // API URLs
-  static const String apiUrlLocal = 'http://localhost:8000';
-  static const String apiUrlProd = 'https://api.zonix-eats.com';
+  static const String apiUrlLocal = 'http://192.168.0.101:8000';
+  static const String apiUrlProd = 'https://zonix.uniblockweb.com';
   
   // Google Maps API Key
   static const String googleMapsApiKey = 'your_google_maps_api_key_here';
   
   // WebSocket Configuration - Laravel Echo Server
-  static const String websocketUrlLocal = 'ws://localhost:6001';
-  static const String websocketUrlProd = 'wss://echo.zonix-eats.com';
+  static const String websocketUrlLocal = 'ws://192.168.0.101:6001';
+  static const String websocketUrlProd = 'wss://zonix.uniblockweb.com';
   static const String echoAppId = 'zonix-eats-app';
   static const String echoKey = 'zonix-eats-key';
   static const bool enableWebsockets = true;

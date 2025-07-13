@@ -8,7 +8,7 @@ import '../../helpers/auth_helper.dart';
 import 'package:http_parser/http_parser.dart';
 
 class OrderService extends ChangeNotifier {
-  String get _baseUrl => dotenv.env['API_URL_LOCAL'] ?? 'http://localhost:8000/api';
+  String get _baseUrl => dotenv.env['API_URL_LOCAL'] ?? 'http://localhost:8000';
 
   Future<void> createOrder(List<CartItem> items) async {
     final headers = await AuthHelper.getAuthHeaders();
@@ -38,14 +38,22 @@ class OrderService extends ChangeNotifier {
     );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      if (data is List) {
-        return data.map<Order>((item) => Order.fromJson(item)).toList();
-      } else {
-        return [];
+      // Handle the new API response structure with success and data wrapper
+      if (data['success'] == true && data['data'] != null) {
+        final ordersData = data['data'];
+        if (ordersData is List) {
+          return ordersData.map<Order>((item) => Order.fromJson(item)).toList();
+        }
       }
+      return [];
     } else {
       throw Exception('Error al obtener órdenes');
     }
+  }
+
+  // Alias method for getUserOrders to maintain compatibility
+  Future<List<Order>> getUserOrders() async {
+    return await fetchOrders();
   }
 
   Future<void> uploadComprobante(int orderId, String filePath, String fileType) async {

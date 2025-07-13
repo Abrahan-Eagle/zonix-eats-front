@@ -19,6 +19,7 @@ class Order {
   final DateTime createdAt;
   final DateTime updatedAt;
   final List<OrderItem> items;
+  final Map<String, dynamic>? commerce;
 
   Order({
     required this.id,
@@ -41,6 +42,7 @@ class Order {
     required this.createdAt,
     required this.updatedAt,
     required this.items,
+    this.commerce,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
@@ -65,6 +67,7 @@ class Order {
       createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
       updatedAt: DateTime.parse(json['updated_at'] ?? DateTime.now().toIso8601String()),
       items: (json['items'] as List<dynamic>? ?? []).map((item) => OrderItem.fromJson(item)).toList(),
+      commerce: json['commerce'],
     );
   }
 
@@ -90,6 +93,7 @@ class Order {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'items': items.map((item) => item.toJson()).toList(),
+      'commerce': commerce,
     };
   }
 
@@ -114,6 +118,7 @@ class Order {
     DateTime? createdAt,
     DateTime? updatedAt,
     List<OrderItem>? items,
+    Map<String, dynamic>? commerce,
   }) {
     return Order(
       id: id ?? this.id,
@@ -136,6 +141,7 @@ class Order {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       items: items ?? this.items,
+      commerce: commerce ?? this.commerce,
     );
   }
 
