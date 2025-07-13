@@ -1,123 +1,272 @@
-# Zonix Eats Frontend (Flutter)
+# Zonix Eats - Sistema de Delivery Completo
 
-Aplicación móvil de Zonix Eats desarrollada en Flutter. Permite a clientes, comercios y repartidores interactuar con la plataforma de pedidos y entregas en tiempo real.
+## 📋 Descripción General
 
----
+Zonix Eats es una aplicación de delivery completa que incluye:
+- **Frontend**: Aplicación Flutter para clientes
+- **Backend**: API REST con Laravel
+- **Echo Server**: Servidor WebSocket para comunicación en tiempo real
 
-## 📦 Estructura del proyecto
+## 🏗️ Arquitectura del Sistema
 
 ```
-lib/
-  core/           # Utilidades, helpers, temas, constantes globales
-  models/         # Modelos de datos (Product, User, etc.)
-  features/       # Features principales agrupadas por dominio
-    products/
-      screens/
-      services/
-      widgets/
-    cart/
-    auth/
-    profile/
-    ...           # Otras features (delivery, orders, etc.)
-  helpers/        # Funciones utilitarias generales
-  main.dart
-assets/           # Imágenes, fuentes, íconos
- test/            # Tests unitarios y de widgets (refleja la estructura de lib/)
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Frontend      │    │    Backend      │    │  Echo Server    │
+│   (Flutter)     │◄──►│   (Laravel)     │◄──►│  (WebSocket)    │
+│                 │    │                 │    │                 │
+│ - Cliente App   │    │ - API REST      │    │ - Notificaciones│
+│ - UI/UX         │    │ - Base de datos │    │ - Chat en tiempo│
+│ - Geolocalización│   │ - Autenticación │    │   real          │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
----
+## 🚀 Funcionalidades Implementadas (Nivel 0)
 
-## 🚀 Cómo correr la app
+### Frontend (Flutter)
+- ✅ **Autenticación**: Login/Registro de usuarios
+- ✅ **Productos**: Catálogo de productos con imágenes
+- ✅ **Restaurantes**: Lista de restaurantes con detalles
+- ✅ **Carrito**: Gestión de carrito de compras
+- ✅ **Órdenes**: Creación y seguimiento de pedidos
+- ✅ **Reviews**: Sistema de calificaciones
+- ✅ **Chat**: Comunicación en tiempo real
+- ✅ **Pagos**: Integración con métodos de pago
+- ✅ **Notificaciones**: Notificaciones push y en tiempo real
+- ✅ **Geolocalización**: Ubicación y rutas
+- ✅ **Favoritos**: Gestión de restaurantes favoritos
 
-1. Instala dependencias:
-   ```bash
-   flutter pub get
-   ```
-2. Corre la app en modo desarrollo:
-   ```bash
-   flutter run
-   ```
-3. Compila para producción:
-   ```bash
-   flutter build apk --release
-   ```
+### Backend (Laravel)
+- ✅ **API REST**: Endpoints para todas las funcionalidades
+- ✅ **Autenticación**: JWT y Sanctum
+- ✅ **Base de datos**: MySQL con migraciones
+- ✅ **Modelos**: Productos, Órdenes, Usuarios, etc.
+- ✅ **Controladores**: Lógica de negocio
+- ✅ **Servicios**: Servicios de negocio
+- ✅ **Eventos**: WebSocket events
+- ✅ **Seeders**: Datos de prueba
 
----
+### Echo Server (WebSocket)
+- ✅ **Notificaciones**: En tiempo real
+- ✅ **Chat**: Mensajería instantánea
+- ✅ **Tracking**: Seguimiento de pedidos
+- ✅ **Broadcasting**: Eventos en tiempo real
 
-## 🧪 Testing y Mocks
+## 📁 Estructura del Proyecto
 
-### Ejecutar Tests
+```
+zonix-eats/
+├── zonix-eats-front/          # Frontend Flutter
+├── zonix-eats-back/           # Backend Laravel
+└── zonix-eats-echo-server/    # Servidor WebSocket
+```
+
+## 🛠️ Tecnologías Utilizadas
+
+### Frontend
+- **Flutter**: Framework de UI
+- **Dart**: Lenguaje de programación
+- **HTTP**: Cliente para API REST
+- **WebSocket**: Comunicación en tiempo real
+- **SharedPreferences**: Almacenamiento local
+- **Geolocator**: Geolocalización
+
+### Backend
+- **Laravel**: Framework PHP
+- **MySQL**: Base de datos
+- **JWT**: Autenticación
+- **Sanctum**: API tokens
+- **Eloquent**: ORM
+- **Artisan**: CLI
+
+### Echo Server
+- **Laravel Echo Server**: Servidor WebSocket
+- **Socket.io**: Protocolo WebSocket
+- **Redis**: Cache y broadcasting
+
+## 🚀 Instalación y Configuración
+
+### Prerrequisitos
+- Flutter SDK
+- PHP 8.1+
+- Composer
+- MySQL
+- Node.js
+- npm/npx
+
+### 1. Frontend (Flutter)
+
 ```bash
+cd zonix-eats-front
+flutter pub get
+flutter run
+```
+
+### 2. Backend (Laravel)
+
+```bash
+cd zonix-eats-back
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate
+php artisan db:seed
+php artisan serve --host=0.0.0.0 --port=8000
+```
+
+### 3. Echo Server
+
+```bash
+cd zonix-eats-echo-server
+npm install
+npx laravel-echo-server start
+```
+
+## 🔧 Configuración de URLs
+
+### Frontend (lib/config/app_config.dart)
+```dart
+class AppConfig {
+  static const String baseUrl = 'http://192.168.0.101:8000/api';
+  static const String echoServerUrl = 'http://192.168.0.101:6001';
+}
+```
+
+### Backend (.env)
+```env
+APP_URL=http://192.168.0.101:8000
+DB_HOST=127.0.0.1
+DB_DATABASE=zonix_eats
+BROADCAST_DRIVER=redis
+```
+
+### Echo Server (laravel-echo-server.json)
+```json
+{
+  "host": "0.0.0.0",
+  "port": "6001",
+  "authHost": "http://192.168.0.101:8000"
+}
+```
+
+## 📊 Base de Datos
+
+### Tablas Principales
+- `users`: Usuarios del sistema
+- `profiles`: Perfiles de usuario
+- `commerces`: Restaurantes/comercios
+- `products`: Productos
+- `orders`: Órdenes/pedidos
+- `order_items`: Items de órdenes
+- `reviews`: Reseñas
+- `notifications`: Notificaciones
+- `favorites`: Favoritos
+
+## 🔐 Autenticación
+
+### JWT Token
+```bash
+# Obtener token
+POST /api/auth/login
+{
+  "email": "user@example.com",
+  "password": "password"
+}
+
+# Usar token
+Authorization: Bearer {token}
+```
+
+## 📱 Funcionalidades por Rol
+
+### Cliente (Nivel 0)
+- Ver productos y restaurantes
+- Agregar al carrito
+- Realizar pedidos
+- Ver historial de pedidos
+- Calificar productos
+- Chat con restaurante
+- Notificaciones
+- Geolocalización
+- Favoritos
+
+### Restaurante (Nivel 1)
+- Gestionar productos
+- Ver pedidos
+- Actualizar estado
+- Chat con clientes
+
+### Delivery (Nivel 2)
+- Ver pedidos asignados
+- Actualizar ubicación
+- Marcar como entregado
+
+### Admin (Nivel 3)
+- Gestión completa
+- Reportes
+- Configuración
+
+## 🧪 Testing
+
+### Frontend Tests
+```bash
+cd zonix-eats-front
 flutter test
 ```
 
-### Estrategia de Testing
-Los tests están diseñados para ser **estables, rápidos y confiables** sin depender de servicios externos:
-
-#### Mocks Implementados
-- **Servicios HTTP**: Usamos `MockClient` para simular respuestas de API
-- **Almacenamiento Seguro**: Mockeamos `flutter_secure_storage` para tests
-- **Plugins Externos**: Simulamos GoogleSignIn y otros plugins cuando es necesario
-
-#### Ejemplos de Mocks
-
-**OrderService Mock:**
-```dart
-class MockOrderService extends OrderService {
-  @override
-  Future<List<Order>> fetchOrders() async {
-    return [Order(id: 1, estado: 'pendiente', total: 100, items: [])];
-  }
-}
+### Backend Tests
+```bash
+cd zonix-eats-back
+php artisan test
 ```
 
-**UserProvider Mock:**
-```dart
-class UserProviderMock extends UserProvider {
-  @override
-  Future<Map<String, dynamic>> getUserDetails() async {
-    return {
-      'users': {'id': 1, 'role': 'users'},
-      'role': 'users',
-      'userId': 1,
-    };
-  }
-}
-```
+## 📈 Estado del Proyecto
 
-#### Configuración de Tests
-```dart
-setUp(() {
-  // Mock secure storage
-  const MethodChannel channel = MethodChannel('plugins.it_nomads.com/flutter_secure_storage');
-  TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-    channel,
-    (MethodCall methodCall) async {
-      if (methodCall.method == 'read') {
-        return 'mock_token';
-      }
-      return null;
-    },
-  );
-});
-```
+### ✅ Completado (Nivel 0)
+- [x] Autenticación básica
+- [x] CRUD de productos
+- [x] Sistema de carrito
+- [x] Gestión de órdenes
+- [x] Chat en tiempo real
+- [x] Notificaciones
+- [x] Geolocalización
+- [x] Favoritos
+- [x] Reviews
+- [x] Tests unitarios
 
-### Convenciones de Testing
-- **Tests Unitarios**: Para lógica de negocio y servicios
-- **Tests de Widgets**: Para componentes UI simples
-- **Mocks**: Para servicios externos (HTTP, storage, plugins)
-- **Nombres**: Descriptivos en español (ej: "Puede crear orden con items")
+### 🔄 En Desarrollo
+- [ ] Nivel 1 (Restaurantes)
+- [ ] Nivel 2 (Delivery)
+- [ ] Nivel 3 (Admin)
+- [ ] Pagos reales
+- [ ] Push notifications
+- [ ] Analytics
+
+## 🐛 Troubleshooting
+
+### Problemas Comunes
+
+1. **Error de conexión WebSocket**
+   - Verificar que Echo Server esté corriendo
+   - Revisar configuración de URLs
+
+2. **Error de API 400/401**
+   - Verificar token de autenticación
+   - Revisar configuración de CORS
+
+3. **Error de base de datos**
+   - Ejecutar migraciones: `php artisan migrate`
+   - Verificar configuración de .env
+
+## 📞 Soporte
+
+Para soporte técnico o preguntas sobre el proyecto, contactar al equipo de desarrollo.
+
+## 📄 Licencia
+
+Este proyecto es privado y confidencial.
 
 ---
 
-## 📝 Convenciones y buenas prácticas
-- Agrupa el código por dominio/feature.
-- Usa nombres claros y descriptivos para archivos y carpetas.
-- Mantén los tests junto a la lógica que prueban.
-- Usa mocks para servicios externos en los tests.
-- Documenta cualquier convención especial aquí.
-
----
-
-## 📄 Contacto y soporte
-Para dudas o soporte, contacta a tu equipo de desarrollo o abre un issue en el repositorio.
+**Versión**: 1.0.0  
+**Última actualización**: Julio 2024  
+**Estado**: Nivel 0 Completado ✅
