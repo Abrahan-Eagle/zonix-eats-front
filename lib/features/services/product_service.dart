@@ -13,29 +13,73 @@ final Logger _logger = Logger();
 class ProductService {
   final String apiUrl = '$baseUrl/api/buyer/products';
 
+  // GET /api/buyer/products - Listar productos
   Future<List<Product>> fetchProducts() async {
     final headers = await AuthHelper.getAuthHeaders();
-    _logger.i('Llamando a $apiUrl con headers:');
-    _logger.i(headers);
+    _logger.i('Llamando a $apiUrl');
+    
     final response = await http.get(
       Uri.parse(apiUrl),
       headers: headers,
     );
-    _logger.i('Status code: \\${response.statusCode}');
-    _logger.i('Response body: \\${response.body}');
+    
+    _logger.i('Status code: ${response.statusCode}');
+    
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      _logger.i('Decoded data: \\${data.runtimeType}');
-      if (data is List) {
-        _logger.i('Cantidad de productos recibidos: \\${data.length}');
-        return data.map((item) => Product.fromJson(item)).toList();
+      _logger.i('Decoded data type: ${data.runtimeType}');
+      
+      // Handle the new API response structure with success and data wrapper
+      List<dynamic> productsData;
+      if (data['success'] == true && data['data'] != null) {
+        productsData = data['data'];
       } else {
-        _logger.w('La respuesta no es una lista');
+        // Fallback to direct data if not wrapped
+        productsData = data is List ? data : [];
+      }
+      
+      if (productsData.isNotEmpty) {
+        _logger.i('Cantidad de productos recibidos: ${productsData.length}');
+        return productsData.map((item) => Product.fromJson(item)).toList();
+      } else {
+        _logger.w('La respuesta no contiene productos');
         return [];
       }
     } else {
-      _logger.e('Error al cargar productos: \\${response.statusCode}');
-      throw Exception('Error al cargar productos');
+      _logger.e('Error al cargar productos: ${response.statusCode}');
+      throw Exception('Error al cargar productos: ${response.statusCode}');
+    }
+  }
+
+  // GET /api/buyer/products/{id} - Obtener producto por ID
+  Future<Product> getProductById(int productId) async {
+    final headers = await AuthHelper.getAuthHeaders();
+    final url = '$apiUrl/$productId';
+    _logger.i('Llamando a $url');
+    
+    final response = await http.get(
+      Uri.parse(url),
+      headers: headers,
+    );
+    
+    _logger.i('Status code: ${response.statusCode}');
+    
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      
+      // Handle the new API response structure
+      Map<String, dynamic> productData;
+      if (data['success'] == true && data['data'] != null) {
+        productData = data['data'];
+      } else {
+        // Fallback to direct data if not wrapped
+        productData = data;
+      }
+      
+      return Product.fromJson(productData);
+    } else {
+      _logger.e('Error al cargar producto: ${response.statusCode}');
+      throw Exception('Error al cargar producto: ${response.statusCode}');
     }
   }
 }

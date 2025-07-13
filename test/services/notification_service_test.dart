@@ -8,15 +8,11 @@ void main() {
     await dotenv.load(fileName: ".env");
   });
   group('NotificationService', () {
-    // late NotificationService notificationService;
-    // setUp(() {
-    //   notificationService = NotificationService();
-    // });
-
+    // Aquí puedes agregar tests reales cuando el método esté implementado
     // test('fetchNotifications returns a list', () async {
+    //   final notificationService = NotificationService();
     //   final notifications = await notificationService.fetchNotifications();
-    //   expect(notifications, isA<List>());
+    //   expect(notifications, isA<List<NotificationItem>>());
     // });
-    // Nota: Descomentar y adaptar el test anterior si el método existe y es mockeable.
   });
 }

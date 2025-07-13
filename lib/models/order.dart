@@ -1,3 +1,11 @@
+double _parseDouble(dynamic value) {
+  if (value == null) return 0.0;
+  if (value is int) return value.toDouble();
+  if (value is double) return value;
+  if (value is String) return double.tryParse(value) ?? 0.0;
+  return 0.0;
+}
+
 class Order {
   final int id;
   final int userId;
@@ -53,10 +61,10 @@ class Order {
       deliveryAgentId: json['delivery_agent_id'],
       orderNumber: json['order_number'] ?? '',
       status: json['status'] ?? 'pending',
-      subtotal: (json['subtotal'] ?? 0.0).toDouble(),
-      deliveryFee: (json['delivery_fee'] ?? 0.0).toDouble(),
-      tax: (json['tax'] ?? 0.0).toDouble(),
-      total: (json['total'] ?? 0.0).toDouble(),
+      subtotal: _parseDouble(json['subtotal']),
+      deliveryFee: _parseDouble(json['delivery_fee']),
+      tax: _parseDouble(json['tax']),
+      total: _parseDouble(json['total']),
       paymentMethod: json['payment_method'] ?? '',
       paymentStatus: json['payment_status'] ?? 'pending',
       deliveryAddress: json['delivery_address'] ?? '',
@@ -226,9 +234,9 @@ class OrderItem {
       productId: json['product_id'] ?? 0,
       productName: json['product_name'] ?? '',
       productImage: json['product_image'] ?? '',
-      price: (json['price'] ?? 0.0).toDouble(),
+      price: _parseDouble(json['price']),
       quantity: json['quantity'] ?? 0,
-      total: (json['total'] ?? 0.0).toDouble(),
+      total: _parseDouble(json['total']),
       specialInstructions: json['special_instructions'],
     );
   }

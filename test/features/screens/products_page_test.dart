@@ -11,10 +11,106 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 class MockProductService extends ProductService {
   @override
   Future<List<Product>> fetchProducts() async {
+    // Return immediately to avoid timeout
     return [
-      Product(id: 1, nombre: 'Hamburguesa', disponible: true, precio: 50.0, descripcion: 'Rica hamburguesa', imagen: null),
-      Product(id: 2, nombre: 'Pizza', disponible: true, precio: 80.0, descripcion: 'Pizza grande', imagen: null),
+      Product(
+        id: 1,
+        commerceId: 1,
+        name: 'Hamburguesa',
+        description: 'Rica hamburguesa',
+        price: 50.0,
+        image: '',
+        category: 'Comida Rápida',
+        isAvailable: true,
+        stock: 10,
+        tags: [],
+        allergens: [],
+        isVegetarian: false,
+        isVegan: false,
+        isGlutenFree: false,
+        preparationTime: 15,
+        rating: 4.5,
+        reviewCount: 10,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+      Product(
+        id: 2,
+        commerceId: 1,
+        name: 'Pizza',
+        description: 'Pizza grande',
+        price: 80.0,
+        image: '',
+        category: 'Pizzería',
+        isAvailable: true,
+        stock: 5,
+        tags: [],
+        allergens: [],
+        isVegetarian: false,
+        isVegan: false,
+        isGlutenFree: false,
+        preparationTime: 20,
+        rating: 4.3,
+        reviewCount: 8,
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
     ];
+  }
+
+  @override
+  Future<Product?> fetchProduct(int id) async {
+    return Product(
+      id: id,
+      commerceId: 1,
+      name: 'Test Product',
+      description: 'Test',
+      price: 50.0,
+      image: '',
+      category: 'Test',
+      isAvailable: true,
+      stock: 1,
+      tags: [],
+      allergens: [],
+      isVegetarian: false,
+      isVegan: false,
+      isGlutenFree: false,
+      preparationTime: 10,
+      rating: 4.0,
+      reviewCount: 1,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+  }
+
+  @override
+  Future<List<Product>> searchProducts(String query) async {
+    return [];
+  }
+
+  @override
+  Future<Product> getProductById(int productId) async {
+    return Product(
+      id: productId,
+      commerceId: 1,
+      name: 'Test Product',
+      description: 'Test',
+      price: 50.0,
+      image: '',
+      category: 'Test',
+      isAvailable: true,
+      stock: 1,
+      tags: [],
+      allergens: [],
+      isVegetarian: false,
+      isVegan: false,
+      isGlutenFree: false,
+      preparationTime: 10,
+      rating: 4.0,
+      reviewCount: 1,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
   }
 }
 
@@ -22,6 +118,7 @@ void main() {
   setUpAll(() async {
     await dotenv.load(fileName: ".env");
   });
+  
   testWidgets('ProductsPage muestra productos reales y navega a detalles', (WidgetTester tester) async {
     // Inyecta el ProductService mockeado directamente
     await tester.pumpWidget(
@@ -41,8 +138,8 @@ void main() {
     // Verifica que los productos se muestran
     expect(find.text('Hamburguesa'), findsOneWidget);
     expect(find.text('Pizza'), findsOneWidget);
-    expect(find.text(r'50.0 $'), findsOneWidget);
-    expect(find.text(r'80.0 $'), findsOneWidget);
+    expect(find.text(r'50.00 $'), findsOneWidget);
+    expect(find.text(r'80.00 $'), findsOneWidget);
 
     // Toca la card de 'Hamburguesa' y verifica navegación a detalles
     await tester.tap(find.text('Hamburguesa'));

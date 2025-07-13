@@ -3,13 +3,13 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i3;
+import 'dart:async' as _i4;
 import 'dart:ui' as _i6;
 
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:zonix/features/services/order_service.dart' as _i2;
-import 'package:zonix/models/cart_item.dart' as _i4;
-import 'package:zonix/models/order.dart' as _i5;
+import 'package:zonix/features/services/order_service.dart' as _i3;
+import 'package:zonix/models/cart_item.dart' as _i5;
+import 'package:zonix/models/order.dart' as _i2;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -25,10 +25,20 @@ import 'package:zonix/models/order.dart' as _i5;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
+class _FakeOrder_0 extends _i1.SmartFake implements _i2.Order {
+  _FakeOrder_0(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
 /// A class which mocks [OrderService].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockOrderService extends _i1.Mock implements _i2.OrderService {
+class MockOrderService extends _i1.Mock implements _i3.OrderService {
   MockOrderService() {
     _i1.throwOnMissingStub(this);
   }
@@ -40,27 +50,76 @@ class MockOrderService extends _i1.Mock implements _i2.OrderService {
       ) as bool);
 
   @override
-  _i3.Future<void> createOrder(List<_i4.CartItem>? items) =>
+  _i4.Future<_i2.Order> createOrder(List<_i5.CartItem>? items) =>
       (super.noSuchMethod(
         Invocation.method(
           #createOrder,
           [items],
         ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i4.Future<_i2.Order>.value(_FakeOrder_0(
+          this,
+          Invocation.method(
+            #createOrder,
+            [items],
+          ),
+        )),
+      ) as _i4.Future<_i2.Order>);
 
   @override
-  _i3.Future<List<_i5.Order>> fetchOrders() => (super.noSuchMethod(
+  _i4.Future<List<_i2.Order>> fetchOrders() => (super.noSuchMethod(
         Invocation.method(
           #fetchOrders,
           [],
         ),
-        returnValue: _i3.Future<List<_i5.Order>>.value(<_i5.Order>[]),
-      ) as _i3.Future<List<_i5.Order>>);
+        returnValue: _i4.Future<List<_i2.Order>>.value(<_i2.Order>[]),
+      ) as _i4.Future<List<_i2.Order>>);
 
   @override
-  _i3.Future<void> uploadComprobante(
+  _i4.Future<_i2.Order> getOrderById(int? orderId) => (super.noSuchMethod(
+        Invocation.method(
+          #getOrderById,
+          [orderId],
+        ),
+        returnValue: _i4.Future<_i2.Order>.value(_FakeOrder_0(
+          this,
+          Invocation.method(
+            #getOrderById,
+            [orderId],
+          ),
+        )),
+      ) as _i4.Future<_i2.Order>);
+
+  @override
+  _i4.Future<void> uploadPaymentProof(
+    int? orderId,
+    String? filePath,
+    String? fileType,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #uploadPaymentProof,
+          [
+            orderId,
+            filePath,
+            fileType,
+          ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> cancelOrder(int? orderId) => (super.noSuchMethod(
+        Invocation.method(
+          #cancelOrder,
+          [orderId],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> uploadComprobante(
     int? orderId,
     String? filePath,
     String? fileType,
@@ -74,12 +133,70 @@ class MockOrderService extends _i1.Mock implements _i2.OrderService {
             fileType,
           ],
         ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
 
   @override
-  _i3.Future<void> validarComprobante(
+  _i4.Future<Map<String, dynamic>> getOrderTracking(int? orderId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getOrderTracking,
+          [orderId],
+        ),
+        returnValue:
+            _i4.Future<Map<String, dynamic>>.value(<String, dynamic>{}),
+      ) as _i4.Future<Map<String, dynamic>>);
+
+  @override
+  _i4.Future<void> updateDeliveryLocation(
+    int? orderId,
+    double? latitude,
+    double? longitude,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #updateDeliveryLocation,
+          [
+            orderId,
+            latitude,
+            longitude,
+          ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<List<Map<String, dynamic>>> getOrderMessages(int? orderId) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #getOrderMessages,
+          [orderId],
+        ),
+        returnValue: _i4.Future<List<Map<String, dynamic>>>.value(
+            <Map<String, dynamic>>[]),
+      ) as _i4.Future<List<Map<String, dynamic>>>);
+
+  @override
+  _i4.Future<void> sendOrderMessage(
+    int? orderId,
+    String? message,
+  ) =>
+      (super.noSuchMethod(
+        Invocation.method(
+          #sendOrderMessage,
+          [
+            orderId,
+            message,
+          ],
+        ),
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> validarComprobante(
     int? orderId,
     String? accion,
   ) =>
@@ -91,9 +208,18 @@ class MockOrderService extends _i1.Mock implements _i2.OrderService {
             accion,
           ],
         ),
-        returnValue: _i3.Future<void>.value(),
-        returnValueForMissingStub: _i3.Future<void>.value(),
-      ) as _i3.Future<void>);
+        returnValue: _i4.Future<void>.value(),
+        returnValueForMissingStub: _i4.Future<void>.value(),
+      ) as _i4.Future<void>);
+
+  @override
+  _i4.Future<List<_i2.Order>> getUserOrders() => (super.noSuchMethod(
+        Invocation.method(
+          #getUserOrders,
+          [],
+        ),
+        returnValue: _i4.Future<List<_i2.Order>>.value(<_i2.Order>[]),
+      ) as _i4.Future<List<_i2.Order>>);
 
   @override
   void addListener(_i6.VoidCallback? listener) => super.noSuchMethod(

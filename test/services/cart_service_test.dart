@@ -18,20 +18,38 @@ void main() {
     });
 
     test('addToCart adds an item', () {
-      final item = CartItem(id: 1, nombre: 'Test', precio: 10.0, quantity: 1);
+      final item = CartItem(
+        id: 1, 
+        nombre: 'Test Product', 
+        precio: 10.0, 
+        quantity: 1,
+        imagen: 'test.jpg',
+      );
       cartService.addToCart(item);
       expect(cartService.items.length, 1);
     });
 
     test('removeFromCart removes an item', () {
-      final item = CartItem(id: 1, nombre: 'Test', precio: 10.0, quantity: 1);
+      final item = CartItem(
+        id: 1, 
+        nombre: 'Test Product', 
+        precio: 10.0, 
+        quantity: 1,
+        imagen: 'test.jpg',
+      );
       cartService.addToCart(item);
       cartService.removeFromCart(item);
       expect(cartService.items.length, 0);
     });
 
     test('clearCart empties the cart', () {
-      final item = CartItem(id: 1, nombre: 'Test', precio: 10.0, quantity: 1);
+      final item = CartItem(
+        id: 1, 
+        nombre: 'Test Product', 
+        precio: 10.0, 
+        quantity: 1,
+        imagen: 'test.jpg',
+      );
       cartService.addToCart(item);
       cartService.clearCart();
       expect(cartService.items.isEmpty, true);

@@ -10,15 +10,49 @@ import 'dart:convert';
 
 class MockOrderService extends OrderService {
   @override
-  Future<void> createOrder(List<CartItem> items) async {
+  Future<Order> createOrder(List<CartItem> items) async {
     // Simula una respuesta exitosa
-    return;
+    return Order(
+      id: 1,
+      userId: 1,
+      commerceId: 1,
+      orderNumber: 'ORD-001',
+      status: 'pending',
+      subtotal: 30.0,
+      deliveryFee: 3.0,
+      tax: 1.5,
+      total: 34.5,
+      paymentMethod: 'cash',
+      paymentStatus: 'pending',
+      deliveryAddress: 'Test Address',
+      estimatedDeliveryTime: DateTime.now().add(Duration(minutes: 30)),
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      items: [],
+    );
   }
 
   @override
   Future<List<Order>> fetchOrders() async {
     // Simula una lista de órdenes
-    return [Order(id: 1, estado: 'pendiente', total: 100, items: [])];
+    return [Order(
+      id: 1,
+      userId: 1,
+      commerceId: 1,
+      orderNumber: 'ORD-001',
+      status: 'pending',
+      subtotal: 100.0,
+      deliveryFee: 3.0,
+      tax: 5.0,
+      total: 108.0,
+      paymentMethod: 'cash',
+      paymentStatus: 'pending',
+      deliveryAddress: 'Test Address',
+      estimatedDeliveryTime: DateTime.now().add(Duration(minutes: 30)),
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+      items: [],
+    )];
   }
 
   @override
@@ -83,14 +117,15 @@ void main() {
           imagen: 'https://example.com/pizza.jpg',
         ),
       ];
-      await orderService.createOrder(items);
-      expect(true, isTrue); // Si no lanza excepción, pasa
+      final order = await orderService.createOrder(items);
+      expect(order, isA<Order>());
+      expect(order.id, 1);
     });
 
     test('Puede obtener órdenes', () async {
       final orders = await orderService.fetchOrders();
       expect(orders, isA<List<Order>>());
-      expect(orders.first.estado, 'pendiente');
+      expect(orders.first.status, 'pending');
     });
 
     test('Puede validar comprobante', () async {

@@ -5,6 +5,7 @@ import 'package:zonix/features/screens/products/products_page.dart';
 import 'package:zonix/models/product.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/product_service.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class MockProductService implements ProductService {
   @override
@@ -87,9 +88,38 @@ class MockProductService implements ProductService {
   Future<List<Product>> searchProducts(String query) async {
     return [];
   }
+
+  @override
+  Future<Product> getProductById(int productId) async {
+    return Product(
+      id: productId,
+      commerceId: 1,
+      name: 'Test Product',
+      description: 'Test',
+      price: 50.0,
+      image: '',
+      category: 'Test',
+      isAvailable: true,
+      stock: 1,
+      tags: [],
+      allergens: [],
+      isVegetarian: false,
+      isVegan: false,
+      isGlutenFree: false,
+      preparationTime: 10,
+      rating: 4.0,
+      reviewCount: 1,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    );
+  }
 }
 
 void main() {
+  setUpAll(() async {
+    await dotenv.load(fileName: ".env");
+  });
+  
   testWidgets('Cliente puede ver productos y no ve acciones de comercio/delivery', (WidgetTester tester) async {
     await tester.pumpWidget(
       MultiProvider(
