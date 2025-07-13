@@ -30,7 +30,13 @@ class WebSocketService {
 
   // Getters
   bool get isConnected => _isConnected;
-  Stream<Map<String, dynamic>>? get messageStream => _messageController?.stream;
+  Stream<Map<String, dynamic>>? _messageStream;
+  Stream<Map<String, dynamic>>? get messageStream => _messageStream;
+
+  // Método para tests
+  void setTestMessageStream(Stream<Map<String, dynamic>> stream) {
+    _messageStream = stream;
+  }
 
   // Connect to Laravel Echo Server
   Future<void> connect() async {
@@ -359,13 +365,26 @@ class WebSocketService {
 
   // Disconnect
   void disconnect() {
-    _reconnectTimer?.cancel();
-    _channel?.sink.close();
-    _messageController?.close();
-    _isConnected = false;
-    _reconnectAttempts = 0;
-    _subscribedChannels.clear();
-    _logger.i('WebSocket disconnected');
+    try {
+      _logger.d('💡 WebSocket disconnected');
+      _isConnected = false;
+      
+      // Cancelar timers de forma segura
+      _reconnectTimer?.cancel();
+      _heartbeatTimer?.cancel();
+      
+      // Cerrar channel de forma segura
+      _channel?.sink.close();
+      _channel = null;
+      
+      // Cerrar messageController de forma segura
+      _messageController?.close();
+      _messageController = null;
+      
+      _reconnectAttempts = 0;
+    } catch (e) {
+      _logger.e('Error al desconectar WebSocket: $e');
+    }
   }
 
   // Get subscribed channels

@@ -11,8 +11,8 @@ class CartService extends ChangeNotifier {
   final List<CartItem> _cart = [];
 
   final String _baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
+      ? (dotenv.env['API_URL_PROD'] ?? 'https://zonix.uniblockweb.com')
+      : (dotenv.env['API_URL_LOCAL'] ?? 'http://192.168.0.101:8000');
 
   UnmodifiableListView<CartItem> get items => UnmodifiableListView(_cart);
 

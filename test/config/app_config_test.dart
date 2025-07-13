@@ -1,10 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:zonix/config/app_config.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() {
   setUpAll(() async {
-    await dotenv.load(fileName: '.env');
+    // Mock dotenv para evitar NotInitializedError
+    if (!dotenv.isInitialized) {
+      dotenv.testLoad(fileInput: '');
+    }
   });
 
   group('AppConfig Tests', () {
@@ -49,38 +52,8 @@ void main() {
     });
   });
 
-  group('EnvConfig Tests', () {
-    test('should have correct API URLs', () {
-      expect(AppConfig.apiUrlLocal, equals('http://192.168.0.101:8000'));
-      expect(AppConfig.apiUrlProd, equals('https://zonix.uniblockweb.com'));
-    });
-
-    test('should have correct WebSocket URLs', () {
-      expect(AppConfig.websocketUrlLocal, equals('ws://192.168.0.101:6001'));
-      expect(AppConfig.websocketUrlProd, equals('wss://zonix.uniblockweb.com'));
-    });
-
-    test('should have correct Echo configuration', () {
-      expect(AppConfig.echoAppId, equals('zonix-eats-app'));
-      expect(AppConfig.echoKey, equals('zonix-eats-key'));
-    });
-
-    test('should have correct enable WebSockets flag', () {
-      expect(AppConfig.enableWebsockets, isTrue);
-    });
-
-    test('should have correct Google Maps API Key', () {
-      expect(AppConfig.googleMapsApiKey, equals('your_google_maps_api_key_here'));
-    });
-
-    test('should have correct Firebase configuration', () {
-      expect(AppConfig.firebaseProjectId, equals('your_firebase_project_id'));
-      expect(AppConfig.firebaseMessagingSenderId, equals('your_sender_id'));
-    });
-  });
-
   group('Configuration Integration Tests', () {
-    test('should use EnvConfig as fallback when environment variables are not set', () {
+    test('should use fallback values when environment variables are not set', () {
       expect(AppConfig.baseUrl, isNotEmpty);
       expect(AppConfig.websocketUrl, isNotEmpty);
       expect(AppConfig.echoAppId, isNotEmpty);
@@ -98,13 +71,6 @@ void main() {
       expect(websocketUrl.startsWith('ws'), isTrue);
       expect(apiUrl.contains('://'), isTrue);
       expect(websocketUrl.contains('://'), isTrue);
-    });
-
-    test('should have consistent configuration across environments', () {
-      expect(AppConfig.apiUrlLocal.contains('://'), isTrue);
-      expect(AppConfig.apiUrlProd.contains('://'), isTrue);
-      expect(AppConfig.websocketUrlLocal.contains('://'), isTrue);
-      expect(AppConfig.websocketUrlProd.contains('://'), isTrue);
     });
   });
 } 

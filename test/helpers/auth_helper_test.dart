@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:zonix/helpers/auth_helper.dart';
 
 void main() {
@@ -11,10 +10,15 @@ void main() {
       expect(AuthHelper.storage, isNotNull);
     });
 
-    test('AuthHelper should be able to create storage instance', () {
-      // Verificar que se puede crear una instancia de FlutterSecureStorage
-      const storage = FlutterSecureStorage();
-      expect(storage, isNotNull);
+    test('AuthHelper should have correct structure', () {
+      // Verificar que AuthHelper tiene la estructura correcta
+      expect(AuthHelper.storage, isNotNull);
+      expect(AuthHelper.getAuthHeaders, isA<Function>());
+    });
+
+    test('AuthHelper should be properly initialized', () {
+      // Verificar que AuthHelper se inicializa correctamente
+      expect(AuthHelper.storage, isNotNull);
     });
   });
 } 
