@@ -19,7 +19,7 @@ class _DataExportPageState extends State<DataExportPage> {
   String? _error;
   String _selectedFormat = 'json';
 
-  Future<void> _exportData() async {
+  Future<void> _requestDataExport() async {
     try {
       setState(() {
         _isLoading = true;
@@ -234,7 +234,7 @@ class _DataExportPageState extends State<DataExportPage> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
-                onPressed: _isLoading ? null : _exportData,
+                onPressed: _isLoading ? null : _requestDataExport,
                 icon: _isLoading 
                     ? const SizedBox(
                         width: 20,

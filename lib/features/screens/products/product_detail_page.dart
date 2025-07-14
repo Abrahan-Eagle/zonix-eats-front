@@ -76,12 +76,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Widget build(BuildContext context) {
     final cartService = Provider.of<CartService>(context, listen: false);
     final double total = (widget.product.price) * _quantity;
-    
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
+      backgroundColor: isDark ? const Color(0xFF181A20) : Colors.white,
       appBar: AppBar(
         title: const Text('Detalles del producto'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
+        backgroundColor: isDark ? const Color(0xFF181A20) : Colors.white,
+        foregroundColor: isDark ? Colors.white : Colors.black,
+        elevation: 0,
       ),
       body: SafeArea(
         child: Stack(
@@ -89,12 +91,25 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ListView(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 90),
               children: [
-                _buildProductImage(),
+                Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF23262B) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: _buildProductImage(),
+                ),
                 const SizedBox(height: 24),
-                _buildProductInfo(total),
+                Container(
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF23262B) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: const EdgeInsets.all(16),
+                  child: _buildProductInfo(total, isDark),
+                ),
               ],
             ),
-            _buildBottomControls(cartService),
+            _buildBottomControls(cartService, isDark),
           ],
         ),
       ),
@@ -113,7 +128,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
 
 
-  Widget _buildProductInfo(double total) {
+  Widget _buildProductInfo(double total, bool isDark) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -123,24 +138,25 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             children: [
               Text(
                 widget.product.name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22, 
                   fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black,
                 ),
               ),
               const SizedBox(height: 8),
-              _buildRestaurantInfo(),
+              _buildRestaurantInfo(isDark),
               const SizedBox(height: 8),
-              _buildDescription(),
+              _buildDescription(isDark),
             ],
           ),
         ),
-        _buildPrice(total),
+        _buildPrice(total, isDark),
       ],
     );
   }
 
-  Widget _buildRestaurantInfo() {
+  Widget _buildRestaurantInfo(bool isDark) {
     return FutureBuilder<Restaurant?>(
       future: _restaurantFuture,
       builder: (context, snapshot) {
@@ -152,9 +168,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         }
 
         if (snapshot.hasError || snapshot.data == null) {
-          return const Text(
+          return Text(
             'Tienda no disponible',
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
           );
         }
 
@@ -165,7 +181,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           child: Text(
             _restaurant?.nombreLocal ?? 'Tienda desconocida',
             style: TextStyle(
-              color: Theme.of(context).primaryColor,
+              color: isDark ? Colors.blueAccent : Colors.blue,
               fontWeight: FontWeight.w500,
               decoration: TextDecoration.underline,
             ),
@@ -175,41 +191,42 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     );
   }
 
-  Widget _buildDescription() {
+  Widget _buildDescription(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Descripción',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,
+            color: isDark ? Colors.white : Colors.black,
           ),
         ),
         const SizedBox(height: 4),
         Text(
           widget.product.description ?? 'Sin descripción',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16, 
-            color: Colors.black54,
+            color: isDark ? Colors.white70 : Colors.black54,
           ),
         ),
       ],
     );
   }
 
-  Widget _buildPrice(double total) {
+  Widget _buildPrice(double total, bool isDark) {
     return Text(
       '\$${total.toStringAsFixed(2)}',
-      style: const TextStyle(
+      style: TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.bold,
-        color: Colors.green,
+        color: Colors.greenAccent,
       ),
     );
   }
 
-  Widget _buildBottomControls(CartService cartService) {
+  Widget _buildBottomControls(CartService cartService, bool isDark) {
     return Positioned(
       left: 0,
       right: 0,
@@ -218,38 +235,39 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Row(
           children: [
-            _buildQuantitySelector(),
+            _buildQuantitySelector(isDark),
             const SizedBox(width: 16),
-            _buildAddToCartButton(cartService),
+            _buildAddToCartButton(cartService, isDark),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildQuantitySelector() {
+  Widget _buildQuantitySelector(bool isDark) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey.shade200,
+        color: isDark ? const Color(0xFF23262B) : Colors.white,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.remove, color: Colors.blue),
+            icon: Icon(Icons.remove, color: isDark ? Colors.blueAccent : Colors.blue),
             onPressed: _quantity > 1 
                 ? () => setState(() => _quantity--) 
                 : null,
           ),
           Text(
             '$_quantity', 
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 18, 
               fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black,
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.add, color: Colors.blue),
+            icon: Icon(Icons.add, color: isDark ? Colors.blueAccent : Colors.blue),
             onPressed: () => setState(() => _quantity++),
           ),
         ],
@@ -257,9 +275,18 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     );
   }
 
-  Widget _buildAddToCartButton(CartService cartService) {
+  Widget _buildAddToCartButton(CartService cartService, bool isDark) {
     return Expanded(
       child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.orangeAccent,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          elevation: 2,
+        ),
         onPressed: () {
           cartService.addToCart(CartItem(
             id: widget.product.id,
@@ -268,24 +295,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             quantity: _quantity,
           ));
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Producto agregado al carrito'),
-              duration: Duration(seconds: 2),
-            ),
+            const SnackBar(content: Text('Producto agregado al carrito')),
           );
         },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context).primaryColor,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(13),
-          ),
-        ),
-        child: const Text(
+        child: Text(
           'Agregar al carrito',
           style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white : Colors.black,
           ),
         ),
       ),

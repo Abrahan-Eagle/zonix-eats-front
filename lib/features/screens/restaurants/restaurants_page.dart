@@ -109,9 +109,10 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   }
 
   Widget _buildShimmerLoading() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: Colors.grey[300]!,
-      highlightColor: Colors.grey[100]!,
+      baseColor: isDark ? const Color(0xFF23262B) : Colors.grey[200]!,
+      highlightColor: isDark ? const Color(0xFF181A20) : Colors.grey[100]!,
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: 5,
@@ -120,7 +121,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
           child: Container(
             height: 180,
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: isDark ? const Color(0xFF23262B) : Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
           ),
@@ -134,13 +135,14 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline, size: 48, color: Colors.red),
+          const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
           const SizedBox(height: 16),
           Text(
             'Ocurrió un error',
             style: GoogleFonts.manrope(
               fontSize: 18,
               fontWeight: FontWeight.w600,
+              color: Colors.white,
             ),
           ),
           Padding(
@@ -148,12 +150,13 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
             child: Text(
               error.toString(),
               textAlign: TextAlign.center,
-              style: GoogleFonts.manrope(),
+              style: GoogleFonts.manrope(color: Colors.white70),
             ),
           ),
           FilledButton(
             onPressed: _loadRestaurants,
-            child: const Text('Reintentar'),
+            style: FilledButton.styleFrom(backgroundColor: Colors.blueAccent),
+            child: const Text('Reintentar', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -165,7 +168,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off, size: 48, color: Colors.grey[400]),
+          Icon(Icons.search_off, size: 48, color: Colors.grey[600]),
           const SizedBox(height: 16),
           Text(
             _searchQuery.isEmpty 
@@ -173,7 +176,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
               : 'No encontramos resultados',
             style: GoogleFonts.manrope(
               fontSize: 18,
-              color: Colors.grey[600],
+              color: Colors.white70,
             ),
           ),
           if (_searchQuery.isNotEmpty) ...[
@@ -185,6 +188,10 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                   _searchController.clear();
                 });
               },
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: const BorderSide(color: Colors.white24),
+              ),
               child: const Text('Limpiar búsqueda'),
             ),
           ],
@@ -194,7 +201,9 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   }
 
   Widget _buildRestaurantCard(Restaurant restaurant) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
+      color: isDark ? const Color(0xFF23262B) : Colors.white,
       clipBehavior: Clip.antiAliasWithSaveLayer,
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -203,8 +212,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
       child: InkWell(
         onTap: () async {
           await HapticFeedback.lightImpact();
-          _logger.d('🚀 Navegando a detalles de ${restaurant.nombreLocal}');
-          
+          _logger.d('🚀 Navegando a detalles de  {restaurant.nombreLocal}');
           Navigator.push(
             context,
             MaterialPageRoute(
@@ -237,7 +245,6 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                 borderRadius: BorderRadius.zero,
               ),
             ),
-
             // Información del restaurante
             Padding(
               padding: const EdgeInsets.all(16),
@@ -248,73 +255,45 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                   Text(
                     restaurant.nombreLocal,
                     style: GoogleFonts.manrope(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: isDark ? Colors.white : Colors.black,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
-
                   const SizedBox(height: 8),
-
                   // Dirección
-                  Row(
-                    children: [
-                      Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          restaurant.direccion ?? 'Dirección no disponible',
-                          style: GoogleFonts.manrope(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 8),
-
-                  // Estado y tiempo de entrega
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Tiempo estimado
-                      Row(
-                        children: [
-                          Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
-                          const SizedBox(width: 4),
-                          Text(
-                            '20-30 min',
+                  if (restaurant.direccion != null)
+                    Row(
+                      children: [
+                        Icon(Icons.location_on, color: isDark ? Colors.blueAccent : Colors.blue, size: 18),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            restaurant.direccion!,
                             style: GoogleFonts.manrope(
-                              fontSize: 12,
-                              color: Colors.grey[600],
+                              color: isDark ? Colors.white70 : Colors.black54,
+                              fontSize: 14,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ],
-                      ),
-
-                      // Estado
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: (restaurant.abierto ?? false)
-                            ? Colors.green[100]
-                            : Colors.red[100],
-                          borderRadius: BorderRadius.circular(8),
                         ),
-                        child: Text(
-                          (restaurant.abierto ?? false) ? 'Abierto' : 'Cerrado',
-                          style: GoogleFonts.manrope(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            color: (restaurant.abierto ?? false)
-                              ? Colors.green[800]
-                              : Colors.red[800],
-                          ),
+                      ],
+                    ),
+                  // Estado abierto/cerrado
+                  Row(
+                    children: [
+                      Icon(
+                        restaurant.abierto == true ? Icons.check_circle : Icons.cancel,
+                        color: restaurant.abierto == true ? Colors.greenAccent : Colors.redAccent,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        restaurant.abierto == true ? 'Abierto' : 'Cerrado',
+                        style: GoogleFonts.manrope(
+                          color: restaurant.abierto == true ? Colors.greenAccent : Colors.redAccent,
+                          fontSize: 14,
                         ),
                       ),
                     ],
@@ -330,121 +309,68 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: RefreshIndicator(
-        onRefresh: _loadRestaurants,
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            SliverAppBar(
-              backgroundColor: Colors.white,
-              title: Text(
-                'Restaurantes',
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ),
-              floating: true,
-              snap: true,
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.search),
-                  color: Colors.black,
-                  onPressed: () {
-                    // Opcional: Focus en el campo de búsqueda
-                  },
-                ),
-              ],
-              bottom: PreferredSize(
-                preferredSize: const Size.fromHeight(60),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Buscar restaurantes...',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(30),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[100],
-                      contentPadding: const EdgeInsets.symmetric(vertical: 0),
-                    ),
-                    onChanged: (value) {
-                      _debouncer.run(() {
-                        setState(() => _searchQuery = value.trim());
-                      });
-                    },
+      backgroundColor: isDark ? const Color(0xFF181A20) : Colors.white,
+      appBar: AppBar(
+        backgroundColor: isDark ? const Color(0xFF181A20) : Colors.white,
+        elevation: 0,
+        title: Text('Restaurantes', style: GoogleFonts.manrope(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
+        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
+      ),
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                controller: _searchController,
+                style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                decoration: InputDecoration(
+                  hintText: 'Buscar restaurante...',
+                  hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black45),
+                  filled: true,
+                  fillColor: isDark ? const Color(0xFF23262B) : Colors.white,
+                  prefixIcon: Icon(Icons.search, color: isDark ? Colors.white54 : Colors.black45),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
                   ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
                 ),
+                onChanged: (value) {
+                  _debouncer.run(() {
+                    setState(() {
+                      _searchQuery = value;
+                    });
+                  });
+                },
               ),
             ),
-
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              sliver: _restaurantsFuture == null
-                ? SliverToBoxAdapter(
-                    child: SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.6,
-                      child: _buildShimmerLoading(),
-                    ),
-                  )
-                : FutureBuilder<List<Restaurant>>(
-                    future: _restaurantsFuture,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting && !_isRefreshing) {
-                        return SliverToBoxAdapter(
-                          child: SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.6,
-                            child: _buildShimmerLoading(),
-                          ),
-                        );
-                      }
-
-                      if (snapshot.hasError) {
-                        return SliverToBoxAdapter(
-                          child: Container(
-                            height: MediaQuery.of(context).size.height * 0.6,
-                            child: _buildErrorWidget(snapshot.error!),
-                          ),
-                        );
-                      }
-
-                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return SliverToBoxAdapter(
-                          child: Container(
-                            height: MediaQuery.of(context).size.height * 0.6,
-                            child: _buildEmptyState(),
-                          ),
-                        );
-                      }
-
-                      final filteredRestaurants = _filterRestaurants(snapshot.data!);
-                      
-                      if (filteredRestaurants.isEmpty) {
-                        return SliverToBoxAdapter(
-                          child: Container(
-                            height: MediaQuery.of(context).size.height * 0.6,
-                            child: _buildEmptyState(),
-                          ),
-                        );
-                      }
-
-                      return SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) => Padding(
-                            padding: const EdgeInsets.only(bottom: 16),
-                            child: _buildRestaurantCard(filteredRestaurants[index]),
-                          ),
-                          childCount: filteredRestaurants.length,
-                        ),
-                      );
-                    },
-                  ),
+            Expanded(
+              child: FutureBuilder<List<Restaurant>>(
+                future: _restaurantsFuture,
+                builder: (context, snapshot) {
+                  if (_isRefreshing) {
+                    return _buildShimmerLoading();
+                  } else if (snapshot.hasError) {
+                    return _buildErrorWidget(snapshot.error!);
+                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return _buildEmptyState();
+                  } else {
+                    final filtered = _filterRestaurants(snapshot.data!);
+                    if (filtered.isEmpty) return _buildEmptyState();
+                    return ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: filtered.length,
+                      itemBuilder: (context, index) {
+                        return _buildRestaurantCard(filtered[index]);
+                      },
+                    );
+                  }
+                },
+              ),
             ),
           ],
         ),

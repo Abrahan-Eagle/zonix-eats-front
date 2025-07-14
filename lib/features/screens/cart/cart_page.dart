@@ -18,7 +18,7 @@ class CartPage extends StatelessWidget {
         FocusManager.instance.primaryFocus?.unfocus();
       },
       child: Scaffold(
-        backgroundColor: Colors.grey[100],
+        backgroundColor: Theme.of(context).colorScheme.background,
         body: SafeArea(
           top: true,
           child: Column(
@@ -34,6 +34,7 @@ class CartPage extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
+                        color: Theme.of(context).textTheme.titleLarge?.color,
                       ),
                     ),
                   ),
@@ -45,12 +46,12 @@ class CartPage extends StatelessWidget {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: Theme.of(context).cardColor,
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.grey.shade300),
+                          border: Border.all(color: Colors.white24),
                         ),
                         alignment: Alignment.center,
-                        child: Icon(Icons.notifications_none, size: 24),
+                        child: Icon(Icons.notifications_none, size: 24, color: Theme.of(context).iconTheme.color?.withOpacity(0.5)),
                       ),
                     ),
                   ),
@@ -58,7 +59,7 @@ class CartPage extends StatelessWidget {
               ),
               Expanded(
                 child: cartItems.isEmpty
-                    ? const Center(child: Text('El carrito está vacío'))
+                    ? Center(child: Text('El carrito está vacío', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7))))
                     : ListView.builder(
                         padding: EdgeInsets.zero,
                         itemCount: cartItems.length,
@@ -68,9 +69,9 @@ class CartPage extends StatelessWidget {
                             padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
                             child: Container(
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: Theme.of(context).cardColor,
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.grey.shade300),
+                                border: Border.all(color: Colors.white12),
                               ),
                               child: Padding(
                                 padding: const EdgeInsets.all(16),
@@ -80,10 +81,10 @@ class CartPage extends StatelessWidget {
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(20),
                                       child: Container(
-                                        color: Colors.grey[200],
+                                        color: Theme.of(context).colorScheme.surface,
                                         width: 80,
                                         height: 80,
-                                        child: Icon(Icons.shopping_bag, size: 40, color: Colors.grey[400]),
+                                        child: Icon(Icons.shopping_bag, size: 40, color: Theme.of(context).iconTheme.color?.withOpacity(0.2)),
                                       ),
                                     ),
                                     const SizedBox(width: 16),
@@ -93,15 +94,16 @@ class CartPage extends StatelessWidget {
                                         children: [
                                           Text(
                                             item.nombre,
-                                            style: const TextStyle(
+                                            style: TextStyle(
                                               fontSize: 16,
                                               fontWeight: FontWeight.w600,
+                                              color: Theme.of(context).textTheme.bodyLarge?.color,
                                             ),
                                           ),
                                           const SizedBox(height: 5),
                                           Text(
                                             'Cantidad: ${item.quantity}',
-                                            style: const TextStyle(fontSize: 13, color: Colors.black54),
+                                            style: TextStyle(fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
                                           ),
                                           const SizedBox(height: 5),
                                           Text(
@@ -109,6 +111,7 @@ class CartPage extends StatelessWidget {
                                             style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.w500,
+                                              color: Colors.greenAccent,
                                             ),
                                           ),
                                           const SizedBox(height: 5),
@@ -122,16 +125,16 @@ class CartPage extends StatelessWidget {
                                                   width: 30,
                                                   height: 30,
                                                   decoration: const BoxDecoration(
-                                                    color: Color(0xFFE5E5E5),
+                                                    color: Color(0xFF23262B),
                                                     shape: BoxShape.circle,
                                                   ),
-                                                  child: const Icon(Icons.remove_sharp, size: 15),
+                                                  child: const Icon(Icons.remove_sharp, size: 15, color: Colors.white54),
                                                 ),
                                               ),
                                               const SizedBox(width: 12),
                                               Text(
                                                 '${item.quantity}',
-                                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
                                               ),
                                               const SizedBox(width: 12),
                                               InkWell(
@@ -148,7 +151,7 @@ class CartPage extends StatelessWidget {
                                                   width: 30,
                                                   height: 30,
                                                   decoration: const BoxDecoration(
-                                                    color: Colors.black,
+                                                    color: Colors.blueAccent,
                                                     shape: BoxShape.circle,
                                                   ),
                                                   child: const Icon(Icons.add, color: Colors.white, size: 15),
@@ -156,7 +159,7 @@ class CartPage extends StatelessWidget {
                                               ),
                                               const SizedBox(width: 12),
                                               IconButton(
-                                                icon: const Icon(Icons.delete, color: Colors.red),
+                                                icon: const Icon(Icons.delete, color: Colors.redAccent),
                                                 onPressed: () {
                                                   cartService.removeFromCart(item);
                                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -182,7 +185,7 @@ class CartPage extends StatelessWidget {
                   padding: EdgeInsets.fromLTRB(24, 0, 0, 0),
                   child: Text(
                     'Resumen de orden',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white),
                   ),
                 ),
                 Padding(
@@ -194,28 +197,28 @@ class CartPage extends StatelessWidget {
                           const Expanded(
                             child: Text(
                               'Total Items:',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black54),
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white54),
                             ),
                           ),
                           Text(
                             '${cartItems.length}',
-                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
+                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: Colors.white),
                           ),
                         ],
                       ),
                       const SizedBox(height: 10),
-                      const Divider(height: 0.1, thickness: 1, color: Colors.black12),
+                      const Divider(height: 0.1, thickness: 1, color: Colors.white12),
                       Row(
                         children: [
                           const Expanded(
                             child: Text(
                               'Total a pagar:',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black),
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
                             ),
                           ),
                           Text(
                             '₡${total.toStringAsFixed(2)}',
-                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500),
+                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: Colors.greenAccent),
                           ),
                         ],
                       ),
@@ -234,7 +237,7 @@ class CartPage extends StatelessWidget {
                   height: 44,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
+                      backgroundColor: Colors.blueAccent,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),

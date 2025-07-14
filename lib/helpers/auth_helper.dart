@@ -21,4 +21,12 @@ class AuthHelper {
       throw Exception('Error al obtener headers de autenticación: $e');
     }
   }
+
+  static Future<String?> getToken() async {
+    try {
+      return await storage.read(key: 'token');
+    } catch (e) {
+      return null;
+    }
+  }
 }

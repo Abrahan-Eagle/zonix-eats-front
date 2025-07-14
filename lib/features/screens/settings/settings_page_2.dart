@@ -15,6 +15,11 @@ import 'package:zonix/features/screens/notifications/notifications_page.dart';
 import 'package:zonix/features/screens/onboarding/form/commerce_registration_page.dart';
 import 'package:zonix/features/screens/onboarding/form/delivery_company_registration_page.dart';
 import 'package:zonix/features/screens/onboarding/form/delivery_agent_registration_page.dart';
+// Importaciones para funcionalidades avanzadas
+import 'package:zonix/features/DomainProfiles/Profiles/screens/activity_history_page.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/screens/data_export_page.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/screens/privacy_settings_page.dart';
+import 'package:zonix/features/screens/account_deletion_page.dart';
 
 // Configuración del logger
 final logger = Logger();
@@ -139,276 +144,252 @@ class _SettingsPage2State extends State<SettingsPage2> {
     return Consumer<UserProvider>(
       builder: (context, userProvider, child) {
         return Scaffold(
-          // appBar: AppBar(
-          //   title: const Text("Configuraciones"),
-          //   backgroundColor: theme.colorScheme.primaryContainer,
-          // ),
-
           appBar: AppBar(
             title: const Text("Configuraciones"),
             backgroundColor: theme.colorScheme.primaryContainer,
             titleTextStyle: const TextStyle(
-              fontWeight: FontWeight.bold, // Negrita
-              fontSize: 26, // Tamaño del texto
-              color: Colors.white, // Texto blanco
+              fontWeight: FontWeight.bold,
+              fontSize: 26,
+              color: Colors.white,
             ),
+            elevation: 0,
           ),
-
           body: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Material con información de usuario
-                Material(
-                  color: Colors.transparent,
-                  elevation: 2,
-                  child: Container(
-                    width: MediaQuery.sizeOf(context).width,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.background,
-                    ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Encabezado de usuario destacado
+                  Card(
+                    elevation: 3,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     child: Padding(
-                      padding: const EdgeInsetsDirectional.fromSTEB(16, 16, 16, 16),
+                      padding: const EdgeInsets.all(20),
                       child: Row(
                         children: [
-                          Container(
-                            width: 60,
-                            height: 60,
-                            decoration: BoxDecoration(
-                              color: theme.colorScheme.primaryContainer,
-                              borderRadius: BorderRadius.circular(30),
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(30),
-                              // child: Image.network(
-                              //   'https://images.unsplash.com/photo-1658932447624-152eaf36cf4e?w=500&h=500',
-                              //   width: 60,
-                              //   height: 60,
-                              //   fit: BoxFit.cover,
-                              // ),
-                              child: CircleAvatar(
-                                radius: 30,
-                                backgroundImage: _getProfileImage(
-                                  _profile?.photo, 
-                                ),
-                                child: (_profile?.photo == null)
-                                    ? const Icon(Icons.person, color: Colors.white) // Ícono predeterminado
-                                    : null,
-                              ),
-
-                            ),
+                          CircleAvatar(
+                            radius: 36,
+                            backgroundImage: _getProfileImage(_profile?.photo),
+                            child: (_profile?.photo == null)
+                                ? const Icon(Icons.person, color: Colors.white, size: 40)
+                                : null,
                           ),
-                          const SizedBox(width: 16),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                                  Text(
-                                      '${_profile?.firstName ?? ''} ${_profile?.lastName ?? ''}', // Concatenar con espacio entre nombres
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 24,
-                                      ),
-                                    ),
-
-                              Text(
-                                _email ?? 'Correo no disponible', // Usamos _email si está disponible
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme.secondary,
+                          const SizedBox(width: 18),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  '${_profile?.firstName ?? ''} ${_profile?.lastName ?? ''}',
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 22,
+                                  ),
                                 ),
-                              ),
-
-                            ],
+                                const SizedBox(height: 4),
+                                Text(
+                                  _email ?? 'Correo no disponible',
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.secondary,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                // Sección de Configuración General
-                Material(
-                  color: Colors.transparent,
-                  elevation: 2,
-                  child: Container(
-                    width: MediaQuery.sizeOf(context).width,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.background,
-                      borderRadius: BorderRadius.circular(8.0),
+                  const SizedBox(height: 20),
+
+                  // Sección: Información de cuenta
+                  Text(
+                    "Mi cuenta",
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
                     ),
-                    padding: const EdgeInsets.all(16.0),
+                  ),
+                  const SizedBox(height: 8),
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Configuración General",
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ...[
-                          {
-                            "title": "Perfil",
-                            "icon": Icons.person_outline_rounded,
-                            "onTap": () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      ProfilePagex(userId: userProvider.userId),
-                                ),
-                              );
-                            },
-                          },
-                          {
-                            "title": "Documentos",
-                            "icon": Icons.folder_outlined,
-                            "onTap": () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      DocumentListScreen(userId: userProvider.userId),
-                                ),
-                              );
-                            },
-                          },
-                          {
-                            "title": "Dirección",
-                            "icon": Icons.location_on_outlined,
-                            "onTap": () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      AddressPage(userId: userProvider.userId),
-                                ),
-                              );
-                            },
-                          },
-                          // Quitar Bombonas de gas
-                          // Agregar acceso condicional a formularios de registro/edición según rol
-                          if (userProvider.userRole == 'commerce')
-                            {
-                              "title": "Datos del Comercio",
-                              "icon": Icons.store,
-                              "onTap": () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const CommerceRegistrationPage(),
-                                  ),
-                                );
-                              },
-                            },
-                          if (userProvider.userRole == 'delivery_company')
-                            {
-                              "title": "Datos de Empresa de Delivery",
-                              "icon": Icons.local_shipping,
-                              "onTap": () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const DeliveryCompanyRegistrationPage(),
-                                  ),
-                                );
-                              },
-                            },
-                          if (userProvider.userRole == 'delivery_agent')
-                            {
-                              "title": "Datos de Repartidor",
-                              "icon": Icons.delivery_dining,
-                              "onTap": () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const DeliveryAgentRegistrationPage(),
-                                  ),
-                                );
-                              },
-                            },
-                          {
-                            "title": "Teléfonos",
-                            "icon": Icons.phone_outlined,
-                            "onTap": () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      PhoneScreen(userId: userProvider.userId),
-                                ),
-                              );
-                            },
-                          },
-                          {
-                            "title": "Correos electrónicos",
-                            "icon": Icons.email_outlined,
-                            "onTap": () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      EmailListScreen(userId: userProvider.userId),
-                                ),
-                              );
-                            },
-                          },
-                        ].map((item) {
-                          return ListTile(
-                            leading: Icon(
-                              item["icon"] as IconData,
-                              color: theme.colorScheme.primary,
-                            ),
-                            title: Text(
-                              item["title"] as String,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
+                        _buildListTile(
+                          context,
+                          icon: Icons.person_outline_rounded,
+                          color: Colors.blue,
+                          title: "Perfil",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ProfilePagex(userId: userProvider.userId),
                               ),
-                            ),
-                            trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-                            onTap: item["onTap"] as GestureTapCallback?,
-                          );
-                        }),
+                            );
+                          },
+                        ),
+                        _buildListTile(
+                          context,
+                          icon: Icons.folder_outlined,
+                          color: Colors.deepPurple,
+                          title: "Documentos",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => DocumentListScreen(userId: userProvider.userId),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildListTile(
+                          context,
+                          icon: Icons.location_on_outlined,
+                          color: Colors.teal,
+                          title: "Dirección",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => AddressPage(userId: userProvider.userId),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildListTile(
+                          context,
+                          icon: Icons.phone_outlined,
+                          color: Colors.green,
+                          title: "Teléfonos",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => PhoneScreen(userId: userProvider.userId),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildListTile(
+                          context,
+                          icon: Icons.email_outlined,
+                          color: Colors.orange,
+                          title: "Correos electrónicos",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => EmailListScreen(userId: userProvider.userId),
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                // Sección de Administración y Seguridad
-                Material(
-                  color: Colors.transparent,
-                  elevation: 2,
-                  child: Container(
-                    width: MediaQuery.sizeOf(context).width,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.background,
-                      borderRadius: BorderRadius.circular(8.0),
+                  const SizedBox(height: 24),
+
+                  // Sección: Funcionalidades Avanzadas
+                  Text(
+                    "Funcionalidades Avanzadas",
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
                     ),
-                    padding: const EdgeInsets.all(16.0),
+                  ),
+                  const SizedBox(height: 8),
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          "Administración y Seguridad",
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
+                        _buildListTile(
+                          context,
+                          icon: Icons.history,
+                          color: Colors.blue,
+                          title: "Historial de Actividad",
+                          subtitle: "Revisa todas tus actividades en la aplicación",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const ActivityHistoryPage(),
+                              ),
+                            );
+                          },
                         ),
-                        const SizedBox(height: 16),
-                        ListTile(
-                          leading: Icon(
-                            Icons.notifications_none_rounded,
-                            color: theme.colorScheme.primary,
-                          ),
-                          title: Text(
-                            "Notificaciones",
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                        _buildListTile(
+                          context,
+                          icon: Icons.download,
+                          color: Colors.green,
+                          title: "Exportar Datos",
+                          subtitle: "Descarga una copia de todos tus datos personales",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const DataExportPage(),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildListTile(
+                          context,
+                          icon: Icons.privacy_tip,
+                          color: Colors.orange,
+                          title: "Configuración de Privacidad",
+                          subtitle: "Controla cómo se utilizan y comparten tus datos",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const PrivacySettingsPage(),
+                              ),
+                            );
+                          },
+                        ),
+                        _buildListTile(
+                          context,
+                          icon: Icons.delete_forever,
+                          color: Colors.red,
+                          title: "Eliminación de Cuenta",
+                          subtitle: "Solicitar eliminación permanente de tu cuenta",
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const AccountDeletionPage(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Sección: Administración y Ayuda
+                  Text(
+                    "Administración y Ayuda",
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    child: Column(
+                      children: [
+                        _buildListTile(
+                          context,
+                          icon: Icons.notifications_none_rounded,
+                          color: Colors.purple,
+                          title: "Notificaciones",
                           onTap: () {
                             Navigator.push(
                               context,
@@ -418,18 +399,11 @@ class _SettingsPage2State extends State<SettingsPage2> {
                             );
                           },
                         ),
-                        ListTile(
-                          leading: Icon(
-                            Icons.help_outline_rounded,
-                            color: theme.colorScheme.primary,
-                          ),
-                          title: Text(
-                            "Ayuda y Comentarios",
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                        _buildListTile(
+                          context,
+                          icon: Icons.help_outline_rounded,
+                          color: Colors.indigo,
+                          title: "Ayuda y Comentarios",
                           onTap: () {
                             Navigator.push(
                               context,
@@ -439,18 +413,11 @@ class _SettingsPage2State extends State<SettingsPage2> {
                             );
                           },
                         ),
-                        ListTile(
-                          leading: Icon(
-                            Icons.info_outline_rounded,
-                            color: theme.colorScheme.primary,
-                          ),
-                          title: Text(
-                            "Acerca de",
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                        _buildListTile(
+                          context,
+                          icon: Icons.info_outline_rounded,
+                          color: Colors.grey,
+                          title: "Acerca de",
                           onTap: () {
                             Navigator.push(
                               context,
@@ -460,83 +427,74 @@ class _SettingsPage2State extends State<SettingsPage2> {
                             );
                           },
                         ),
-                      
                       ],
                     ),
                   ),
-                ),
+                  const SizedBox(height: 32),
 
-
-
-
-     const SizedBox(height: 16),
-
-
-
-
-
-
-
-Material(
-  elevation: 0,
-  borderRadius: BorderRadius.circular(25),
-  child: SizedBox(
-    width: MediaQuery.sizeOf(context).width,
-    height: 50,
-    child: ElevatedButton.icon(
-      onPressed: () async {
-        await userProvider.logout();
-        if (!mounted) return;
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (context) => const SignInScreen(),
-          ),
-          (Route<dynamic> route) => false,
-        );
-      },
-      icon: const Icon(
-        Icons.logout_sharp, // Usa un ícono más grueso
-        color: Colors.white,
-        size: 24, // Ajusta el tamaño según tu necesidad
-      ),
-      label: Text(
-        "Cerrar sesión",
-        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              // color: Theme.of(context).colorScheme.onError,
-              color: Colors.white,
-
-            ),
-      ),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Theme.of(context).brightness == Brightness.dark
-            ? Colors.blueAccent[700] // Color para modo oscuro
-            : Colors.orange, // Color para modo claro
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(25), // Borde redondeado
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 16), // Espaciado interno
-        elevation: 0, // Sin sombra
-      ),
-    ),
-  ),
-),
-
-
- const SizedBox(height: 20),
-
-              ],
+                  // Botón de cerrar sesión
+                  Center(
+                    child: SizedBox(
+                      width: 220,
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          await userProvider.logout();
+                          if (!mounted) return;
+                          Navigator.of(context).pushAndRemoveUntil(
+                            MaterialPageRoute(
+                              builder: (context) => const SignInScreen(),
+                            ),
+                            (Route<dynamic> route) => false,
+                          );
+                        },
+                        icon: const Icon(
+                          Icons.logout_sharp,
+                          color: Colors.white,
+                          size: 24,
+                        ),
+                        label: const Text(
+                          "Cerrar sesión",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.redAccent,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          elevation: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
           ),
         );
       },
     );
-}
+  }
 
-
-
-}
+  Widget _buildListTile(BuildContext context, {required IconData icon, required Color color, required String title, String? subtitle, required VoidCallback onTap}) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: color.withOpacity(0.15),
+        child: Icon(icon, color: color, size: 28),
+        radius: 22,
+      ),
+      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+      subtitle: subtitle != null ? Text(subtitle) : null,
+      trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+      onTap: onTap,
+    );
+  }
 
 
 ImageProvider<Object> _getProfileImage(String? profilePhoto) {
@@ -547,4 +505,5 @@ ImageProvider<Object> _getProfileImage(String? profilePhoto) {
 
   logger.w('Usando imagen predeterminada');
   return const AssetImage('assets/default_avatar.png'); 
+}
 }
