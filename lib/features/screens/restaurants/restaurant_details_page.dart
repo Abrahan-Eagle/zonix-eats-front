@@ -29,6 +29,7 @@ import 'package:zonix/features/services/favorites_service.dart';
 import 'package:zonix/models/product.dart';
 import 'package:zonix/models/cart_item.dart';
 import 'package:zonix/models/restaurant.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class RestaurantDetailsPage extends StatefulWidget {
   final int commerceId;
@@ -40,6 +41,8 @@ class RestaurantDetailsPage extends StatefulWidget {
   final String? logoUrl;
   final double? rating;
   final String? tiempoEntrega;
+  final String? banco;
+  final String? cedula;
 
   const RestaurantDetailsPage({
     Key? key,
@@ -52,6 +55,8 @@ class RestaurantDetailsPage extends StatefulWidget {
     this.logoUrl,
     this.rating,
     this.tiempoEntrega,
+    this.banco,
+    this.cedula,
   }) : super(key: key);
 
   @override
@@ -123,9 +128,75 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     }).toList();
   }
 
+  String _getTodaySchedule(Map<String, dynamic> horario) {
+    final now = DateTime.now();
+    final days = [
+      'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'
+    ];
+    final today = days[now.weekday - 1];
+    if (horario.containsKey(today)) {
+      // Quitar corchetes del valor
+      final value = horario[today].toString().replaceAll(RegExp(r'[{}]'), '');
+      return '$today: $value';
+    }
+    return 'Horario no disponible';
+  }
+
+  void _showFullSchedule(Map<String, dynamic> horario, ThemeData theme) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.dialogBackgroundColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Horario completo', style: theme.textTheme.titleLarge),
+            const SizedBox(height: 12),
+            ...horario.entries.map((entry) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2),
+              child: Row(
+                children: [
+                  Text('${entry.key}: ', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                  Expanded(child: Text(entry.value.toString(), style: theme.textTheme.bodyMedium)),
+                ],
+              ),
+            )),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _getBankDisplay(String? bank) {
+    if (bank == null || bank.isEmpty) return '';
+    if (bank.startsWith('http')) {
+      try {
+        final uri = Uri.parse(bank);
+        return uri.host;
+      } catch (_) {
+        return bank;
+      }
+    }
+    return bank;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final bgColor = theme.scaffoldBackgroundColor;
+    final cardColor = theme.cardColor;
+    final textColor = theme.textTheme.bodyLarge?.color ?? Colors.black;
+    final secondaryText = theme.textTheme.bodyMedium?.color?.withOpacity(0.7) ?? Colors.grey;
+    final accentColor = theme.colorScheme.secondary;
+
     return Scaffold(
+      backgroundColor: bgColor,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
           Navigator.pushNamed(context, '/cart');
@@ -140,206 +211,215 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
             expandedHeight: 320,
             floating: false,
             pinned: true,
-            backgroundColor: widget.abierto ? Colors.green.shade600 : Colors.red.shade600,
+            backgroundColor: widget.abierto
+                ? (isDark ? Colors.green.shade800 : Colors.green.shade600)
+                : (isDark ? Colors.red.shade800 : Colors.red.shade600),
             flexibleSpace: FlexibleSpaceBar(
               background: Stack(
                 children: [
                   Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: widget.abierto 
-                            ? [Colors.green.shade400, Colors.green.shade700]
-                            : [Colors.red.shade400, Colors.red.shade700],
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 10,
-                    right: 20,
-                    child: IconButton(
-                      icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: Colors.pink, size: 32),
-                      onPressed: _toggleFavorite,
-                    ),
-                  ),
-                  Positioned(
-                    top: 40,
-                    right: 70,
-                    child: _averageRating > 0
-                        ? Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.orange,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.1),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.star, size: 16, color: Colors.white),
-                                const SizedBox(width: 4),
-                                Text(
-                                  _averageRating.toStringAsFixed(1),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text('($_totalReviews)', style: const TextStyle(color: Colors.white, fontSize: 12)),
-                              ],
-                            ),
-                          )
-                        : const SizedBox.shrink(),
-                  ),
-                  SafeArea(
-                    child: Padding(
-                      padding: const EdgeInsets.all(10.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SizedBox(height: 60),
-                          Row(
+                    width: double.infinity,
+                    height: double.infinity,
+                    color: widget.abierto
+                        ? (isDark ? Colors.green.shade800 : Colors.green.shade600)
+                        : (isDark ? Colors.red.shade800 : Colors.red.shade600),
+                    child: SafeArea(
+                      child: SingleChildScrollView(
+                        physics: const ClampingScrollPhysics(),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                width: 100,
-                                height: 100,
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.1),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
-                                ),
-                                child: widget.logoUrl != null
-                                    ? ClipRRect(
-                                        borderRadius: BorderRadius.circular(12),
-                                        child: Image.network(
-                                          widget.logoUrl!,
-                                          fit: BoxFit.cover,
+                               const SizedBox(height: 10), // Espacio para los botones flotantes
+                              
+                              
+                              
+                              
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Logo del restaurante
+                                  Container(
+                                    width: 70,
+                                    height: 70,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(16),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withOpacity(0.08),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 4),
                                         ),
-                                      )
-                                    : const Icon(
-                                        Icons.store,
-                                        size: 40,
-                                        color: Colors.grey,
-                                      ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      widget.nombreLocal,
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
+                                      ],
                                     ),
-                                    const SizedBox(height: 8),
-                                    Row(
+                                    child: widget.logoUrl != null && widget.logoUrl!.isNotEmpty
+                                        ? ClipRRect(
+                                            borderRadius: BorderRadius.circular(16),
+                                            child: Image.network(
+                                              widget.logoUrl!,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) => Icon(Icons.store, size: 40, color: Colors.grey.shade400),
+                                            ),
+                                          )
+                                        : Icon(Icons.store, size: 40, color: Colors.grey.shade400),
+                                  ),
+                                  const SizedBox(width: 14),
+                                  
+                                  
+                                  
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Container(
-                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                          decoration: BoxDecoration(
-                                            color: widget.abierto ? Colors.green : Colors.red,
-                                            borderRadius: BorderRadius.circular(12),
+                                        Text(
+                                          widget.nombreLocal,
+                                          style: theme.textTheme.titleLarge?.copyWith(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 22,
                                           ),
-                                          child: Text(
-                                            widget.abierto ? 'ABIERTO' : 'CERRADO',
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        if (widget.tiempoEntrega != null) ...[
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                            decoration: BoxDecoration(
-                                              color: Colors.blue.shade100,
-                                              borderRadius: BorderRadius.circular(12),
+                                        const SizedBox(height: 6),
+                                        Row(
+                                          children: [
+                                            Icon(Icons.star, color: Colors.orange, size: 16),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              _averageRating.toStringAsFixed(1),
+                                              style: theme.textTheme.bodyLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
                                             ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const Icon(Icons.timer, size: 14, color: Colors.blue),
-                                                const SizedBox(width: 2),
-                                                Text(
-                                                  widget.tiempoEntrega!,
-                                                  style: const TextStyle(
-                                                    color: Colors.blue,
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
+                                            Text(' ($_totalReviews)', style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+                                            const SizedBox(width: 12),
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                              decoration: BoxDecoration(
+                                                color: widget.abierto ? Colors.green : Colors.red,
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                              child: Text(
+                                                widget.abierto ? 'ABIERTO' : 'CERRADO',
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.bold,
                                                 ),
+                                              ),
+                                            ),
+                                            if (widget.tiempoEntrega != null) ...[
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.blue.shade100,
+                                                  borderRadius: BorderRadius.circular(12),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(Icons.timer, size: 14, color: Colors.blue),
+                                                    const SizedBox(width: 2),
+                                                    Text(
+                                                      widget.tiempoEntrega!,
+                                                      style: const TextStyle(
+                                                        color: Colors.blue,
+                                                        fontSize: 12,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                        // Dirección del restaurante
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+
+const SizedBox(height: 14),// Espacio para la dirección aquí
+                                        Row(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Icon(Icons.location_on, color: Colors.red.shade200, size: 16),
+                                            const SizedBox(width: 4),
+                                            Expanded(
+                                              child: Text(
+                                                widget.direccion,
+                                                style: theme.textTheme.bodySmall?.copyWith(color: Colors.white),
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.left,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        if (widget.horario != null && widget.horario!.isNotEmpty)
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  _getTodaySchedule(widget.horario!),
+                                                  style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white),
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              TextButton(
+                                                onPressed: () => _showFullSchedule(widget.horario!, theme),
+                                                child: const Text('Ver todos'),
+                                                style: TextButton.styleFrom(foregroundColor: Colors.orange),
+                                              ),
+                                            ],
+                                          ),
+                                        if ((widget.logoUrl != null && widget.logoUrl!.isNotEmpty) || widget.abierto)
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 6.0),
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text('Pago móvil', style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
+                                                if (widget.banco != null && widget.banco!.isNotEmpty)
+                                                  Text('Banco: ${widget.banco}', style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+                                                if (widget.cedula != null && widget.cedula!.isNotEmpty)
+                                                  Text('CI: ${widget.cedula}', style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70)),
+                                                if (widget.telefono.isNotEmpty)
+                                                  Text('Teléfono: ${widget.telefono}', style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white70)),
                                               ],
                                             ),
                                           ),
-                                        ],
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
+
+
+
                             ],
                           ),
-                          const SizedBox(height: 20),
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.9),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.location_on, color: Colors.grey.shade600, size: 20),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    widget.direccion,
-                                    style: TextStyle(
-                                      color: Colors.grey.shade800,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                              ],
-                            ),
-                          ),
-                          if (widget.horario != null && widget.horario!.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: _buildScheduleTable(widget.horario!),
-                            ),
-                          // Métodos de pago móvil
-                          if ((widget.logoUrl != null && widget.logoUrl!.isNotEmpty) || widget.abierto)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: _buildMobilePaymentInfo(),
-                            ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                 
+                  // Botones flotantes arriba a la izquierda y derecha
+                  // Positioned(
+                  //   top: 8,
+                  //   left: 8,
+                  //   child: IconButton(
+                  //     icon: Icon(Icons.arrow_back, color: Colors.white),
+                  //     onPressed: () => Navigator.of(context).pop(),
+                  //   ),
+                  // ),
+                  // Positioned(
+                  //   top: 8,
+                  //   right: 8,
+                  //   child: IconButton(
+                  //     icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: Colors.pinkAccent, size: 28),
+                  //     onPressed: _toggleFavorite,
+                  //   ),
+                  // ),
                 ],
               ),
             ),
@@ -722,6 +802,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   }
 
   void _showProductDetails(Product product) {
+    final theme = Theme.of(context);
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -732,9 +813,9 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
         minChildSize: 0.3,
         expand: false,
         builder: (context, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          decoration: BoxDecoration(
+            color: theme.dialogBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Column(
             children: [
@@ -776,33 +857,26 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       const SizedBox(height: 20),
                       Text(
                         product.name,
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         '₡${product.price.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontSize: 20,
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.green.shade600,
                         ),
                       ),
                       if (product.description != null && product.description!.isNotEmpty) ...[
                         const SizedBox(height: 16),
-                        const Text(
+                        Text(
                           'Descripción',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           product.description!,
-                          style: const TextStyle(fontSize: 14),
+                          style: theme.textTheme.bodyMedium,
                         ),
                       ],
                       const SizedBox(height: 30),
@@ -855,7 +929,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     );
   }
 
-  Widget _buildScheduleTable(Map<String, dynamic> horario) {
+  Widget _buildScheduleTable(Map<String, dynamic> horario, ThemeData theme) {
     return Table(
       columnWidths: const {0: IntrinsicColumnWidth()},
       children: horario.entries.map((entry) {
@@ -863,11 +937,11 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
-              child: Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold)),
+              child: Text(entry.key, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
-              child: Text(entry.value.toString()),
+              child: Text(entry.value.toString(), style: theme.textTheme.bodyMedium),
             ),
           ],
         );
@@ -875,17 +949,17 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     );
   }
 
-  Widget _buildMobilePaymentInfo() {
+  Widget _buildMobilePaymentInfo(ThemeData theme) {
     // Aquí deberías obtener los datos de pago móvil del modelo Restaurant
     // Puedes pasarlos como parámetros o acceder a ellos desde widget
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Pago móvil', style: TextStyle(fontWeight: FontWeight.bold)),
+        Text('Pago móvil', style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
         if (widget.logoUrl != null && widget.logoUrl!.isNotEmpty)
-          Text('Banco: ${widget.logoUrl!}'),
+          Text('Banco: ${widget.logoUrl!}', style: theme.textTheme.bodyMedium),
         if (widget.telefono.isNotEmpty)
-          Text('Teléfono: ${widget.telefono}'),
+          Text('Teléfono: ${widget.telefono}', style: theme.textTheme.bodyMedium),
         // Puedes agregar más campos según el modelo
       ],
     );
