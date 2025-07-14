@@ -187,4 +187,74 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
   }
 }
 
+  // Obtener historial de actividad del usuario
+  Future<Map<String, dynamic>> getActivityHistory() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/buyer/activity'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Error al obtener el historial de actividad');
+    }
+  }
+
+  // Exportar todos los datos personales del usuario
+  Future<Map<String, dynamic>> exportPersonalData() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/buyer/export'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Error al exportar los datos personales');
+    }
+  }
+
+  // Obtener configuración de privacidad
+  Future<Map<String, dynamic>> getPrivacySettings() async {
+    final token = await _getToken();
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/buyer/privacy'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Error al obtener la configuración de privacidad');
+    }
+  }
+
+  // Actualizar configuración de privacidad
+  Future<void> updatePrivacySettings(Map<String, dynamic> settings) async {
+    final token = await _getToken();
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/buyer/privacy'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode(settings),
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Error al actualizar la configuración de privacidad');
+    }
+  }
+
+  // Eliminar cuenta del usuario
+  Future<void> deleteAccount() async {
+    final token = await _getToken();
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/buyer/account'),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Error al eliminar la cuenta');
+    }
+  }
+
 }

@@ -4,6 +4,9 @@ import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart'
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/edit_profile_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/create_profile_page.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/screens/activity_history_page.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/screens/data_export_page.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/screens/privacy_settings_page.dart';
 import 'package:logger/logger.dart';
 import 'package:intl/intl.dart';
 
@@ -159,6 +162,11 @@ class ProfilePagex extends StatelessWidget {
             ),
           ],
         ),
+        const SizedBox(height: 16),
+        
+        // Nuevas opciones de cuenta
+        _buildAccountOptions(context),
+        
         const Spacer(),
       ],
     );
@@ -233,6 +241,96 @@ class ProfilePagex extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildAccountOptions(BuildContext context) {
+    return Column(
+      children: [
+        const Text(
+          'Opciones de Cuenta',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+        
+        // Historial de Actividad
+        _buildOptionCard(
+          context,
+          'Historial de Actividad',
+          'Ver tu actividad reciente',
+          Icons.history,
+          Colors.blue,
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ActivityHistoryPage(),
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 8),
+        
+        // Exportar Datos
+        _buildOptionCard(
+          context,
+          'Exportar Datos',
+          'Descargar tus datos personales',
+          Icons.download,
+          Colors.green,
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const DataExportPage(),
+            ),
+          ),
+        ),
+        
+        const SizedBox(height: 8),
+        
+        // Configuración de Privacidad
+        _buildOptionCard(
+          context,
+          'Privacidad',
+          'Configurar visibilidad y notificaciones',
+          Icons.privacy_tip,
+          Colors.orange,
+          () => Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const PrivacySettingsPage(),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildOptionCard(
+    BuildContext context,
+    String title,
+    String subtitle,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      child: ListTile(
+        leading: CircleAvatar(
+          backgroundColor: color,
+          child: Icon(icon, color: Colors.white),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(subtitle),
+        trailing: const Icon(Icons.chevron_right),
+        onTap: onTap,
       ),
     );
   }
