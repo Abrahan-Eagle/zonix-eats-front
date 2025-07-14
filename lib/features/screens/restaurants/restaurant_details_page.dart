@@ -23,6 +23,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/services/product_service.dart';
 import 'package:zonix/features/services/cart_service.dart';
+import 'package:zonix/features/services/promotion_service.dart';
+import 'package:zonix/features/services/buyer_review_service.dart';
+import 'package:zonix/features/services/favorites_service.dart';
 import 'package:zonix/models/product.dart';
 import 'package:zonix/models/cart_item.dart';
 import 'package:zonix/models/restaurant.dart';
@@ -57,6 +60,11 @@ class RestaurantDetailsPage extends StatefulWidget {
 
 class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   late Future<List<Product>> _productsFuture;
+  late Future<List<Map<String, dynamic>>> _promotionsFuture;
+  late Future<List<Map<String, dynamic>>> _reviewsFuture;
+  bool _isFavorite = false;
+  int _totalReviews = 0;
+  double _averageRating = 0.0;
   String _selectedCategory = 'Todos';
   List<String> _categories = ['Todos'];
   String _searchQuery = '';
@@ -66,6 +74,10 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   void initState() {
     super.initState();
     _productsFuture = _loadProducts();
+    _promotionsFuture = PromotionService().getActivePromotions(commerceId: widget.commerceId);
+    _reviewsFuture = BuyerReviewService().getRestaurantReviews(widget.commerceId);
+    _loadFavorite();
+    _loadReviewStats();
   }
 
   Future<List<Product>> _loadProducts() async {
@@ -77,6 +89,27 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
       _categories = ['Todos', ...categories];
     });
     return commerceProducts;
+  }
+
+  Future<void> _loadFavorite() async {
+    _isFavorite = await FavoritesService().isFavorite(widget.commerceId);
+    setState(() {});
+  }
+
+  Future<void> _toggleFavorite() async {
+    await FavoritesService().toggleFavorite(widget.commerceId);
+    await _loadFavorite();
+  }
+
+  Future<void> _loadReviewStats() async {
+    final reviews = await BuyerReviewService().getRestaurantReviews(widget.commerceId);
+    _totalReviews = reviews.length;
+    if (_totalReviews > 0) {
+      _averageRating = reviews.map((r) => (r['rating'] ?? 0.0) as num).reduce((a, b) => a + b) / _totalReviews;
+    } else {
+      _averageRating = 0.0;
+    }
+    setState(() {});
   }
 
   List<Product> _filterProducts(List<Product> products) {
@@ -95,7 +128,6 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Navegar al carrito
           Navigator.pushNamed(context, '/cart');
         },
         icon: const Icon(Icons.shopping_cart),
@@ -105,7 +137,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 280,
+            expandedHeight: 320,
             floating: false,
             pinned: true,
             backgroundColor: widget.abierto ? Colors.green.shade600 : Colors.red.shade600,
@@ -124,9 +156,17 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     ),
                   ),
                   Positioned(
-                    top: 40,
+                    top: 10,
                     right: 20,
-                    child: widget.rating != null
+                    child: IconButton(
+                      icon: Icon(_isFavorite ? Icons.favorite : Icons.favorite_border, color: Colors.pink, size: 32),
+                      onPressed: _toggleFavorite,
+                    ),
+                  ),
+                  Positioned(
+                    top: 40,
+                    right: 70,
+                    child: _averageRating > 0
                         ? Container(
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                             decoration: BoxDecoration(
@@ -145,12 +185,14 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                 const Icon(Icons.star, size: 16, color: Colors.white),
                                 const SizedBox(width: 4),
                                 Text(
-                                  widget.rating!.toStringAsFixed(1),
+                                  _averageRating.toStringAsFixed(1),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
+                                const SizedBox(width: 4),
+                                Text('($_totalReviews)', style: const TextStyle(color: Colors.white, fontSize: 12)),
                               ],
                             ),
                           )
@@ -282,6 +324,17 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               ],
                             ),
                           ),
+                          if (widget.horario != null && widget.horario!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: _buildScheduleTable(widget.horario!),
+                            ),
+                          // Métodos de pago móvil
+                          if ((widget.logoUrl != null && widget.logoUrl!.isNotEmpty) || widget.abierto)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: _buildMobilePaymentInfo(),
+                            ),
                         ],
                       ),
                     ),
@@ -428,6 +481,94 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   );
                 },
               ),
+            ),
+          ),
+          // Promociones
+          SliverToBoxAdapter(
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: _promotionsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                final promotions = snapshot.data!;
+                return Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.yellow.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Promociones activas', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ...promotions.map((promo) => ListTile(
+                        leading: promo['image_url'] != null ? Image.network(promo['image_url'], width: 40, height: 40) : null,
+                        title: Text(promo['title'] ?? ''),
+                        subtitle: Text(promo['description'] ?? ''),
+                      )),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+          // Resumen de reseñas
+          SliverToBoxAdapter(
+            child: FutureBuilder<List<Map<String, dynamic>>>(
+              future: _reviewsFuture,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                } else if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                final reviews = snapshot.data!;
+                return Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Reseñas recientes', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ...reviews.take(2).map((review) => ListTile(
+                        leading: const Icon(Icons.person, color: Colors.blue),
+                        title: Text(review['customer_name'] ?? 'Cliente'),
+                        subtitle: Text(review['comment'] ?? ''),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star, color: Colors.orange, size: 16),
+                            Text('${review['rating'] ?? ''}'),
+                          ],
+                        ),
+                      )),
+                      if (reviews.length > 2)
+                        TextButton(
+                          onPressed: () {
+                            // Navegar a página de reseñas completas
+                          },
+                          child: const Text('Ver todas las reseñas'),
+                        ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -711,6 +852,42 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildScheduleTable(Map<String, dynamic> horario) {
+    return Table(
+      columnWidths: const {0: IntrinsicColumnWidth()},
+      children: horario.entries.map((entry) {
+        return TableRow(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+              child: Text(entry.key, style: const TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 4),
+              child: Text(entry.value.toString()),
+            ),
+          ],
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildMobilePaymentInfo() {
+    // Aquí deberías obtener los datos de pago móvil del modelo Restaurant
+    // Puedes pasarlos como parámetros o acceder a ellos desde widget
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Pago móvil', style: TextStyle(fontWeight: FontWeight.bold)),
+        if (widget.logoUrl != null && widget.logoUrl!.isNotEmpty)
+          Text('Banco: ${widget.logoUrl!}'),
+        if (widget.telefono.isNotEmpty)
+          Text('Teléfono: ${widget.telefono}'),
+        // Puedes agregar más campos según el modelo
+      ],
     );
   }
 
