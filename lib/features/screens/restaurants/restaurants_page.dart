@@ -406,25 +406,31 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                       }
 
                       if (snapshot.hasError) {
-                        return SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: _buildErrorWidget(snapshot.error!),
+                        return SliverToBoxAdapter(
+                          child: Container(
+                            height: MediaQuery.of(context).size.height * 0.6,
+                            child: _buildErrorWidget(snapshot.error!),
+                          ),
                         );
                       }
 
                       if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                        return SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: _buildEmptyState(),
+                        return SliverToBoxAdapter(
+                          child: Container(
+                            height: MediaQuery.of(context).size.height * 0.6,
+                            child: _buildEmptyState(),
+                          ),
                         );
                       }
 
                       final filteredRestaurants = _filterRestaurants(snapshot.data!);
                       
                       if (filteredRestaurants.isEmpty) {
-                        return SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: _buildEmptyState(),
+                        return SliverToBoxAdapter(
+                          child: Container(
+                            height: MediaQuery.of(context).size.height * 0.6,
+                            child: _buildEmptyState(),
+                          ),
                         );
                       }
 
