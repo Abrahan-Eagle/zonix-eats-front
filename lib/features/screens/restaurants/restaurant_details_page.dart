@@ -226,8 +226,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                 const Icon(Icons.shopping_cart),
                 if (totalItems > 0)
                   Positioned(
-                    right: -4,
-                    top: -4,
+                    left: 15,
+                    bottom: 15,
                     child: Container(
                       padding: const EdgeInsets.all(2),
                       decoration: BoxDecoration(
@@ -235,8 +235,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       constraints: const BoxConstraints(
-                        minWidth: 16,
-                        minHeight: 16,
+                        minWidth: 17,
+                        minHeight: 17,
                       ),
                       child: Text(
                         '$totalItems',

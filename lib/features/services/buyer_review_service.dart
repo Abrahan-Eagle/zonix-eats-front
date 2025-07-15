@@ -112,7 +112,22 @@ class BuyerReviewService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true && data['data'] != null) {
-          return List<Map<String, dynamic>>.from(data['data']);
+          final responseData = data['data'];
+          
+          // Verificar si la respuesta es una lista
+          if (responseData is List) {
+            return List<Map<String, dynamic>>.from(responseData);
+          }
+          // Si es un Map, verificar si tiene una propiedad 'reviews' o similar
+          else if (responseData is Map<String, dynamic>) {
+            if (responseData.containsKey('reviews') && responseData['reviews'] is List) {
+              return List<Map<String, dynamic>>.from(responseData['reviews']);
+            }
+            // Si no tiene 'reviews', devolver una lista vacía
+            return [];
+          }
+          // Si no es ni List ni Map, devolver lista vacía
+          return [];
         }
         return [];
       } else {
@@ -120,7 +135,8 @@ class BuyerReviewService {
       }
     } catch (e) {
       _logger.e('Error en getRestaurantReviews: $e');
-      throw Exception('Error al obtener calificaciones del restaurante: $e');
+      // En caso de error, devolver lista vacía en lugar de lanzar excepción
+      return [];
     }
   }
 
