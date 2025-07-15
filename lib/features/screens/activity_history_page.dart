@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/activity_service.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 class ActivityHistoryPage extends StatefulWidget {
   const ActivityHistoryPage({Key? key}) : super(key: key);
@@ -155,44 +156,63 @@ class _ActivityHistoryPageState extends State<ActivityHistoryPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Historial de Actividad'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: _showFilterDialog,
+      backgroundColor: AppColors.scaffoldBg(context),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.headerGradientStart(context),
+                AppColors.headerGradientMid(context),
+                AppColors.headerGradientEnd(context),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-        ],
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: const Text('Historial de Actividad', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)), // TODO: internacionalizar
+            iconTheme: IconThemeData(color: AppColors.white),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.filter_list),
+                onPressed: _showFilterDialog,
+              ),
+            ],
+          ),
+        ),
       ),
       body: Column(
         children: [
-          // Estadísticas
           if (!isLoading && stats.isNotEmpty)
-            Container(
-              padding: const EdgeInsets.all(16),
+            Card(
+              color: AppColors.cardBg(context),
+              shadowColor: AppColors.orange.withOpacity(0.10),
+              elevation: 8,
               margin: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildStatCard('Total', stats['total_activities']?.toString() ?? '0'),
-                  _buildStatCard('Este mes', stats['this_month']?.toString() ?? '0'),
-                  _buildStatCard('Esta semana', stats['this_week']?.toString() ?? '0'),
-                ],
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildStatCard('Total', stats['total_activities']?.toString() ?? '0', context),
+                    _buildStatCard('Este mes', stats['this_month']?.toString() ?? '0', context),
+                    _buildStatCard('Esta semana', stats['this_week']?.toString() ?? '0', context),
+                  ],
+                ),
               ),
             ),
-          
-          // Lista de actividades
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : activities.isEmpty
                     ? const Center(
                         child: Text(
-                          'No hay actividades para mostrar',
+                          'No hay actividades para mostrar', // TODO: internacionalizar
                           style: TextStyle(fontSize: 16),
                         ),
                       )
@@ -210,9 +230,20 @@ class _ActivityHistoryPageState extends State<ActivityHistoryPage> {
                                 ),
                               );
                             }
-
                             final activity = activities[index];
-                            return _buildActivityCard(activity);
+                            return Card(
+                              color: AppColors.cardBg(context),
+                              shadowColor: AppColors.purple.withOpacity(0.10),
+                              elevation: 6,
+                              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                              child: ListTile(
+                                leading: Text(_getActivityIcon(activity['activity_type'] ?? ''), style: TextStyle(fontSize: 28)),
+                                title: Text(_getActivityTitle(activity['activity_type'] ?? ''), style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryText(context))),
+                                subtitle: Text(activity['description'] ?? '', style: TextStyle(color: AppColors.secondaryText(context))),
+                                trailing: activity['created_at'] != null ? Text(DateTime.tryParse(activity['created_at']) != null ? '${DateTime.parse(activity['created_at']).day}/${DateTime.parse(activity['created_at']).month}/${DateTime.parse(activity['created_at']).year}' : '', style: TextStyle(color: AppColors.secondaryText(context))) : null,
+                              ),
+                            );
                           },
                         ),
                       ),
@@ -222,22 +253,22 @@ class _ActivityHistoryPageState extends State<ActivityHistoryPage> {
     );
   }
 
-  Widget _buildStatCard(String title, String value) {
+  Widget _buildStatCard(String title, String value, BuildContext context) {
     return Column(
       children: [
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
-            color: Colors.blue,
+            color: AppColors.accentButton(context),
           ),
         ),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: Colors.grey,
+            color: AppColors.secondaryText(context),
           ),
         ),
       ],
@@ -248,44 +279,17 @@ class _ActivityHistoryPageState extends State<ActivityHistoryPage> {
     final type = activity['activity_type'] ?? '';
     final description = activity['description'] ?? '';
     final createdAt = DateTime.tryParse(activity['created_at'] ?? '');
-    final metadata = activity['metadata'] ?? {};
-
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      color: AppColors.cardBg(context),
+      shadowColor: AppColors.purple.withOpacity(0.10),
+      elevation: 6,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Colors.blue.shade100,
-          child: Text(
-            _getActivityIcon(type),
-            style: const TextStyle(fontSize: 20),
-          ),
-        ),
-        title: Text(
-          _getActivityTitle(type),
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (description.isNotEmpty)
-              Text(description),
-            if (createdAt != null)
-              Text(
-                _formatDate(createdAt),
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey,
-                ),
-              ),
-            if (metadata.isNotEmpty)
-              ...metadata.entries.map((entry) => Text(
-                    '${entry.key}: ${entry.value}',
-                    style: const TextStyle(fontSize: 12),
-                  )),
-          ],
-        ),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: () => _showActivityDetails(activity),
+        leading: Text(_getActivityIcon(type), style: TextStyle(fontSize: 28)),
+        title: Text(_getActivityTitle(type), style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryText(context))),
+        subtitle: Text(description, style: TextStyle(color: AppColors.secondaryText(context))),
+        trailing: createdAt != null ? Text('${createdAt.day}/${createdAt.month}/${createdAt.year}', style: TextStyle(color: AppColors.secondaryText(context))) : null,
       ),
     );
   }

@@ -3,6 +3,7 @@ import 'package:zonix/features/services/cart_service.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/screens/cart/checkout_page.dart';
 import 'package:zonix/models/cart_item.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 class CartPage extends StatelessWidget {
   const CartPage({Key? key}) : super(key: key);
@@ -18,7 +19,7 @@ class CartPage extends StatelessWidget {
         FocusManager.instance.primaryFocus?.unfocus();
       },
       child: Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.background,
+        backgroundColor: AppColors.scaffoldBg(context),
         body: SafeArea(
           top: true,
           child: Column(
@@ -30,11 +31,11 @@ class CartPage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
                     width: double.infinity,
                     child: Text(
-                      'Carrito',
+                      'Carrito', // TODO: internacionalizar
                       style: TextStyle(
-                        fontSize: 22,
+                        fontSize: 26,
                         fontWeight: FontWeight.bold,
-                        color: Theme.of(context).textTheme.titleLarge?.color,
+                        color: AppColors.primaryText(context),
                       ),
                     ),
                   ),
@@ -46,12 +47,12 @@ class CartPage extends StatelessWidget {
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor,
+                          color: AppColors.cardBg(context),
                           shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white24),
+                          border: Border.all(color: AppColors.secondaryText(context).withOpacity(0.2)),
                         ),
                         alignment: Alignment.center,
-                        child: Icon(Icons.notifications_none, size: 24, color: Theme.of(context).iconTheme.color?.withOpacity(0.5)),
+                        child: Icon(Icons.notifications_none, size: 24, color: AppColors.secondaryText(context).withOpacity(0.5)),
                       ),
                     ),
                   ),
@@ -59,19 +60,21 @@ class CartPage extends StatelessWidget {
               ),
               Expanded(
                 child: cartItems.isEmpty
-                    ? Center(child: Text('El carrito está vacío', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7))))
+                    ? Center(child: Text('El carrito está vacío', style: TextStyle(color: AppColors.secondaryText(context), fontSize: 18))) // TODO: internacionalizar
                     : ListView.builder(
                         padding: EdgeInsets.zero,
                         itemCount: cartItems.length,
                         itemBuilder: (context, index) {
                           final item = cartItems[index];
-                          return Padding(
-                            padding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context).cardColor,
+                          return AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.easeInOut,
+                            child: Card(
+                              color: AppColors.cardBg(context),
+                              shadowColor: AppColors.orange.withOpacity(0.10),
+                              elevation: 6,
+                              shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.white12),
                               ),
                               child: Padding(
                                 padding: const EdgeInsets.all(16),
@@ -81,10 +84,10 @@ class CartPage extends StatelessWidget {
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(20),
                                       child: Container(
-                                        color: Theme.of(context).colorScheme.surface,
+                                        color: AppColors.grayLight,
                                         width: 80,
                                         height: 80,
-                                        child: Icon(Icons.shopping_bag, size: 40, color: Theme.of(context).iconTheme.color?.withOpacity(0.2)),
+                                        child: Icon(Icons.shopping_bag, size: 40, color: AppColors.secondaryText(context).withOpacity(0.2)),
                                       ),
                                     ),
                                     const SizedBox(width: 16),
@@ -95,23 +98,23 @@ class CartPage extends StatelessWidget {
                                           Text(
                                             item.nombre,
                                             style: TextStyle(
-                                              fontSize: 16,
+                                              fontSize: 18,
                                               fontWeight: FontWeight.w600,
-                                              color: Theme.of(context).textTheme.bodyLarge?.color,
+                                              color: AppColors.primaryText(context),
                                             ),
                                           ),
                                           const SizedBox(height: 5),
                                           Text(
-                                            'Cantidad: ${item.quantity}',
-                                            style: TextStyle(fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.7)),
+                                            'Cantidad: ${item.quantity}', // TODO: internacionalizar
+                                            style: TextStyle(fontSize: 15, color: AppColors.secondaryText(context)),
                                           ),
                                           const SizedBox(height: 5),
                                           Text(
-                                            '₡${item.precio?.toStringAsFixed(2) ?? '-'}',
-                                            style: const TextStyle(
-                                              fontSize: 18,
+                                            '\u20a1${item.precio?.toStringAsFixed(2) ?? '-'}',
+                                            style: TextStyle(
+                                              fontSize: 20,
                                               fontWeight: FontWeight.w500,
-                                              color: Colors.greenAccent,
+                                              color: AppColors.success(context),
                                             ),
                                           ),
                                           const SizedBox(height: 5),
@@ -121,20 +124,21 @@ class CartPage extends StatelessWidget {
                                                 onTap: () {
                                                   cartService.decrementQuantity(item);
                                                 },
+                                                borderRadius: BorderRadius.circular(15),
                                                 child: Container(
-                                                  width: 30,
-                                                  height: 30,
-                                                  decoration: const BoxDecoration(
-                                                    color: Color(0xFF23262B),
+                                                  width: 36,
+                                                  height: 36,
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.grayDark,
                                                     shape: BoxShape.circle,
                                                   ),
-                                                  child: const Icon(Icons.remove_sharp, size: 15, color: Colors.white54),
+                                                  child: Icon(Icons.remove_sharp, size: 18, color: AppColors.white.withOpacity(0.7)),
                                                 ),
                                               ),
                                               const SizedBox(width: 12),
                                               Text(
                                                 '${item.quantity}',
-                                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.primaryText(context)),
                                               ),
                                               const SizedBox(width: 12),
                                               InkWell(
@@ -147,23 +151,24 @@ class CartPage extends StatelessWidget {
                                                     quantity: item.quantity + 1,
                                                   ));
                                                 },
+                                                borderRadius: BorderRadius.circular(15),
                                                 child: Container(
-                                                  width: 30,
-                                                  height: 30,
-                                                  decoration: const BoxDecoration(
-                                                    color: Colors.blueAccent,
+                                                  width: 36,
+                                                  height: 36,
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.accentButton(context),
                                                     shape: BoxShape.circle,
                                                   ),
-                                                  child: const Icon(Icons.add, color: Colors.white, size: 15),
+                                                  child: Icon(Icons.add, color: AppColors.white, size: 18),
                                                 ),
                                               ),
                                               const SizedBox(width: 12),
                                               IconButton(
-                                                icon: const Icon(Icons.delete, color: Colors.redAccent),
+                                                icon: Icon(Icons.delete, color: AppColors.error(context)),
                                                 onPressed: () {
                                                   cartService.removeFromCart(item);
                                                   ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(content: Text('Producto eliminado del carrito')),
+                                                    const SnackBar(content: Text('Producto eliminado del carrito')), // TODO: internacionalizar
                                                   );
                                                 },
                                               ),
@@ -181,11 +186,11 @@ class CartPage extends StatelessWidget {
                       ),
               ),
               if (cartItems.isNotEmpty) ...[
-                const Padding(
-                  padding: EdgeInsets.fromLTRB(24, 0, 0, 0),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 0, 0, 0),
                   child: Text(
-                    'Resumen de orden',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white),
+                    'Resumen de orden', // TODO: internacionalizar
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500, color: AppColors.primaryText(context)),
                   ),
                 ),
                 Padding(
@@ -194,31 +199,31 @@ class CartPage extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              'Total Items:',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white54),
+                              'Total Items:', // TODO: internacionalizar
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.secondaryText(context)),
                             ),
                           ),
                           Text(
                             '${cartItems.length}',
-                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: Colors.white),
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: AppColors.primaryText(context)),
                           ),
                         ],
                       ),
                       const SizedBox(height: 10),
-                      const Divider(height: 0.1, thickness: 1, color: Colors.white12),
+                      Divider(height: 0.1, thickness: 1, color: AppColors.secondaryText(context).withOpacity(0.1)),
                       Row(
                         children: [
-                          const Expanded(
+                          Expanded(
                             child: Text(
-                              'Total a pagar:',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.white),
+                              'Total a pagar:', // TODO: internacionalizar
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.primaryText(context)),
                             ),
                           ),
                           Text(
-                            '₡${total.toStringAsFixed(2)}',
-                            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: Colors.greenAccent),
+                            '\u20a1${total.toStringAsFixed(2)}',
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500, color: AppColors.success(context)),
                           ),
                         ],
                       ),
@@ -234,13 +239,15 @@ class CartPage extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(24, 13, 24, 14),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 44,
-                  child: ElevatedButton(
+                  height: 52,
+                  child: ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
+                      backgroundColor: AppColors.primaryButton(context),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
                       ),
+                      elevation: 2,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                     onPressed: () {
                       Navigator.push(
@@ -248,10 +255,8 @@ class CartPage extends StatelessWidget {
                         MaterialPageRoute(builder: (context) => const CheckoutPage()),
                       );
                     },
-                    child: const Text(
-                      'Finalizar compra',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
-                    ),
+                    icon: const Icon(Icons.payment, color: Colors.white),
+                    label: const Text('Proceder al pago', style: TextStyle(color: Colors.white, fontSize: 18)), // TODO: internacionalizar
                   ),
                 ),
               )

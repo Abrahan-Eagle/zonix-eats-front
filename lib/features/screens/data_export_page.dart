@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/export_service.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 class DataExportPage extends StatefulWidget {
   const DataExportPage({Key? key}) : super(key: key);
@@ -159,23 +160,46 @@ class _DataExportPageState extends State<DataExportPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Exportar Datos'),
+      backgroundColor: AppColors.scaffoldBg(context),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.headerGradientStart(context),
+                AppColors.headerGradientMid(context),
+                AppColors.headerGradientEnd(context),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: const Text('Exportar Datos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)), // TODO: internacionalizar
+            iconTheme: IconThemeData(color: AppColors.white),
+          ),
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Información sobre exportación
             Card(
+              color: AppColors.cardBg(context),
+              shadowColor: AppColors.orange.withOpacity(0.10),
+              elevation: 8,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Exportar tus datos personales',
+                      'Exportar tus datos personales', // TODO: internacionalizar
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -183,26 +207,26 @@ class _DataExportPageState extends State<DataExportPage> {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'Puedes solicitar una copia de todos los datos que tenemos sobre ti. '
-                      'La exportación puede tardar hasta 24 horas en completarse.',
+                      'Puedes solicitar una copia de todos los datos que tenemos sobre ti. La exportación puede tardar hasta 24 horas en completarse.', // TODO: internacionalizar
                       style: TextStyle(color: Colors.grey),
                     ),
                   ],
                 ),
               ),
             ),
-            
             const SizedBox(height: 16),
-            
-            // Selección de tipos de datos
             Card(
+              color: AppColors.cardBg(context),
+              shadowColor: AppColors.orange.withOpacity(0.10),
+              elevation: 8,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Tipos de datos a exportar',
+                      'Tipos de datos a exportar', // TODO: internacionalizar
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -221,23 +245,25 @@ class _DataExportPageState extends State<DataExportPage> {
                           }
                         });
                       },
+                      activeColor: AppColors.accentButton(context),
                     )),
                   ],
                 ),
               ),
             ),
-            
             const SizedBox(height: 16),
-            
-            // Selección de formato
             Card(
+              color: AppColors.cardBg(context),
+              shadowColor: AppColors.orange.withOpacity(0.10),
+              elevation: 8,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Formato de exportación',
+                      'Formato de exportación', // TODO: internacionalizar
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -248,62 +274,70 @@ class _DataExportPageState extends State<DataExportPage> {
                       title: Text(format.toUpperCase()),
                       value: format,
                       groupValue: selectedFormat,
-                      onChanged: (String? value) {
+                      onChanged: (value) {
                         setState(() {
                           selectedFormat = value!;
                         });
                       },
+                      activeColor: AppColors.accentButton(context),
                     )),
                   ],
                 ),
               ),
             ),
-            
             const SizedBox(height: 16),
-            
-            // Botón de solicitar exportación
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: isRequestingExport ? null : _requestDataExport,
+            Center(
+              child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  backgroundColor: AppColors.primaryButton(context),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 2,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
                 ),
-                child: isRequestingExport
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Solicitar Exportación',
-                        style: TextStyle(fontSize: 16),
-                      ),
+                onPressed: isRequestingExport ? null : _requestDataExport,
+                icon: const Icon(Icons.download, color: Colors.white),
+                label: isRequestingExport
+                    ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Text('Solicitar exportación', style: TextStyle(color: Colors.white, fontSize: 18)), // TODO: internacionalizar
               ),
             ),
-            
             const SizedBox(height: 24),
-            
-            // Historial de exportaciones
-            const Text(
-              'Historial de exportaciones',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            Card(
+              color: AppColors.cardBg(context),
+              shadowColor: AppColors.orange.withOpacity(0.10),
+              elevation: 8,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Historial de exportaciones', // TODO: internacionalizar
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (isLoading)
+                      const Center(child: CircularProgressIndicator())
+                    else if (exportHistory.isEmpty)
+                      const Text('No hay exportaciones previas', style: TextStyle(color: Colors.grey)) // TODO: internacionalizar
+                    else
+                      ...exportHistory.map((item) => ListTile(
+                        leading: Icon(Icons.file_download, color: AppColors.accentButton(context)),
+                        title: Text(_getStatusText(item['status'])),
+                        subtitle: Text(item['created_at'] ?? ''),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.download, color: Colors.green),
+                          onPressed: () => _downloadExport(item['id']),
+                        ),
+                      )),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 8),
-            
-            if (isLoading)
-              const Center(child: CircularProgressIndicator())
-            else if (exportHistory.isEmpty)
-              const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text(
-                    'No hay exportaciones previas',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ),
-              )
-            else
-              ...exportHistory.map((export) => _buildExportHistoryCard(export)),
           ],
         ),
       ),

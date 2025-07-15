@@ -10,6 +10,7 @@ import 'package:logger/logger.dart';
 import 'package:qr_flutter/qr_flutter.dart'; // Importa QrImageView
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 
 final logger = Logger();
@@ -81,23 +82,40 @@ Future<void> _initializeData() async {
 @override
 Widget build(BuildContext context) {
   final userProvider = Provider.of<UserProvider>(context);
+  final isDark = Theme.of(context).brightness == Brightness.dark;
   return Scaffold(
-    backgroundColor: Theme.of(context).scaffoldBackgroundColor, // Reemplazo de FlutterFlowTheme
-    appBar: AppBar(
-      backgroundColor: const Color(0xFF4B39EF),
-      automaticallyImplyLeading: false,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: () => Navigator.pop(context),
+    backgroundColor: AppColors.scaffoldBg(context),
+    appBar: PreferredSize(
+      preferredSize: const Size.fromHeight(120),
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.headerGradientStart(context),
+              AppColors.headerGradientMid(context),
+              AppColors.headerGradientEnd(context),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+        child: AppBar(
+          backgroundColor: Colors.transparent,
+          automaticallyImplyLeading: false,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(
+            'Mi Perfil', // TODO: internacionalizar
+            style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          elevation: 0,
+        ),
       ),
-      title: Text(
-        'Mi Perfil',
-        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-      ),
-      elevation: 2,
     ),
     body: FutureBuilder<Profile?>(
       future: _profileFuture,
@@ -111,53 +129,83 @@ Widget build(BuildContext context) {
               children: [
                 const Icon(Icons.error, color: Colors.red, size: 48),
                 const SizedBox(height: 8),
-                Text('Error: \\${snapshot.error}', style: const TextStyle(color: Colors.red)),
+                Text('Error: \\${snapshot.error}', style: TextStyle(color: AppColors.error(context))),
                 const SizedBox(height: 8),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryButton(context),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 2,
+                  ),
                   onPressed: () {
                     setState(() {
                       final userProvider = Provider.of<UserProvider>(context, listen: false);
                       _profileFuture = ProfileService().getProfileById(userProvider.userId);
                     });
                   },
-                  child: const Text('Reintentar'),
+                  child: const Text('Reintentar'), // TODO: internacionalizar
                 ),
               ],
             ),
           );
         } else if (!snapshot.hasData || snapshot.data == null) {
-          return const Center(child: Text('No se encontró el perfil'));
+          return Center(child: Text('No se encontró el perfil', style: TextStyle(color: AppColors.secondaryText(context)))); // TODO: internacionalizar
         }
         final profile = snapshot.data!;
         return Padding(
           padding: const EdgeInsets.all(24.0),
           child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  profile.firstName + ' ' + profile.lastName,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
+            child: Card(
+              color: AppColors.cardBg(context),
+              elevation: 8,
+              shadowColor: AppColors.purple.withOpacity(0.15),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+              child: Padding(
+                padding: const EdgeInsets.all(28.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    if (profile.photo != null && profile.photo!.isNotEmpty)
+                      CircleAvatar(
+                        radius: 60,
+                        backgroundImage: NetworkImage(profile.photo!),
+                        backgroundColor: AppColors.purple.withOpacity(0.15),
                       ),
+                    const SizedBox(height: 16),
+                    Text(
+                      profile.firstName + ' ' + profile.lastName,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primaryText(context),
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'ID: \\${profile.id}',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.secondaryText(context)),
+                    ),
+                    const SizedBox(height: 24),
+                    _infoRow('Fecha de nacimiento', profile.dateOfBirth, context),
+                    _infoRow('Estado civil', profile.maritalStatus, context),
+                    _infoRow('Sexo', profile.sex, context),
+                    const SizedBox(height: 32),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.accentButton(context),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 2,
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      ),
+                      onPressed: () {
+                        // Acción de editar perfil o compartir QR
+                      },
+                      icon: const Icon(Icons.edit, color: Colors.white),
+                      label: const Text('Editar perfil', style: TextStyle(color: Colors.white)), // TODO: internacionalizar
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'ID: \\${profile.id}',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
-                ),
-                const SizedBox(height: 16),
-                if (profile.photo != null && profile.photo!.isNotEmpty)
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundImage: NetworkImage(profile.photo!),
-                  ),
-                const SizedBox(height: 16),
-                _infoRow('Fecha de nacimiento', profile.dateOfBirth),
-                _infoRow('Estado civil', profile.maritalStatus),
-                _infoRow('Sexo', profile.sex),
-              ],
+              ),
             ),
           ),
         );
@@ -166,13 +214,16 @@ Widget build(BuildContext context) {
   );
 }
 
-Widget _infoRow(String label, String value) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Text(label, style: const TextStyle(color: Colors.grey)),
-      Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
-    ],
+Widget _infoRow(String label, String value, BuildContext context) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8.0),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: TextStyle(color: AppColors.secondaryText(context))),
+        Text(value, style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryText(context))),
+      ],
+    ),
   );
 }
 

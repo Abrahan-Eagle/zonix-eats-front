@@ -12,6 +12,7 @@ import 'package:zonix/models/product.dart';
 import '../../services/test_auth_service.dart';
 import 'package:zonix/features/utils/debouncer.dart';
 import 'package:zonix/features/utils/network_image_with_fallback.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 class RestaurantsPage extends StatefulWidget {
   const RestaurantsPage({Key? key}) : super(key: key);
@@ -109,10 +110,9 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   }
 
   Widget _buildShimmerLoading() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: isDark ? const Color(0xFF23262B) : Colors.grey[200]!,
-      highlightColor: isDark ? const Color(0xFF181A20) : Colors.grey[100]!,
+      baseColor: AppColors.cardBg(context),
+      highlightColor: AppColors.scaffoldBg(context),
       child: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: 5,
@@ -121,7 +121,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
           child: Container(
             height: 180,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF23262B) : Colors.white,
+              color: AppColors.cardBg(context),
               borderRadius: BorderRadius.circular(16),
             ),
           ),
@@ -201,13 +201,13 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   }
 
   Widget _buildRestaurantCard(Restaurant restaurant) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
-      color: isDark ? const Color(0xFF23262B) : Colors.white,
+      color: AppColors.cardBg(context),
+      shadowColor: AppColors.orange.withOpacity(0.10),
+      elevation: 6,
       clipBehavior: Clip.antiAliasWithSaveLayer,
-      elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: InkWell(
         onTap: () async {
@@ -226,11 +226,15 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                 logoUrl: restaurant.logoUrl,
                 rating: null,
                 tiempoEntrega: null,
+                banco: restaurant.pagoMovilBanco,
+                cedula: restaurant.pagoMovilCedula,
               ),
             ),
           );
         },
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
+        splashColor: AppColors.orange.withOpacity(0.15),
+        highlightColor: AppColors.orange.withOpacity(0.08),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -254,10 +258,10 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                   // Nombre
                   Text(
                     restaurant.nombreLocal,
-                    style: GoogleFonts.manrope(
+                    style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: isDark ? Colors.white : Colors.black,
+                      color: AppColors.primaryText(context),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -265,13 +269,13 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                   if (restaurant.direccion != null)
                     Row(
                       children: [
-                        Icon(Icons.location_on, color: isDark ? Colors.blueAccent : Colors.blue, size: 18),
+                        Icon(Icons.location_on, color: AppColors.accentButton(context), size: 18),
                         const SizedBox(width: 4),
                         Expanded(
                           child: Text(
                             restaurant.direccion!,
-                            style: GoogleFonts.manrope(
-                              color: isDark ? Colors.white70 : Colors.black54,
+                            style: TextStyle(
+                              color: AppColors.secondaryText(context),
                               fontSize: 14,
                             ),
                             maxLines: 1,
@@ -285,14 +289,14 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                     children: [
                       Icon(
                         restaurant.abierto == true ? Icons.check_circle : Icons.cancel,
-                        color: restaurant.abierto == true ? Colors.greenAccent : Colors.redAccent,
+                        color: restaurant.abierto == true ? AppColors.success(context) : AppColors.error(context),
                         size: 18,
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        restaurant.abierto == true ? 'Abierto' : 'Cerrado',
-                        style: GoogleFonts.manrope(
-                          color: restaurant.abierto == true ? Colors.greenAccent : Colors.redAccent,
+                        restaurant.abierto == true ? 'Abierto' : 'Cerrado', // TODO: internacionalizar
+                        style: TextStyle(
+                          color: restaurant.abierto == true ? AppColors.success(context) : AppColors.error(context),
                           fontSize: 14,
                         ),
                       ),
@@ -311,12 +315,28 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF181A20) : Colors.white,
-      appBar: AppBar(
-        backgroundColor: isDark ? const Color(0xFF181A20) : Colors.white,
-        elevation: 0,
-        title: Text('Restaurantes', style: GoogleFonts.manrope(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
-        iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black),
+      backgroundColor: AppColors.scaffoldBg(context),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.headerGradientStart(context),
+                AppColors.headerGradientMid(context),
+                AppColors.headerGradientEnd(context),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: Text('Restaurantes', style: TextStyle(color: AppColors.white, fontWeight: FontWeight.bold, fontSize: 24)),
+            iconTheme: IconThemeData(color: AppColors.white),
+          ),
+        ),
       ),
       body: SafeArea(
         child: Column(
@@ -325,13 +345,13 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
               padding: const EdgeInsets.all(16.0),
               child: TextField(
                 controller: _searchController,
-                style: TextStyle(color: isDark ? Colors.white : Colors.black),
+                style: TextStyle(color: AppColors.primaryText(context)),
                 decoration: InputDecoration(
-                  hintText: 'Buscar restaurante...',
-                  hintStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black45),
+                  hintText: 'Buscar restaurante...', // TODO: internacionalizar
+                  hintStyle: TextStyle(color: AppColors.secondaryText(context)),
                   filled: true,
-                  fillColor: isDark ? const Color(0xFF23262B) : Colors.white,
-                  prefixIcon: Icon(Icons.search, color: isDark ? Colors.white54 : Colors.black45),
+                  fillColor: AppColors.cardBg(context),
+                  prefixIcon: Icon(Icons.search, color: AppColors.secondaryText(context)),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide: BorderSide.none,
@@ -365,7 +385,11 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                       padding: const EdgeInsets.all(16),
                       itemCount: filtered.length,
                       itemBuilder: (context, index) {
-                        return _buildRestaurantCard(filtered[index]);
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeInOut,
+                          child: _buildRestaurantCard(filtered[index]),
+                        );
                       },
                     );
                   }

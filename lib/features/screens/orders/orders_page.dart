@@ -7,6 +7,7 @@ import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/helpers/auth_helper.dart';
 import 'dart:async'; // Added for StreamSubscription
+import 'package:zonix/features/utils/app_colors.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -117,14 +118,28 @@ class _OrdersPageState extends State<OrdersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Mis Pedidos'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadOrders,
+      backgroundColor: AppColors.scaffoldBg(context),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.headerGradientStart(context),
+                AppColors.headerGradientMid(context),
+                AppColors.headerGradientEnd(context),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
-        ],
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: const Text('Órdenes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)), // TODO: internacionalizar
+            iconTheme: IconThemeData(color: AppColors.white),
+          ),
+        ),
       ),
       body: _buildBody(),
     );
@@ -209,7 +224,22 @@ class _OrdersPageState extends State<OrdersPage> {
         itemCount: _orders.length,
         itemBuilder: (context, index) {
           final order = _orders[index];
-          return _buildOrderCard(order);
+          return Card(
+            color: AppColors.cardBg(context),
+            shadowColor: AppColors.purple.withOpacity(0.10),
+            elevation: 6,
+            margin: const EdgeInsets.symmetric(vertical: 10),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+            child: ListTile(
+              leading: Icon(Icons.receipt_long, color: AppColors.accentButton(context)),
+              title: Text('Orden #${order.id}', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryText(context))),
+              subtitle: Text('Estado: ${order.status}', style: TextStyle(color: AppColors.secondaryText(context))),
+              trailing: Text('${order.total}₡', style: TextStyle(color: AppColors.success(context), fontWeight: FontWeight.bold)),
+              onTap: () {
+                // Acción para ver detalles de la orden
+              },
+            ),
+          );
         },
       ),
     );

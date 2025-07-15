@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/account_deletion_service.dart';
 import '../../helpers/auth_helper.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 class AccountDeletionPage extends StatefulWidget {
   const AccountDeletionPage({Key? key}) : super(key: key);
@@ -166,10 +167,28 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Eliminar Cuenta'),
-        backgroundColor: Colors.red,
-        foregroundColor: Colors.white,
+      backgroundColor: AppColors.scaffoldBg(context),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.headerGradientStart(context),
+                AppColors.headerGradientMid(context),
+                AppColors.headerGradientEnd(context),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: const Text('Eliminar Cuenta', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)), // TODO: internacionalizar
+            iconTheme: IconThemeData(color: AppColors.white),
+          ),
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -178,9 +197,11 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Advertencia importante
                   Card(
-                    color: Colors.red.shade50,
+                    color: AppColors.red.withOpacity(0.08),
+                    shadowColor: AppColors.red.withOpacity(0.15),
+                    elevation: 8,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
@@ -188,10 +209,10 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.warning, color: Colors.red.shade700),
+                              Icon(Icons.warning, color: AppColors.red),
                               const SizedBox(width: 8),
                               const Text(
-                                'Advertencia importante',
+                                'Advertencia importante', // TODO: internacionalizar
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -202,41 +223,36 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
                           ),
                           const SizedBox(height: 8),
                           const Text(
-                            'La eliminación de tu cuenta es permanente e irreversible. '
-                            'Todos tus datos, pedidos, reseñas y configuraciones serán eliminados definitivamente.',
+                            'La eliminación de tu cuenta es permanente e irreversible. Todos tus datos, pedidos, reseñas y configuraciones serán eliminados definitivamente.', // TODO: internacionalizar
                             style: TextStyle(color: Colors.red),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  
                   const SizedBox(height: 16),
-                  
-                  // Estado actual de eliminación
                   if (deletionStatus.isNotEmpty) ...[
                     _buildDeletionStatusCard(),
                     const SizedBox(height: 16),
                   ],
-                  
-                  // Formulario de solicitud de eliminación
                   if (deletionStatus['has_pending_request'] != true) ...[
                     _buildDeletionRequestForm(),
                   ] else ...[
                     _buildPendingRequestCard(),
                   ],
-                  
                   const SizedBox(height: 24),
-                  
-                  // Información adicional
                   Card(
+                    color: AppColors.cardBg(context),
+                    shadowColor: AppColors.red.withOpacity(0.10),
+                    elevation: 8,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            '¿Qué se elimina?',
+                            '¿Qué se elimina?', // TODO: internacionalizar
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -248,7 +264,6 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
                           const Text('• Reseñas y calificaciones'),
                           const Text('• Direcciones guardadas'),
                           const Text('• Configuraciones de la app'),
-                          const Text('• Datos de actividad'),
                         ],
                       ),
                     ),
@@ -265,7 +280,7 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
     final scheduledFor = deletionStatus['scheduled_for'];
 
     return Card(
-      color: Colors.orange.shade50,
+      color: AppColors.orange.withOpacity(0.08),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -273,7 +288,7 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
           children: [
             Row(
               children: [
-                Icon(Icons.schedule, color: Colors.orange.shade700),
+                Icon(Icons.schedule, color: AppColors.orange),
                 const SizedBox(width: 8),
                 const Text(
                   'Estado de eliminación',
@@ -365,7 +380,7 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
               child: ElevatedButton(
                 onPressed: isRequestingDeletion ? null : _requestAccountDeletion,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+                  backgroundColor: AppColors.red,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
@@ -385,7 +400,7 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
 
   Widget _buildPendingRequestCard() {
     return Card(
-      color: Colors.orange.shade50,
+      color: AppColors.orange.withOpacity(0.08),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -424,7 +439,7 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
                   child: ElevatedButton(
                     onPressed: _showConfirmationDialog,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
+                      backgroundColor: AppColors.red,
                       foregroundColor: Colors.white,
                     ),
                     child: const Text('Confirmar'),
@@ -480,7 +495,7 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
               _confirmAccountDeletion();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.red,
               foregroundColor: Colors.white,
             ),
             child: isConfirmingDeletion

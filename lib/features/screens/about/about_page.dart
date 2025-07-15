@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'pubspec.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -101,14 +102,34 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false, // Quitar el banner de depuración
       home: SafeArea(child: aboutPage),
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primaryColor: AppColors.purple,
         brightness: Brightness.light,
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        appBarTheme: AppBarTheme(
+          backgroundColor: AppColors.purple,
+          foregroundColor: AppColors.white,
+          elevation: 0,
+          titleTextStyle: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
       ),
       darkTheme: ThemeData(
         brightness: Brightness.dark,
-        primarySwatch: Colors.blueGrey,
+        primaryColor: AppColors.purple,
         visualDensity: VisualDensity.adaptivePlatformDensity,
+        appBarTheme: AppBarTheme(
+          backgroundColor: AppColors.purple,
+          foregroundColor: AppColors.white,
+          elevation: 0,
+          titleTextStyle: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
       ),
     );
   }

@@ -401,6 +401,7 @@ import 'package:zonix/features/screens/admin/admin_analytics_page.dart';
 
 import 'package:zonix/features/screens/help/help_and_faq_page.dart';
 import 'package:zonix/features/services/websocket_service.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 /*
  * ZONIX EATS - Aplicación Multi-Rol
@@ -486,8 +487,64 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'ZONIX',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
+      theme: ThemeData(
+        brightness: Brightness.light,
+        primaryColor: AppColors.blue,
+        scaffoldBackgroundColor: AppColors.white,
+        appBarTheme: AppBarTheme(
+          backgroundColor: AppColors.blue,
+          foregroundColor: AppColors.white,
+          elevation: 2,
+          titleTextStyle: TextStyle(
+            color: AppColors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
+        colorScheme: ColorScheme.light(
+          primary: AppColors.blue,
+          secondary: AppColors.orange,
+          error: AppColors.red,
+          background: AppColors.white,
+        ),
+        cardColor: AppColors.grayLight,
+        buttonTheme: ButtonThemeData(
+          buttonColor: AppColors.orange,
+          textTheme: ButtonTextTheme.primary,
+        ),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: AppColors.orange,
+        ),
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        primaryColor: AppColors.purple,
+        scaffoldBackgroundColor: AppColors.backgroundDark,
+        appBarTheme: AppBarTheme(
+          backgroundColor: AppColors.purple,
+          foregroundColor: AppColors.white,
+          elevation: 2,
+          titleTextStyle: TextStyle(
+            color: AppColors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+          ),
+        ),
+        colorScheme: ColorScheme.dark(
+          primary: AppColors.purple,
+          secondary: AppColors.orangeCoral,
+          error: AppColors.red,
+          background: AppColors.backgroundDark,
+        ),
+        cardColor: AppColors.grayDark,
+        buttonTheme: ButtonThemeData(
+          buttonColor: AppColors.orangeCoral,
+          textTheme: ButtonTextTheme.primary,
+        ),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: AppColors.orangeCoral,
+        ),
+      ),
       themeMode: ThemeMode.system,
       home: Consumer<UserProvider>(
         builder: (context, userProvider, child) {

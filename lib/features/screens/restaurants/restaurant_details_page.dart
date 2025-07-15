@@ -30,6 +30,7 @@ import 'package:zonix/models/product.dart';
 import 'package:zonix/models/cart_item.dart';
 import 'package:zonix/models/restaurant.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zonix/features/screens/cart/cart_page.dart';
 
 class RestaurantDetailsPage extends StatefulWidget {
   final int commerceId;
@@ -142,10 +143,22 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     return 'Horario no disponible';
   }
 
-  void _showFullSchedule(Map<String, dynamic> horario, ThemeData theme) {
+  void _showFullSchedule(Map<String, dynamic> horario, ThemeData theme, bool abierto, bool isDark) {
+    final Color modalColor = abierto
+        ? (isDark ? Colors.green.shade800 : Colors.green.shade600)
+        : (isDark ? Colors.red.shade800 : Colors.red.shade600);
+    final diasES = {
+      'monday': 'Lunes',
+      'tuesday': 'Martes',
+      'wednesday': 'Miércoles',
+      'thursday': 'Jueves',
+      'friday': 'Viernes',
+      'saturday': 'Sábado',
+      'sunday': 'Domingo',
+    };
     showModalBottomSheet(
       context: context,
-      backgroundColor: theme.dialogBackgroundColor,
+      backgroundColor: modalColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -155,14 +168,14 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Horario completo', style: theme.textTheme.titleLarge),
+            Text('Horario completo', style: theme.textTheme.titleLarge?.copyWith(color: Colors.white)),
             const SizedBox(height: 12),
             ...horario.entries.map((entry) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 2),
               child: Row(
                 children: [
-                  Text('${entry.key}: ', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
-                  Expanded(child: Text(entry.value.toString(), style: theme.textTheme.bodyMedium)),
+                  Text('${diasES[entry.key] ?? entry.key}: ', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
+                  Expanded(child: Text(entry.value.toString().replaceAll(RegExp(r'[{}]'), ''), style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white))),
                 ],
               ),
             )),
@@ -197,13 +210,51 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
 
     return Scaffold(
       backgroundColor: bgColor,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.pushNamed(context, '/cart');
+      floatingActionButton: Consumer<CartService>(
+        builder: (context, cartService, child) {
+          int totalItems = cartService.items.fold(0, (sum, item) => sum + item.quantity);
+          return FloatingActionButton.extended(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CartPage()),
+              );
+            },
+            icon: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                const Icon(Icons.shopping_cart),
+                if (totalItems > 0)
+                  Positioned(
+                    right: -4,
+                    top: -4,
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: Text(
+                        '$totalItems',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            label: const Text('Ver carrito'),
+            backgroundColor: Colors.orange,
+          );
         },
-        icon: const Icon(Icons.shopping_cart),
-        label: const Text('Ver carrito'),
-        backgroundColor: Colors.orange,
       ),
       body: CustomScrollView(
         slivers: [
@@ -344,22 +395,14 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               ),
 
 
-const SizedBox(height: 14),// Espacio para la dirección aquí
-                                        Row(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Icon(Icons.location_on, color: Colors.red.shade200, size: 16),
-                                            const SizedBox(width: 4),
-                                            Expanded(
-                                              child: Text(
-                                                widget.direccion,
-                                                style: theme.textTheme.bodySmall?.copyWith(color: Colors.white),
-                                                overflow: TextOverflow.ellipsis,
-                                                textAlign: TextAlign.left,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+const SizedBox(height: 14), // Espacio para la dirección aquí
+Text(
+  widget.direccion.replaceAll('\n', ' '),
+  style: theme.textTheme.bodySmall?.copyWith(color: Colors.white),
+  maxLines: 1,
+  overflow: TextOverflow.ellipsis,
+  textAlign: TextAlign.left,
+),
                                         const SizedBox(height: 4),
                                         if (widget.horario != null && widget.horario!.isNotEmpty)
                                           Row(
@@ -372,9 +415,9 @@ const SizedBox(height: 14),// Espacio para la dirección aquí
                                                 ),
                                               ),
                                               TextButton(
-                                                onPressed: () => _showFullSchedule(widget.horario!, theme),
+                                                onPressed: () => _showFullSchedule(widget.horario!, theme, widget.abierto, isDark),
                                                 child: const Text('Ver todos'),
-                                                style: TextButton.styleFrom(foregroundColor: Colors.orange),
+                                                style: TextButton.styleFrom(foregroundColor: Colors.white),
                                               ),
                                             ],
                                           ),

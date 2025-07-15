@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/privacy_service.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 class PrivacySettingsPage extends StatefulWidget {
   const PrivacySettingsPage({Key? key}) : super(key: key);
@@ -89,22 +90,42 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Configuración de Privacidad'),
-        actions: [
-          if (isSaving)
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              ),
+      backgroundColor: AppColors.scaffoldBg(context),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.headerGradientStart(context),
+                AppColors.headerGradientMid(context),
+                AppColors.headerGradientEnd(context),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
-        ],
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: const Text('Configuración de Privacidad', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)), // TODO: internacionalizar
+            iconTheme: IconThemeData(color: AppColors.white),
+            actions: [
+              if (isSaving)
+                const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -113,15 +134,18 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Información general
                   Card(
+                    color: AppColors.cardBg(context),
+                    shadowColor: AppColors.purple.withOpacity(0.10),
+                    elevation: 8,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text(
-                            'Controla tu privacidad',
+                            'Controla tu privacidad', // TODO: internacionalizar
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -129,177 +153,115 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
                           ),
                           const SizedBox(height: 8),
                           const Text(
-                            'Gestiona cómo se utilizan y comparten tus datos personales.',
+                            'Gestiona cómo se utilizan y comparten tus datos personales.', // TODO: internacionalizar
                             style: TextStyle(color: Colors.grey),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  
                   const SizedBox(height: 16),
-                  
-                  // Visibilidad del perfil
                   _buildPrivacySection(
-                    title: 'Visibilidad del perfil',
-                    description: 'Controla quién puede ver tu información personal',
+                    title: 'Visibilidad del perfil', // TODO: internacionalizar
+                    description: 'Controla quién puede ver tu información personal', // TODO: internacionalizar
                     children: [
                       SwitchListTile(
-                        title: const Text('Perfil público'),
-                        subtitle: const Text('Permitir que otros usuarios vean tu perfil'),
+                        title: const Text('Perfil público'), // TODO: internacionalizar
+                        subtitle: const Text('Permitir que otros usuarios vean tu perfil'), // TODO: internacionalizar
                         value: privacySettings['profile_visibility'] ?? false,
                         onChanged: (bool value) {
                           _updatePrivacySettings({
                             'profile_visibility': value,
                           });
                         },
+                        activeColor: AppColors.accentButton(context),
                       ),
                     ],
                   ),
-                  
                   const SizedBox(height: 16),
-                  
-                  // Historial de pedidos
                   _buildPrivacySection(
-                    title: 'Historial de pedidos',
-                    description: 'Controla la visibilidad de tu historial de compras',
+                    title: 'Historial de pedidos', // TODO: internacionalizar
+                    description: 'Controla la visibilidad de tu historial de compras', // TODO: internacionalizar
                     children: [
                       SwitchListTile(
-                        title: const Text('Historial visible'),
-                        subtitle: const Text('Permitir que se vea tu historial de pedidos'),
+                        title: const Text('Historial visible'), // TODO: internacionalizar
+                        subtitle: const Text('Permitir que se vea tu historial de pedidos'), // TODO: internacionalizar
                         value: privacySettings['order_history_visibility'] ?? false,
                         onChanged: (bool value) {
                           _updatePrivacySettings({
                             'order_history_visibility': value,
                           });
                         },
+                        activeColor: AppColors.accentButton(context),
                       ),
                     ],
                   ),
-                  
                   const SizedBox(height: 16),
-                  
-                  // Actividad
                   _buildPrivacySection(
-                    title: 'Actividad',
-                    description: 'Controla la visibilidad de tu actividad en la app',
+                    title: 'Actividad', // TODO: internacionalizar
+                    description: 'Controla la visibilidad de tu actividad en la app', // TODO: internacionalizar
                     children: [
                       SwitchListTile(
-                        title: const Text('Actividad visible'),
-                        subtitle: const Text('Permitir que se vea tu actividad reciente'),
+                        title: const Text('Actividad visible'), // TODO: internacionalizar
+                        subtitle: const Text('Permitir que se vea tu actividad reciente'), // TODO: internacionalizar
                         value: privacySettings['activity_visibility'] ?? false,
                         onChanged: (bool value) {
                           _updatePrivacySettings({
                             'activity_visibility': value,
                           });
                         },
+                        activeColor: AppColors.accentButton(context),
                       ),
                     ],
                   ),
-                  
                   const SizedBox(height: 16),
-                  
-                  // Notificaciones
                   _buildPrivacySection(
-                    title: 'Notificaciones',
-                    description: 'Controla cómo recibes notificaciones',
+                    title: 'Notificaciones', // TODO: internacionalizar
+                    description: 'Controla cómo recibes notificaciones', // TODO: internacionalizar
                     children: [
                       SwitchListTile(
-                        title: const Text('Emails de marketing'),
-                        subtitle: const Text('Recibir promociones y ofertas por email'),
+                        title: const Text('Emails de marketing'), // TODO: internacionalizar
+                        subtitle: const Text('Recibir promociones y ofertas por email'), // TODO: internacionalizar
                         value: privacySettings['marketing_emails'] ?? false,
                         onChanged: (bool value) {
                           _updatePrivacySettings({
                             'marketing_emails': value,
                           });
                         },
+                        activeColor: AppColors.accentButton(context),
                       ),
                       SwitchListTile(
-                        title: const Text('Notificaciones push'),
-                        subtitle: const Text('Recibir notificaciones en el dispositivo'),
+                        title: const Text('Notificaciones push'), // TODO: internacionalizar
+                        subtitle: const Text('Recibir notificaciones en el dispositivo'), // TODO: internacionalizar
                         value: privacySettings['push_notifications'] ?? false,
                         onChanged: (bool value) {
                           _updatePrivacySettings({
                             'push_notifications': value,
                           });
                         },
+                        activeColor: AppColors.accentButton(context),
                       ),
                     ],
                   ),
-                  
                   const SizedBox(height: 16),
-                  
-                  // Ubicación
                   _buildPrivacySection(
-                    title: 'Ubicación',
-                    description: 'Controla el uso de tu ubicación',
+                    title: 'Ubicación', // TODO: internacionalizar
+                    description: 'Controla el uso de tu ubicación', // TODO: internacionalizar
                     children: [
                       SwitchListTile(
-                        title: const Text('Compartir ubicación'),
-                        subtitle: const Text('Permitir el acceso a tu ubicación'),
+                        title: const Text('Compartir ubicación'), // TODO: internacionalizar
+                        subtitle: const Text('Permitir el acceso a tu ubicación'), // TODO: internacionalizar
                         value: privacySettings['location_sharing'] ?? false,
                         onChanged: (bool value) {
                           _updatePrivacySettings({
                             'location_sharing': value,
                           });
                         },
+                        activeColor: AppColors.accentButton(context),
                       ),
                     ],
                   ),
-                  
                   const SizedBox(height: 16),
-                  
-                  // Análisis de datos
-                  _buildPrivacySection(
-                    title: 'Análisis de datos',
-                    description: 'Controla el uso de datos para análisis',
-                    children: [
-                      SwitchListTile(
-                        title: const Text('Análisis de datos'),
-                        subtitle: const Text('Permitir el uso de datos para mejorar el servicio'),
-                        value: privacySettings['data_analytics'] ?? false,
-                        onChanged: (bool value) {
-                          _updatePrivacySettings({
-                            'data_analytics': value,
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Enlaces a políticas
-                  Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Políticas y términos',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          ListTile(
-                            leading: const Icon(Icons.privacy_tip),
-                            title: const Text('Política de privacidad'),
-                            trailing: const Icon(Icons.arrow_forward_ios),
-                            onTap: _showPrivacyPolicy,
-                          ),
-                          ListTile(
-                            leading: const Icon(Icons.description),
-                            title: const Text('Términos de servicio'),
-                            trailing: const Icon(Icons.arrow_forward_ios),
-                            onTap: _showTermsOfService,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

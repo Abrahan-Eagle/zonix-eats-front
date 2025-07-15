@@ -20,6 +20,7 @@ import 'package:zonix/features/DomainProfiles/Profiles/screens/activity_history_
 import 'package:zonix/features/DomainProfiles/Profiles/screens/data_export_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/privacy_settings_page.dart';
 import 'package:zonix/features/screens/account_deletion_page.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 // Configuración del logger
 final logger = Logger();
@@ -145,8 +146,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
       builder: (context, userProvider, child) {
         return Scaffold(
           appBar: AppBar(
-            title: const Text("Configuraciones"),
-            backgroundColor: theme.colorScheme.primaryContainer,
+            title: const Text("Configuraciones"), // TODO: internacionalizar
+            backgroundColor: AppColors.purple,
             titleTextStyle: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 26,
@@ -162,15 +163,18 @@ class _SettingsPage2State extends State<SettingsPage2> {
                 children: [
                   // Encabezado de usuario destacado
                   Card(
-                    elevation: 3,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    color: AppColors.cardBg(context),
+                    elevation: 8,
+                    shadowColor: AppColors.purple.withOpacity(0.10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(24),
                       child: Row(
                         children: [
                           CircleAvatar(
                             radius: 36,
                             backgroundImage: _getProfileImage(_profile?.photo),
+                            backgroundColor: AppColors.purple.withOpacity(0.15),
                             child: (_profile?.photo == null)
                                 ? const Icon(Icons.person, color: Colors.white, size: 40)
                                 : null,
@@ -182,16 +186,17 @@ class _SettingsPage2State extends State<SettingsPage2> {
                               children: [
                                 Text(
                                   '${_profile?.firstName ?? ''} ${_profile?.lastName ?? ''}',
-                                  style: theme.textTheme.titleLarge?.copyWith(
+                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 22,
+                                    color: AppColors.primaryText(context),
                                   ),
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
                                   _email ?? 'Correo no disponible',
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.secondary,
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.secondaryText(context),
                                   ),
                                 ),
                               ],
@@ -205,23 +210,25 @@ class _SettingsPage2State extends State<SettingsPage2> {
 
                   // Sección: Información de cuenta
                   Text(
-                    "Mi cuenta",
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.primary,
+                    "Mi cuenta", // TODO: internacionalizar
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppColors.accentButton(context),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    color: AppColors.cardBg(context),
+                    elevation: 6,
+                    shadowColor: AppColors.orange.withOpacity(0.10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     child: Column(
                       children: [
                         _buildListTile(
                           context,
                           icon: Icons.person_outline_rounded,
-                          color: Colors.blue,
-                          title: "Perfil",
+                          color: AppColors.accentButton(context),
+                          title: "Perfil", // TODO: internacionalizar
                           onTap: () {
                             Navigator.push(
                               context,
@@ -234,8 +241,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
                         _buildListTile(
                           context,
                           icon: Icons.folder_outlined,
-                          color: Colors.deepPurple,
-                          title: "Documentos",
+                          color: AppColors.purple,
+                          title: "Documentos", // TODO: internacionalizar
                           onTap: () {
                             Navigator.push(
                               context,
@@ -248,8 +255,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
                         _buildListTile(
                           context,
                           icon: Icons.location_on_outlined,
-                          color: Colors.teal,
-                          title: "Dirección",
+                          color: AppColors.orange,
+                          title: "Direcciones", // TODO: internacionalizar
                           onTap: () {
                             Navigator.push(
                               context,
@@ -262,8 +269,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
                         _buildListTile(
                           context,
                           icon: Icons.phone_outlined,
-                          color: Colors.green,
-                          title: "Teléfonos",
+                          color: AppColors.green,
+                          title: "Teléfonos", // TODO: internacionalizar
                           onTap: () {
                             Navigator.push(
                               context,
@@ -276,8 +283,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
                         _buildListTile(
                           context,
                           icon: Icons.email_outlined,
-                          color: Colors.orange,
-                          title: "Correos electrónicos",
+                          color: AppColors.orange,
+                          title: "Correos electrónicos", // TODO: internacionalizar
                           onTap: () {
                             Navigator.push(
                               context,
@@ -294,14 +301,15 @@ class _SettingsPage2State extends State<SettingsPage2> {
 
                   // Sección: Funcionalidades Avanzadas
                   Text(
-                    "Funcionalidades Avanzadas",
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.primary,
+                    "Funcionalidades Avanzadas", // TODO: internacionalizar
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppColors.accentButton(context),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Card(
+                    color: AppColors.cardBg(context),
                     elevation: 2,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: Column(
@@ -309,9 +317,9 @@ class _SettingsPage2State extends State<SettingsPage2> {
                         _buildListTile(
                           context,
                           icon: Icons.history,
-                          color: Colors.blue,
-                          title: "Historial de Actividad",
-                          subtitle: "Revisa todas tus actividades en la aplicación",
+                          color: AppColors.accentButton(context),
+                          title: "Historial de Actividad", // TODO: internacionalizar
+                          subtitle: "Revisa todas tus actividades en la aplicación", // TODO: internacionalizar
                           onTap: () {
                             Navigator.push(
                               context,
@@ -324,9 +332,9 @@ class _SettingsPage2State extends State<SettingsPage2> {
                         _buildListTile(
                           context,
                           icon: Icons.download,
-                          color: Colors.green,
-                          title: "Exportar Datos",
-                          subtitle: "Descarga una copia de todos tus datos personales",
+                          color: AppColors.green,
+                          title: "Exportar Datos", // TODO: internacionalizar
+                          subtitle: "Descarga una copia de todos tus datos personales", // TODO: internacionalizar
                           onTap: () {
                             Navigator.push(
                               context,
@@ -339,9 +347,9 @@ class _SettingsPage2State extends State<SettingsPage2> {
                         _buildListTile(
                           context,
                           icon: Icons.privacy_tip,
-                          color: Colors.orange,
-                          title: "Configuración de Privacidad",
-                          subtitle: "Controla cómo se utilizan y comparten tus datos",
+                          color: AppColors.orange,
+                          title: "Configuración de Privacidad", // TODO: internacionalizar
+                          subtitle: "Controla cómo se utilizan y comparten tus datos", // TODO: internacionalizar
                           onTap: () {
                             Navigator.push(
                               context,
@@ -354,9 +362,9 @@ class _SettingsPage2State extends State<SettingsPage2> {
                         _buildListTile(
                           context,
                           icon: Icons.delete_forever,
-                          color: Colors.red,
-                          title: "Eliminación de Cuenta",
-                          subtitle: "Solicitar eliminación permanente de tu cuenta",
+                          color: AppColors.red,
+                          title: "Eliminación de Cuenta", // TODO: internacionalizar
+                          subtitle: "Solicitar eliminación permanente de tu cuenta", // TODO: internacionalizar
                           onTap: () {
                             Navigator.push(
                               context,
@@ -373,14 +381,15 @@ class _SettingsPage2State extends State<SettingsPage2> {
 
                   // Sección: Administración y Ayuda
                   Text(
-                    "Administración y Ayuda",
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: theme.colorScheme.primary,
+                    "Administración y Ayuda", // TODO: internacionalizar
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppColors.accentButton(context),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Card(
+                    color: AppColors.cardBg(context),
                     elevation: 2,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: Column(
@@ -388,8 +397,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
                         _buildListTile(
                           context,
                           icon: Icons.notifications_none_rounded,
-                          color: Colors.purple,
-                          title: "Notificaciones",
+                          color: AppColors.purple,
+                          title: "Notificaciones", // TODO: internacionalizar
                           onTap: () {
                             Navigator.push(
                               context,
@@ -402,8 +411,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
                         _buildListTile(
                           context,
                           icon: Icons.help_outline_rounded,
-                          color: Colors.indigo,
-                          title: "Ayuda y Comentarios",
+                          color: AppColors.purple,
+                          title: "Ayuda y Comentarios", // TODO: internacionalizar
                           onTap: () {
                             Navigator.push(
                               context,
@@ -416,8 +425,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
                         _buildListTile(
                           context,
                           icon: Icons.info_outline_rounded,
-                          color: Colors.grey,
-                          title: "Acerca de",
+                          color: AppColors.gray,
+                          title: "Acerca de", // TODO: internacionalizar
                           onTap: () {
                             Navigator.push(
                               context,
@@ -454,7 +463,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                           size: 24,
                         ),
                         label: const Text(
-                          "Cerrar sesión",
+                          "Cerrar sesión", // TODO: internacionalizar
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -462,7 +471,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.redAccent,
+                          backgroundColor: AppColors.red,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(25),
                           ),

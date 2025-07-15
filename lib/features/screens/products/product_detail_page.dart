@@ -8,6 +8,7 @@ import 'package:zonix/features/services/restaurant_service.dart';
 import 'package:zonix/features/screens/restaurants/restaurant_details_page.dart';
 import 'package:zonix/features/utils/network_image_with_fallback.dart';
 import 'package:logger/logger.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 class ProductDetailPage extends StatefulWidget {
   final Product product;
@@ -76,14 +77,29 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Widget build(BuildContext context) {
     final cartService = Provider.of<CartService>(context, listen: false);
     final double total = (widget.product.price) * _quantity;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF181A20) : Colors.white,
-      appBar: AppBar(
-        title: const Text('Detalles del producto'),
-        backgroundColor: isDark ? const Color(0xFF181A20) : Colors.white,
-        foregroundColor: isDark ? Colors.white : Colors.black,
-        elevation: 0,
+      backgroundColor: AppColors.scaffoldBg(context),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.headerGradientStart(context),
+                AppColors.headerGradientMid(context),
+                AppColors.headerGradientEnd(context),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: const Text('Detalles del producto', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)), // TODO: internacionalizar
+            iconTheme: IconThemeData(color: AppColors.white),
+          ),
+        ),
       ),
       body: SafeArea(
         child: Stack(
@@ -91,25 +107,27 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ListView(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 90),
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF23262B) : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                Card(
+                  color: AppColors.cardBg(context),
+                  shadowColor: AppColors.orange.withOpacity(0.10),
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   child: _buildProductImage(),
                 ),
                 const SizedBox(height: 24),
-                Container(
-                  decoration: BoxDecoration(
-                    color: isDark ? const Color(0xFF23262B) : Colors.white,
-                    borderRadius: BorderRadius.circular(16),
+                Card(
+                  color: AppColors.cardBg(context),
+                  shadowColor: AppColors.orange.withOpacity(0.10),
+                  elevation: 8,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: _buildProductInfo(total, context),
                   ),
-                  padding: const EdgeInsets.all(16),
-                  child: _buildProductInfo(total, isDark),
                 ),
               ],
             ),
-            _buildBottomControls(cartService, isDark),
+            _buildBottomControls(cartService, context),
           ],
         ),
       ),
@@ -128,7 +146,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
 
 
-  Widget _buildProductInfo(double total, bool isDark) {
+  Widget _buildProductInfo(double total, BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -141,22 +159,22 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 style: TextStyle(
                   fontSize: 22, 
                   fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : Colors.black,
+                  color: AppColors.primaryText(context),
                 ),
               ),
               const SizedBox(height: 8),
-              _buildRestaurantInfo(isDark),
+              _buildRestaurantInfo(context),
               const SizedBox(height: 8),
-              _buildDescription(isDark),
+              _buildDescription(context),
             ],
           ),
         ),
-        _buildPrice(total, isDark),
+        _buildPrice(total, context),
       ],
     );
   }
 
-  Widget _buildRestaurantInfo(bool isDark) {
+  Widget _buildRestaurantInfo(BuildContext context) {
     return FutureBuilder<Restaurant?>(
       future: _restaurantFuture,
       builder: (context, snapshot) {
@@ -169,8 +187,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
         if (snapshot.hasError || snapshot.data == null) {
           return Text(
-            'Tienda no disponible',
-            style: TextStyle(color: isDark ? Colors.white70 : Colors.black54),
+            'Tienda no disponible', // TODO: internacionalizar
+            style: TextStyle(color: AppColors.secondaryText(context)),
           );
         }
 
@@ -179,9 +197,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         return GestureDetector(
           onTap: _isLoading ? null : _navigateToRestaurant,
           child: Text(
-            _restaurant?.nombreLocal ?? 'Tienda desconocida',
+            _restaurant?.nombreLocal ?? 'Tienda desconocida', // TODO: internacionalizar
             style: TextStyle(
-              color: isDark ? Colors.blueAccent : Colors.blue,
+              color: AppColors.accentButton(context),
               fontWeight: FontWeight.w500,
               decoration: TextDecoration.underline,
             ),
@@ -191,42 +209,42 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     );
   }
 
-  Widget _buildDescription(bool isDark) {
+  Widget _buildDescription(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Descripción',
+          'Descripción', // TODO: internacionalizar
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w500,
-            color: isDark ? Colors.white : Colors.black,
+            color: AppColors.primaryText(context),
           ),
         ),
         const SizedBox(height: 4),
         Text(
-          widget.product.description ?? 'Sin descripción',
+          widget.product.description ?? 'Sin descripción', // TODO: internacionalizar
           style: TextStyle(
             fontSize: 16, 
-            color: isDark ? Colors.white70 : Colors.black54,
+            color: AppColors.secondaryText(context),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildPrice(double total, bool isDark) {
+  Widget _buildPrice(double total, BuildContext context) {
     return Text(
       '\$${total.toStringAsFixed(2)}',
       style: TextStyle(
         fontSize: 24,
         fontWeight: FontWeight.bold,
-        color: Colors.greenAccent,
+        color: AppColors.success(context),
       ),
     );
   }
 
-  Widget _buildBottomControls(CartService cartService, bool isDark) {
+  Widget _buildBottomControls(CartService cartService, BuildContext context) {
     return Positioned(
       left: 0,
       right: 0,
@@ -235,39 +253,52 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         padding: const EdgeInsets.symmetric(horizontal: 24),
         child: Row(
           children: [
-            _buildQuantitySelector(isDark),
+            _buildQuantitySelector(context),
             const SizedBox(width: 16),
-            _buildAddToCartButton(cartService, isDark),
+            Expanded(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryButton(context),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 2,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                onPressed: () {
+                  cartService.addToCart(CartItem(
+                    id: widget.product.id,
+                    nombre: widget.product.name,
+                    precio: widget.product.price,
+                    quantity: _quantity,
+                  ));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Producto añadido al carrito')), // TODO: internacionalizar
+                  );
+                },
+                icon: const Icon(Icons.add_shopping_cart, color: Colors.white),
+                label: const Text('Añadir al carrito', style: TextStyle(color: Colors.white, fontSize: 18)), // TODO: internacionalizar
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildQuantitySelector(bool isDark) {
+  Widget _buildQuantitySelector(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF23262B) : Colors.white,
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.cardBg(context),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         children: [
           IconButton(
-            icon: Icon(Icons.remove, color: isDark ? Colors.blueAccent : Colors.blue),
-            onPressed: _quantity > 1 
-                ? () => setState(() => _quantity--) 
-                : null,
+            icon: Icon(Icons.remove, color: AppColors.primaryText(context)),
+            onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
           ),
-          Text(
-            '$_quantity', 
-            style: TextStyle(
-              fontSize: 18, 
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white : Colors.black,
-            ),
-          ),
+          Text('$_quantity', style: TextStyle(fontSize: 18, color: AppColors.primaryText(context))),
           IconButton(
-            icon: Icon(Icons.add, color: isDark ? Colors.blueAccent : Colors.blue),
+            icon: Icon(Icons.add, color: AppColors.primaryText(context)),
             onPressed: () => setState(() => _quantity++),
           ),
         ],
@@ -275,12 +306,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     );
   }
 
-  Widget _buildAddToCartButton(CartService cartService, bool isDark) {
+  Widget _buildAddToCartButton(CartService cartService, BuildContext context) {
     return Expanded(
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.orangeAccent,
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.accentButton(context),
+          foregroundColor: AppColors.primaryText(context),
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -295,7 +326,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             quantity: _quantity,
           ));
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Producto agregado al carrito')),
+            SnackBar(content: Text('Producto agregado al carrito')),
           );
         },
         child: Text(
@@ -303,7 +334,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: isDark ? Colors.white : Colors.black,
+            color: AppColors.primaryText(context),
           ),
         ),
       ),

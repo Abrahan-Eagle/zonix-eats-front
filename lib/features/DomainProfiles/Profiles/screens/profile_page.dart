@@ -6,6 +6,7 @@ import 'package:zonix/features/DomainProfiles/Profiles/screens/edit_profile_page
 import 'package:zonix/features/DomainProfiles/Profiles/screens/create_profile_page.dart';
 import 'package:logger/logger.dart';
 import 'package:intl/intl.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 final logger = Logger();
 
@@ -77,7 +78,7 @@ class ProfilePagex extends StatelessWidget {
 
           final isDark = Theme.of(context).brightness == Brightness.dark;
           return Scaffold(
-            backgroundColor: isDark ? const Color(0xFF181A20) : Colors.white,
+            backgroundColor: AppColors.scaffoldBg(context),
             body: CustomScrollView(
               slivers: [
                 // App Bar personalizado
@@ -85,19 +86,19 @@ class ProfilePagex extends StatelessWidget {
                   expandedHeight: 280,
                   floating: false,
                   pinned: true,
-                  backgroundColor: isDark ? const Color(0xFF181A20) : Colors.white,
+                  backgroundColor: AppColors.scaffoldBg(context),
                   flexibleSpace: FlexibleSpaceBar(
                     background: _buildHeader(context, profileModel.profile!, isDark),
                   ),
                   leading: IconButton(
                     icon: const Icon(Icons.arrow_back),
-                    color: isDark ? Colors.white : Colors.black,
+                    color: AppColors.primaryText(context),
                     onPressed: () => Navigator.pop(context),
                   ),
                   actions: [
                     IconButton(
                       icon: const Icon(Icons.edit),
-                      color: isDark ? Colors.white : Colors.black,
+                      color: AppColors.primaryText(context),
                       onPressed: () => _navigateToEditOrCreatePage(context, profileModel.profile!),
                     ),
                   ],
@@ -154,9 +155,11 @@ class ProfilePagex extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark
-              ? [const Color(0xFF23262B), Color(0xFFFF9800), Color(0xFFFF5722)]
-              : [Color(0xff0043ba), Color(0xff006df1), Color(0xff4a90e2)],
+          colors: [
+            AppColors.headerGradientStart(context),
+            AppColors.headerGradientMid(context),
+            AppColors.headerGradientEnd(context),
+          ],
         ),
       ),
       child: SafeArea(
@@ -222,9 +225,8 @@ class ProfilePagex extends StatelessWidget {
   }
 
   Widget _buildPersonalInfoCard(BuildContext context, Profile profile) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
-      color: isDark ? const Color(0xFF23262B) : Colors.white,
+      color: AppColors.cardBg(context),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
@@ -237,12 +239,12 @@ class ProfilePagex extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isDark ? const Color(0xff0043ba).withOpacity(0.15) : Colors.blue.withOpacity(0.08),
+                    color: AppColors.blue.withOpacity(0.08),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     Icons.person,
-                    color: isDark ? const Color(0xff4a90e2) : Colors.blue,
+                    color: AppColors.blue,
                     size: 24,
                   ),
                 ),
@@ -252,7 +254,7 @@ class ProfilePagex extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black,
+                    color: AppColors.primaryText(context),
                   ),
                 ),
               ],
@@ -276,7 +278,7 @@ class ProfilePagex extends StatelessWidget {
   Widget _buildContactInfoCard(BuildContext context, Profile profile) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
-      color: isDark ? const Color(0xFF23262B) : Colors.white,
+      color: AppColors.cardBg(context),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
@@ -289,12 +291,12 @@ class ProfilePagex extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.green.withOpacity(0.15) : Colors.green.withOpacity(0.08),
+                    color: AppColors.green.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     Icons.contact_phone,
-                    color: isDark ? Colors.greenAccent : Colors.green,
+                    color: AppColors.green,
                     size: 24,
                   ),
                 ),
@@ -304,7 +306,7 @@ class ProfilePagex extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black,
+                    color: AppColors.primaryText(context),
                   ),
                 ),
               ],
@@ -321,7 +323,7 @@ class ProfilePagex extends StatelessWidget {
   Widget _buildBusinessInfoCard(BuildContext context, Profile profile) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
-      color: isDark ? const Color(0xFF23262B) : Colors.white,
+      color: AppColors.cardBg(context),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
@@ -334,12 +336,12 @@ class ProfilePagex extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.orange.withOpacity(0.15) : Colors.orange.withOpacity(0.08),
+                    color: AppColors.orange.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     Icons.business,
-                    color: isDark ? Colors.orangeAccent : Colors.orange,
+                    color: AppColors.orange,
                     size: 24,
                   ),
                 ),
@@ -349,7 +351,7 @@ class ProfilePagex extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black,
+                    color: AppColors.primaryText(context),
                   ),
                 ),
               ],
@@ -370,7 +372,7 @@ class ProfilePagex extends StatelessWidget {
   Widget _buildDeliveryInfoCard(BuildContext context, Profile profile) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
-      color: isDark ? const Color(0xFF23262B) : Colors.white,
+      color: AppColors.cardBg(context),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
@@ -383,12 +385,12 @@ class ProfilePagex extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.purple.withOpacity(0.15) : Colors.purple.withOpacity(0.08),
+                    color: AppColors.purple.withOpacity(0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     Icons.delivery_dining,
-                    color: isDark ? Colors.purpleAccent : Colors.purple,
+                    color: AppColors.purple,
                     size: 24,
                   ),
                 ),
@@ -398,7 +400,7 @@ class ProfilePagex extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black,
+                    color: AppColors.primaryText(context),
                   ),
                 ),
               ],
@@ -417,7 +419,7 @@ class ProfilePagex extends StatelessWidget {
   Widget _buildProfileStatusCard(BuildContext context, Profile profile) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
-      color: isDark ? const Color(0xFF23262B) : Colors.white,
+      color: AppColors.cardBg(context),
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
@@ -445,7 +447,7 @@ class ProfilePagex extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black,
+                    color: AppColors.primaryText(context),
                   ),
                 ),
               ],
@@ -459,7 +461,6 @@ class ProfilePagex extends StatelessWidget {
   }
 
   Widget _buildInfoRow(BuildContext context, String label, String value, IconData icon) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -467,7 +468,7 @@ class ProfilePagex extends StatelessWidget {
           Icon(
             icon,
             size: 20,
-            color: isDark ? Colors.white70 : Colors.black54,
+            color: AppColors.secondaryText(context),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -478,7 +479,7 @@ class ProfilePagex extends StatelessWidget {
                   label,
                   style: TextStyle(
                     fontSize: 12,
-                    color: isDark ? Colors.white54 : Colors.black54,
+                    color: AppColors.secondaryText(context),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -488,7 +489,7 @@ class ProfilePagex extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: isDark ? Colors.white : Colors.black,
+                    color: AppColors.primaryText(context),
                   ),
                 ),
               ],

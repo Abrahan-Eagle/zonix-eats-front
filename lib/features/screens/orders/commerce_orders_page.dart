@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/models/order.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 class CommerceOrdersPage extends StatefulWidget {
   const CommerceOrdersPage({Key? key}) : super(key: key);
@@ -23,7 +24,29 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Órdenes del Comercio')),
+      backgroundColor: AppColors.scaffoldBg(context),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(100),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.headerGradientStart(context),
+                AppColors.headerGradientMid(context),
+                AppColors.headerGradientEnd(context),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            title: const Text('Órdenes Comercio', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)), // TODO: internacionalizar
+            iconTheme: IconThemeData(color: AppColors.white),
+          ),
+        ),
+      ),
       body: FutureBuilder<List<Order>>(
         future: _ordersFuture,
         builder: (context, snapshot) {
@@ -55,63 +78,24 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage> {
           }
           final orders = snapshot.data!;
           return ListView.builder(
+            padding: const EdgeInsets.all(16),
             itemCount: orders.length,
             itemBuilder: (context, index) {
               final order = orders[index];
               return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                color: AppColors.cardBg(context),
+                shadowColor: AppColors.purple.withOpacity(0.10),
+                elevation: 6,
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                 child: ListTile(
-                  title: Text('Orden #${order.id}'),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Estado: ${order.status}'),
-                      if (order.paymentStatus == 'pending')
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Comprobante: Pendiente'),
-                            Row(
-                              children: [
-                                ElevatedButton(
-                                  onPressed: () async {
-                                    try {
-                                      await Provider.of<OrderService>(context, listen: false).validarComprobante(order.id, 'validar');
-                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Comprobante validado')));
-                                      setState(() {
-                                        final orderService = Provider.of<OrderService>(context, listen: false);
-                                        _ordersFuture = orderService.fetchOrders();
-                                      });
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al validar comprobante')));
-                                    }
-                                  },
-                                  child: const Text('Validar'),
-                                ),
-                                const SizedBox(width: 8),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                                  onPressed: () async {
-                                    try {
-                                      await Provider.of<OrderService>(context, listen: false).validarComprobante(order.id, 'rechazar');
-                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Comprobante rechazado')));
-                                      setState(() {
-                                        final orderService = Provider.of<OrderService>(context, listen: false);
-                                        _ordersFuture = orderService.fetchOrders();
-                                      });
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al rechazar comprobante')));
-                                    }
-                                  },
-                                  child: const Text('Rechazar'),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                    ],
-                  ),
-                  trailing: Text('Total: ${order.total ?? '-'}'),
+                  leading: Icon(Icons.store, color: AppColors.accentButton(context)),
+                  title: Text('Orden #${order.id}', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryText(context))),
+                  subtitle: Text('Estado: ${order.status}', style: TextStyle(color: AppColors.secondaryText(context))),
+                  trailing: Text('${order.total}₡', style: TextStyle(color: AppColors.success(context), fontWeight: FontWeight.bold)),
+                  onTap: () {
+                    // Acción para ver detalles de la orden de comercio
+                  },
                 ),
               );
             },
