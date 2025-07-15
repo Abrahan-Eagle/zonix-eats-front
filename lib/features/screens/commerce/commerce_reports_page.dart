@@ -24,6 +24,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
   }
 
   Future<void> _loadReportsData() async {
+    if (!mounted) return;
     setState(() {
       _isLoading = true;
     });
@@ -31,7 +32,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
     try {
       // Simular carga de datos de reportes
       await Future.delayed(const Duration(seconds: 1));
-      
+      if (!mounted) return;
       setState(() {
         _salesData = {
           'totalSales': 125000.0,
@@ -60,6 +61,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
@@ -81,12 +83,15 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
               children: [
                 Icon(icon, color: color, size: 24),
                 const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey,
+                Expanded(
+                  child: Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.grey,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
@@ -106,6 +111,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
                 fontSize: 12,
                 color: Colors.grey,
               ),
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),
@@ -191,6 +197,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
                           child: Text(
                             category['category'],
                             style: const TextStyle(fontWeight: FontWeight.w500),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Expanded(
@@ -201,6 +208,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
                               fontWeight: FontWeight.bold,
                               color: Colors.green,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Expanded(
@@ -211,6 +219,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
                               fontWeight: FontWeight.bold,
                               color: Colors.blue,
                             ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
@@ -343,6 +352,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
                         fontWeight: FontWeight.bold,
                         color: Colors.blue,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

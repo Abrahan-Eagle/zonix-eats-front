@@ -149,14 +149,14 @@ class MockOrderService extends _i1.Mock implements _i3.OrderService {
       ) as _i4.Future<Map<String, dynamic>>);
 
   @override
-  _i4.Future<void> updateDeliveryLocation(
+  _i4.Future<void> updateTrackingLocation(
     int? orderId,
     double? latitude,
     double? longitude,
   ) =>
       (super.noSuchMethod(
         Invocation.method(
-          #updateDeliveryLocation,
+          #updateTrackingLocation,
           [
             orderId,
             latitude,

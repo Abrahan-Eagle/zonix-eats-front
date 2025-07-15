@@ -7,6 +7,7 @@ import '../../models/cart_item.dart';
 import '../../helpers/auth_helper.dart';
 import '../../config/app_config.dart';
 import 'package:http_parser/http_parser.dart';
+import '../../features/utils/auth_utils.dart';
 
 class OrderService extends ChangeNotifier {
   final String _baseUrl = const bool.fromEnvironment('dart.vm.product')
@@ -45,7 +46,12 @@ class OrderService extends ChangeNotifier {
   // GET /api/buyer/orders - Listar órdenes del usuario
   Future<List<Order>> fetchOrders() async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/orders');
+    // Obtener el rol del usuario
+    final userRole = await AuthUtils.getUserRole();
+    final isCommerce = userRole == 'commerce';
+    final url = isCommerce
+        ? Uri.parse('${AppConfig.baseUrl}/api/commerce/orders')
+        : Uri.parse('${AppConfig.baseUrl}/api/buyer/orders');
     
     print('🔄 Llamando a $url');
     

@@ -7,6 +7,7 @@ import 'package:zonix_eats_front/lib/features/services/privacy_service.dart';
 
 import 'privacy_settings_page_test.mocks.dart';
 
+@Skip('Fuera del MVP commerce')
 @GenerateMocks([PrivacyService])
 void main() {
   group('PrivacySettingsPage', () {

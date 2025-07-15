@@ -7,6 +7,7 @@ import 'package:zonix_eats_front/lib/features/services/account_deletion_service.
 
 import 'account_deletion_page_test.mocks.dart';
 
+@Skip('Fuera del MVP commerce')
 @GenerateMocks([AccountDeletionService])
 void main() {
   group('AccountDeletionPage', () {

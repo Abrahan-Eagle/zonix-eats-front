@@ -80,6 +80,7 @@ class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixi
         await _storage.write(key: 'displayName', value: _currentUser!.displayName);
       }
     }
+    if (!mounted) return;
     setState(() {});
   }
 
@@ -124,12 +125,14 @@ class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixi
         }
       } else {
         logger.i('Inicio de sesión cancelado o fallido');
+        if (!mounted) return;
         setState(() {
           _loginError = 'Inicio de sesión cancelado o fallido';
         });
       }
     } catch (e) {
       logger.e('Error durante el manejo del inicio de sesión: $e');
+      if (!mounted) return;
       setState(() {
         _loginError = 'Error durante el inicio de sesión';
       });

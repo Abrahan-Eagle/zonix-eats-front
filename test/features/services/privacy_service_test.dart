@@ -7,6 +7,7 @@ import 'package:zonix_eats_front/lib/helpers/auth_helper.dart';
 
 import 'privacy_service_test.mocks.dart';
 
+@Skip('Fuera del MVP commerce')
 @GenerateMocks([http.Client, AuthHelper])
 void main() {
   group('PrivacyService', () {

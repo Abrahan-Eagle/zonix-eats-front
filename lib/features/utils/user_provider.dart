@@ -250,4 +250,15 @@ class UserProvider with ChangeNotifier {
     await _storage.delete(key: 'token');
     await _storage.delete(key: 'userId');
   }
+
+  // Bypass de login para tests de integración
+  void setAuthenticatedForTest({String role = 'commerce'}) {
+    _isAuthenticated = true;
+    _role = role;
+    _userId = 9999;
+    _userName = 'Test Commerce';
+    _userEmail = 'test@commerce.com';
+    _userPhotoUrl = '';
+    notifyListeners();
+  }
 }

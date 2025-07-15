@@ -402,6 +402,8 @@ import 'package:zonix/features/screens/admin/admin_analytics_page.dart';
 import 'package:zonix/features/screens/help/help_and_faq_page.dart';
 import 'package:zonix/features/services/websocket_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_profile_page.dart';
 
 /*
  * ZONIX EATS - Aplicación Multi-Rol
@@ -446,7 +448,10 @@ Future<void> main() async {
   ]);
 
   await dotenv.load();
-  //  HttpOverrides.global = MyHttpOverrides();
+
+  // Bypass de login para tests de integración
+  final bool isIntegrationTest = const String.fromEnvironment('INTEGRATION_TEST', defaultValue: 'false') == 'true';
+
   runApp(
     MultiProvider(
       providers: [
@@ -466,7 +471,7 @@ Future<void> main() async {
         // WebSocket Service como singleton
         Provider<WebSocketService>.value(value: WebSocketService()),
       ],
-      child: const MyApp(),
+      child: MyApp(isIntegrationTest: isIntegrationTest),
     ),
   );
 }
@@ -478,11 +483,18 @@ void initialization() async {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final bool isIntegrationTest;
+  const MyApp({super.key, this.isIntegrationTest = false});
 
   @override
   Widget build(BuildContext context) {
-    Provider.of<UserProvider>(context, listen: false).checkAuthentication();
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    if (isIntegrationTest) {
+      // Forzar autenticación como comercio
+      userProvider.setAuthenticatedForTest(role: 'commerce');
+    } else {
+      userProvider.checkAuthentication();
+    }
 
     return MaterialApp(
       title: 'ZONIX',
@@ -556,6 +568,12 @@ class MyApp extends StatelessWidget {
           }
         },
       ),
+      routes: {
+        '/commerce/inventory': (context) => const CommerceInventoryPage(),
+        '/commerce/orders': (context) => const CommerceOrdersPage(),
+        '/commerce/profile': (context) => CommerceProfilePage(),
+        '/commerce/notifications': (context) => const CommerceNotificationsPage(),
+      },
     );
   }
 }
