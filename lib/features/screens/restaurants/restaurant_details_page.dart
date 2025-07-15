@@ -282,7 +282,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                               const SizedBox(height: 10), // Espacio para los botones flotantes
+                               const SizedBox(height: 12), // Espacio para los botones flotantes
                               
                               
                               
@@ -791,7 +791,7 @@ Text(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '₡${product.price.toStringAsFixed(2)}',
+                          '\$${product.price.toStringAsFixed(2)}',
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -904,7 +904,7 @@ Text(
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '₡${product.price.toStringAsFixed(2)}',
+                        '\$${product.price.toStringAsFixed(2)}',
                         style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.green.shade600,

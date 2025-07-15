@@ -224,7 +224,7 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
                 Expanded(
                   child: _buildRouteMetric(
                     'Ganancia',
-                    '₡${route['totalEarnings'].toStringAsFixed(0)}',
+                    '\$${route['totalEarnings'].toStringAsFixed(0)}',
                     Icons.attach_money,
                     Colors.green,
                   ),

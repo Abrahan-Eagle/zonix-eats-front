@@ -172,7 +172,7 @@ class _CommerceInventoryPageState extends State<CommerceInventoryPage> {
                   Row(
                     children: [
                       Text(
-                        '₡${product.precio?.toStringAsFixed(0) ?? '0'}',
+                        '\$${product.precio?.toStringAsFixed(0) ?? '0'}',
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,

@@ -234,7 +234,7 @@ class _OrdersPageState extends State<OrdersPage> {
               leading: Icon(Icons.receipt_long, color: AppColors.accentButton(context)),
               title: Text('Orden #${order.id}', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryText(context))),
               subtitle: Text('Estado: ${order.status}', style: TextStyle(color: AppColors.secondaryText(context))),
-              trailing: Text('${order.total}₡', style: TextStyle(color: AppColors.success(context), fontWeight: FontWeight.bold)),
+              trailing: Text('${order.total}\$', style: TextStyle(color: AppColors.success(context), fontWeight: FontWeight.bold)),
               onTap: () {
                 // Acción para ver detalles de la orden
               },

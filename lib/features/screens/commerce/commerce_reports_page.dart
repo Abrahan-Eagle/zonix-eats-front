@@ -149,7 +149,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
                 ),
                 subtitle: Text('${product['quantity']} unidades vendidas'),
                 trailing: Text(
-                  '₡${product['sales'].toStringAsFixed(0)}',
+                  '\$${product['sales'].toStringAsFixed(0)}',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.green,
@@ -196,7 +196,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
                         Expanded(
                           flex: 1,
                           child: Text(
-                            '₡${category['sales'].toStringAsFixed(0)}',
+                            '\$${category['sales'].toStringAsFixed(0)}',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.green,
@@ -447,7 +447,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
                       children: [
                         _buildMetricCard(
                           'Ventas Totales',
-                          '₡${_salesData['totalSales']?.toStringAsFixed(0) ?? '0'}',
+                          '\$${_salesData['totalSales']?.toStringAsFixed(0) ?? '0'}',
                           Icons.attach_money,
                           Colors.green,
                           'Ingresos totales',
@@ -461,7 +461,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
                         ),
                         _buildMetricCard(
                           'Ticket Promedio',
-                          '₡${_salesData['averageOrderValue']?.toStringAsFixed(0) ?? '0'}',
+                          '\$${_salesData['averageOrderValue']?.toStringAsFixed(0) ?? '0'}',
                           Icons.receipt,
                           Colors.orange,
                           'Por orden',

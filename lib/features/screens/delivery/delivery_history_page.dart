@@ -288,7 +288,7 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Total: ₡${delivery['total'].toStringAsFixed(0)}',
+                          'Total: \$${delivery['total'].toStringAsFixed(0)}',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -296,7 +296,7 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                           ),
                         ),
                         Text(
-                          'Comisión: ₡${delivery['deliveryFee'].toStringAsFixed(0)}',
+                          'Comisión: \$${delivery['deliveryFee'].toStringAsFixed(0)}',
                           style: const TextStyle(
                             fontSize: 14,
                             color: Colors.grey,
@@ -309,7 +309,7 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        'Propina: ₡${delivery['tip'].toStringAsFixed(0)}',
+                        'Propina: \$${delivery['tip'].toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -317,7 +317,7 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                         ),
                       ),
                       Text(
-                        'Ganancia: ₡${(delivery['deliveryFee'] + delivery['tip']).toStringAsFixed(0)}',
+                        'Ganancia: \$${(delivery['deliveryFee'] + delivery['tip']).toStringAsFixed(0)}',
                         style: const TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
@@ -581,7 +581,7 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
                         ),
                         _buildStatCard(
                           'Ganancias',
-                          '₡${_stats['totalEarnings']?.toStringAsFixed(0) ?? '0'}',
+                          '\$${_stats['totalEarnings']?.toStringAsFixed(0) ?? '0'}',
                           Icons.attach_money,
                           Colors.green,
                           'Ingresos totales',

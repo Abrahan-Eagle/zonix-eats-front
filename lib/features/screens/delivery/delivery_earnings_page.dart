@@ -203,7 +203,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
                         ),
                       ),
                       Text(
-                        '₡${_earningsData['deliveryFees']?.toStringAsFixed(0) ?? '0'}',
+                        '\$${_earningsData['deliveryFees']?.toStringAsFixed(0) ?? '0'}',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -225,7 +225,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
                         ),
                       ),
                       Text(
-                        '₡${_earningsData['tips']?.toStringAsFixed(0) ?? '0'}',
+                        '\$${_earningsData['tips']?.toStringAsFixed(0) ?? '0'}',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -274,7 +274,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              '₡${_earningsData['totalEarnings']?.toStringAsFixed(0) ?? '0'}',
+                              '\$${_earningsData['totalEarnings']?.toStringAsFixed(0) ?? '0'}',
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -408,7 +408,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '₡${day['earnings'].toStringAsFixed(0)}',
+                          '\$${day['earnings'].toStringAsFixed(0)}',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             color: day['color'],
@@ -457,7 +457,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '₡${_earningsData['totalEarnings']?.toStringAsFixed(0) ?? '0'}',
+                        '\$${_earningsData['totalEarnings']?.toStringAsFixed(0) ?? '0'}',
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -465,7 +465,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
                         ),
                       ),
                       const Text(
-                        'de ₡160,000',
+                        'de \$160,000',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey,
@@ -509,7 +509,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
             const SizedBox(height: 8),
             
             Text(
-              'Faltan ₡${(160000 - _earningsData['totalEarnings']).toStringAsFixed(0)} para alcanzar la meta',
+              'Faltan \$${(160000 - _earningsData['totalEarnings']).toStringAsFixed(0)} para alcanzar la meta',
               style: const TextStyle(
                 fontSize: 12,
                 color: Colors.grey,
@@ -581,14 +581,14 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
-                          '₡${day['earnings'].toStringAsFixed(0)}',
+                          '\$${day['earnings'].toStringAsFixed(0)}',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.green,
                           ),
                         ),
                         Text(
-                          '₡${day['tips'].toStringAsFixed(0)} en propinas',
+                          '\$${day['tips'].toStringAsFixed(0)} en propinas',
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.orange,
@@ -674,7 +674,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
                       children: [
                         _buildEarningsCard(
                           'Ganancias',
-                          '₡${_earningsData['totalEarnings']?.toStringAsFixed(0) ?? '0'}',
+                          '\$${_earningsData['totalEarnings']?.toStringAsFixed(0) ?? '0'}',
                           Icons.attach_money,
                           Colors.green,
                           'Total del período',
@@ -688,14 +688,14 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
                         ),
                         _buildEarningsCard(
                           'Promedio',
-                          '₡${_earningsData['averagePerDelivery']?.toStringAsFixed(0) ?? '0'}',
+                          '\$${_earningsData['averagePerDelivery']?.toStringAsFixed(0) ?? '0'}',
                           Icons.analytics,
                           Colors.orange,
                           'Por entrega',
                         ),
                         _buildEarningsCard(
                           'Por Hora',
-                          '₡${_earningsData['averagePerHour']?.toStringAsFixed(0) ?? '0'}',
+                          '\$${_earningsData['averagePerHour']?.toStringAsFixed(0) ?? '0'}',
                           Icons.access_time,
                           Colors.purple,
                           'Promedio',

@@ -90,7 +90,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         ),
                       ],
                     ),
-                    trailing: Text('₡${(item.precio ?? 0) * item.quantity}'),
+                    trailing: Text('\$${(item.precio ?? 0) * item.quantity}'),
                   ),
                 )).toList(),
               ),
