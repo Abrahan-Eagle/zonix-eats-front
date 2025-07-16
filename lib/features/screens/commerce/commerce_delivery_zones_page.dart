@@ -1,19 +1,17 @@
 import 'package:flutter/material.dart';
-import 'dart:io';
-import 'package:image_picker/image_picker.dart';
-import '../../../features/services/commerce_promotion_service.dart';
-import 'commerce_promotion_form_page.dart';
+import '../../../features/services/commerce_delivery_zone_service.dart';
+import 'commerce_delivery_zone_form_page.dart';
 
-class CommercePromotionsPage extends StatefulWidget {
-  const CommercePromotionsPage({Key? key}) : super(key: key);
+class CommerceDeliveryZonesPage extends StatefulWidget {
+  const CommerceDeliveryZonesPage({Key? key}) : super(key: key);
 
   @override
-  State<CommercePromotionsPage> createState() => _CommercePromotionsPageState();
+  State<CommerceDeliveryZonesPage> createState() => _CommerceDeliveryZonesPageState();
 }
 
-class _CommercePromotionsPageState extends State<CommercePromotionsPage> with TickerProviderStateMixin {
+class _CommerceDeliveryZonesPageState extends State<CommerceDeliveryZonesPage> with TickerProviderStateMixin {
   late TabController _tabController;
-  late Future<List<Map<String, dynamic>>> _promotionsFuture;
+  late Future<List<Map<String, dynamic>>> _zonesFuture;
   late Future<Map<String, dynamic>> _statsFuture;
   bool _loading = false;
   String? _error;
@@ -25,16 +23,12 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
     'Todas',
     'Activas',
     'Inactivas',
-    'Expiradas',
-    'Próximas a Expirar',
   ];
 
   final Map<String, String> _statusFilters = {
     'Todas': '',
     'Activas': 'active',
     'Inactivas': 'inactive',
-    'Expiradas': 'expired',
-    'Próximas a Expirar': 'expiring_soon',
   };
 
   @override
@@ -52,13 +46,13 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
 
   Future<void> _loadData() async {
     setState(() {
-      _promotionsFuture = CommercePromotionService.getPromotions(
+      _zonesFuture = CommerceDeliveryZoneService.getDeliveryZones(
         status: _statusFilters[_statusTabs[_tabController.index]],
         search: _searchQuery.isNotEmpty ? _searchQuery : null,
         sortBy: _sortBy,
         sortOrder: _sortOrder,
       );
-      _statsFuture = CommercePromotionService.getPromotionStats();
+      _statsFuture = CommerceDeliveryZoneService.getDeliveryZoneStats();
     });
   }
 
@@ -67,12 +61,12 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
     _loadData();
   }
 
-  Future<void> _deletePromotion(int id) async {
+  Future<void> _deleteZone(int id) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Eliminar promoción'),
-        content: const Text('¿Estás seguro de que deseas eliminar esta promoción? Esta acción no se puede deshacer.'),
+        title: const Text('Eliminar zona'),
+        content: const Text('¿Estás seguro de que deseas eliminar esta zona de delivery? Esta acción no se puede deshacer.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false), 
@@ -91,11 +85,11 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
     setState(() { _loading = true; _error = null; });
     
     try {
-      await CommercePromotionService.deletePromotion(id);
+      await CommerceDeliveryZoneService.deleteDeliveryZone(id);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Promoción eliminada correctamente'),
+          content: Text('Zona eliminada correctamente'),
           backgroundColor: Colors.green,
         )
       );
@@ -105,7 +99,7 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
       setState(() { _error = e.toString(); });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error al eliminar promoción: $e'),
+          content: Text('Error al eliminar zona: $e'),
           backgroundColor: Colors.red,
         )
       );
@@ -114,15 +108,15 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
     }
   }
 
-  Future<void> _togglePromotionStatus(int id) async {
+  Future<void> _toggleZoneStatus(int id) async {
     setState(() { _loading = true; _error = null; });
     
     try {
-      await CommercePromotionService.togglePromotionStatus(id);
+      await CommerceDeliveryZoneService.toggleDeliveryZoneStatus(id);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Estado de promoción actualizado'),
+          content: Text('Estado de zona actualizado'),
           backgroundColor: Colors.green,
         )
       );
@@ -156,7 +150,7 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  'Resumen de Promociones',
+                  'Resumen de Zonas de Delivery',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
@@ -165,15 +159,15 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
                     Expanded(
                       child: _buildStatItem(
                         'Total',
-                        '${stats['total_promotions'] ?? 0}',
-                        Icons.local_offer,
+                        '${stats['total_zones'] ?? 0}',
+                        Icons.location_on,
                         Colors.blue,
                       ),
                     ),
                     Expanded(
                       child: _buildStatItem(
                         'Activas',
-                        '${stats['active_promotions'] ?? 0}',
+                        '${stats['active_zones'] ?? 0}',
                         Icons.check_circle,
                         Colors.green,
                       ),
@@ -181,7 +175,7 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
                     Expanded(
                       child: _buildStatItem(
                         'Inactivas',
-                        '${stats['inactive_promotions'] ?? 0}',
+                        '${stats['inactive_zones'] ?? 0}',
                         Icons.cancel,
                         Colors.red,
                       ),
@@ -193,18 +187,18 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
                   children: [
                     Expanded(
                       child: _buildStatItem(
-                        'Expiradas',
-                        '${stats['expired_promotions'] ?? 0}',
-                        Icons.schedule,
-                        Colors.orange,
+                        'Cobertura',
+                        '${(stats['total_coverage_km'] ?? 0.0).toStringAsFixed(1)} km',
+                        Icons.map,
+                        Colors.purple,
                       ),
                     ),
                     Expanded(
                       child: _buildStatItem(
-                        'Usos Totales',
-                        '${stats['total_uses'] ?? 0}',
-                        Icons.trending_up,
-                        Colors.purple,
+                        'Pedidos',
+                        '${stats['total_orders'] ?? 0}',
+                        Icons.local_shipping,
+                        Colors.orange,
                       ),
                     ),
                     Expanded(
@@ -252,7 +246,7 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
           children: [
             TextField(
               decoration: const InputDecoration(
-                labelText: 'Buscar promociones',
+                labelText: 'Buscar zonas',
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(),
               ),
@@ -273,9 +267,9 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
                     value: _sortBy,
                     items: const [
                       DropdownMenuItem(value: 'created_at', child: Text('Fecha')),
-                      DropdownMenuItem(value: 'title', child: Text('Título')),
-                      DropdownMenuItem(value: 'discount_value', child: Text('Descuento')),
-                      DropdownMenuItem(value: 'priority', child: Text('Prioridad')),
+                      DropdownMenuItem(value: 'name', child: Text('Nombre')),
+                      DropdownMenuItem(value: 'delivery_fee', child: Text('Tarifa')),
+                      DropdownMenuItem(value: 'radius', child: Text('Radio')),
                     ],
                     onChanged: (value) {
                       setState(() { _sortBy = value!; });
@@ -309,56 +303,38 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
     );
   }
 
-  Widget _buildPromotionCard(Map<String, dynamic> promotion) {
-    final isActive = promotion['is_active'] ?? false;
-    final discountType = promotion['discount_type'] ?? 'percentage';
-    final discountValue = promotion['discount_value'] ?? 0.0;
-    final startDate = DateTime.parse(promotion['start_date'] ?? DateTime.now().toIso8601String());
-    final endDate = DateTime.parse(promotion['end_date'] ?? DateTime.now().toIso8601String());
-    final isExpired = endDate.isBefore(DateTime.now());
-    final isExpiringSoon = endDate.difference(DateTime.now()).inDays <= 7;
+  Widget _buildZoneCard(Map<String, dynamic> zone) {
+    final isActive = zone['is_active'] ?? false;
+    final deliveryFee = (zone['delivery_fee'] ?? 0.0).toDouble();
+    final radius = (zone['radius'] ?? 0.0).toDouble();
+    final deliveryTime = zone['delivery_time'] ?? 0;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: ListTile(
         leading: CircleAvatar(
           backgroundColor: isActive ? Colors.green : Colors.grey,
-          child: promotion['image_url'] != null
-              ? ClipOval(
-                  child: Image.network(
-                    promotion['image_url'],
-                    width: 40,
-                    height: 40,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.local_offer),
-                  ),
-                )
-              : const Icon(Icons.local_offer, color: Colors.white),
+          child: const Icon(Icons.location_on, color: Colors.white),
         ),
         title: Text(
-          promotion['title'] ?? 'Sin título',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            decoration: isExpired ? TextDecoration.lineThrough : null,
-          ),
+          zone['name'] ?? 'Sin nombre',
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(promotion['description'] ?? 'Sin descripción'),
+            Text(zone['description'] ?? 'Sin descripción'),
             const SizedBox(height: 4),
             Row(
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: discountType == 'percentage' ? Colors.blue : Colors.orange,
+                    color: Colors.blue,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    discountType == 'percentage' 
-                        ? '${discountValue.toStringAsFixed(0)}%' 
-                        : '\$${discountValue.toStringAsFixed(2)}',
+                    '\$${deliveryFee.toStringAsFixed(2)}',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
@@ -367,18 +343,46 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
                   ),
                 ),
                 const SizedBox(width: 8),
-                if (promotion['minimum_order'] != null)
-                  Text(
-                    'Mín: \$${(promotion['minimum_order'] ?? 0.0).toStringAsFixed(2)}',
-                    style: const TextStyle(fontSize: 12, color: Colors.grey),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.orange,
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  child: Text(
+                    '${radius.toStringAsFixed(1)} km',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.purple,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    '${deliveryTime} min',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              '${_formatDate(startDate)} - ${_formatDate(endDate)}',
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
+            if (zone['center'] != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                'Centro: ${zone['center']['lat']?.toStringAsFixed(4)}, ${zone['center']['lng']?.toStringAsFixed(4)}',
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
+              ),
+            ],
           ],
         ),
         trailing: Column(
@@ -387,11 +391,11 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: _getStatusColor(isActive, isExpired, isExpiringSoon),
+                color: isActive ? Colors.green : Colors.grey,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                _getStatusText(isActive, isExpired, isExpiringSoon),
+                isActive ? 'Activa' : 'Inactiva',
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 12,
@@ -408,7 +412,7 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
                     isActive ? Icons.check_circle : Icons.cancel,
                     color: isActive ? Colors.green : Colors.red,
                   ),
-                  onPressed: _loading ? null : () => _togglePromotionStatus(promotion['id']),
+                  onPressed: _loading ? null : () => _toggleZoneStatus(zone['id']),
                   tooltip: isActive ? 'Desactivar' : 'Activar',
                 ),
                 IconButton(
@@ -417,17 +421,17 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CommercePromotionFormPage(promotion: promotion),
+                        builder: (context) => CommerceDeliveryZoneFormPage(zone: zone),
                       ),
                     );
                     if (result == true) _refresh();
                   },
-                  tooltip: 'Editar promoción',
+                  tooltip: 'Editar zona',
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: _loading ? null : () => _deletePromotion(promotion['id']),
-                  tooltip: 'Eliminar promoción',
+                  onPressed: _loading ? null : () => _deleteZone(zone['id']),
+                  tooltip: 'Eliminar zona',
                 ),
               ],
             ),
@@ -437,7 +441,7 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CommercePromotionFormPage(promotion: promotion),
+              builder: (context) => CommerceDeliveryZoneFormPage(zone: zone),
             ),
           );
           if (result == true) _refresh();
@@ -446,29 +450,11 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
     );
   }
 
-  Color _getStatusColor(bool isActive, bool isExpired, bool isExpiringSoon) {
-    if (isExpired) return Colors.red;
-    if (isExpiringSoon) return Colors.orange;
-    if (isActive) return Colors.green;
-    return Colors.grey;
-  }
-
-  String _getStatusText(bool isActive, bool isExpired, bool isExpiringSoon) {
-    if (isExpired) return 'Expirada';
-    if (isExpiringSoon) return 'Expira Pronto';
-    if (isActive) return 'Activa';
-    return 'Inactiva';
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gestión de Promociones'),
+        title: const Text('Zonas de Delivery'),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -493,7 +479,7 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
               _buildFilters(),
               Expanded(
                 child: FutureBuilder<List<Map<String, dynamic>>>(
-                  future: _promotionsFuture,
+                  future: _zonesFuture,
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
@@ -505,7 +491,7 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
                             const Icon(Icons.error, size: 64, color: Colors.red),
                             const SizedBox(height: 16),
                             Text(
-                              'Error al cargar promociones',
+                              'Error al cargar zonas',
                               style: Theme.of(context).textTheme.headlineSmall,
                             ),
                             const SizedBox(height: 8),
@@ -527,15 +513,15 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.local_offer, size: 64, color: Colors.grey),
+                            const Icon(Icons.location_off, size: 64, color: Colors.grey),
                             const SizedBox(height: 16),
                             Text(
-                              'No hay promociones',
+                              'No hay zonas de delivery',
                               style: Theme.of(context).textTheme.headlineSmall,
                             ),
                             const SizedBox(height: 8),
                             Text(
-                              'Crea tu primera promoción para atraer clientes',
+                              'Crea tu primera zona para definir áreas de entrega',
                               style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
                             ),
                             const SizedBox(height: 16),
@@ -544,26 +530,26 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
                                 final result = await Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const CommercePromotionFormPage(),
+                                    builder: (context) => const CommerceDeliveryZoneFormPage(),
                                   ),
                                 );
                                 if (result == true) _refresh();
                               },
                               icon: const Icon(Icons.add),
-                              label: const Text('Crear Promoción'),
+                              label: const Text('Crear Zona'),
                             ),
                           ],
                         ),
                       );
                     }
                     
-                    final promotions = snapshot.data!;
+                    final zones = snapshot.data!;
                     return RefreshIndicator(
                       onRefresh: _refresh,
                       child: ListView.builder(
                         padding: const EdgeInsets.only(bottom: 80),
-                        itemCount: promotions.length,
-                        itemBuilder: (context, index) => _buildPromotionCard(promotions[index]),
+                        itemCount: zones.length,
+                        itemBuilder: (context, index) => _buildZoneCard(zones[index]),
                       ),
                     );
                   },
@@ -583,14 +569,14 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
           final result = await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const CommercePromotionFormPage(),
+              builder: (context) => const CommerceDeliveryZoneFormPage(),
             ),
           );
           if (result == true) _refresh();
         },
         icon: const Icon(Icons.add),
-        label: const Text('Crear Promoción'),
-        tooltip: 'Crear nueva promoción',
+        label: const Text('Crear Zona'),
+        tooltip: 'Crear nueva zona de delivery',
       ),
     );
   }
