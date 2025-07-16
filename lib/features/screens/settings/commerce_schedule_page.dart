@@ -329,7 +329,7 @@ class _CommerceSchedulePageState extends State<CommerceSchedulePage> {
                         '• Los días marcados como "Cerrado" no aparecerán en el horario público\n'
                         '• Puedes usar el horario personalizado para casos especiales\n'
                         '• Los cambios se aplican inmediatamente',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        style: const TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                     ],
                   ),

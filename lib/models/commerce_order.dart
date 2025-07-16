@@ -173,7 +173,7 @@ class CommerceOrder {
   }
 
   int get itemCount {
-    return items.fold(0, (sum, item) => sum + (item['quantity'] ?? 0));
+    return items.fold(0, (sum, item) => sum + (item['quantity'] as int? ?? 0));
   }
 
   bool get isPendingPayment => status == 'pending_payment';

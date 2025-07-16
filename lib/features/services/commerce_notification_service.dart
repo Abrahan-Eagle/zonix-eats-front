@@ -399,7 +399,7 @@ class CommerceNotificationService {
   Future<void> disconnect() async {
     try {
       _wsSubscription?.cancel();
-      await WebSocketService().disconnect();
+      WebSocketService().disconnect();
       _notificationsController?.close();
       _isConnected = false;
       _logger.i('WebSocket desconectado');

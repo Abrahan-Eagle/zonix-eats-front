@@ -54,7 +54,7 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
     setState(() {
       _promotionsFuture = CommercePromotionService.getPromotions(
         status: _statusFilters[_statusTabs[_tabController.index]],
-        search: _searchQuery.isNotEmpty ? _searchQuery : null,
+
         sortBy: _sortBy,
         sortOrder: _sortOrder,
       );

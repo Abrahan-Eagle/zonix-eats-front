@@ -264,7 +264,7 @@ class _CommercePaymentPageState extends State<CommercePaymentPage> {
                         '• Asegúrate de que el número de teléfono esté activo\n'
                         '• El ID de pago móvil debe ser el mismo registrado en tu banco\n'
                         '• Estos datos son confidenciales y seguros',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        style: const TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                     ],
                   ),

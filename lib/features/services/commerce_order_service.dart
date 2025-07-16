@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../models/commerce_order.dart';
+import '../../models/commerce_order.dart';
 
 class CommerceOrderService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();

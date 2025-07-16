@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../utils/app_colors.dart';
+
 
 class CommerceDataService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
@@ -78,7 +78,7 @@ class CommerceDataService {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'commerce' => data,
+          'commerce': data,
         }),
       );
 
@@ -129,7 +129,7 @@ class CommerceDataService {
           'Content-Type': 'application/json',
         },
         body: jsonEncode({
-          'commerce' => {
+          'commerce': {
             'mobile_payment_bank': data['bank'],
             'mobile_payment_id': data['payment_id'],
             'mobile_payment_phone': data['payment_phone'],

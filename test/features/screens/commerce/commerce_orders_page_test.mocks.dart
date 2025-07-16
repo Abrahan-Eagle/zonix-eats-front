@@ -3,12 +3,8 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i5;
-
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i4;
-import 'package:zonix/models/commerce_order.dart' as _i2;
-import 'package:zonix/services/commerce_order_service.dart' as _i3;
+import 'package:zonix/features/services/commerce_order_service.dart' as _i2;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -24,93 +20,12 @@ import 'package:zonix/services/commerce_order_service.dart' as _i3;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
-class _FakeCommerceOrder_0 extends _i1.SmartFake implements _i2.CommerceOrder {
-  _FakeCommerceOrder_0(
-    Object parent,
-    Invocation parentInvocation,
-  ) : super(
-          parent,
-          parentInvocation,
-        );
-}
-
 /// A class which mocks [CommerceOrderService].
 ///
 /// See the documentation for Mockito's code generation for more information.
 class MockCommerceOrderService extends _i1.Mock
-    implements _i3.CommerceOrderService {
+    implements _i2.CommerceOrderService {
   MockCommerceOrderService() {
     _i1.throwOnMissingStub(this);
   }
-
-  @override
-  String get apiUrl => (super.noSuchMethod(
-        Invocation.getter(#apiUrl),
-        returnValue: _i4.dummyValue<String>(
-          this,
-          Invocation.getter(#apiUrl),
-        ),
-      ) as String);
-
-  @override
-  _i5.Future<List<_i2.CommerceOrder>> fetchOrders() => (super.noSuchMethod(
-        Invocation.method(
-          #fetchOrders,
-          [],
-        ),
-        returnValue:
-            _i5.Future<List<_i2.CommerceOrder>>.value(<_i2.CommerceOrder>[]),
-      ) as _i5.Future<List<_i2.CommerceOrder>>);
-
-  @override
-  _i5.Future<_i2.CommerceOrder> fetchOrderDetail(int? id) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #fetchOrderDetail,
-          [id],
-        ),
-        returnValue: _i5.Future<_i2.CommerceOrder>.value(_FakeCommerceOrder_0(
-          this,
-          Invocation.method(
-            #fetchOrderDetail,
-            [id],
-          ),
-        )),
-      ) as _i5.Future<_i2.CommerceOrder>);
-
-  @override
-  _i5.Future<void> updateOrderStatus(
-    int? id,
-    String? status,
-  ) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #updateOrderStatus,
-          [
-            id,
-            status,
-          ],
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
-
-  @override
-  _i5.Future<void> validatePayment(
-    int? id,
-    bool? isValid, {
-    String? reason,
-  }) =>
-      (super.noSuchMethod(
-        Invocation.method(
-          #validatePayment,
-          [
-            id,
-            isValid,
-          ],
-          {#reason: reason},
-        ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
 }

@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../models/commerce_product.dart';
+import '../../models/commerce_product.dart';
 
 class CommerceProductService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();

@@ -59,7 +59,6 @@ class _CommerceNotificationsPageState extends State<CommerceNotificationsPage> w
     setState(() {
       _notificationsFuture = CommerceNotificationService().getNotifications(
         type: _typeFilters[_typeTabs[_tabController.index]],
-        search: _searchQuery.isNotEmpty ? _searchQuery : null,
         sortBy: _sortBy,
         sortOrder: _sortOrder,
       );
@@ -74,7 +73,7 @@ class _CommerceNotificationsPageState extends State<CommerceNotificationsPage> w
 
   Future<void> _initWebSocket() async {
     try {
-      final profile = await CommerceDataService.getCommerceProfile();
+      final profile = await CommerceDataService.getCommerceData();
       _commerceId = profile['id'];
       
       await CommerceNotificationService().connectWebSocket(_commerceId!);

@@ -4,8 +4,8 @@ import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 
 class PreferencesService {
-  static const String baseUrl = AppConfig.baseUrl;
-  static const int requestTimeout = AppConfig.requestTimeout;
+  static String get baseUrl => AppConfig.baseUrl;
+  static int get requestTimeout => AppConfig.requestTimeout;
 
   /// Obtener preferencias del usuario
   static Future<Map<String, dynamic>> getUserPreferences() async {
