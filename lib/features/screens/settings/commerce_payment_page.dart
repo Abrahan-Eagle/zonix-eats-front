@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:zonix/features/services/commerce_data_service.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 class CommercePaymentPage extends StatefulWidget {
   const CommercePaymentPage({Key? key}) : super(key: key);
@@ -9,10 +11,12 @@ class CommercePaymentPage extends StatefulWidget {
 
 class _CommercePaymentPageState extends State<CommercePaymentPage> {
   final _formKey = GlobalKey<FormState>();
+  final _paymentIdController = TextEditingController();
+  final _paymentPhoneController = TextEditingController();
+  
   String? _bank;
-  String _paymentId = '';
-  String _paymentPhone = '';
   bool _loading = false;
+  bool _initialLoading = true;
   String? _error;
   String? _success;
 
@@ -25,62 +29,309 @@ class _CommercePaymentPageState extends State<CommercePaymentPage> {
     'Bancaribe',
     'Banco del Tesoro',
     'Banco Plaza',
+    'BBVA Provincial',
+    'Banco Exterior',
+    'Banco Caroní',
+    'Banco Sofitasa',
     'Otro',
   ];
 
-  void _submit() async {
+  @override
+  void initState() {
+    super.initState();
+    _loadPaymentData();
+  }
+
+  @override
+  void dispose() {
+    _paymentIdController.dispose();
+    _paymentPhoneController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadPaymentData() async {
+    try {
+      setState(() {
+        _initialLoading = true;
+        _error = null;
+      });
+
+      final data = await CommerceDataService.getCommerceData();
+      
+      setState(() {
+        _bank = data['mobile_payment_bank'];
+        _paymentIdController.text = data['mobile_payment_id'] ?? '';
+        _paymentPhoneController.text = data['mobile_payment_phone'] ?? '';
+        _initialLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'Error al cargar datos: $e';
+        _initialLoading = false;
+      });
+    }
+  }
+
+  Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() { _loading = true; _error = null; _success = null; });
-    _formKey.currentState!.save();
-    await Future.delayed(const Duration(seconds: 1));
-    setState(() {
-      _loading = false;
-      _success = 'Datos de pago móvil actualizados correctamente.';
+    
+    setState(() { 
+      _loading = true; 
+      _error = null; 
+      _success = null; 
     });
+
+    try {
+      final data = {
+        'bank': _bank,
+        'payment_id': _paymentIdController.text,
+        'payment_phone': _paymentPhoneController.text,
+      };
+
+      await CommerceDataService.updatePaymentData(data);
+      
+      setState(() {
+        _loading = false;
+        _success = 'Datos de pago móvil actualizados correctamente.';
+      });
+
+      // Limpiar mensaje de éxito después de 3 segundos
+      Future.delayed(const Duration(seconds: 3), () {
+        if (mounted) {
+          setState(() {
+            _success = null;
+          });
+        }
+      });
+    } catch (e) {
+      setState(() {
+        _loading = false;
+        _error = 'Error al actualizar datos: $e';
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_initialLoading) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Datos de pago móvil'),
+          backgroundColor: AppColors.purple,
+          foregroundColor: Colors.white,
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Datos de pago móvil')),
+      appBar: AppBar(
+        title: const Text('Datos de pago móvil'),
+        backgroundColor: AppColors.purple,
+        foregroundColor: Colors.white,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: ListView(
             children: [
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(labelText: 'Banco'),
-                value: _bank,
-                items: _banks.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
-                onChanged: (v) => setState(() => _bank = v),
-                validator: (v) => v == null || v.isEmpty ? 'Seleccione un banco' : null,
+              // Información del banco
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Información del Banco',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        decoration: const InputDecoration(
+                          labelText: 'Banco *',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.account_balance),
+                        ),
+                        value: _bank,
+                        items: _banks.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
+                        onChanged: (v) => setState(() => _bank = v),
+                        validator: (v) => v == null || v.isEmpty ? 'Seleccione un banco' : null,
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'ID de pago móvil'),
-                validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
-                onSaved: (v) => _paymentId = v ?? '',
-                keyboardType: TextInputType.number,
+              const SizedBox(height: 16),
+
+              // Información de pago móvil
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Datos de Pago Móvil',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _paymentIdController,
+                        decoration: const InputDecoration(
+                          labelText: 'ID de pago móvil *',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.credit_card),
+                          hintText: 'Ej: 12345678',
+                        ),
+                        validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _paymentPhoneController,
+                        decoration: const InputDecoration(
+                          labelText: 'Teléfono de pago móvil *',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.phone_android),
+                          hintText: 'Ej: 04121234567',
+                        ),
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Campo requerido';
+                          final regex = RegExp(r'^\d{11}$');
+                          if (!regex.hasMatch(v.replaceAll(RegExp(r'\D'), ''))) {
+                            return 'Debe tener 11 dígitos';
+                          }
+                          return null;
+                        },
+                        keyboardType: TextInputType.phone,
+                        onChanged: (value) {
+                          // Formatear automáticamente el número de teléfono
+                          final digits = value.replaceAll(RegExp(r'\D'), '');
+                          if (digits.length <= 11) {
+                            String formatted = '';
+                            if (digits.isNotEmpty) {
+                              formatted = digits;
+                              if (digits.length >= 4) {
+                                formatted = '${digits.substring(0, 4)}-${digits.substring(4)}';
+                              }
+                              if (digits.length >= 7) {
+                                formatted = '${digits.substring(0, 4)}-${digits.substring(4, 7)}-${digits.substring(7)}';
+                              }
+                            }
+                            if (formatted != value) {
+                              _paymentPhoneController.value = TextEditingValue(
+                                text: formatted,
+                                selection: TextSelection.collapsed(offset: formatted.length),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              TextFormField(
-                decoration: const InputDecoration(labelText: 'Teléfono de pago móvil'),
-                validator: (v) {
-                  if (v == null || v.isEmpty) return 'Campo requerido';
-                  final regex = RegExp(r'^\d{11} ?$');
-                  if (!regex.hasMatch(v)) return 'Debe tener 11 dígitos';
-                  return null;
-                },
-                onSaved: (v) => _paymentPhone = v ?? '',
-                keyboardType: TextInputType.phone,
+              const SizedBox(height: 16),
+
+              // Información adicional
+              Card(
+                elevation: 2,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.info_outline, color: AppColors.blue),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Información Importante',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      const Text(
+                        '• Los datos de pago móvil se utilizan para recibir pagos de los clientes\n'
+                        '• Asegúrate de que el número de teléfono esté activo\n'
+                        '• El ID de pago móvil debe ser el mismo registrado en tu banco\n'
+                        '• Estos datos son confidenciales y seguros',
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
-              if (_error != null) Text(_error!, style: const TextStyle(color: Colors.red)),
-              if (_success != null) Text(_success!, style: const TextStyle(color: Colors.green)),
-              ElevatedButton.icon(
-                icon: _loading ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.save),
-                label: const Text('Guardar cambios'),
-                onPressed: _loading ? null : _submit,
-                style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+
+              // Mensajes de estado
+              if (_error != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error, color: Colors.red),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(_error!, style: const TextStyle(color: Colors.red))),
+                    ],
+                  ),
+                ),
+              
+              if (_success != null)
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.green.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.green.shade200),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle, color: Colors.green),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(_success!, style: const TextStyle(color: Colors.green))),
+                    ],
+                  ),
+                ),
+
+              const SizedBox(height: 24),
+
+              // Botón de guardar
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: _loading ? null : _submit,
+                  icon: _loading 
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                      )
+                    : const Icon(Icons.save),
+                  label: Text(
+                    _loading ? 'Guardando...' : 'Guardar cambios',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.purple,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                  ),
+                ),
               ),
             ],
           ),
