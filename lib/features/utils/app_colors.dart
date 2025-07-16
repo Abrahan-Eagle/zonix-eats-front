@@ -16,6 +16,9 @@ class AppColors {
   static const Color grayDark = Color(0xFF23262B);
   static const Color backgroundDark = Color(0xFF181A20);
   static const Color purple = Color(0xFF8A56AC); // Agregado para acentos púrpura
+  static const Color teal = Color(0xFF009688);
+  static const Color brown = Color(0xFF795548);
+  static const Color amber = Color(0xFFFFC107);
 
   // Helpers para modo claro/oscuro
   static Color scaffoldBg(BuildContext context) =>

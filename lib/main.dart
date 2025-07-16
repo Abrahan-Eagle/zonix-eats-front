@@ -672,12 +672,12 @@ class MainRouterState extends State<MainRouter> {
             label: 'Dashboard',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.inventory),
-            label: 'Inventario',
-          ),
-          const BottomNavigationBarItem(
             icon: Icon(Icons.assignment),
             label: 'Órdenes',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.inventory),
+            label: 'Productos',
           ),
           const BottomNavigationBarItem(
             icon: Icon(Icons.analytics),
@@ -1033,9 +1033,9 @@ class MainRouterState extends State<MainRouter> {
                     case 0:
                       return const CommerceDashboardPage(); // Dashboard
                     case 1:
-                      return const CommerceInventoryPage(); // Inventario
-                    case 2:
                       return const CommerceOrdersPage(); // Órdenes
+                    case 2:
+                      return const CommerceInventoryPage(); // Productos
                     case 3:
                       return const CommerceReportsPage(); // Reportes
                     default:

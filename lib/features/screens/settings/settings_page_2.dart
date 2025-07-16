@@ -12,15 +12,21 @@ import 'package:zonix/features/screens/about/about_page.dart';
 import 'package:zonix/features/screens/help/help_and_faq_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
-import 'package:zonix/features/screens/onboarding/form/commerce_registration_page.dart';
-import 'package:zonix/features/screens/onboarding/form/delivery_company_registration_page.dart';
-import 'package:zonix/features/screens/onboarding/form/delivery_agent_registration_page.dart';
 // Importaciones para funcionalidades avanzadas
 import 'package:zonix/features/DomainProfiles/Profiles/screens/activity_history_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/data_export_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/privacy_settings_page.dart';
 import 'package:zonix/features/screens/account_deletion_page.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+
+import 'package:zonix/features/screens/settings/commerce_data_page.dart';
+import 'package:zonix/features/screens/settings/commerce_payment_page.dart';
+import 'package:zonix/features/screens/settings/commerce_schedule_page.dart';
+import 'package:zonix/features/screens/settings/commerce_open_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_promotions_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_zones_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
+
 
 // Configuración del logger
 final logger = Logger();
@@ -115,7 +121,6 @@ class _SettingsPage2State extends State<SettingsPage2> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     if (_loading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -297,6 +302,129 @@ class _SettingsPage2State extends State<SettingsPage2> {
                       ],
                     ),
                   ),
+                  // Después de la sección 'Mi cuenta' y antes de 'Funcionalidades Avanzadas':
+                  if (userProvider.userRole == 'commerce') ...[
+                    const SizedBox(height: 24),
+                    Text(
+                      "Gestión del comercio",
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: AppColors.accentButton(context),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Card(
+                      color: AppColors.cardBg(context),
+                      elevation: 6,
+                      shadowColor: AppColors.purple.withOpacity(0.10),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      child: Column(
+                        children: [
+                          _buildListTile(
+                            context,
+                            icon: Icons.store,
+                            color: AppColors.purple,
+                            title: "Datos del comercio",
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const CommerceDataPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          _buildListTile(
+                            context,
+                            icon: Icons.payment,
+                            color: AppColors.green,
+                            title: "Datos de pago móvil",
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const CommercePaymentPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          _buildListTile(
+                            context,
+                            icon: Icons.schedule,
+                            color: AppColors.orange,
+                            title: "Horario de atención",
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const CommerceSchedulePage(),
+                                ),
+                              );
+                            },
+                          ),
+                          _buildListTile(
+                            context,
+                            icon: Icons.toggle_on,
+                            color: AppColors.red,
+                            title: "Estado abierto/cerrado",
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const CommerceOpenPage(),
+                                ),
+                              );
+                            },
+                          ),
+
+
+                          _buildListTile(
+                            context,
+                            icon: Icons.local_offer,
+                            color: AppColors.red,
+                            title: "Promociones/Cupones",
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const CommercePromotionsPage(),
+                                ),
+                              );
+                            },
+                          ),
+
+                          _buildListTile(
+                            context,
+                            icon: Icons.map,
+                            color: AppColors.brown,
+                            title: "Zonas/costos de delivery",
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const CommerceZonesPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          _buildListTile(
+                            context,
+                            icon: Icons.notifications,
+                            color: AppColors.amber,
+                            title: "Notificaciones y alertas",
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const CommerceNotificationsPage(),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 24),
 
                   // Sección: Funcionalidades Avanzadas
