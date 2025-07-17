@@ -3,14 +3,12 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logger/logger.dart';
+import '../../helpers/auth_helper.dart';
+import '../../config/app_config.dart';
 
 class CommerceDataService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
-  // static const String baseUrl = 'http://192.168.0.102:8000/api';
-
-  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
+  static String get baseUrl => AppConfig.baseUrl;
 final Logger _logger = Logger();
 
   // Obtener datos del comercio
@@ -49,8 +47,9 @@ final Logger _logger = Logger();
 
   // Actualizar datos del comercio
   static Future<Map<String, dynamic>> updateCommerceData(Map<String, dynamic> data) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-            // Primero obtener el perfil actual
+      // Primero obtener el perfil actual
       final profileResponse = await http.get(
         Uri.parse('$baseUrl/api/buyer/profiles'),
         headers: headers,
@@ -90,8 +89,8 @@ final Logger _logger = Logger();
 
   // Actualizar datos de pago móvil
   static Future<Map<String, dynamic>> updatePaymentData(Map<String, dynamic> data) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-
       // Primero obtener el perfil actual
       final profileResponse = await http.get(
         Uri.parse('$baseUrl/api/buyer/profiles'),
@@ -113,11 +112,7 @@ final Logger _logger = Logger();
       // Actualizar solo los datos de pago móvil
       final response = await http.post(
         Uri.parse('$baseUrl/api/buyer/profiles/$profileId'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: jsonEncode({
           'commerce': {
             'mobile_payment_bank': data['bank'],
@@ -140,17 +135,11 @@ final Logger _logger = Logger();
 
   // Crear nuevo comercio
   static Future<Map<String, dynamic>> createCommerce(Map<String, dynamic> data) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final response = await http.post(
         Uri.parse('$baseUrl/api/buyer/profiles/commerce'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: jsonEncode(data),
       );
 
@@ -172,9 +161,9 @@ final Logger _logger = Logger();
       if (token == null) throw Exception('Token no encontrado');
 
       // TODO: Implementar subida de imagen
-      // Por ahora retornamos una URL mock
+      // Por ahora retornamos una imagen local
       await Future.delayed(const Duration(seconds: 1));
-      return 'https://via.placeholder.com/300x300?text=Logo+Comercio';
+      return 'assets/images/default_avatar.png';
     } catch (e) {
       throw Exception('Error al subir imagen: $e');
     }

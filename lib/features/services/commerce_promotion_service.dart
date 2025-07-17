@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../config/app_config.dart';
-import '../auth/auth_helper.dart';
+import '../../helpers/auth_helper.dart';
 
 class CommercePromotionService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
