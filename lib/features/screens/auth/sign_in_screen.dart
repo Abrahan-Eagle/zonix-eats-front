@@ -338,15 +338,17 @@ ScaleTransition(
     // ),
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // Logo principal (ahora más grande)
-       Image.asset(
-  'assets/images/logo_login2.png',
- width: isSmallScreen ? 600 : 700,
-  height: isSmallScreen ? 219 : 256,
-  fit: BoxFit.contain,
-),
-
+        // Logo principal (ajustado para evitar overflow)
+        Flexible(
+          child: Image.asset(
+            'assets/images/logo_login2.png',
+            width: isSmallScreen ? 400 : 500,
+            height: isSmallScreen ? 146 : 183,
+            fit: BoxFit.contain,
+          ),
+        ),
       ],
     ),
   ),

@@ -82,7 +82,7 @@ class CommerceNotificationService {
         'id': 1,
         'type': 'order',
         'title': 'Nuevo pedido recibido',
-        'message': 'Pedido #ORD-001 recibido por $25.00',
+        'message': 'Pedido #ORD-001 recibido por \$25.00',
         'read_at': null,
         'created_at': DateTime.now().subtract(Duration(minutes: 5)).toIso8601String(),
       },

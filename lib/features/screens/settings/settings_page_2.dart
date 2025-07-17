@@ -623,13 +623,25 @@ class _SettingsPage2State extends State<SettingsPage2> {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: color.withOpacity(0.15),
-        child: Icon(icon, color: color, size: 28),
-        radius: 22,
+        child: Icon(icon, color: color, size: 24),
+        radius: 20,
       ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: subtitle != null ? Text(subtitle) : null,
+      title: Flexible(
+        child: Text(
+          title, 
+          style: const TextStyle(fontWeight: FontWeight.bold),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+      subtitle: subtitle != null ? Flexible(
+        child: Text(
+          subtitle,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ) : null,
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
     );
   }
 
