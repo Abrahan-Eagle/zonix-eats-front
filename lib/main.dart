@@ -1153,6 +1153,14 @@ class MainRouterState extends State<MainRouter> {
 
 ImageProvider<Object> _getProfileImage(String? profilePhoto, String? googlePhotoUrl) {
   if (profilePhoto != null && profilePhoto.isNotEmpty) {
+    // Detectar URLs de placeholder y evitarlas
+    if (profilePhoto.contains('via.placeholder.com') || 
+        profilePhoto.contains('placeholder.com') ||
+        profilePhoto.contains('placehold.it')) {
+      logger.w('Detectada URL de placeholder en perfil, usando imagen local: $profilePhoto');
+      return const AssetImage('assets/images/default_avatar.png');
+    }
+    
     logger.i('Usando foto del perfil: $profilePhoto');
     return NetworkImage(profilePhoto); // Imagen del perfil del usuario
   }
@@ -1161,5 +1169,5 @@ ImageProvider<Object> _getProfileImage(String? profilePhoto, String? googlePhoto
     return NetworkImage(googlePhotoUrl); // Imagen de Google
   }
   logger.w('Usando imagen predeterminada');
-  return const AssetImage('assets/default_avatar.png'); // Imagen predeterminada
+  return const AssetImage('assets/images/default_avatar.png'); // Imagen predeterminada
 }

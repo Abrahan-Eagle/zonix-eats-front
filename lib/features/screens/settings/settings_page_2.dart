@@ -160,8 +160,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
             ),
             elevation: 0,
           ),
-          body: SingleChildScrollView(
-            child: Padding(
+          body: SafeArea(
+            child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -626,18 +626,16 @@ class _SettingsPage2State extends State<SettingsPage2> {
         child: Icon(icon, color: color, size: 24),
         radius: 20,
       ),
-      title: Flexible(
-        child: Text(
-          title, 
-          style: const TextStyle(fontWeight: FontWeight.bold),
-          overflow: TextOverflow.ellipsis,
-        ),
+      title: Text(
+        title, 
+        style: const TextStyle(fontWeight: FontWeight.bold),
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
       ),
-      subtitle: subtitle != null ? Flexible(
-        child: Text(
-          subtitle,
-          overflow: TextOverflow.ellipsis,
-        ),
+      subtitle: subtitle != null ? Text(
+        subtitle,
+        overflow: TextOverflow.ellipsis,
+        maxLines: 2,
       ) : null,
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
       onTap: onTap,
@@ -648,11 +646,19 @@ class _SettingsPage2State extends State<SettingsPage2> {
 
 ImageProvider<Object> _getProfileImage(String? profilePhoto) {
   if (profilePhoto != null && profilePhoto.isNotEmpty) {
+    // Detectar URLs de placeholder y evitarlas
+    if (profilePhoto.contains('via.placeholder.com') || 
+        profilePhoto.contains('placeholder.com') ||
+        profilePhoto.contains('placehold.it')) {
+      logger.w('Detectada URL de placeholder, usando imagen local: $profilePhoto');
+      return const AssetImage('assets/images/default_avatar.png');
+    }
+    
     logger.i('Usando foto del perfil: $profilePhoto');
     return NetworkImage(profilePhoto); 
   }
 
   logger.w('Usando imagen predeterminada');
-  return const AssetImage('assets/default_avatar.png'); 
+  return const AssetImage('assets/images/default_avatar.png'); 
 }
 }
