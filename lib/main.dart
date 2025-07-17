@@ -1158,7 +1158,7 @@ ImageProvider<Object> _getProfileImage(String? profilePhoto, String? googlePhoto
         profilePhoto.contains('placeholder.com') ||
         profilePhoto.contains('placehold.it')) {
       logger.w('Detectada URL de placeholder en perfil, usando imagen local: $profilePhoto');
-      return const AssetImage('assets/images/default_avatar.png');
+      return const AssetImage('assets/default_avatar.png');
     }
     
     logger.i('Usando foto del perfil: $profilePhoto');
@@ -1169,5 +1169,5 @@ ImageProvider<Object> _getProfileImage(String? profilePhoto, String? googlePhoto
     return NetworkImage(googlePhotoUrl); // Imagen de Google
   }
   logger.w('Usando imagen predeterminada');
-  return const AssetImage('assets/images/default_avatar.png'); // Imagen predeterminada
+  return const AssetImage('assets/default_avatar.png'); // Imagen predeterminada
 }
