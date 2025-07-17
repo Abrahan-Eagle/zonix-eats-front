@@ -9,12 +9,11 @@ class LocalizationService {
 
   /// Obtener idiomas disponibles
   static Future<Map<String, dynamic>> getAvailableLanguages() async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/api/localization/languages'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
       ).timeout(Duration(seconds: requestTimeout));
 
       if (response.statusCode == 200) {
@@ -29,12 +28,11 @@ class LocalizationService {
 
   /// Obtener traducciones para un idioma
   static Future<Map<String, dynamic>> getTranslations(String language) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/api/localization/translations?language=$language'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
       ).timeout(Duration(seconds: requestTimeout));
 
       if (response.statusCode == 200) {
@@ -49,12 +47,11 @@ class LocalizationService {
 
   /// Obtener configuración regional
   static Future<Map<String, dynamic>> getRegionalSettings(String language) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/api/localization/regional-settings?language=$language'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
       ).timeout(Duration(seconds: requestTimeout));
 
       if (response.statusCode == 200) {
@@ -69,14 +66,11 @@ class LocalizationService {
 
   /// Actualizar idioma del usuario
   static Future<Map<String, dynamic>> updateUserLanguage(String language) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await AuthHelper.getToken();
       final response = await http.put(
         Uri.parse('$baseUrl/api/localization/user-language'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: json.encode({'language': language}),
       ).timeout(Duration(seconds: requestTimeout));
 
@@ -93,14 +87,11 @@ class LocalizationService {
 
   /// Obtener idioma actual del usuario
   static Future<Map<String, dynamic>> getUserLanguage() async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await AuthHelper.getToken();
       final response = await http.get(
         Uri.parse('$baseUrl/api/localization/user-language'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
       ).timeout(Duration(seconds: requestTimeout));
 
       if (response.statusCode == 200) {
@@ -118,12 +109,11 @@ class LocalizationService {
     required double amount,
     required String language,
   }) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/api/localization/format-currency'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: json.encode({
           'amount': amount,
           'language': language,
@@ -146,12 +136,11 @@ class LocalizationService {
     required String language,
     String format = 'date',
   }) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/api/localization/format-date'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: json.encode({
           'date': date,
           'language': language,
@@ -171,12 +160,11 @@ class LocalizationService {
 
   /// Obtener configuración completa de localización
   static Future<Map<String, dynamic>> getLocalizationConfig(String language) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/api/localization/config?language=$language'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
       ).timeout(Duration(seconds: requestTimeout));
 
       if (response.statusCode == 200) {

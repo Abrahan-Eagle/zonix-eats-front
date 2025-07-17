@@ -50,7 +50,9 @@ class CommerceOrder {
       commerceId: json['commerce_id'] ?? 0,
       deliveryType: json['delivery_type'] ?? 'pickup',
       status: json['status'] ?? 'pending',
-      total: (json['total'] ?? 0.0).toDouble(),
+      total: (json['total'] is String)
+          ? double.tryParse(json['total']) ?? 0.0
+          : (json['total'] ?? 0.0).toDouble(),
       receiptUrl: json['receipt_url'],
       notes: json['notes'],
       paymentProof: json['payment_proof'],

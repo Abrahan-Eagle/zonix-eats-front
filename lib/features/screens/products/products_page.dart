@@ -35,6 +35,29 @@ class _ProductsPageState extends State<ProductsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Eliminar dropdown de categorías
+            // Padding(
+            //   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            //   child: _loadingCategories
+            //       ? const LinearProgressIndicator()
+            //       : DropdownButtonFormField<int>(
+            //           value: _selectedCategoryId,
+            //           items: [
+            //             const DropdownMenuItem<int>(value: null, child: Text('Todas las categorías')),
+            //             ..._categories.map((cat) => DropdownMenuItem<int>(
+            //                   value: cat['id'],
+            //                   child: Text(cat['name']),
+            //                 ))
+            //           ],
+            //           onChanged: (value) {
+            //             setState(() {
+            //               _selectedCategoryId = value;
+            //               _loadProducts();
+            //             });
+            //           },
+            //           decoration: const InputDecoration(labelText: 'Filtrar por categoría'),
+            //         ),
+            // ),
           
             // Listado de productos en grid moderno
             Expanded(

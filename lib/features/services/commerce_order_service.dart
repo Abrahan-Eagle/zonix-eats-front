@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../models/commerce_order.dart';
+import '../../config/app_config.dart';
+import '../../utils/auth_helper.dart';
 
 class CommerceOrderService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
-  static const String baseUrl = 'http://192.168.0.102:8000/api';
+  static String get baseUrl => AppConfig.baseUrl;
 
   // Obtener todas las órdenes del comercio
   static Future<List<CommerceOrder>> getOrders({
@@ -15,6 +17,7 @@ class CommerceOrderService {
     String? sortOrder,
     int? perPage,
   }) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
@@ -30,10 +33,7 @@ class CommerceOrderService {
       
       final response = await http.get(
         uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -54,16 +54,14 @@ class CommerceOrderService {
 
   // Obtener una orden específica
   static Future<CommerceOrder> getOrder(int id) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.get(
         Uri.parse('$baseUrl/commerce/orders/$id'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -79,17 +77,14 @@ class CommerceOrderService {
 
   // Actualizar estado de una orden
   static Future<CommerceOrder> updateOrderStatus(int id, String status) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.put(
         Uri.parse('$baseUrl/commerce/orders/$id/status'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: jsonEncode({'status': status}),
       );
 
@@ -109,17 +104,14 @@ class CommerceOrderService {
 
   // Validar comprobante de pago
   static Future<Map<String, dynamic>> validatePayment(int orderId, bool isValid, {String? reason}) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.post(
         Uri.parse('$baseUrl/commerce/orders/$orderId/validate-payment'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: jsonEncode({
           'is_valid': isValid,
           'reason': reason,
@@ -138,16 +130,14 @@ class CommerceOrderService {
 
   // Obtener estadísticas de órdenes
   static Future<Map<String, dynamic>> getOrderStats() async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.get(
         Uri.parse('$baseUrl/commerce/orders/stats'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -166,17 +156,14 @@ class CommerceOrderService {
     String? notes,
     double? estimatedTime,
   }) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.post(
         Uri.parse('$baseUrl/commerce/delivery/request'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: jsonEncode({
           'order_id': orderId,
           'notes': notes,
@@ -201,6 +188,7 @@ class CommerceOrderService {
     String? status,
     String? deliveryType,
   }) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
@@ -215,10 +203,7 @@ class CommerceOrderService {
       
       final response = await http.get(
         uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -274,6 +259,7 @@ class CommerceOrderService {
 
   // Obtener órdenes por rango de fechas
   static Future<List<CommerceOrder>> getOrdersByDateRange(DateTime startDate, DateTime endDate) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
@@ -287,10 +273,7 @@ class CommerceOrderService {
       
       final response = await http.get(
         uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {

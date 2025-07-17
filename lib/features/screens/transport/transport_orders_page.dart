@@ -180,7 +180,7 @@ class _TransportOrdersPageState extends State<TransportOrdersPage> {
                   ),
                   const Spacer(),
                   Text(
-                    '\$${(15 + index * 2).toDouble()}',
+                    '\$${(15 + index * 2).toDouble()}', // Este valor es int, el .toDouble() es seguro aquí, pero si alguna vez viene de String, usar double.tryParse(valor) ?? 0.0
                     style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                   ),
                 ],

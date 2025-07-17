@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'websocket_service.dart';
+import '../../config/app_config.dart';
+import '../../utils/auth_helper.dart';
 
 class CommerceNotificationService {
   static final CommerceNotificationService _instance = CommerceNotificationService._internal();
@@ -11,7 +13,7 @@ class CommerceNotificationService {
   CommerceNotificationService._internal();
 
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
-  static const String baseUrl = 'http://192.168.0.102:8000/api';
+  static String get baseUrl => AppConfig.baseUrl;
   final Logger _logger = Logger();
 
   StreamSubscription? _wsSubscription;
@@ -33,6 +35,7 @@ class CommerceNotificationService {
     String? sortOrder,
     int? perPage,
   }) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
@@ -48,10 +51,7 @@ class CommerceNotificationService {
       
       final response = await http.get(
         uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -74,16 +74,14 @@ class CommerceNotificationService {
 
   // Obtener una notificación específica
   Future<Map<String, dynamic>> getNotification(int id) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.get(
         Uri.parse('$baseUrl/notifications/$id'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -100,17 +98,14 @@ class CommerceNotificationService {
 
   // Marcar notificación como leída
   Future<void> markAsRead(int id) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.post(
         Uri.parse('$baseUrl/notifications/$id/read'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -131,17 +126,14 @@ class CommerceNotificationService {
 
   // Marcar todas las notificaciones como leídas
   Future<void> markAllAsRead() async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.post(
         Uri.parse('$baseUrl/notifications/mark-all-read'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -161,16 +153,14 @@ class CommerceNotificationService {
 
   // Eliminar notificación
   Future<void> deleteNotification(int id) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.delete(
         Uri.parse('$baseUrl/notifications/$id'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -188,16 +178,14 @@ class CommerceNotificationService {
 
   // Obtener estadísticas de notificaciones
   Future<Map<String, dynamic>> getNotificationStats() async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.get(
         Uri.parse('$baseUrl/notifications/stats'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {

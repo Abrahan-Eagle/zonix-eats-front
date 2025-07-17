@@ -2,10 +2,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../config/app_config.dart';
+import '../auth/auth_helper.dart';
 
 class CommercePromotionService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
-  static const String baseUrl = 'http://192.168.0.102:8000/api';
+  static String get baseUrl => AppConfig.baseUrl;
 
   // Obtener todas las promociones del comercio
   static Future<List<Map<String, dynamic>>> getPromotions({
@@ -14,6 +16,7 @@ class CommercePromotionService {
     String? sortBy,
     String? sortOrder,
   }) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
@@ -24,14 +27,11 @@ class CommercePromotionService {
       if (sortBy != null) queryParams['sort_by'] = sortBy;
       if (sortOrder != null) queryParams['sort_order'] = sortOrder;
 
-      final uri = Uri.parse('$baseUrl/commerce/promotions').replace(queryParameters: queryParams);
+      final uri = Uri.parse('${baseUrl}/commerce/promotions').replace(queryParameters: queryParams);
       
       final response = await http.get(
         uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -52,16 +52,14 @@ class CommercePromotionService {
 
   // Obtener una promoción específica
   static Future<Map<String, dynamic>> getPromotion(int id) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.get(
         Uri.parse('$baseUrl/commerce/promotions/$id'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -77,6 +75,7 @@ class CommercePromotionService {
 
   // Crear nueva promoción
   static Future<Map<String, dynamic>> createPromotion(Map<String, dynamic> data, {File? imageFile}) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
@@ -86,10 +85,7 @@ class CommercePromotionService {
         Uri.parse('$baseUrl/commerce/promotions'),
       );
 
-      request.headers.addAll({
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      });
+      request.headers.addAll(headers);
 
       // Agregar campos de texto
       data.forEach((key, value) {
@@ -127,6 +123,7 @@ class CommercePromotionService {
 
   // Actualizar promoción
   static Future<Map<String, dynamic>> updatePromotion(int id, Map<String, dynamic> data, {File? imageFile}) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
@@ -136,10 +133,7 @@ class CommercePromotionService {
         Uri.parse('$baseUrl/commerce/promotions/$id'),
       );
 
-      request.headers.addAll({
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      });
+      request.headers.addAll(headers);
 
       // Agregar método PUT
       request.fields['_method'] = 'PUT';
@@ -180,16 +174,14 @@ class CommercePromotionService {
 
   // Eliminar promoción
   static Future<void> deletePromotion(int id) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.delete(
         Uri.parse('$baseUrl/commerce/promotions/$id'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode != 200) {
@@ -202,17 +194,14 @@ class CommercePromotionService {
 
   // Activar/desactivar promoción
   static Future<Map<String, dynamic>> togglePromotionStatus(int id) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.put(
         Uri.parse('$baseUrl/commerce/promotions/$id/toggle'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -228,16 +217,14 @@ class CommercePromotionService {
 
   // Obtener estadísticas de promociones
   static Future<Map<String, dynamic>> getPromotionStats() async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.get(
         Uri.parse('$baseUrl/commerce/promotions/stats'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {

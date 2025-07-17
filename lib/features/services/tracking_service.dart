@@ -68,8 +68,20 @@ class TrackingService {
       final location = tracking['delivery_location'];
       if (location != null) {
         return {
-          'latitude': location['latitude']?.toDouble() ?? 0.0,
-          'longitude': location['longitude']?.toDouble() ?? 0.0,
+          'latitude': (location['latitude'] is String)
+              ? double.tryParse(location['latitude']) ?? 0.0
+              : (location['latitude'] is int)
+                  ? (location['latitude'] as int).toDouble()
+                  : (location['latitude'] is double)
+                      ? location['latitude']
+                      : 0.0,
+          'longitude': (location['longitude'] is String)
+              ? double.tryParse(location['longitude']) ?? 0.0
+              : (location['longitude'] is int)
+                  ? (location['longitude'] as int).toDouble()
+                  : (location['longitude'] is double)
+                      ? location['longitude']
+                      : 0.0,
         };
       }
       return null;

@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import '../../config/app_config.dart';
+import '../auth/auth_helper.dart';
 
 class CommerceDeliveryZoneService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
-  static const String baseUrl = 'http://192.168.0.102:8000/api';
+  static String get baseUrl => AppConfig.baseUrl;
 
   // Obtener todas las zonas de delivery del comercio
   static Future<List<Map<String, dynamic>>> getDeliveryZones({
@@ -12,6 +14,7 @@ class CommerceDeliveryZoneService {
     String? sortBy,
     String? sortOrder,
   }) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
@@ -25,10 +28,7 @@ class CommerceDeliveryZoneService {
       
       final response = await http.get(
         uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -49,16 +49,14 @@ class CommerceDeliveryZoneService {
 
   // Obtener una zona específica
   static Future<Map<String, dynamic>> getDeliveryZone(int id) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.get(
         Uri.parse('$baseUrl/commerce/delivery-zones/$id'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -74,17 +72,14 @@ class CommerceDeliveryZoneService {
 
   // Crear nueva zona de delivery
   static Future<Map<String, dynamic>> createDeliveryZone(Map<String, dynamic> data) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.post(
         Uri.parse('$baseUrl/commerce/delivery-zones'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: jsonEncode(data),
       );
 
@@ -101,17 +96,14 @@ class CommerceDeliveryZoneService {
 
   // Actualizar zona de delivery
   static Future<Map<String, dynamic>> updateDeliveryZone(int id, Map<String, dynamic> data) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.put(
         Uri.parse('$baseUrl/commerce/delivery-zones/$id'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: jsonEncode(data),
       );
 
@@ -128,16 +120,14 @@ class CommerceDeliveryZoneService {
 
   // Eliminar zona de delivery
   static Future<void> deleteDeliveryZone(int id) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.delete(
         Uri.parse('$baseUrl/commerce/delivery-zones/$id'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode != 200) {
@@ -150,17 +140,14 @@ class CommerceDeliveryZoneService {
 
   // Activar/desactivar zona de delivery
   static Future<Map<String, dynamic>> toggleDeliveryZoneStatus(int id) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.put(
         Uri.parse('$baseUrl/commerce/delivery-zones/$id/toggle'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -176,16 +163,14 @@ class CommerceDeliveryZoneService {
 
   // Obtener estadísticas de zonas de delivery
   static Future<Map<String, dynamic>> getDeliveryZoneStats() async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.get(
         Uri.parse('$baseUrl/commerce/delivery-zones/stats'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -201,17 +186,14 @@ class CommerceDeliveryZoneService {
 
   // Verificar si una dirección está en zona de delivery
   static Future<Map<String, dynamic>> checkDeliveryZone(double lat, double lng) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.post(
         Uri.parse('$baseUrl/commerce/delivery-zones/check'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: jsonEncode({
           'latitude': lat,
           'longitude': lng,
@@ -231,17 +213,14 @@ class CommerceDeliveryZoneService {
 
   // Calcular tarifa de delivery para una dirección
   static Future<Map<String, dynamic>> calculateDeliveryFee(double lat, double lng) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.post(
         Uri.parse('$baseUrl/commerce/delivery-zones/calculate-fee'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: jsonEncode({
           'latitude': lat,
           'longitude': lng,
@@ -271,16 +250,14 @@ class CommerceDeliveryZoneService {
 
   // Obtener zonas por radio
   static Future<List<Map<String, dynamic>>> getDeliveryZonesByRadius(double radius) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.get(
         Uri.parse('$baseUrl/commerce/delivery-zones?radius=$radius'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -301,16 +278,14 @@ class CommerceDeliveryZoneService {
 
   // Obtener zonas por tarifa
   static Future<List<Map<String, dynamic>>> getDeliveryZonesByFee(double minFee, double maxFee) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.get(
         Uri.parse('$baseUrl/commerce/delivery-zones?min_fee=$minFee&max_fee=$maxFee'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {

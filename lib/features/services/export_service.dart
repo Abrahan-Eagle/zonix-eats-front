@@ -1,27 +1,21 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../helpers/auth_helper.dart';
+import '../../config/app_config.dart';
 
 class ExportService {
-  static const String baseUrl = 'http://localhost:8000/api';
+  static String get baseUrl => AppConfig.baseUrl;
 
   // Solicitar exportación de datos personales
   static Future<Map<String, dynamic>> requestDataExport({
     List<String>? dataTypes,
     String? format = 'json',
   }) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await AuthHelper.getToken();
-      if (token == null) {
-        throw Exception('No se encontró token de autenticación');
-      }
-
       final response = await http.post(
         Uri.parse('$baseUrl/user/export-data'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: json.encode({
           'data_types': dataTypes ?? ['profile', 'orders', 'activity'],
           'format': format,
@@ -40,18 +34,11 @@ class ExportService {
 
   // Verificar estado de la exportación
   static Future<Map<String, dynamic>> getExportStatus(String exportId) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await AuthHelper.getToken();
-      if (token == null) {
-        throw Exception('No se encontró token de autenticación');
-      }
-
       final response = await http.get(
         Uri.parse('$baseUrl/user/export-status/$exportId'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -66,17 +53,11 @@ class ExportService {
 
   // Descargar archivo exportado
   static Future<String> downloadExport(String exportId) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await AuthHelper.getToken();
-      if (token == null) {
-        throw Exception('No se encontró token de autenticación');
-      }
-
       final response = await http.get(
         Uri.parse('$baseUrl/user/download-export/$exportId'),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -91,18 +72,11 @@ class ExportService {
 
   // Obtener historial de exportaciones
   static Future<List<Map<String, dynamic>>> getExportHistory() async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await AuthHelper.getToken();
-      if (token == null) {
-        throw Exception('No se encontró token de autenticación');
-      }
-
       final response = await http.get(
         Uri.parse('$baseUrl/user/export-history'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {

@@ -254,7 +254,9 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
   Widget _buildOrderItem(Map<String, dynamic> item) {
     final product = item['product'] ?? {};
     final quantity = item['quantity'] ?? 0;
-    final unitPrice = (item['unit_price'] ?? 0.0).toDouble();
+    final unitPrice = (item['unit_price'] is String)
+        ? double.tryParse(item['unit_price']) ?? 0.0
+        : (item['unit_price'] ?? 0.0).toDouble();
     final total = quantity * unitPrice;
 
     return Padding(

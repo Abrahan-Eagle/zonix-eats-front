@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../models/commerce_product.dart';
+import '../../config/app_config.dart';
+import '../../helpers/auth_helper.dart';
 
 class CommerceProductService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
-  static const String baseUrl = 'http://192.168.0.102:8000/api';
+  static String get baseUrl => AppConfig.baseUrl;
 
   // Obtener todos los productos del comercio
   static Future<List<CommerceProduct>> getProducts({
@@ -18,10 +20,8 @@ class CommerceProductService {
     String? sortOrder,
     int? perPage,
   }) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final queryParams = <String, String>{};
       if (search != null && search.isNotEmpty) queryParams['search'] = search;
       if (available != null) queryParams['available'] = available.toString();
@@ -31,14 +31,11 @@ class CommerceProductService {
       if (sortOrder != null) queryParams['sort_order'] = sortOrder;
       if (perPage != null) queryParams['per_page'] = perPage.toString();
 
-      final uri = Uri.parse('$baseUrl/commerce/products').replace(queryParameters: queryParams);
+      final uri = Uri.parse('${baseUrl}/api/commerce/products').replace(queryParameters: queryParams);
       
       final response = await http.get(
         uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -63,16 +60,11 @@ class CommerceProductService {
 
   // Obtener un producto específico
   static Future<CommerceProduct> getProduct(int id) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final response = await http.get(
-        Uri.parse('$baseUrl/commerce/products/$id'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        Uri.parse('${baseUrl}/api/commerce/products/$id'),
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -91,33 +83,39 @@ class CommerceProductService {
 
   // Crear nuevo producto
   static Future<CommerceProduct> createProduct(Map<String, dynamic> data, {File? imageFile}) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('$baseUrl/commerce/products'),
+        Uri.parse('${baseUrl}/api/commerce/products'),
       );
+      request.headers.addAll(headers);
 
-      request.headers.addAll({
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      });
-
-      // Agregar campos de texto
-      data.forEach((key, value) {
-        if (value != null) {
-          request.fields[key] = value.toString();
+      // Solo enviar los campos requeridos y con el nombre correcto
+      final allowedFields = ['name', 'description', 'price', 'available', 'stock', 'category_id'];
+      for (final key in allowedFields) {
+        if (data[key] != null) {
+          if (key == 'price') {
+            final priceValue = data[key];
+            request.fields[key] = priceValue is num
+                ? priceValue.toString()
+                : double.tryParse(priceValue.toString().replaceAll(RegExp(r'[^0-9\.]'), ''))?.toString() ?? '0';
+          } else if (key == 'available') {
+            request.fields[key] = (data[key] is bool)
+                ? (data[key] ? '1' : '0')
+                : data[key].toString();
+          } else {
+            request.fields[key] = data[key].toString();
+          }
         }
-      });
+      }
 
-      // Agregar imagen si existe
+      // Agregar imagen si existe (campo 'image')
       if (imageFile != null) {
         final stream = http.ByteStream(imageFile.openRead());
         final length = await imageFile.length();
         final multipartFile = http.MultipartFile(
-          'imagen',
+          'image',
           stream,
           length,
           filename: imageFile.path.split('/').last,
@@ -135,7 +133,13 @@ class CommerceProductService {
         }
         throw Exception('Error al crear producto');
       } else {
-        throw Exception('Error al crear producto: ${response.statusCode}');
+        String errorMsg = 'Error al crear producto: ${response.statusCode}';
+        try {
+          final errorData = jsonDecode(response.body);
+          if (errorData['message'] != null) errorMsg += '\n${errorData['message']}';
+          if (errorData['errors'] != null) errorMsg += '\n${errorData['errors'].toString()}';
+        } catch (_) {}
+        throw Exception(errorMsg);
       }
     } catch (e) {
       throw Exception('Error al crear producto: $e');
@@ -144,36 +148,39 @@ class CommerceProductService {
 
   // Actualizar producto
   static Future<CommerceProduct> updateProduct(int id, Map<String, dynamic> data, {File? imageFile}) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       var request = http.MultipartRequest(
-        'POST', // Laravel usa POST para actualizar con archivos
-        Uri.parse('$baseUrl/commerce/products/$id'),
+        'POST',
+        Uri.parse('${baseUrl}/api/commerce/products/$id'),
       );
-
-      request.headers.addAll({
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      });
-
-      // Agregar método PUT
+      request.headers.addAll(headers);
       request.fields['_method'] = 'PUT';
 
-      // Agregar campos de texto
-      data.forEach((key, value) {
-        if (value != null) {
-          request.fields[key] = value.toString();
+      final allowedFields = ['name', 'description', 'price', 'available', 'stock', 'category_id'];
+      for (final key in allowedFields) {
+        if (data[key] != null) {
+          if (key == 'price') {
+            final priceValue = data[key];
+            request.fields[key] = priceValue is num
+                ? priceValue.toString()
+                : double.tryParse(priceValue.toString().replaceAll(RegExp(r'[^0-9\.]'), ''))?.toString() ?? '0';
+          } else if (key == 'available') {
+            request.fields[key] = (data[key] is bool)
+                ? (data[key] ? '1' : '0')
+                : data[key].toString();
+          } else {
+            request.fields[key] = data[key].toString();
+          }
         }
-      });
+      }
 
-      // Agregar imagen si existe
+      // Agregar imagen si existe (campo 'image')
       if (imageFile != null) {
         final stream = http.ByteStream(imageFile.openRead());
         final length = await imageFile.length();
         final multipartFile = http.MultipartFile(
-          'imagen',
+          'image',
           stream,
           length,
           filename: imageFile.path.split('/').last,
@@ -191,7 +198,13 @@ class CommerceProductService {
         }
         throw Exception('Error al actualizar producto');
       } else {
-        throw Exception('Error al actualizar producto: ${response.statusCode}');
+        String errorMsg = 'Error al actualizar producto: ${response.statusCode}';
+        try {
+          final errorData = jsonDecode(response.body);
+          if (errorData['message'] != null) errorMsg += '\n${errorData['message']}';
+          if (errorData['errors'] != null) errorMsg += '\n${errorData['errors'].toString()}';
+        } catch (_) {}
+        throw Exception(errorMsg);
       }
     } catch (e) {
       throw Exception('Error al actualizar producto: $e');
@@ -200,16 +213,11 @@ class CommerceProductService {
 
   // Eliminar producto
   static Future<void> deleteProduct(int id) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final response = await http.delete(
-        Uri.parse('$baseUrl/commerce/products/$id'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        Uri.parse('${baseUrl}/api/commerce/products/$id'),
+        headers: headers,
       );
 
       if (response.statusCode != 200) {
@@ -222,17 +230,11 @@ class CommerceProductService {
 
   // Cambiar disponibilidad del producto
   static Future<CommerceProduct> toggleAvailability(int id) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final response = await http.put(
-        Uri.parse('$baseUrl/commerce/products/$id/toggle-disponible'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        Uri.parse('${baseUrl}/api/commerce/products/$id/toggle-disponible'),
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -251,16 +253,11 @@ class CommerceProductService {
 
   // Obtener estadísticas de productos
   static Future<Map<String, dynamic>> getProductStats() async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final response = await http.get(
-        Uri.parse('$baseUrl/commerce/products-stats'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        Uri.parse('${baseUrl}/api/commerce/products-stats'),
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -279,19 +276,14 @@ class CommerceProductService {
 
   // Subir imagen de producto
   static Future<String> uploadProductImage(File imageFile) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('$baseUrl/commerce/products/upload-image'),
+        Uri.parse('${baseUrl}/api/commerce/products/upload-image'),
       );
 
-      request.headers.addAll({
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      });
+      request.headers.addAll(headers);
 
       final stream = http.ByteStream(imageFile.openRead());
       final length = await imageFile.length();
@@ -314,6 +306,26 @@ class CommerceProductService {
       }
     } catch (e) {
       throw Exception('Error al subir imagen: $e');
+    }
+  }
+
+  // Obtener categorías de productos desde el endpoint real
+  static Future<List<Map<String, dynamic>>> getProductCategories() async {
+    final headers = await AuthHelper.getAuthHeaders();
+    try {
+      final url = Uri.parse('${baseUrl}/api/buyer/search/categories');
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return List<Map<String, dynamic>>.from(data['data']);
+        }
+        return [];
+      } else {
+        throw Exception('Error al obtener categorías: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error al obtener categorías: $e');
     }
   }
 } 

@@ -17,12 +17,16 @@ class _CommerceProductFormPageState extends State<CommerceProductFormPage> {
   final _nameController = TextEditingController();
   final _descController = TextEditingController();
   final _priceController = TextEditingController();
+  final _stockController = TextEditingController();
   bool _available = true;
   bool _loading = false;
   String? _error;
   File? _selectedImage;
   String? _currentImageUrl;
+  int? _selectedCategoryId;
   final ImagePicker _picker = ImagePicker();
+  List<Map<String, dynamic>> _categories = [];
+  bool _loadingCategories = false;
 
   @override
   void initState() {
@@ -33,6 +37,20 @@ class _CommerceProductFormPageState extends State<CommerceProductFormPage> {
       _priceController.text = widget.product!.price.toString();
       _available = widget.product!.available;
       _currentImageUrl = widget.product!.image;
+      _stockController.text = widget.product!.stock?.toString() ?? '';
+      _selectedCategoryId = widget.product!.categoryId;
+    }
+    _loadCategories();
+  }
+
+  Future<void> _loadCategories() async {
+    setState(() { _loadingCategories = true; });
+    try {
+      _categories = await CommerceProductService.getProductCategories();
+    } catch (e) {
+      _categories = [];
+    } finally {
+      setState(() { _loadingCategories = false; });
     }
   }
 
@@ -41,6 +59,7 @@ class _CommerceProductFormPageState extends State<CommerceProductFormPage> {
     _nameController.dispose();
     _descController.dispose();
     _priceController.dispose();
+    _stockController.dispose();
     super.dispose();
   }
 
@@ -188,18 +207,39 @@ class _CommerceProductFormPageState extends State<CommerceProductFormPage> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
+    // Limpiar el campo de precio de símbolos y espacios
+    String priceRaw = _priceController.text.trim().replaceAll(RegExp(r'[^0-9\.]'), '');
+    double? priceValue = double.tryParse(priceRaw);
+    if (priceValue == null) {
+      setState(() { _error = 'El precio no es válido'; });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('El precio no es válido'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
+    // Validar imagen si es obligatoria
+    if (widget.product == null && _selectedImage == null) {
+      setState(() { _error = 'Debes seleccionar una imagen para el producto.'; });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Debes seleccionar una imagen para el producto.'), backgroundColor: Colors.red),
+      );
+      return;
+    }
+
     setState(() { 
       _loading = true; 
       _error = null; 
     });
-    
     try {
       final data = {
         'name': _nameController.text.trim(),
         'description': _descController.text.trim(),
-        'price': double.parse(_priceController.text),
+        'price': priceValue,
         'available': _available,
+        'stock': _stockController.text.isNotEmpty ? int.tryParse(_stockController.text) : null,
+        'category_id': _selectedCategoryId,
       };
 
       if (widget.product == null) {
@@ -227,14 +267,14 @@ class _CommerceProductFormPageState extends State<CommerceProductFormPage> {
           ),
         );
       }
-      
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
       setState(() { _error = e.toString(); });
+      // Mostrar error detallado del backend si existe
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error: $e'),
+          content: Text(_error ?? 'Error desconocido'),
           backgroundColor: Colors.red,
         ),
       );
@@ -342,6 +382,44 @@ class _CommerceProductFormPageState extends State<CommerceProductFormPage> {
                         color: _available ? Colors.green : Colors.red,
                       ),
                     ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _stockController,
+                      decoration: const InputDecoration(
+                        labelText: 'Stock',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.inventory),
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value != null && value.isNotEmpty) {
+                          final stock = int.tryParse(value);
+                          if (stock == null || stock < 0) {
+                            return 'El stock debe ser un número entero positivo';
+                          }
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _loadingCategories
+                        ? const Center(child: CircularProgressIndicator())
+                        : DropdownButtonFormField<int>(
+                            value: _selectedCategoryId,
+                            items: _categories.map((cat) => DropdownMenuItem<int>(
+                              value: cat['id'],
+                              child: Text(cat['name']),
+                            )).toList(),
+                            onChanged: (value) {
+                              setState(() { _selectedCategoryId = value; });
+                            },
+                            decoration: const InputDecoration(
+                              labelText: 'Categoría',
+                              border: OutlineInputBorder(),
+                              prefixIcon: Icon(Icons.category),
+                            ),
+                            validator: (value) => value == null ? 'Selecciona una categoría' : null,
+                          ),
                   ],
                 ),
               ),

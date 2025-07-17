@@ -1,24 +1,18 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../helpers/auth_helper.dart';
+import '../../config/app_config.dart';
 
 class PrivacyService {
-  static const String baseUrl = 'http://localhost:8000/api';
+  static String get baseUrl => AppConfig.baseUrl;
 
   // Obtener configuración actual de privacidad
   static Future<Map<String, dynamic>> getPrivacySettings() async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await AuthHelper.getToken();
-      if (token == null) {
-        throw Exception('No se encontró token de autenticación');
-      }
-
       final response = await http.get(
         Uri.parse('$baseUrl/user/privacy-settings'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -41,12 +35,8 @@ class PrivacyService {
     bool? locationSharing,
     bool? dataAnalytics,
   }) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await AuthHelper.getToken();
-      if (token == null) {
-        throw Exception('No se encontró token de autenticación');
-      }
-
       final settings = <String, dynamic>{};
       if (profileVisibility != null) settings['profile_visibility'] = profileVisibility;
       if (orderHistoryVisibility != null) settings['order_history_visibility'] = orderHistoryVisibility;
@@ -58,10 +48,7 @@ class PrivacyService {
 
       final response = await http.put(
         Uri.parse('$baseUrl/user/privacy-settings'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         body: json.encode(settings),
       );
 
@@ -77,12 +64,11 @@ class PrivacyService {
 
   // Obtener política de privacidad
   static Future<Map<String, dynamic>> getPrivacyPolicy() async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/privacy-policy'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -97,12 +83,11 @@ class PrivacyService {
 
   // Obtener términos de servicio
   static Future<Map<String, dynamic>> getTermsOfService() async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.get(
         Uri.parse('$baseUrl/terms-of-service'),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
       );
 
       if (response.statusCode == 200) {

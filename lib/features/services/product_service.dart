@@ -14,31 +14,28 @@ final Logger _logger = Logger();
 class ProductService {
   final String apiUrl = '${AppConfig.baseUrl}/api/buyer/products';
 
-  // GET /api/buyer/products - Listar productos
-  Future<List<Product>> fetchProducts() async {
+  // GET /api/buyer/products - Listar productos (con filtro opcional por category_id)
+  Future<List<Product>> fetchProducts({int? categoryId}) async {
     final headers = await AuthHelper.getAuthHeaders();
-    _logger.i('Llamando a $apiUrl');
-    
+    String url = apiUrl;
+    if (categoryId != null) {
+      url += '?category_id=$categoryId';
+    }
+    _logger.i('Llamando a $url');
     final response = await http.get(
-      Uri.parse(apiUrl),
+      Uri.parse(url),
       headers: headers,
     );
-    
-    _logger.i('Status code: ${response.statusCode}');
-    
+    _logger.i('Status code:  ${response.statusCode}');
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
       _logger.i('Decoded data type: ${data.runtimeType}');
-      
-      // Handle the new API response structure with success and data wrapper
       List<dynamic> productsData;
       if (data['success'] == true && data['data'] != null) {
         productsData = data['data'];
       } else {
-        // Fallback to direct data if not wrapped
         productsData = data is List ? data : [];
       }
-      
       if (productsData.isNotEmpty) {
         _logger.i('Cantidad de productos recibidos: ${productsData.length}');
         return productsData.map((item) => Product.fromJson(item)).toList();

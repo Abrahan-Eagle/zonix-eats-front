@@ -26,8 +26,10 @@ class CartItem {
       precio: (json['precio'] is int)
           ? (json['precio'] as int).toDouble()
           : (json['precio'] is String)
-              ? double.tryParse(json['precio'])
-              : json['precio'],
+              ? double.tryParse(json['precio']) ?? 0.0
+              : (json['precio'] is double)
+                  ? json['precio']
+                  : 0.0,
       quantity: json['quantity'] ?? 1,
       imagen: json['imagen'],
       stock: json['stock'],

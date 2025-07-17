@@ -54,12 +54,18 @@ class Commerce {
       logo: json['logo'] ?? '',
       isActive: json['is_active'] ?? false,
       category: json['category'] ?? '',
-      rating: (json['rating'] ?? 0.0).toDouble(),
+      rating: (json['rating'] is String)
+          ? double.tryParse(json['rating']) ?? 0.0
+          : (json['rating'] ?? 0.0).toDouble(),
       reviewCount: json['review_count'] ?? 0,
       openingHours: json['opening_hours'] ?? '',
-      deliveryFee: (json['delivery_fee'] ?? 0.0).toDouble(),
+      deliveryFee: (json['delivery_fee'] is String)
+          ? double.tryParse(json['delivery_fee']) ?? 0.0
+          : (json['delivery_fee'] ?? 0.0).toDouble(),
       deliveryTime: json['delivery_time'] ?? 0,
-      minimumOrder: (json['minimum_order'] ?? 0.0).toDouble(),
+      minimumOrder: (json['minimum_order'] is String)
+          ? double.tryParse(json['minimum_order']) ?? 0.0
+          : (json['minimum_order'] ?? 0.0).toDouble(),
       paymentMethods: List<String>.from(json['payment_methods'] ?? []),
       cuisines: List<String>.from(json['cuisines'] ?? []),
       location: json['location'] ?? {},

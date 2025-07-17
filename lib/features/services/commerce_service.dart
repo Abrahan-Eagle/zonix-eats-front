@@ -7,13 +7,13 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../config/app_config.dart';
+import '../../helpers/auth_helper.dart';
 
 class CommerceService extends ChangeNotifier {
   final ApiService _apiService = ApiService();
   final _storage = const FlutterSecureStorage();
-  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
+  static String get baseUrl => AppConfig.baseUrl;
   
   // Mock data for development (will be replaced with real API calls)
   static final List<Commerce> _mockCommerces = [
@@ -213,10 +213,7 @@ class CommerceService extends ChangeNotifier {
 
       final response = await http.get(
         Uri.parse('$baseUrl/api/commerces'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: AuthHelper.getAuthHeaders(token),
       );
 
       if (response.statusCode == 200) {

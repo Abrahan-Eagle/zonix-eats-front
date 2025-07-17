@@ -1,24 +1,29 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:logger/logger.dart';
 
 class CommerceDataService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
-  static const String baseUrl = 'http://192.168.0.102:8000/api';
+  // static const String baseUrl = 'http://192.168.0.102:8000/api';
+
+  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
+      ? dotenv.env['API_URL_PROD']!
+      : dotenv.env['API_URL_LOCAL']!;
+final Logger _logger = Logger();
 
   // Obtener datos del comercio
   static Future<Map<String, dynamic>> getCommerceData() async {
+     final headers = await AuthHelper.getAuthHeaders();
+
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.get(
-        Uri.parse('$baseUrl/profiles'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        Uri.parse('$baseUrl/api/buyer/profiles'),
+        headers: headers,
       );
 
       if (response.statusCode == 200) {
@@ -45,16 +50,10 @@ class CommerceDataService {
   // Actualizar datos del comercio
   static Future<Map<String, dynamic>> updateCommerceData(Map<String, dynamic> data) async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
-      // Primero obtener el perfil actual
+            // Primero obtener el perfil actual
       final profileResponse = await http.get(
-        Uri.parse('$baseUrl/profiles'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        Uri.parse('$baseUrl/api/buyer/profiles'),
+        headers: headers,
       );
 
       if (profileResponse.statusCode != 200) {
@@ -71,12 +70,8 @@ class CommerceDataService {
       
       // Actualizar el perfil con los datos del comercio
       final response = await http.post(
-        Uri.parse('$baseUrl/profiles/$profileId'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        Uri.parse('$baseUrl/api/buyer/profiles/$profileId'),
+        headers: headers,
         body: jsonEncode({
           'commerce': data,
         }),
@@ -96,16 +91,11 @@ class CommerceDataService {
   // Actualizar datos de pago móvil
   static Future<Map<String, dynamic>> updatePaymentData(Map<String, dynamic> data) async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
 
       // Primero obtener el perfil actual
       final profileResponse = await http.get(
-        Uri.parse('$baseUrl/profiles'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        Uri.parse('$baseUrl/api/buyer/profiles'),
+        headers: headers,
       );
 
       if (profileResponse.statusCode != 200) {
@@ -122,7 +112,7 @@ class CommerceDataService {
       
       // Actualizar solo los datos de pago móvil
       final response = await http.post(
-        Uri.parse('$baseUrl/profiles/$profileId'),
+        Uri.parse('$baseUrl/api/buyer/profiles/$profileId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -155,7 +145,7 @@ class CommerceDataService {
       if (token == null) throw Exception('Token no encontrado');
 
       final response = await http.post(
-        Uri.parse('$baseUrl/profiles/commerce'),
+        Uri.parse('$baseUrl/api/buyer/profiles/commerce'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',

@@ -9,14 +9,11 @@ class PreferencesService {
 
   /// Obtener preferencias del usuario
   static Future<Map<String, dynamic>> getUserPreferences() async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await AuthHelper.getToken();
       final response = await http.get(
         Uri.parse('$baseUrl/api/buyer/preferences'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
       ).timeout(Duration(seconds: requestTimeout));
 
       if (response.statusCode == 200) {
@@ -38,24 +35,19 @@ class PreferencesService {
     String? portionSize,
     List<String>? cookingPreferences,
   }) async {
+    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await AuthHelper.getToken();
-      final Map<String, dynamic> updateData = {};
-      
-      if (dietaryRestrictions != null) updateData['dietary_restrictions'] = dietaryRestrictions;
-      if (allergies != null) updateData['allergies'] = allergies;
-      if (cuisinePreferences != null) updateData['cuisine_preferences'] = cuisinePreferences;
-      if (spiceLevel != null) updateData['spice_level'] = spiceLevel;
-      if (portionSize != null) updateData['portion_size'] = portionSize;
-      if (cookingPreferences != null) updateData['cooking_preferences'] = cookingPreferences;
-
       final response = await http.put(
         Uri.parse('$baseUrl/api/buyer/preferences'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
-        body: json.encode(updateData),
+        headers: headers,
+        body: json.encode({
+          'dietary_restrictions': dietaryRestrictions,
+          'allergies': allergies,
+          'cuisine_preferences': cuisinePreferences,
+          'spice_level': spiceLevel,
+          'portion_size': portionSize,
+          'cooking_preferences': cookingPreferences,
+        }),
       ).timeout(Duration(seconds: requestTimeout));
 
       if (response.statusCode == 200) {

@@ -305,8 +305,12 @@ class _CommerceDeliveryZonesPageState extends State<CommerceDeliveryZonesPage> w
 
   Widget _buildZoneCard(Map<String, dynamic> zone) {
     final isActive = zone['is_active'] ?? false;
-    final deliveryFee = (zone['delivery_fee'] ?? 0.0).toDouble();
-    final radius = (zone['radius'] ?? 0.0).toDouble();
+    final deliveryFee = (zone['delivery_fee'] is String)
+        ? double.tryParse(zone['delivery_fee']) ?? 0.0
+        : (zone['delivery_fee'] ?? 0.0).toDouble();
+    final radius = (zone['radius'] is String)
+        ? double.tryParse(zone['radius']) ?? 0.0
+        : (zone['radius'] ?? 0.0).toDouble();
     final deliveryTime = zone['delivery_time'] ?? 0;
 
     return Card(
