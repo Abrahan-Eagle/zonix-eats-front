@@ -11,7 +11,7 @@ class BuyerTrackingService {
   Future<Map<String, dynamic>> getOrderStatus(int orderId) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/tracking/order/$orderId');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/tracking/order/$orderId');
       
       final response = await http.get(url, headers: headers);
       
@@ -35,7 +35,7 @@ class BuyerTrackingService {
   Future<Map<String, dynamic>> getDeliveryAgentLocation(int orderId) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/tracking/delivery-agent/$orderId');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/tracking/delivery-agent/$orderId');
       
       final response = await http.get(url, headers: headers);
       
@@ -64,7 +64,7 @@ class BuyerTrackingService {
   }) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/tracking/order/$orderId/status');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/tracking/order/$orderId/status');
       
       final body = {
         'status': status,

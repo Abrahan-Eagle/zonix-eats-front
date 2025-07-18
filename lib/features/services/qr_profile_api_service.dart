@@ -52,7 +52,7 @@ Future<String?> sendUserIdToBackend(int userId) async {
   Future<Map<String, dynamic>> fetchProfileByQr(String qrCode) async {
     final headers = await AuthHelper.getAuthHeaders();
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/api/buyer/profiles/$qrCode'),
+      Uri.parse('${AppConfig.apiUrl}/api/buyer/profiles/$qrCode'),
       headers: headers,
     );
     if (response.statusCode == 200) {

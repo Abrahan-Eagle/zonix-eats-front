@@ -11,7 +11,7 @@ class BuyerChatService {
   Future<List<Map<String, dynamic>>> getChatMessages(int orderId) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/chat/messages/$orderId');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/chat/messages/$orderId');
       
       final response = await http.get(url, headers: headers);
       
@@ -39,7 +39,7 @@ class BuyerChatService {
   }) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/chat/send');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/chat/send');
       
       final body = {
         'order_id': orderId,
@@ -77,7 +77,7 @@ class BuyerChatService {
   }) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/chat/mark-read');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/chat/mark-read');
       
       final body = {
         'order_id': orderId,
@@ -106,7 +106,7 @@ class BuyerChatService {
   Future<List<Map<String, dynamic>>> getUnreadMessages(int orderId) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/chat/unread/$orderId');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/chat/unread/$orderId');
       
       final response = await http.get(url, headers: headers);
       

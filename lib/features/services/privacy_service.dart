@@ -4,7 +4,7 @@ import '../../helpers/auth_helper.dart';
 import '../../config/app_config.dart';
 
 class PrivacyService {
-  static String get baseUrl => AppConfig.baseUrl;
+  static String get baseUrl => AppConfig.apiUrl;
 
   // Obtener configuración actual de privacidad
   static Future<Map<String, dynamic>> getPrivacySettings() async {

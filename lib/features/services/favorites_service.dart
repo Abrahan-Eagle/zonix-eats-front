@@ -9,7 +9,7 @@ class FavoritesService {
   Future<List<Map<String, dynamic>>> getFavorites() async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/favorites');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/favorites');
       
       final response = await http.get(
         url,
@@ -37,7 +37,7 @@ class FavoritesService {
   Future<Map<String, dynamic>> toggleFavorite(int postId) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/posts/$postId/favorite');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/posts/$postId/favorite');
       
       final response = await http.post(
         url,

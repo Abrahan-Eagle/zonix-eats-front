@@ -13,7 +13,7 @@ class BuyerPaymentService {
   Future<List<Map<String, dynamic>>> getPaymentMethods() async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/payments/methods');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/payments/methods');
       
       final response = await http.get(url, headers: headers);
       
@@ -36,7 +36,7 @@ class BuyerPaymentService {
   Future<Map<String, dynamic>> processCardPayment(Map<String, dynamic> paymentData) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/payments/card');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/payments/card');
       
       final response = await http.post(
         url,
@@ -64,7 +64,7 @@ class BuyerPaymentService {
   Future<Map<String, dynamic>> confirmCashPayment(Map<String, dynamic> paymentData) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/payments/cash');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/payments/cash');
       
       final response = await http.post(
         url,
@@ -92,7 +92,7 @@ class BuyerPaymentService {
   Future<Map<String, dynamic>> processMobilePayment(Map<String, dynamic> paymentData) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/payments/mobile');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/payments/mobile');
       
       final response = await http.post(
         url,
@@ -120,7 +120,7 @@ class BuyerPaymentService {
   Future<Map<String, dynamic>> getPaymentReceipt(int orderId) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/payments/receipt/$orderId');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/payments/receipt/$orderId');
       
       final response = await http.get(url, headers: headers);
       
@@ -144,7 +144,7 @@ class BuyerPaymentService {
   Future<Map<String, dynamic>> processPayPalPayment(Map<String, dynamic> paymentData) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/payments/paypal');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/payments/paypal');
       final response = await http.post(
         url,
         headers: headers,
@@ -170,7 +170,7 @@ class BuyerPaymentService {
   Future<Map<String, dynamic>> processMercadoPagoPayment(Map<String, dynamic> paymentData) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/payments/mercadopago');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/payments/mercadopago');
       final response = await http.post(
         url,
         headers: headers,
@@ -196,7 +196,7 @@ class BuyerPaymentService {
   Future<Map<String, dynamic>> requestRefund(Map<String, dynamic> refundData) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/payments/refund');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/payments/refund');
       final response = await http.post(
         url,
         headers: headers,
@@ -222,7 +222,7 @@ class BuyerPaymentService {
   Future<List<Map<String, dynamic>>> getPaymentHistory() async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/payments/history');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/payments/history');
       final response = await http.get(url, headers: headers);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -243,7 +243,7 @@ class BuyerPaymentService {
   Future<Map<String, dynamic>> getPaymentStatistics() async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/payments/statistics');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/payments/statistics');
       final response = await http.get(url, headers: headers);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);

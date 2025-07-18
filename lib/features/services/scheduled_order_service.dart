@@ -4,7 +4,7 @@ import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 
 class ScheduledOrderService {
-  static String get baseUrl => AppConfig.baseUrl;
+  static String get baseUrl => AppConfig.apiUrl;
   static int get requestTimeout => AppConfig.requestTimeout;
 
   /// Crear pedido programado

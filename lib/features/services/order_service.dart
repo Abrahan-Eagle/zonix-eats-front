@@ -220,7 +220,7 @@ class OrderService extends ChangeNotifier {
   // GET /api/buyer/orders/{orderId}/tracking - Obtener tracking de la orden
   Future<Map<String, dynamic>> getOrderTracking(int orderId) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/orders/$orderId/tracking');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/tracking');
     final response = await http.get(
       url,
       headers: headers,
@@ -241,7 +241,7 @@ class OrderService extends ChangeNotifier {
   // POST /api/buyer/orders/{id}/tracking/location - Actualizar ubicación del tracking
   Future<void> updateTrackingLocation(int orderId, double latitude, double longitude) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/orders/$orderId/tracking/location');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/tracking/location');
     final response = await http.post(
       url,
       body: jsonEncode({
@@ -266,7 +266,7 @@ class OrderService extends ChangeNotifier {
   // GET /api/buyer/orders/{orderId}/messages - Obtener mensajes de la orden
   Future<List<Map<String, dynamic>>> getOrderMessages(int orderId) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/orders/$orderId/messages');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/messages');
     final response = await http.get(
       url,
       headers: headers,
@@ -287,7 +287,7 @@ class OrderService extends ChangeNotifier {
   // POST /api/buyer/orders/{orderId}/messages - Enviar mensaje a la orden
   Future<void> sendOrderMessage(int orderId, String message) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/orders/$orderId/messages');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/messages');
     final response = await http.post(
       url,
       body: jsonEncode({
@@ -311,7 +311,7 @@ class OrderService extends ChangeNotifier {
   // Método para validar comprobante (para comercios)
   Future<void> validarComprobante(int orderId, String accion) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/commerce/orders/$orderId/validar-comprobante');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/commerce/orders/$orderId/validar-comprobante');
     final response = await http.post(
       url, 
       headers: headers, 

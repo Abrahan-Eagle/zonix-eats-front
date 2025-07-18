@@ -13,7 +13,7 @@ class CommerceNotificationService {
   CommerceNotificationService._internal();
 
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
-  static String get baseUrl => AppConfig.baseUrl;
+  static String get baseUrl => AppConfig.apiUrl;
   final Logger _logger = Logger();
 
   StreamSubscription? _wsSubscription;

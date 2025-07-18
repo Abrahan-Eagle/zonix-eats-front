@@ -23,7 +23,7 @@ class PromotionService {
       if (minAmount != null) queryParams['min_amount'] = minAmount.toString();
       if (maxAmount != null) queryParams['max_amount'] = maxAmount.toString();
 
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/promotions/active')
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/promotions/active')
           .replace(queryParameters: queryParams);
       
       final response = await http.get(url, headers: headers);
@@ -57,7 +57,7 @@ class PromotionService {
       if (minAmount != null) queryParams['min_amount'] = minAmount.toString();
       if (category != null) queryParams['category'] = category;
 
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/promotions/coupons')
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/promotions/coupons')
           .replace(queryParameters: queryParams);
       
       final response = await http.get(url, headers: headers);
@@ -85,7 +85,7 @@ class PromotionService {
   }) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/promotions/validate-coupon');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/promotions/validate-coupon');
       
       final body = {
         'coupon_code': couponCode,
@@ -122,7 +122,7 @@ class PromotionService {
   }) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/promotions/apply-coupon');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/promotions/apply-coupon');
       
       final body = {
         'coupon_code': couponCode,
@@ -165,7 +165,7 @@ class PromotionService {
       if (page != null) queryParams['page'] = page.toString();
       if (limit != null) queryParams['limit'] = limit.toString();
 
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/promotions/coupon-history')
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/promotions/coupon-history')
           .replace(queryParameters: queryParams);
       
       final response = await http.get(url, headers: headers);

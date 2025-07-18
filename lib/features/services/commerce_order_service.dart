@@ -7,7 +7,7 @@ import '../../utils/auth_helper.dart';
 
 class CommerceOrderService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
-  static String get baseUrl => AppConfig.baseUrl;
+  static String get baseUrl => AppConfig.apiUrl;
 
   // Obtener todas las órdenes del comercio
   static Future<List<CommerceOrder>> getOrders({

@@ -8,7 +8,7 @@ class ReviewService {
   Future<Map<String, dynamic>> createReview(Map<String, dynamic> reviewData) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/reviews');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/reviews');
       final response = await http.post(
         url,
         body: jsonEncode(reviewData),
@@ -33,7 +33,7 @@ class ReviewService {
   // GET /api/buyer/reviews/{reviewableId}/{reviewableType} - Listar reviews
   Future<List<Map<String, dynamic>>> getReviews(int reviewableId, String reviewableType) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/reviews/$reviewableId/$reviewableType');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/reviews/$reviewableId/$reviewableType');
     final response = await http.get(
       url,
       headers: headers,
@@ -58,7 +58,7 @@ class ReviewService {
     String? comment,
   }) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/reviews/$reviewId');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/reviews/$reviewId');
     
     final body = <String, dynamic>{};
     if (rating != null) body['rating'] = rating;
@@ -85,7 +85,7 @@ class ReviewService {
   // DELETE /api/buyer/reviews/{reviewId} - Eliminar review
   Future<void> deleteReview(int reviewId) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/reviews/$reviewId');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/reviews/$reviewId');
     final response = await http.delete(
       url,
       headers: headers,
@@ -106,7 +106,7 @@ class ReviewService {
   // GET /api/buyer/reviews/{reviewableId}/{reviewableType}/can-review - Verificar si puede calificar
   Future<bool> canReview(int reviewableId, String reviewableType) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/reviews/$reviewableId/$reviewableType/can-review');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/reviews/$reviewableId/$reviewableType/can-review');
     final response = await http.get(
       url,
       headers: headers,

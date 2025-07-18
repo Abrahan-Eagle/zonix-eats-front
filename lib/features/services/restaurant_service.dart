@@ -8,7 +8,7 @@ import '../../helpers/auth_helper.dart';
 import '../../config/app_config.dart';
 
 class RestaurantService {
-  final String apiUrl = '${AppConfig.baseUrl}/api/buyer/restaurants';
+  final String apiUrl = '${AppConfig.apiUrl}/api/buyer/restaurants';
   final Logger logger = Logger(
     printer: PrettyPrinter(
       methodCount: 0,

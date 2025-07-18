@@ -13,7 +13,7 @@ import '../../helpers/auth_helper.dart';
 class CommerceService extends ChangeNotifier {
   final ApiService _apiService = ApiService();
   final _storage = const FlutterSecureStorage();
-  static String get baseUrl => AppConfig.baseUrl;
+  static String get baseUrl => AppConfig.apiUrl;
   
   // Mock data for development (will be replaced with real API calls)
   static final List<Commerce> _mockCommerces = [

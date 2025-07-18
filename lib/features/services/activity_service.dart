@@ -4,7 +4,7 @@ import '../../helpers/auth_helper.dart';
 import '../../config/app_config.dart';
 
 class ActivityService {
-  static String get baseUrl => AppConfig.baseUrl;
+  static String get baseUrl => AppConfig.apiUrl;
 
   // Obtener historial de actividad del usuario
   static Future<List<Map<String, dynamic>>> getUserActivityHistory({

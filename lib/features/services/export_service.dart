@@ -4,7 +4,7 @@ import '../../helpers/auth_helper.dart';
 import '../../config/app_config.dart';
 
 class ExportService {
-  static String get baseUrl => AppConfig.baseUrl;
+  static String get baseUrl => AppConfig.apiUrl;
 
   // Solicitar exportación de datos personales
   static Future<Map<String, dynamic>> requestDataExport({

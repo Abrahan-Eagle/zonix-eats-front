@@ -33,7 +33,7 @@ class SearchService {
       if (page != null) queryParams['page'] = page.toString();
       if (limit != null) queryParams['limit'] = limit.toString();
 
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/search/restaurants')
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/search/restaurants')
           .replace(queryParameters: queryParams);
       
       final response = await http.get(url, headers: headers);
@@ -87,7 +87,7 @@ class SearchService {
       if (page != null) queryParams['page'] = page.toString();
       if (limit != null) queryParams['limit'] = limit.toString();
 
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/search/products')
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/search/products')
           .replace(queryParameters: queryParams);
       
       final response = await http.get(url, headers: headers);
@@ -119,7 +119,7 @@ class SearchService {
       if (type != null) queryParams['type'] = type;
       if (commerceId != null) queryParams['commerce_id'] = commerceId.toString();
 
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/search/categories')
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/search/categories')
           .replace(queryParameters: queryParams);
       
       final response = await http.get(url, headers: headers);
@@ -153,7 +153,7 @@ class SearchService {
       if (type != null) queryParams['type'] = type;
       if (limit != null) queryParams['limit'] = limit.toString();
 
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/search/suggestions')
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/search/suggestions')
           .replace(queryParameters: queryParams);
       
       final response = await http.get(url, headers: headers);

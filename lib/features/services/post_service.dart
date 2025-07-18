@@ -8,7 +8,7 @@ class PostService {
   // GET /api/buyer/posts - Listar posts
   Future<List<Map<String, dynamic>>> getPosts() async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/posts');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/posts');
     final response = await http.get(
       url,
       headers: headers,
@@ -29,7 +29,7 @@ class PostService {
   // GET /api/buyer/posts/{id} - Obtener detalle de post
   Future<Map<String, dynamic>> getPostById(int postId) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/posts/$postId');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/posts/$postId');
     final response = await http.get(
       url,
       headers: headers,
@@ -50,7 +50,7 @@ class PostService {
   // POST /api/buyer/posts/{id}/favorite - Marcar/desmarcar favorito
   Future<bool> toggleFavorite(int postId) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/posts/$postId/favorite');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/posts/$postId/favorite');
     final response = await http.post(
       url,
       headers: headers,
@@ -71,7 +71,7 @@ class PostService {
   // GET /api/buyer/favorites - Listar favoritos
   Future<List<Map<String, dynamic>>> getFavorites() async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/favorites');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/favorites');
     final response = await http.get(
       url,
       headers: headers,

@@ -8,7 +8,7 @@ class TestAuthService {
   static Future<Map<String, dynamic>> testAuth() async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/test/auth');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/test/auth');
       
       print('🔍 Probando autenticación en: $url');
       print('🔍 Headers: $headers');

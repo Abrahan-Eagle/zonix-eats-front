@@ -137,7 +137,7 @@ class UserProvider with ChangeNotifier {
 
       logger.i('Retrieved token: $token');
       final response = await http.get(
-        // Uri.parse('${AppConfig.baseUrl}/api/auth/user'),
+        // Uri.parse('${AppConfig.apiUrl}/api/auth/user'),
         Uri.parse('$baseUrl/api/auth/user'),
         headers: {
           'Authorization': 'Bearer $token',

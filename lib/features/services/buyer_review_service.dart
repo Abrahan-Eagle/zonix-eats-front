@@ -16,7 +16,7 @@ class BuyerReviewService {
   }) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/reviews/restaurant');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/reviews/restaurant');
       
       final body = {
         'commerce_id': commerceId,
@@ -56,7 +56,7 @@ class BuyerReviewService {
   }) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/reviews/delivery-agent');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/reviews/delivery-agent');
       
       final body = {
         'agent_id': agentId,
@@ -104,7 +104,7 @@ class BuyerReviewService {
       if (sortBy != null) queryParams['sort_by'] = sortBy;
       if (order != null) queryParams['order'] = order;
 
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/reviews/restaurant/$commerceId')
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/reviews/restaurant/$commerceId')
           .replace(queryParameters: queryParams);
       
       final response = await http.get(url, headers: headers);
@@ -157,7 +157,7 @@ class BuyerReviewService {
       if (sortBy != null) queryParams['sort_by'] = sortBy;
       if (order != null) queryParams['order'] = order;
 
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/reviews/delivery-agent/$agentId')
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/reviews/delivery-agent/$agentId')
           .replace(queryParameters: queryParams);
       
       final response = await http.get(url, headers: headers);
