@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../../../features/services/commerce_promotion_service.dart';
+import 'package:flutter/services.dart';
 
 class CommercePromotionFormPage extends StatefulWidget {
   final Map<String, dynamic>? promotion;
@@ -259,10 +260,21 @@ class _CommercePromotionFormPageState extends State<CommercePromotionFormPage> {
                 labelText: 'Título de la promoción *',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.title),
+                counterText: '',
               ),
+              maxLength: 100,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ.,-]')),
+              ],
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
                   return 'El título es requerido';
+                }
+                if (value.trim().length < 3) {
+                  return 'El título debe tener al menos 3 caracteres';
+                }
+                if (value.trim().length > 100) {
+                  return 'El título no puede exceder 100 caracteres';
                 }
                 return null;
               },
@@ -274,8 +286,16 @@ class _CommercePromotionFormPageState extends State<CommercePromotionFormPage> {
                 labelText: 'Descripción',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.description),
+                counterText: '',
               ),
+              maxLength: 500,
               maxLines: 3,
+              validator: (value) {
+                if (value != null && value.trim().length > 500) {
+                  return 'La descripción no puede exceder 500 caracteres';
+                }
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             Row(
@@ -302,11 +322,16 @@ class _CommercePromotionFormPageState extends State<CommercePromotionFormPage> {
                   child: TextFormField(
                     controller: _discountValueController,
                     decoration: InputDecoration(
-                      labelText: _discountType == 'percentage' ? 'Porcentaje (%) *' : 'Monto (\$) *',
+                      labelText: _discountType == 'percentage' ? 'Porcentaje (%) *' : 'Monto ( 24) *',
                       border: const OutlineInputBorder(),
                       prefixIcon: const Icon(Icons.attach_money),
+                      counterText: '',
                     ),
-                    keyboardType: TextInputType.number,
+                    maxLength: 6,
+                    keyboardType: TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^[0-9]{0,4}(\.[0-9]{0,2})?')),
+                    ],
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'El valor es requerido';
@@ -317,6 +342,12 @@ class _CommercePromotionFormPageState extends State<CommercePromotionFormPage> {
                       }
                       if (_discountType == 'percentage' && num > 100) {
                         return 'El porcentaje no puede ser mayor a 100%';
+                      }
+                      if (value.contains('.') && value.split('.')[1].length > 2) {
+                        return 'Máximo 2 decimales';
+                      }
+                      if (value.split('.')[0].length > 4) {
+                        return 'Máximo 4 dígitos antes del punto';
                       }
                       return null;
                     },

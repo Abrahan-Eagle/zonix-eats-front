@@ -11,7 +11,7 @@ class AddressService {
   Future<List<Map<String, dynamic>>> getUserAddresses() async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/addresses');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/addresses');
       
       final response = await http.get(url, headers: headers);
       
@@ -34,7 +34,7 @@ class AddressService {
   Future<Map<String, dynamic>> createAddress(Map<String, dynamic> addressData) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/addresses');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/addresses');
       
       final response = await http.post(
         url,
@@ -62,7 +62,7 @@ class AddressService {
   Future<Map<String, dynamic>> updateAddress(int addressId, Map<String, dynamic> addressData) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/addresses/$addressId');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/addresses/$addressId');
       
       final response = await http.put(
         url,
@@ -90,7 +90,7 @@ class AddressService {
   Future<bool> deleteAddress(int addressId) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/addresses/$addressId');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/addresses/$addressId');
       
       final response = await http.delete(url, headers: headers);
       
@@ -110,7 +110,7 @@ class AddressService {
   Future<bool> setDefaultAddress(int addressId) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/addresses/$addressId/default');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/addresses/$addressId/default');
       
       final response = await http.post(url, headers: headers);
       
@@ -130,7 +130,7 @@ class AddressService {
   Future<Map<String, dynamic>?> getDefaultAddress() async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/addresses/default');
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/addresses/default');
       
       final response = await http.get(url, headers: headers);
       

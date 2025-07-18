@@ -8,7 +8,7 @@ import '../../config/app_config.dart';
 
 class CommerceDataService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
-  static String get baseUrl => AppConfig.baseUrl;
+  static String get baseUrl => AppConfig.apiUrl;
   static final Logger _logger = Logger();
 
   // Datos mock para cuando el backend no esté disponible

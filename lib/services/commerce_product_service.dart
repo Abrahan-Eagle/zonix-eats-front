@@ -5,7 +5,7 @@ import '../config/app_config.dart';
 import '../helpers/auth_helper.dart';
 
 class CommerceProductService {
-  final String apiUrl = '${AppConfig.baseUrl}/api/commerce/products';
+  final String apiUrl = '${AppConfig.apiUrl}/api/commerce/products';
 
   Future<List<CommerceProduct>> fetchProducts() async {
     final headers = await AuthHelper.getAuthHeaders();
@@ -60,7 +60,7 @@ class CommerceProductService {
 
   Future<Map<String, dynamic>> getStats() async {
     final headers = await AuthHelper.getAuthHeaders();
-    final response = await http.get(Uri.parse('${AppConfig.baseUrl}/api/commerce/products-stats'), headers: headers);
+    final response = await http.get(Uri.parse('${AppConfig.apiUrl}/api/commerce/products-stats'), headers: headers);
     if (response.statusCode == 200) {
       return json.decode(response.body)['data'] ?? {};
     } else {

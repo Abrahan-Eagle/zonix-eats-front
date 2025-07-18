@@ -17,7 +17,7 @@ class OrderService extends ChangeNotifier {
   // POST /api/buyer/orders - Crear orden
   Future<Order> createOrder(List<CartItem> items) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/orders');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders');
     final body = jsonEncode({
       'items': items.map((e) => {
         'product_id': e.id,
@@ -50,8 +50,8 @@ class OrderService extends ChangeNotifier {
     final userRole = await AuthUtils.getUserRole();
     final isCommerce = userRole == 'commerce';
     final url = isCommerce
-        ? Uri.parse('${AppConfig.baseUrl}/api/commerce/orders')
-        : Uri.parse('${AppConfig.baseUrl}/api/buyer/orders');
+        ? Uri.parse('${AppConfig.apiUrl}/api/commerce/orders')
+        : Uri.parse('${AppConfig.apiUrl}/api/buyer/orders');
     
     print('🔄 Llamando a $url');
     
@@ -122,7 +122,7 @@ class OrderService extends ChangeNotifier {
   // GET /api/buyer/orders/{id} - Obtener detalle de orden específica
   Future<Order> getOrderById(int orderId) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/orders/$orderId');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId');
     final response = await http.get(
       url,
       headers: headers,
@@ -143,7 +143,7 @@ class OrderService extends ChangeNotifier {
   // POST /api/buyer/orders/{id}/payment-proof - Subir comprobante de pago
   Future<void> uploadPaymentProof(int orderId, String filePath, String fileType) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/orders/$orderId/payment-proof');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/payment-proof');
     var request = http.MultipartRequest('POST', url);
     request.headers.addAll(headers);
     
@@ -171,7 +171,7 @@ class OrderService extends ChangeNotifier {
   // POST /api/buyer/orders/{id}/cancel - Cancelar orden
   Future<void> cancelOrder(int orderId) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/orders/$orderId/cancel');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/cancel');
     final response = await http.post(
       url,
       headers: headers,
@@ -192,7 +192,7 @@ class OrderService extends ChangeNotifier {
   // POST /api/buyer/orders/{id}/comprobante - Subir comprobante (método alternativo)
   Future<void> uploadComprobante(int orderId, String filePath, String fileType) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/orders/$orderId/comprobante');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/comprobante');
     var request = http.MultipartRequest('POST', url);
     request.headers.addAll(headers);
     

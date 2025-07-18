@@ -116,7 +116,7 @@ class WebSocketService {
 
   // Build WebSocket URL for Laravel Echo Server
   String _buildWebSocketUrl() {
-    return AppConfig.websocketUrl;
+    return AppConfig.wsUrl;
   }
 
   // Send authentication message

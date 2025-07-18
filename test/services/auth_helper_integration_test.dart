@@ -15,9 +15,9 @@ void main() {
   });
   
   group('AuthHelper Integration Tests', () {
-    test('AppConfig should have baseUrl', () {
-      expect(AppConfig.baseUrl, isNotEmpty);
-    });
+      test('AppConfig should have apiUrl', () {
+    expect(AppConfig.apiUrl, isNotEmpty);
+  });
 
     test('AuthHelper getAuthHeaders should return Future<Map<String, String>>', () async {
       // Saltar este test si estamos en entorno de test sin plugins

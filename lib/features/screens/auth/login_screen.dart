@@ -121,6 +121,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   if (value == null || value.isEmpty) {
                     return 'Por favor ingrese su email';
                   }
+                  if (!RegExp(r'^[\w\.-]+@[\w\.-]+\.\w{2,4}$').hasMatch(value)) {
+                    return 'Ingrese un email válido';
+                  }
+                  if (value.length > 100) {
+                    return 'Máximo 100 caracteres';
+                  }
                   return null;
                 },
               ),

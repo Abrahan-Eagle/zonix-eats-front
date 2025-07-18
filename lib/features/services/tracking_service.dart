@@ -8,7 +8,7 @@ class TrackingService {
   // GET /api/buyer/orders/{orderId}/tracking - Obtener tracking de la orden
   Future<Map<String, dynamic>> getOrderTracking(int orderId) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/orders/$orderId/tracking');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/tracking');
     final response = await http.get(
       url,
       headers: headers,
@@ -29,7 +29,7 @@ class TrackingService {
   // POST /api/buyer/orders/{orderId}/tracking/location - Actualizar ubicación de entrega
   Future<void> updateDeliveryLocation(int orderId, double latitude, double longitude) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.baseUrl}/api/buyer/orders/$orderId/tracking/location');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/tracking/location');
     final response = await http.post(
       url,
       body: jsonEncode({

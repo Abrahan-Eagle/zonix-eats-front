@@ -5,7 +5,7 @@ import '../config/app_config.dart';
 import '../helpers/auth_helper.dart';
 
 class CommerceProfileService {
-  final String apiUrl = '${AppConfig.baseUrl}/api/profile';
+  final String apiUrl = '${AppConfig.apiUrl}/api/profile';
 
   Future<CommerceProfile> fetchProfile() async {
     final headers = await AuthHelper.getAuthHeaders();

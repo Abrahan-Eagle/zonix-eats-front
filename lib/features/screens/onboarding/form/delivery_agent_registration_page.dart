@@ -253,7 +253,14 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
                     controller: _firstNameController,
                     label: 'Nombre',
                     icon: Icons.person_outline,
-                    validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                      if (value.trim().length < 3) return 'Mínimo 3 caracteres';
+                      if (value.trim().length > 100) return 'Máximo 100 caracteres';
+                      if (!RegExp(r'^[a-zA-Z áéíóúÁÉÍÓÚüÜñÑ]+$').hasMatch(value)) return 'Solo letras y espacios';
+                      return null;
+                    },
+                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z áéíóúÁÉÍÓÚüÜñÑ]'))],
                     isTablet: isTablet,
                     isSmallPhone: isSmallPhone,
                   ),
@@ -264,7 +271,14 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
                     controller: _lastNameController,
                     label: 'Apellido',
                     icon: Icons.person_outline,
-                    validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                      if (value.trim().length < 3) return 'Mínimo 3 caracteres';
+                      if (value.trim().length > 100) return 'Máximo 100 caracteres';
+                      if (!RegExp(r'^[a-zA-Z áéíóúÁÉÍÓÚüÜñÑ]+$').hasMatch(value)) return 'Solo letras y espacios';
+                      return null;
+                    },
+                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z áéíóúÁÉÍÓÚüÜñÑ]'))],
                     isTablet: isTablet,
                     isSmallPhone: isSmallPhone,
                   ),
@@ -280,7 +294,13 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                if (value.trim().length < 10) return 'Mínimo 10 dígitos';
+                if (value.trim().length > 15) return 'Máximo 15 dígitos';
+                if (!RegExp(r'^[0-9]+$').hasMatch(value)) return 'Solo números';
+                return null;
+              },
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),

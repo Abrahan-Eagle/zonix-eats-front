@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../models/commerce_profile.dart';
 import '../../../services/commerce_profile_service.dart';
+import 'package:flutter/services.dart';
 
 class CommerceProfilePage extends StatefulWidget {
   final CommerceProfile? initialProfile;
@@ -83,17 +84,43 @@ class _CommerceProfilePageState extends State<CommerceProfilePage> {
                 TextFormField(
                   controller: _businessNameController,
                   decoration: const InputDecoration(labelText: 'Nombre del comercio'),
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
+                  maxLength: 100,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ.,-]')),
+                  ],
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Requerido';
+                    if (v.trim().length < 3) return 'Mínimo 3 caracteres';
+                    if (v.trim().length > 100) return 'Máximo 100 caracteres';
+                    return null;
+                  },
                 ),
                 TextFormField(
                   controller: _addressController,
                   decoration: const InputDecoration(labelText: 'Dirección'),
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
+                  maxLength: 200,
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Requerido';
+                    if (v.trim().length < 5) return 'Mínimo 5 caracteres';
+                    if (v.trim().length > 200) return 'Máximo 200 caracteres';
+                    return null;
+                  },
                 ),
                 TextFormField(
                   controller: _phoneController,
                   decoration: const InputDecoration(labelText: 'Teléfono'),
-                  validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
+                  maxLength: 15,
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                  validator: (v) {
+                    if (v == null || v.isEmpty) return 'Requerido';
+                    if (v.trim().length < 10) return 'Mínimo 10 dígitos';
+                    if (v.trim().length > 15) return 'Máximo 15 dígitos';
+                    if (!RegExp(r'^[0-9]+$').hasMatch(v)) return 'Solo números';
+                    return null;
+                  },
                 ),
                 const SizedBox(height: 24),
                 SwitchListTile(
@@ -145,17 +172,43 @@ class _CommerceProfilePageState extends State<CommerceProfilePage> {
                   TextFormField(
                     controller: _businessNameController,
                     decoration: const InputDecoration(labelText: 'Nombre del comercio'),
-                    validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
+                    maxLength: 100,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ.,-]')),
+                    ],
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Requerido';
+                      if (v.trim().length < 3) return 'Mínimo 3 caracteres';
+                      if (v.trim().length > 100) return 'Máximo 100 caracteres';
+                      return null;
+                    },
                   ),
                   TextFormField(
                     controller: _addressController,
                     decoration: const InputDecoration(labelText: 'Dirección'),
-                    validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
+                    maxLength: 200,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Requerido';
+                      if (v.trim().length < 5) return 'Mínimo 5 caracteres';
+                      if (v.trim().length > 200) return 'Máximo 200 caracteres';
+                      return null;
+                    },
                   ),
                   TextFormField(
                     controller: _phoneController,
                     decoration: const InputDecoration(labelText: 'Teléfono'),
-                    validator: (v) => v == null || v.isEmpty ? 'Requerido' : null,
+                    maxLength: 15,
+                    keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                    ],
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Requerido';
+                      if (v.trim().length < 10) return 'Mínimo 10 dígitos';
+                      if (v.trim().length > 15) return 'Máximo 15 dígitos';
+                      if (!RegExp(r'^[0-9]+$').hasMatch(v)) return 'Solo números';
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 24),
                   SwitchListTile(

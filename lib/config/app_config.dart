@@ -1,46 +1,52 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'env_config.dart';
 
 class AppConfig {
   // API URLs
-  static String get apiUrlLocal => dotenv.env['API_URL_LOCAL'] ?? EnvConfig.apiUrlLocal;
-  static String get apiUrlProd => dotenv.env['API_URL_PROD'] ?? EnvConfig.apiUrlProd;
-  static String get baseUrl => const bool.fromEnvironment('dart.vm.product') ? apiUrlProd : apiUrlLocal;
-
-  // Google Maps API Key
-  static String get googleMapsApiKey => dotenv.env['GOOGLE_MAPS_API_KEY'] ?? EnvConfig.googleMapsApiKey;
-
+  static const String apiUrlLocal = 'http://192.168.0.101:8000';
+  static const String apiUrlProd = 'https://zonix.uniblockweb.com';
+  
+  static String get apiUrl {
+    const bool isProduction = bool.fromEnvironment('dart.vm.product');
+    return isProduction ? apiUrlProd : apiUrlLocal;
+  }
+  
   // WebSocket Configuration - Laravel Echo Server
-  static String get websocketUrlLocal => dotenv.env['WEBSOCKET_URL_LOCAL'] ?? EnvConfig.websocketUrlLocal;
-  static String get websocketUrlProd => dotenv.env['WEBSOCKET_URL_PROD'] ?? EnvConfig.websocketUrlProd;
-  static String get websocketUrl => const bool.fromEnvironment('dart.vm.product') ? websocketUrlProd : websocketUrlLocal;
+  static const String wsUrlLocal = 'ws://192.168.0.101:6001';
+  static const String wsUrlProd = 'wss://zonix.uniblockweb.com';
   
-  static String get echoAppId => dotenv.env['ECHO_APP_ID'] ?? EnvConfig.echoAppId;
-  static String get echoKey => dotenv.env['ECHO_KEY'] ?? EnvConfig.echoKey;
-  static bool get enableWebsockets => dotenv.env['ENABLE_WEBSOCKETS'] == 'true' || EnvConfig.enableWebsockets;
-
-  // Firebase Configuration
-  static String get firebaseProjectId => dotenv.env['FIREBASE_PROJECT_ID'] ?? EnvConfig.firebaseProjectId;
-  static String get firebaseMessagingSenderId => dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? EnvConfig.firebaseMessagingSenderId;
-  static String get firebaseAppId => dotenv.env['FIREBASE_APP_ID'] ?? EnvConfig.firebaseAppId;
-
-  // App Configuration
-  static String get appName => EnvConfig.appName;
-  static String get appVersion => EnvConfig.appVersion;
-  static String get appBuildNumber => EnvConfig.appBuildNumber;
-
-  // Pagination Configuration
-  static int get defaultPageSize => EnvConfig.defaultPageSize;
-  static int get maxPageSize => EnvConfig.maxPageSize;
-
-  // Timeout Configuration
-  static int get connectionTimeout => EnvConfig.connectionTimeout;
-  static int get receiveTimeout => EnvConfig.receiveTimeout;
-
-  // Retry Configuration
-  static int get maxRetryAttempts => EnvConfig.maxRetryAttempts;
-  static int get retryDelayMs => EnvConfig.retryDelayMs;
+  static String get wsUrl {
+    const bool isProduction = bool.fromEnvironment('dart.vm.product');
+    return isProduction ? wsUrlProd : wsUrlLocal;
+  }
   
-  // Request Timeout Configuration
+  // Echo Server Configuration
+  static const String echoAppId = 'zonix-eats-app';
+  static const String echoKey = 'zonix-eats-key';
+  static const bool enableWebsockets = true;
+  
+  // Google Maps API Key
+  static const String googleMapsApiKey = 'your_google_maps_api_key_here';
+  
+  // Firebase Configuration (si usas notificaciones push)
+  static const String firebaseProjectId = 'your_firebase_project_id';
+  static const String firebaseMessagingSenderId = 'your_sender_id';
+  static const String firebaseAppId = 'your_app_id';
+  
+  // Configuración de la aplicación
+  static const String appName = 'ZONIX-EATS';
+  static const String appVersion = '1.0.0';
+  static const String appBuildNumber = '1';
+  
+  // Configuración de paginación
+  static const int defaultPageSize = 20;
+  static const int maxPageSize = 100;
+  
+  // Configuración de timeouts
+  static const int connectionTimeout = 30000; // 30 segundos
+  static const int receiveTimeout = 30000; // 30 segundos
   static const int requestTimeout = 30000; // 30 segundos
+  
+  // Configuración de reintentos
+  static const int maxRetryAttempts = 3;
+  static const int retryDelayMs = 1000; // 1 segundo
 } 

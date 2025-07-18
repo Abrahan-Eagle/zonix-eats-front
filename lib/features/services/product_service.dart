@@ -12,7 +12,7 @@ final String baseUrl = const bool.fromEnvironment('dart.vm.product')
 final Logger _logger = Logger();
 
 class ProductService {
-  final String apiUrl = '${AppConfig.baseUrl}/api/buyer/products';
+  final String apiUrl = '${AppConfig.apiUrl}/api/buyer/products';
 
   // GET /api/buyer/products - Listar productos (con filtro opcional por category_id)
   Future<List<Product>> fetchProducts({int? categoryId}) async {

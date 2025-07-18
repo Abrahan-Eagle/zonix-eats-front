@@ -248,7 +248,14 @@ class _DeliveryCompanyRegistrationPageState extends State<DeliveryCompanyRegistr
                     controller: _firstNameController,
                     label: 'Nombre',
                     icon: Icons.person_outline,
-                    validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                      if (value.trim().length < 3) return 'Mínimo 3 caracteres';
+                      if (value.trim().length > 100) return 'Máximo 100 caracteres';
+                      if (!RegExp(r'^[a-zA-Z áéíóúÁÉÍÓÚüÜñÑ]+$').hasMatch(value)) return 'Solo letras y espacios';
+                      return null;
+                    },
+                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z áéíóúÁÉÍÓÚüÜñÑ]'))],
                     isTablet: isTablet,
                     isSmallPhone: isSmallPhone,
                   ),
@@ -259,7 +266,14 @@ class _DeliveryCompanyRegistrationPageState extends State<DeliveryCompanyRegistr
                     controller: _lastNameController,
                     label: 'Apellido',
                     icon: Icons.person_outline,
-                    validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                      if (value.trim().length < 3) return 'Mínimo 3 caracteres';
+                      if (value.trim().length > 100) return 'Máximo 100 caracteres';
+                      if (!RegExp(r'^[a-zA-Z áéíóúÁÉÍÓÚüÜñÑ]+$').hasMatch(value)) return 'Solo letras y espacios';
+                      return null;
+                    },
+                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z áéíóúÁÉÍÓÚüÜñÑ]'))],
                     isTablet: isTablet,
                     isSmallPhone: isSmallPhone,
                   ),
@@ -275,7 +289,13 @@ class _DeliveryCompanyRegistrationPageState extends State<DeliveryCompanyRegistr
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                if (value.trim().length < 10) return 'Mínimo 10 dígitos';
+                if (value.trim().length > 15) return 'Máximo 15 dígitos';
+                if (!RegExp(r'^[0-9]+$').hasMatch(value)) return 'Solo números';
+                return null;
+              },
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
@@ -340,7 +360,14 @@ class _DeliveryCompanyRegistrationPageState extends State<DeliveryCompanyRegistr
               controller: _nombreController,
               label: 'Nombre de la Empresa',
               icon: Icons.business_outlined,
-              validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                if (value.trim().length < 3) return 'Mínimo 3 caracteres';
+                if (value.trim().length > 100) return 'Máximo 100 caracteres';
+                if (!RegExp(r'^[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ.,-]+$').hasMatch(value)) return 'Solo letras, números y espacios';
+                return null;
+              },
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ.,-]'))],
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
@@ -348,12 +375,19 @@ class _DeliveryCompanyRegistrationPageState extends State<DeliveryCompanyRegistr
             SizedBox(height: isTablet ? 20 : 16),
             
             _buildTextField(
-              controller: _rucController,
-              label: 'RUC',
-              icon: Icons.numbers_outlined,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+              controller: _ciController, // Cambia el nombre del controlador si es necesario
+              label: 'Cédula de Identidad (CI)',
+              icon: Icons.badge_outlined,
+              keyboardType: TextInputType.text,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^[vVeE0-9]+')),
+                LengthLimitingTextInputFormatter(10),
+              ],
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                if (!RegExp(r'^[vVeE][0-9]{7,9}$').hasMatch(value.trim())) return 'Formato válido: V12345678 o E12345678';
+                return null;
+              },
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
@@ -366,7 +400,13 @@ class _DeliveryCompanyRegistrationPageState extends State<DeliveryCompanyRegistr
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                if (value.trim().length < 10) return 'Mínimo 10 dígitos';
+                if (value.trim().length > 15) return 'Máximo 15 dígitos';
+                if (!RegExp(r'^[0-9]+$').hasMatch(value)) return 'Solo números';
+                return null;
+              },
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),

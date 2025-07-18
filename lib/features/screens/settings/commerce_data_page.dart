@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/features/services/commerce_data_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:flutter/services.dart'; // Added for FilteringTextInputFormatter
 
 class CommerceDataPage extends StatefulWidget {
   const CommerceDataPage({Key? key}) : super(key: key);
@@ -235,10 +236,19 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
                       TextFormField(
                         controller: _taxIdController,
                         decoration: const InputDecoration(
-                          labelText: 'RIF / Tax ID',
+                          labelText: 'Cédula de Identidad (CI)',
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.receipt),
                         ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'^[vVeE0-9]+')),
+                          LengthLimitingTextInputFormatter(10),
+                        ],
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Campo requerido';
+                          if (!RegExp(r'^[vVeE][0-9]{7,9}$').hasMatch(v.trim())) return 'Formato válido: V12345678 o E12345678';
+                          return null;
+                        },
                       ),
                     ],
                   ),
@@ -267,7 +277,12 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.location_on),
                         ),
-                        validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Campo requerido';
+                          if (v.trim().length < 5) return 'Mínimo 5 caracteres';
+                          if (v.trim().length > 200) return 'Máximo 200 caracteres';
+                          return null;
+                        },
                         maxLines: 2,
                       ),
                       const SizedBox(height: 16),
@@ -278,8 +293,15 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.phone),
                         ),
-                        validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
+                        validator: (v) {
+                          if (v == null || v.isEmpty) return 'Campo requerido';
+                          if (v.trim().length < 10) return 'Mínimo 10 dígitos';
+                          if (v.trim().length > 15) return 'Máximo 15 dígitos';
+                          if (!RegExp(r'^[0-9]+$').hasMatch(v)) return 'Solo números';
+                          return null;
+                        },
                         keyboardType: TextInputType.phone,
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       ),
                     ],
                   ),

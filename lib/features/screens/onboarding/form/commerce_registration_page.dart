@@ -217,7 +217,14 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
               controller: _nombreLocalController,
               label: 'Nombre del Local',
               icon: Icons.store_outlined,
-              validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                if (value.trim().length < 3) return 'Mínimo 3 caracteres';
+                if (value.trim().length > 100) return 'Máximo 100 caracteres';
+                if (!RegExp(r'^[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ.,-]+$').hasMatch(value)) return 'Solo letras, números y espacios';
+                return null;
+              },
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ.,-]'))],
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
@@ -229,7 +236,12 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
               label: 'Dirección',
               icon: Icons.location_on_outlined,
               maxLines: 3,
-              validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                if (value.trim().length < 5) return 'Mínimo 5 caracteres';
+                if (value.trim().length > 200) return 'Máximo 200 caracteres';
+                return null;
+              },
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
@@ -242,7 +254,13 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
               icon: Icons.phone_outlined,
               keyboardType: TextInputType.phone,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                if (value.trim().length < 10) return 'Mínimo 10 dígitos';
+                if (value.trim().length > 15) return 'Máximo 15 dígitos';
+                if (!RegExp(r'^[0-9]+$').hasMatch(value)) return 'Solo números';
+                return null;
+              },
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
@@ -305,11 +323,18 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
             
             _buildTextField(
               controller: _pagoMovilCedulaController,
-              label: 'Cédula',
+              label: 'Cédula de Identidad (CI)',
               icon: Icons.credit_card_outlined,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+              keyboardType: TextInputType.text,
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'^[vVeE0-9]+')),
+                LengthLimitingTextInputFormatter(10),
+              ],
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                if (!RegExp(r'^[vVeE][0-9]{7,9}$').hasMatch(value.trim())) return 'Formato válido: V12345678 o E12345678';
+                return null;
+              },
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),

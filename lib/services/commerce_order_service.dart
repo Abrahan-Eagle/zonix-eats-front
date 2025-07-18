@@ -5,7 +5,7 @@ import '../config/app_config.dart';
 import '../helpers/auth_helper.dart';
 
 class CommerceOrderService {
-  final String apiUrl = '${AppConfig.baseUrl}/api/commerce/orders';
+  final String apiUrl = '${AppConfig.apiUrl}/api/commerce/orders';
 
   Future<List<CommerceOrder>> fetchOrders() async {
     final headers = await AuthHelper.getAuthHeaders();

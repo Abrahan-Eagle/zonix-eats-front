@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import '../../../models/commerce_product.dart';
 import '../../../features/services/commerce_product_service.dart';
+import 'package:flutter/services.dart';
 
 class CommerceProductFormPage extends StatefulWidget {
   final CommerceProduct? product;
@@ -323,13 +324,21 @@ class _CommerceProductFormPageState extends State<CommerceProductFormPage> {
                         labelText: 'Nombre del Producto *',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.fastfood),
+                        counterText: '',
                       ),
+                      maxLength: 100,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ.,-]')),
+                      ],
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'El nombre es requerido';
                         }
                         if (value.trim().length < 3) {
                           return 'El nombre debe tener al menos 3 caracteres';
+                        }
+                        if (value.trim().length > 100) {
+                          return 'El nombre no puede exceder 100 caracteres';
                         }
                         return null;
                       },
@@ -341,7 +350,9 @@ class _CommerceProductFormPageState extends State<CommerceProductFormPage> {
                         labelText: 'Descripción',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.description),
+                        counterText: '',
                       ),
+                      maxLength: 500,
                       maxLines: 3,
                       validator: (value) {
                         if (value != null && value.trim().length > 500) {
@@ -358,8 +369,13 @@ class _CommerceProductFormPageState extends State<CommerceProductFormPage> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.attach_money),
                         suffixText: 'USD',
+                        counterText: '',
                       ),
+                      maxLength: 9,
                       keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'^[0-9]{0,6}(\.[0-9]{0,2})?')),
+                      ],
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return 'El precio es requerido';
@@ -367,6 +383,12 @@ class _CommerceProductFormPageState extends State<CommerceProductFormPage> {
                         final price = double.tryParse(value);
                         if (price == null || price <= 0) {
                           return 'Ingrese un precio válido mayor a 0';
+                        }
+                        if (value.contains('.') && value.split('.')[1].length > 2) {
+                          return 'Máximo 2 decimales';
+                        }
+                        if (value.split('.')[0].length > 6) {
+                          return 'Máximo 6 dígitos antes del punto';
                         }
                         return null;
                       },
@@ -389,13 +411,21 @@ class _CommerceProductFormPageState extends State<CommerceProductFormPage> {
                         labelText: 'Stock',
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.inventory),
+                        counterText: '',
                       ),
+                      maxLength: 5,
                       keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
                       validator: (value) {
                         if (value != null && value.isNotEmpty) {
                           final stock = int.tryParse(value);
                           if (stock == null || stock < 0) {
                             return 'El stock debe ser un número entero positivo';
+                          }
+                          if (value.length > 5) {
+                            return 'Máximo 5 dígitos';
                           }
                         }
                         return null;

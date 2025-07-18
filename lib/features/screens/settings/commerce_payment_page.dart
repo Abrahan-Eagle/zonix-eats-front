@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/features/services/commerce_data_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:flutter/services.dart'; // Added for FilteringTextInputFormatter
 
 class CommercePaymentPage extends StatefulWidget {
   const CommercePaymentPage({Key? key}) : super(key: key);
@@ -210,28 +211,7 @@ class _CommercePaymentPageState extends State<CommercePaymentPage> {
                           return null;
                         },
                         keyboardType: TextInputType.phone,
-                        onChanged: (value) {
-                          // Formatear automáticamente el número de teléfono
-                          final digits = value.replaceAll(RegExp(r'\D'), '');
-                          if (digits.length <= 11) {
-                            String formatted = '';
-                            if (digits.isNotEmpty) {
-                              formatted = digits;
-                              if (digits.length >= 4) {
-                                formatted = '${digits.substring(0, 4)}-${digits.substring(4)}';
-                              }
-                              if (digits.length >= 7) {
-                                formatted = '${digits.substring(0, 4)}-${digits.substring(4, 7)}-${digits.substring(7)}';
-                              }
-                            }
-                            if (formatted != value) {
-                              _paymentPhoneController.value = TextEditingValue(
-                                text: formatted,
-                                selection: TextSelection.collapsed(offset: formatted.length),
-                              );
-                            }
-                          }
-                        },
+                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       ),
                     ],
                   ),

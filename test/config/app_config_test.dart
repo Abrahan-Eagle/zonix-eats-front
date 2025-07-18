@@ -17,20 +17,20 @@ void main() {
     });
 
     test('should return correct base URL based on environment', () {
-      final baseUrl = AppConfig.baseUrl;
+      final baseUrl = AppConfig.apiUrl;
       expect(baseUrl, isNotEmpty);
       expect(baseUrl.startsWith('http'), isTrue);
     });
 
     test('should return correct WebSocket URLs', () {
-      expect(AppConfig.websocketUrlLocal, isNotEmpty);
-      expect(AppConfig.websocketUrlProd, isNotEmpty);
+          expect(AppConfig.wsUrlLocal, isNotEmpty);
+    expect(AppConfig.wsUrlProd, isNotEmpty);
     });
 
     test('should return correct WebSocket URL based on environment', () {
-      final websocketUrl = AppConfig.websocketUrl;
-      expect(websocketUrl, isNotEmpty);
-      expect(websocketUrl.startsWith('ws'), isTrue);
+          final websocketUrl = AppConfig.wsUrl;
+    expect(websocketUrl, isNotEmpty);
+    expect(websocketUrl.startsWith('ws'), isTrue);
     });
 
     test('should return correct Echo configuration', () {
@@ -54,8 +54,8 @@ void main() {
 
   group('Configuration Integration Tests', () {
     test('should use fallback values when environment variables are not set', () {
-      expect(AppConfig.baseUrl, isNotEmpty);
-      expect(AppConfig.websocketUrl, isNotEmpty);
+      expect(AppConfig.apiUrl, isNotEmpty);
+      expect(AppConfig.wsUrl, isNotEmpty);
       expect(AppConfig.echoAppId, isNotEmpty);
       expect(AppConfig.echoKey, isNotEmpty);
       expect(AppConfig.enableWebsockets, isA<bool>());
@@ -65,8 +65,8 @@ void main() {
     });
 
     test('should have valid URL formats', () {
-      final apiUrl = AppConfig.baseUrl;
-      final websocketUrl = AppConfig.websocketUrl;
+      final apiUrl = AppConfig.apiUrl;
+      final websocketUrl = AppConfig.wsUrl;
       expect(apiUrl.startsWith('http'), isTrue);
       expect(websocketUrl.startsWith('ws'), isTrue);
       expect(apiUrl.contains('://'), isTrue);
