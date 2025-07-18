@@ -209,9 +209,12 @@ class _CommerceNotificationsPageState extends State<CommerceNotificationsPage> w
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Resumen de Notificaciones',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    const Expanded(
+                      child: Text(
+                        'Resumen de Notificaciones',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     TextButton.icon(
                       onPressed: _loading ? null : _markAllAsRead,
@@ -221,6 +224,7 @@ class _CommerceNotificationsPageState extends State<CommerceNotificationsPage> w
                   ],
                 ),
                 const SizedBox(height: 12),
+                // Primera fila de estadísticas
                 Row(
                   children: [
                     Expanded(
@@ -250,6 +254,7 @@ class _CommerceNotificationsPageState extends State<CommerceNotificationsPage> w
                   ],
                 ),
                 const SizedBox(height: 12),
+                // Segunda fila de estadísticas
                 Row(
                   children: [
                     Expanded(
@@ -287,20 +292,27 @@ class _CommerceNotificationsPageState extends State<CommerceNotificationsPage> w
   }
 
   Widget _buildStatItem(String label, String value, IconData icon, Color color) {
-    return Column(
-      children: [
-        Icon(icon, color: color, size: 24),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
-          textAlign: TextAlign.center,
-        ),
-      ],
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 12, color: Colors.grey),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 
@@ -377,85 +389,104 @@ class _CommerceNotificationsPageState extends State<CommerceNotificationsPage> w
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: _getTypeColor(type),
-          child: Icon(_getTypeIcon(type), color: Colors.white),
-        ),
-        title: Text(
-          notification['title'] ?? 'Sin título',
-          style: TextStyle(
-            fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
-          ),
-        ),
-        subtitle: Column(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(notification['body'] ?? 'Sin contenido'),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: _getTypeColor(type),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _getTypeText(type),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _formatDate(createdAt),
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
+            // Icono del tipo
+            CircleAvatar(
+              backgroundColor: _getTypeColor(type),
+              child: Icon(_getTypeIcon(type), color: Colors.white, size: 20),
             ),
-          ],
-        ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (!isRead)
-              Container(
-                width: 8,
-                height: 8,
-                decoration: const BoxDecoration(
-                  color: Colors.red,
-                  shape: BoxShape.circle,
-                ),
+            const SizedBox(width: 12),
+            // Contenido principal
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          notification['title'] ?? 'Sin título',
+                          style: TextStyle(
+                            fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (!isRead)
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    notification['body'] ?? 'Sin contenido',
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _getTypeColor(type),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          _getTypeText(type),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _formatDate(createdAt),
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            const SizedBox(height: 4),
-            Row(
+            ),
+            // Botones de acción
+            Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (!isRead)
                   IconButton(
-                    icon: const Icon(Icons.check, color: Colors.green),
+                    icon: const Icon(Icons.check, color: Colors.green, size: 20),
                     onPressed: _loading ? null : () => _markAsRead(notification['id']),
                     tooltip: 'Marcar como leída',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                   ),
                 IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
+                  icon: const Icon(Icons.delete, color: Colors.red, size: 20),
                   onPressed: _loading ? null : () => _deleteNotification(notification['id']),
                   tooltip: 'Eliminar notificación',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                 ),
               ],
             ),
           ],
         ),
-        onTap: () {
-          if (!isRead) {
-            _markAsRead(notification['id']);
-          }
-          // Aquí se podría abrir un detalle de la notificación
-        },
       ),
     );
   }
@@ -588,7 +619,7 @@ class _CommerceNotificationsPageState extends State<CommerceNotificationsPage> w
                     return RefreshIndicator(
                       onRefresh: _refresh,
                       child: ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 80),
+                        padding: const EdgeInsets.only(bottom: 120),
                         itemCount: notifications.length,
                         itemBuilder: (context, index) => _buildNotificationCard(notifications[index]),
                       ),

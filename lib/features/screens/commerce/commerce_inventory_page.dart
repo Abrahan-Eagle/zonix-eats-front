@@ -456,7 +456,7 @@ class _CommerceInventoryPageState extends State<CommerceInventoryPage> {
                     return RefreshIndicator(
                       onRefresh: _refresh,
                       child: ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 80),
+                        padding: const EdgeInsets.only(bottom: 120),
                         itemCount: products.length,
                         itemBuilder: (context, index) => _buildProductCard(products[index]),
                       ),

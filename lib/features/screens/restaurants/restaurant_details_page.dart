@@ -387,22 +387,15 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                             ],
                                           ],
                                         ),
+                                        const SizedBox(height: 14),
                                         // Dirección del restaurante
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-
-const SizedBox(height: 14), // Espacio para la dirección aquí
-Text(
-  widget.direccion.replaceAll('\n', ' '),
-  style: theme.textTheme.bodySmall?.copyWith(color: Colors.white),
-  maxLines: 1,
-  overflow: TextOverflow.ellipsis,
-  textAlign: TextAlign.left,
-),
+                                        Text(
+                                          widget.direccion.replaceAll('\n', ' '),
+                                          style: theme.textTheme.bodySmall?.copyWith(color: Colors.white),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.left,
+                                        ),
                                         const SizedBox(height: 4),
                                         if (widget.horario != null && widget.horario!.isNotEmpty)
                                           Row(
@@ -437,6 +430,11 @@ Text(
                                               ],
                                             ),
                                           ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
 
 
 

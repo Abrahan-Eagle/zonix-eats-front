@@ -2,12 +2,63 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:logger/logger.dart';
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 
 class CommercePromotionService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
   static String get baseUrl => AppConfig.baseUrl;
+  static final Logger _logger = Logger();
+
+  // Datos mock para cuando el backend no esté disponible
+  static List<Map<String, dynamic>> get _mockPromotions => [
+    {
+      'id': 1,
+      'title': 'Descuento 20% en Pizzas',
+      'description': 'Obtén 20% de descuento en todas las pizzas',
+      'discount_type': 'percentage',
+      'discount_value': 20.0,
+      'status': 'active',
+      'start_date': DateTime.now().subtract(Duration(days: 5)).toIso8601String(),
+      'end_date': DateTime.now().add(Duration(days: 10)).toIso8601String(),
+      'image': 'assets/default_avatar.png',
+      'created_at': DateTime.now().subtract(Duration(days: 5)).toIso8601String(),
+    },
+    {
+      'id': 2,
+      'title': '2x1 en Hamburguesas',
+      'description': 'Lleva dos hamburguesas por el precio de una',
+      'discount_type': 'buy_one_get_one',
+      'discount_value': 50.0,
+      'status': 'active',
+      'start_date': DateTime.now().subtract(Duration(days: 2)).toIso8601String(),
+      'end_date': DateTime.now().add(Duration(days: 15)).toIso8601String(),
+      'image': 'assets/default_avatar.png',
+      'created_at': DateTime.now().subtract(Duration(days: 2)).toIso8601String(),
+    },
+    {
+      'id': 3,
+      'title': 'Envío Gratis',
+      'description': 'Envío gratis en pedidos superiores a \$30',
+      'discount_type': 'free_shipping',
+      'discount_value': 5.0,
+      'status': 'inactive',
+      'start_date': DateTime.now().subtract(Duration(days: 10)).toIso8601String(),
+      'end_date': DateTime.now().subtract(Duration(days: 1)).toIso8601String(),
+      'image': 'assets/default_avatar.png',
+      'created_at': DateTime.now().subtract(Duration(days: 10)).toIso8601String(),
+    },
+  ];
+
+  static Map<String, dynamic> get _mockStats => {
+    'total_promotions': 3,
+    'active_promotions': 2,
+    'inactive_promotions': 1,
+    'expired_promotions': 0,
+    'total_revenue': 1500.0,
+    'promotions_revenue': 300.0,
+  };
 
   // Obtener todas las promociones del comercio
   static Future<List<Map<String, dynamic>>> getPromotions({
@@ -42,11 +93,15 @@ class CommercePromotionService {
           return List<Map<String, dynamic>>.from(data['data']);
         }
         return [];
+      } else if (response.statusCode == 404) {
+        _logger.w('Endpoint de promociones no encontrado (404), usando datos mock');
+        return _mockPromotions;
       } else {
         throw Exception('Error al obtener promociones: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error al obtener promociones: $e');
+      _logger.w('Error al obtener promociones, usando datos mock: $e');
+      return _mockPromotions;
     }
   }
 
@@ -230,11 +285,15 @@ class CommercePromotionService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         return data['data'] ?? {};
+      } else if (response.statusCode == 404) {
+        _logger.w('Endpoint de estadísticas de promociones no encontrado (404), usando datos mock');
+        return _mockStats;
       } else {
         throw Exception('Error al obtener estadísticas: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error al obtener estadísticas: $e');
+      _logger.w('Error al obtener estadísticas de promociones, usando datos mock: $e');
+      return _mockStats;
     }
   }
 

@@ -101,7 +101,7 @@ class _CommerceOpenPageState extends State<CommerceOpenPage> {
         backgroundColor: AppColors.purple,
         foregroundColor: Colors.white,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
@@ -293,7 +293,7 @@ class _CommerceOpenPageState extends State<CommerceOpenPage> {
                 ),
               ),
 
-            const Spacer(),
+            const SizedBox(height: 24),
 
             // Botón de guardar
             SizedBox(
@@ -319,6 +319,9 @@ class _CommerceOpenPageState extends State<CommerceOpenPage> {
                 ),
               ),
             ),
+            
+            // Espacio adicional para evitar overflow en pantallas pequeñas
+            const SizedBox(height: 32),
           ],
         ),
       ),

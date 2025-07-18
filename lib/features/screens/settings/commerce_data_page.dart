@@ -90,11 +90,11 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
         'schedule': _schedule,
       };
 
-      await CommerceDataService.updateCommerceData(data);
+      final result = await CommerceDataService.updateCommerceData(data);
       
       setState(() {
         _loading = false;
-        _success = 'Datos del comercio actualizados correctamente.';
+        _success = result['message'] ?? 'Datos del comercio actualizados correctamente.';
       });
 
       // Limpiar mensaje de éxito después de 3 segundos
@@ -370,9 +370,10 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
               const SizedBox(height: 24),
 
               // Botón de guardar
-              SizedBox(
+              Container(
                 width: double.infinity,
                 height: 50,
+                margin: const EdgeInsets.only(bottom: 16),
                 child: ElevatedButton(
                   onPressed: _loading ? null : _submit,
                   style: ElevatedButton.styleFrom(
@@ -392,6 +393,9 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
                       ),
                 ),
               ),
+              
+              // Espacio adicional para evitar overflow
+              const SizedBox(height: 32),
             ],
           ),
         ),

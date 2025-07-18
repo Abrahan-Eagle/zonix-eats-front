@@ -551,7 +551,7 @@ class _CommerceDeliveryZonesPageState extends State<CommerceDeliveryZonesPage> w
                     return RefreshIndicator(
                       onRefresh: _refresh,
                       child: ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 80),
+                        padding: const EdgeInsets.only(bottom: 120),
                         itemCount: zones.length,
                         itemBuilder: (context, index) => _buildZoneCard(zones[index]),
                       ),

@@ -179,7 +179,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
         leading: ClipRRect(
           borderRadius: BorderRadius.circular(8),
           child: Image.network(
-            favorite['image'] ?? 'assets/images/default_avatar.png',
+            favorite['image'] ?? 'assets/default_avatar.png',
             width: 50,
             height: 50,
             fit: BoxFit.cover,

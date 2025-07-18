@@ -320,37 +320,76 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: isActive ? Colors.green : Colors.grey,
-          child: promotion['image_url'] != null
-              ? ClipOval(
-                  child: Image.network(
-                    promotion['image_url'],
-                    width: 40,
-                    height: 40,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => const Icon(Icons.local_offer),
-                  ),
-                )
-              : const Icon(Icons.local_offer, color: Colors.white),
-        ),
-        title: Text(
-          promotion['title'] ?? 'Sin título',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            decoration: isExpired ? TextDecoration.lineThrough : null,
-          ),
-        ),
-        subtitle: Column(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(promotion['description'] ?? 'Sin descripción'),
-            const SizedBox(height: 4),
+            // Header con título y estado
+            Row(
+              children: [
+                CircleAvatar(
+                  backgroundColor: isActive ? Colors.green : Colors.grey,
+                  child: promotion['image_url'] != null
+                      ? ClipOval(
+                          child: Image.network(
+                            promotion['image_url'],
+                            width: 40,
+                            height: 40,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => const Icon(Icons.local_offer),
+                          ),
+                        )
+                      : const Icon(Icons.local_offer, color: Colors.white),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        promotion['title'] ?? 'Sin título',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          decoration: isExpired ? TextDecoration.lineThrough : null,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(isActive, isExpired, isExpiringSoon),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          _getStatusText(isActive, isExpired, isExpiringSoon),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            
+            // Descripción
+            Text(
+              promotion['description'] ?? 'Sin descripción',
+              style: const TextStyle(fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            
+            // Información de descuento y fechas
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: discountType == 'percentage' ? Colors.blue : Colors.orange,
                     borderRadius: BorderRadius.circular(12),
@@ -379,29 +418,11 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
               '${_formatDate(startDate)} - ${_formatDate(endDate)}',
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
-          ],
-        ),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: _getStatusColor(isActive, isExpired, isExpiringSoon),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                _getStatusText(isActive, isExpired, isExpiringSoon),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 12),
+            
+            // Botones de acción
             Row(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 IconButton(
                   icon: Icon(
@@ -433,15 +454,6 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
             ),
           ],
         ),
-        onTap: () async {
-          final result = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => CommercePromotionFormPage(promotion: promotion),
-            ),
-          );
-          if (result == true) _refresh();
-        },
       ),
     );
   }
@@ -561,7 +573,7 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> with Ti
                     return RefreshIndicator(
                       onRefresh: _refresh,
                       child: ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 80),
+                        padding: const EdgeInsets.only(bottom: 100),
                         itemCount: promotions.length,
                         itemBuilder: (context, index) => _buildPromotionCard(promotions[index]),
                       ),

@@ -398,6 +398,9 @@ class _CommerceSchedulePageState extends State<CommerceSchedulePage> {
                   ),
                 ),
               ),
+              
+              // Espacio adicional para evitar overflow
+              const SizedBox(height: 32),
             ],
           ),
         ),

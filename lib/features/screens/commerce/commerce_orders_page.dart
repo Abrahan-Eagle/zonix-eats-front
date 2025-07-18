@@ -489,7 +489,7 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage> with TickerProv
                     return RefreshIndicator(
                       onRefresh: _refresh,
                       child: ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 80),
+                        padding: const EdgeInsets.only(bottom: 120),
                         itemCount: orders.length,
                         itemBuilder: (context, index) => _buildOrderCard(orders[index]),
                       ),
