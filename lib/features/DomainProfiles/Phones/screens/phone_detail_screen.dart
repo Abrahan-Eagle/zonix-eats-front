@@ -1,191 +1,346 @@
 import 'package:flutter/material.dart';
+import '../models/phone.dart';
+import '../api/phone_service.dart';
+import 'edit_phone_screen.dart';
 
-class PhoneDetailScreen extends StatelessWidget {
-  final Map<String, dynamic> phone;
+class PhoneDetailScreen extends StatefulWidget {
+  final Phone phone;
 
   const PhoneDetailScreen({super.key, required this.phone});
+
+  @override
+  PhoneDetailScreenState createState() => PhoneDetailScreenState();
+}
+
+class PhoneDetailScreenState extends State<PhoneDetailScreen> {
+  final PhoneService _phoneService = PhoneService();
+  bool _isLoading = false;
+
+  void _showErrorSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red,
+        behavior: SnackBarBehavior.fixed,
+        duration: const Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _showSuccessSnackBar(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.fixed,
+        duration: const Duration(seconds: 2),
+      ),
+    );
+  }
+
+  Future<void> _deletePhone() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar eliminación'),
+        content: Text('¿Estás seguro de que quieres eliminar el teléfono ${widget.phone.fullNumber}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      try {
+        await _phoneService.deletePhone(widget.phone.id);
+        _showSuccessSnackBar('Teléfono eliminado exitosamente');
+        Navigator.pop(context, true); // Regresar con resultado de éxito
+      } catch (e) {
+        _showErrorSnackBar('Error al eliminar teléfono: $e');
+      } finally {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detalle de Teléfono'),
+        title: const Text('Detalle del Teléfono'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
+        elevation: 0,
+        actions: [
+          if (_isLoading)
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+            ),
+        ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header con información principal
+                  _buildMainInfoCard(),
+                  const SizedBox(height: 20),
+                  
+                  // Información detallada
+                  _buildDetailInfoCard(),
+                  const SizedBox(height: 20),
+                  
+                  // Botones de acción
+                  _buildActionButtons(),
+                ],
+              ),
+            ),
+    );
+  }
+
+  Widget _buildMainInfoCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.blue.shade50,
+              Colors.blue.shade100,
+            ],
+          ),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header con información principal
-            _buildDetailItem(context, 'Teléfono: ${phone['phone']}', isHeader: true),
-            
-            const SizedBox(height: 20),
-            
-            // Información del teléfono
-            _buildDetailItem(context, 'Tipo: ${phone['type'] ?? 'N/A'}'),
-            _buildDetailItem(context, 'Verificado: ${phone['verified'] ? 'Sí' : 'No'}'),
-            _buildDetailItem(context, 'Principal: ${phone['primary'] ? 'Sí' : 'No'}'),
-            
-            if (phone['verified_at'] != null)
-              _buildDetailItem(context, 'Verificado el: ${phone['verified_at']}'),
-            
-            const SizedBox(height: 20),
-            
-            // Botones de acción
             Row(
               children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      // Acción para editar teléfono
-                    },
-                    icon: const Icon(Icons.edit),
-                    label: const Text('Editar'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                    ),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(
+                    Icons.phone,
+                    color: Colors.white,
+                    size: 28,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 16),
                 Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      // Acción para eliminar teléfono
-                    },
-                    icon: const Icon(Icons.delete),
-                    label: const Text('Eliminar'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
-                      foregroundColor: Colors.white,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Número de Teléfono',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.phone.fullNumber,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            
-            const SizedBox(height: 20),
-            
-            // Imagen del teléfono (si existe)
-            if (phone['photoPhone'] != null && phone['photoPhone'].isNotEmpty)
-              Container(
-                width: double.infinity,
-                height: 200,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey.shade300),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                _buildStatusChip(
+                  widget.phone.typeText,
+                  Color(widget.phone.typeColor),
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    phone['photoPhone'] ?? '', // URL de la imagen
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Colors.grey.shade200,
-                        child: const Center(
-                          child: Icon(
-                            Icons.phone,
-                            size: 50,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                const SizedBox(width: 12),
+                _buildStatusChip(
+                  widget.phone.statusText,
+                  Color(widget.phone.statusColor),
                 ),
-              ),
+              ],
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildDetailItem(BuildContext context, String text, {bool isHeader = false}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16.0),
-      margin: const EdgeInsets.only(bottom: 8.0),
-      decoration: BoxDecoration(
-        color: isHeader ? Colors.blue.shade50 : Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isHeader ? Colors.blue.shade200 : Colors.grey.shade300,
-        ),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: isHeader ? 18 : 16,
-          fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
-          color: isHeader ? Colors.blue.shade800 : Colors.black87,
+  Widget _buildDetailInfoCard() {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Información Detallada',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildDetailItem('Código de Operador', widget.phone.operatorCodeName),
+            _buildDetailItem('Número', widget.phone.number),
+            _buildDetailItem('Tipo', widget.phone.typeText),
+            _buildDetailItem('Estado', widget.phone.statusText),
+            _buildDetailItem('Creado', widget.phone.formattedCreatedAt),
+            if (widget.phone.updatedAt != null)
+              _buildDetailItem('Actualizado', widget.phone.formattedUpdatedAt),
+          ],
         ),
       ),
     );
   }
-}
 
-// Código comentado para referencia futura
-// import 'package:zonix/features/DomainProfiles/Phone/models/phone.dart';
-// 
-// class PhoneDetailScreen extends StatelessWidget {
-//   final Phone phone;
-// 
-//   const PhoneDetailScreen({super.key, required this.phone});
-// 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: const Text('Detalle de Teléfono'),
-//         backgroundColor: Colors.blue,
-//         foregroundColor: Colors.white,
-//       ),
-//       body: SingleChildScrollView(
-//         padding: const EdgeInsets.all(16.0),
-//         child: Column(
-//           crossAxisAlignment: CrossAxisAlignment.start,
-//           children: [
-//             // Header con información principal
-//             _buildDetailItem(context, 'Teléfono: ${phone.phone}', isHeader: true),
-//             
-//             const SizedBox(height: 20),
-//             
-//             // Información del teléfono
-//             _buildDetailItem(context, 'Tipo: ${phone.type ?? 'N/A'}'),
-//             _buildDetailItem(context, 'Verificado: ${phone.verified ? 'Sí' : 'No'}'),
-//             _buildDetailItem(context, 'Principal: ${phone.primary ? 'Sí' : 'No'}'),
-//             
-//             if (phone.verifiedAt != null)
-//               _buildDetailItem(context, 'Verificado el: ${phone.verifiedAt}'),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// 
-//   Widget _buildDetailItem(BuildContext context, String text, {bool isHeader = false}) {
-//     return Container(
-//       width: double.infinity,
-//       padding: const EdgeInsets.all(16.0),
-//       margin: const EdgeInsets.only(bottom: 8.0),
-//       decoration: BoxDecoration(
-//         color: isHeader ? Colors.blue.shade50 : Colors.white,
-//         borderRadius: BorderRadius.circular(8),
-//         border: Border.all(
-//           color: isHeader ? Colors.blue.shade200 : Colors.grey.shade300,
-//         ),
-//       ),
-//       child: Text(
-//         text,
-//         style: TextStyle(
-//           fontSize: isHeader ? 18 : 16,
-//           fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
-//           color: isHeader ? Colors.blue.shade800 : Colors.black87,
-//         ),
-//       ),
-//     );
-//   }
-// }
+  Widget _buildDetailItem(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              '$label:',
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusChip(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Column(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _isLoading ? null : () => _navigateToEdit(),
+            icon: const Icon(Icons.edit),
+            label: const Text('Editar Teléfono'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _isLoading ? null : _deletePhone,
+            icon: const Icon(Icons.delete),
+            label: const Text('Eliminar Teléfono'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _navigateToEdit() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => EditPhoneScreen(
+          phone: widget.phone,
+          userId: widget.phone.profileId,
+        ),
+      ),
+    );
+
+    if (result == true) {
+      // Si se editó exitosamente, regresar con resultado
+      Navigator.pop(context, true);
+    }
+  }
+}
