@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zonix/features/DomainProfiles/Documents/models/document.dart';
+import 'document_edit_screen.dart';
 
 class DocumentDetailScreen extends StatelessWidget {
   final Document document;
@@ -28,10 +29,10 @@ class DocumentDetailScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: Icon(
-              _getDocumentTypeIcon(document.type ?? ''),
+              Icons.edit,
               color: colorScheme.primary,
             ),
-            onPressed: null,
+            onPressed: () => _navigateToEdit(context),
           ),
         ],
       ),
@@ -517,6 +518,18 @@ class DocumentDetailScreen extends StatelessWidget {
     
     return Stack(
       children: [
+        // Botón para editar documento
+        Positioned(
+          right: 0,
+          bottom: 80,
+          child: FloatingActionButton.extended(
+            onPressed: () => _navigateToEdit(context),
+            backgroundColor: Colors.orange,
+            foregroundColor: Colors.white,
+            icon: const Icon(Icons.edit),
+            label: const Text('Editar'),
+          ),
+        ),
         // Botón para ver imagen frontal
         Positioned(
           right: 0,
@@ -533,6 +546,21 @@ class DocumentDetailScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  void _navigateToEdit(BuildContext context) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DocumentEditScreen(document: document),
+      ),
+    );
+    
+    // Si la edición fue exitosa, refrescar los datos
+    if (result == true) {
+      // Pasar el resultado hacia atrás para que la lista se refresque
+      Navigator.of(context).pop(true);
+    }
   }
 
   String _formatDate(DateTime date) {

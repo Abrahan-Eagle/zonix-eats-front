@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:zonix/features/DomainProfiles/Documents/api/document_service.dart';
 import 'package:zonix/features/DomainProfiles/Documents/widgets/mobile_scanner_xz.dart';
 import '../models/document.dart';
-import 'package:flutter/services.dart'; // Importar para usar FilteringTextInputFormatter
+import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
-import 'package:image/image.dart' as img; // Importar el paquete de imagen
+import 'package:image/image.dart' as img;
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
@@ -14,40 +14,67 @@ import 'package:flutter/scheduler.dart';
 final logger = Logger();
 final documentService = DocumentService();
 
-final TextEditingController _numberCiController = TextEditingController();
-final TextEditingController _taxDomicileController = TextEditingController();
-final TextEditingController _communeRegisterController = TextEditingController();
-final TextEditingController _communityRifController = TextEditingController();
-final TextEditingController _rifUrlController = TextEditingController();
-final TextEditingController _receiptNController = TextEditingController();
-final TextEditingController _skyController = TextEditingController();
+class DocumentEditScreen extends StatefulWidget {
+  final Document document;
+  final int? userId;
 
-class CreateDocumentScreen extends StatefulWidget {
-  final int userId;
-
-  const CreateDocumentScreen({super.key, required this.userId});
+  const DocumentEditScreen({
+    super.key, 
+    required this.document,
+    this.userId,
+  });
 
   @override
-  CreateDocumentScreenState createState() => CreateDocumentScreenState();
+  DocumentEditScreenState createState() => DocumentEditScreenState();
 }
 
-class CreateDocumentScreenState extends State<CreateDocumentScreen> {
+class DocumentEditScreenState extends State<DocumentEditScreen> {
   final _formKey = GlobalKey<FormState>();
 
-  String? _selectedType;
+  late String _selectedType;
   int? _numberCi;
   String? _frontImage;
   String? _rifUrl;
   String? _taxDomicile;
   int? _sky;
-  String? _communeRegister; // Campo específico para 'neighborhood_association'
-  String? _communityRif;
   DateTime? _issuedAt;
   DateTime? _expiresAt;
   int? _receiptN;
 
+  // Controllers
+  final TextEditingController _numberCiController = TextEditingController();
+  final TextEditingController _taxDomicileController = TextEditingController();
+  final TextEditingController _rifUrlController = TextEditingController();
+  final TextEditingController _receiptNController = TextEditingController();
+  final TextEditingController _skyController = TextEditingController();
+
   DocumentScanner? _documentScanner;
   DocumentScanningResult? _result;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeDocumentData();
+  }
+
+  void _initializeDocumentData() {
+    _selectedType = widget.document.type ?? 'ci';
+    _numberCi = int.tryParse(widget.document.numberCi ?? '');
+    _frontImage = widget.document.frontImage;
+    _rifUrl = widget.document.rifUrl;
+    _taxDomicile = widget.document.taxDomicile;
+    _sky = widget.document.sky;
+    _issuedAt = widget.document.issuedAt;
+    _expiresAt = widget.document.expiresAt;
+    _receiptN = widget.document.receiptN;
+
+    // Initialize controllers
+    _numberCiController.text = _numberCi?.toString() ?? '';
+    _taxDomicileController.text = _taxDomicile ?? '';
+    _rifUrlController.text = _rifUrl ?? '';
+    _receiptNController.text = _receiptN?.toString() ?? '';
+    _skyController.text = _sky?.toString() ?? '';
+  }
 
   @override
   void dispose() {
@@ -68,7 +95,6 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     if (picked != null) onDateSelected(picked);
   }
 
-  // Función para escanear un documento y luego obtener la imagen escaneada
   Future<void> _scanDocument() async {
     try {
       setState(() {
@@ -86,11 +112,8 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
 
       _result = await _documentScanner?.scanDocument();
       if (_result?.images.isNotEmpty == true) {
-        // Suponiendo que _result.images es una lista de File o algo que contiene la imagen escaneada
         final scannedImage = _result!.images.first;
-        final compressedImage = await _compressImage(
-          scannedImage,
-        ); // Obtén el path de la imagen
+        final compressedImage = await _compressImage(scannedImage);
         setState(() {
           _frontImage = compressedImage;
         });
@@ -107,10 +130,9 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
 
   Future<String?> _compressImage(String filePath) async {
     try {
-      // Mostrar el diálogo de carga
       showDialog(
         context: context,
-        barrierDismissible: false, // Impide cerrar el diálogo tocando fuera
+        barrierDismissible: false,
         builder: (BuildContext context) {
           return const Center(child: CircularProgressIndicator());
         },
@@ -118,16 +140,14 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
 
       final imageFile = File(filePath);
 
-      // Verificar si la imagen ya es suficientemente pequeña (menor a 2 MB)
       if (await imageFile.length() <= 2 * 1024 * 1024) {
-        Navigator.of(context).pop(); // Cerrar el diálogo de carga
-        return filePath; // Devolver la imagen sin compresión si es menor a 2 MB
+        Navigator.of(context).pop();
+        return filePath;
       }
 
-      // Decodificar la imagen
       final originalImage = img.decodeImage(await imageFile.readAsBytes());
       if (originalImage == null) {
-        Navigator.of(context).pop(); // Cerrar el diálogo de carga
+        Navigator.of(context).pop();
         throw Exception("No se pudo decodificar la imagen.");
       }
 
@@ -135,34 +155,29 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
       int quality = 85;
       List<int> compressedBytes;
 
-      // Comprimir la imagen según el tipo (PNG o JPG)
       if (extension == 'png') {
         compressedBytes = img.encodePng(originalImage, level: 6);
       } else {
         compressedBytes = img.encodeJpg(originalImage, quality: quality);
 
-        // Intentar reducir la calidad si la imagen es mayor a 2 MB
         while (compressedBytes.length > 2 * 1024 * 1024 && quality > 10) {
           quality -= 5;
           compressedBytes = img.encodeJpg(originalImage, quality: quality);
         }
       }
 
-      // Guardar la imagen comprimida
       final compressedImageFile = await File(
         '${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}',
       ).writeAsBytes(compressedBytes);
 
       debugPrint("Imagen comprimida guardada en: ${compressedImageFile.path}");
 
-      // Cerrar el diálogo de carga después de guardar la imagen
       Navigator.of(context).pop();
 
       return compressedImageFile.path;
     } catch (e) {
-      // Si hay un error, cerrar el diálogo y mostrar un mensaje en el log
       debugPrint("Error al comprimir la imagen: $e");
-      Navigator.of(context).pop(); // Cerrar el diálogo de carga
+      Navigator.of(context).pop();
       throw Exception("Error al comprimir la imagen: $e");
     }
   }
@@ -189,7 +204,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         title: Text(
-          'Crear Documento',
+          'Editar Documento',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: colorScheme.onSurface,
@@ -211,13 +226,13 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
               
               const SizedBox(height: 24),
               
-              // Tipo de documento
-              _buildTypeDropdown(),
+              // Tipo de documento (no editable)
+              _buildTypeCard(),
               
               const SizedBox(height: 24),
               
               // Campos específicos según el tipo
-              if (_selectedType != null) _buildFieldsByType(),
+              _buildFieldsByType(),
               
               const SizedBox(height: 24),
               
@@ -251,8 +266,8 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              colorScheme.primary.withOpacity(0.1),
-              colorScheme.primary.withOpacity(0.05),
+              Colors.orange.withOpacity(0.1),
+              Colors.orange.withOpacity(0.05),
             ],
           ),
         ),
@@ -264,12 +279,12 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.2),
+                    color: Colors.orange.withOpacity(0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    Icons.description,
-                    color: colorScheme.primary,
+                    Icons.edit,
+                    color: Colors.orange,
                     size: 24,
                   ),
                 ),
@@ -279,14 +294,14 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Nuevo Documento',
+                        'Editar Documento',
                         style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: colorScheme.onSurface,
                         ),
                       ),
                       Text(
-                        'Agrega un nuevo documento a tu perfil',
+                        'Modifica la información del documento',
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurface.withOpacity(0.7),
                         ),
@@ -302,7 +317,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     );
   }
 
-  Widget _buildTypeDropdown() {
+  Widget _buildTypeCard() {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     
@@ -331,73 +346,34 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
               ),
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: _selectedType,
-              items: typeTranslations.entries
-                  .map(
-                    (entry) => DropdownMenuItem(
-                      value: entry.key,
-                      child: Row(
-                        children: [
-                          Icon(
-                            _getDocumentTypeIcon(entry.key),
-                            color: colorScheme.primary,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(entry.value),
-                        ],
-                      ),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedType = value;
-                  _clearFields(); // Limpiar los campos
-                });
-              },
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: colorScheme.surfaceVariant.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
               ),
-              validator: (value) => value == null ? 'Seleccione un tipo' : null,
+              child: Row(
+                children: [
+                  Icon(
+                    _getDocumentTypeIcon(_selectedType),
+                    color: colorScheme.primary,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    typeTranslations[_selectedType] ?? 'Desconocido',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  void _clearFields() {
-    debugPrint('Limpieza de campos iniciada');
-    setState(() {
-      // Limpiar las variables
-      _numberCi = null;
-      _frontImage = null;
-      _rifUrl = null;
-      _taxDomicile = null;
-      _sky = null;
-
-      _issuedAt = null;
-      _expiresAt = null;
-      _receiptN = null;
-
-      // Limpiar los controladores
-      _numberCiController.clear();
-      _taxDomicileController.clear();
-
-      _rifUrlController.clear();
-      _receiptNController.clear();
-      _skyController.clear();
-
-      debugPrint('Campos limpiados exitosamente');
-    });
   }
 
   Widget _buildFieldsByType() {
@@ -408,7 +384,6 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
         return _buildPassportFields();
       case 'rif':
         return _buildRIFFields();
-
       default:
         return const SizedBox.shrink();
     }
@@ -455,8 +430,6 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
       ],
     );
   }
-
-
 
   Widget _buildFieldsCard(String title, IconData icon, List<Widget> children) {
     final theme = Theme.of(context);
@@ -588,7 +561,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     final colorScheme = theme.colorScheme;
     
     return TextFormField(
-      controller: _numberCiController, // Asegúrate de vincular el controlador
+      controller: _numberCiController,
       decoration: InputDecoration(
         labelText: 'Número de Documento',
         border: OutlineInputBorder(
@@ -602,7 +575,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
       onSaved: (value) => _numberCi = int.tryParse(value ?? ''),
       inputFormatters: [
         FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(8), // Limitar a 8 caracteres
+        LengthLimitingTextInputFormatter(8),
       ],
       keyboardType: TextInputType.number,
       validator: (value) {
@@ -659,11 +632,10 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
         if (value == null || value.isEmpty) {
           return 'Este campo es obligatorio';
         }
-        // Verificar si el número tiene entre 9 y 11 dígitos
         if (value.length < 9 || value.length > 11) {
           return 'El número debe tener entre 9 y 11 dígitos';
         }
-        return null; // Validación correcta
+        return null;
       },
     );
   }
@@ -689,8 +661,8 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
         ),
       ),
       onSaved: onSaved,
-      inputFormatters: inputFormatters, // Aplicar inputFormatters
-      keyboardType: keyboardType, // Establecer el tipo de teclado
+      inputFormatters: inputFormatters,
+      keyboardType: keyboardType,
     );
   }
 
@@ -714,11 +686,10 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
         ),
         suffixIcon: IconButton(
           icon: const Icon(Icons.calendar_today),
-          onPressed:
-              () => _selectDate(
-                context,
-                (picked) => setState(() => onDateSelected(picked)),
-              ),
+          onPressed: () => _selectDate(
+            context,
+            (picked) => setState(() => onDateSelected(picked)),
+          ),
         ),
       ),
       readOnly: true,
@@ -766,12 +737,27 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
               borderRadius: BorderRadius.circular(12),
               child: AspectRatio(
                 aspectRatio: 16 / 10,
-                child: Image.file(
-                  File(_frontImage!),
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
-                ),
+                child: _frontImage!.startsWith('http')
+                    ? Image.network(
+                        _frontImage!,
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            color: Colors.grey[300],
+                            child: const Center(
+                              child: Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                            ),
+                          );
+                        },
+                      )
+                    : Image.file(
+                        File(_frontImage!),
+                        width: double.infinity,
+                        height: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
               ),
             ),
             const SizedBox(height: 12),
@@ -790,7 +776,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Imagen escaneada correctamente',
+                    'Imagen disponible',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: Colors.green,
                       fontWeight: FontWeight.w600,
@@ -822,12 +808,12 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
             label: const Text('Escanear'),
           ),
         ),
-        // Botón para guardar documento
+        // Botón para guardar cambios
         Positioned(
           right: 0,
           bottom: 0,
           child: FloatingActionButton.extended(
-            onPressed: _saveDocument,
+            onPressed: _updateDocument,
             backgroundColor: Colors.green,
             foregroundColor: Colors.white,
             icon: const Icon(Icons.save),
@@ -846,7 +832,6 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
         return Icons.flight_takeoff;
       case 'rif':
         return Icons.business;
-
       default:
         return Icons.description;
     }
@@ -854,6 +839,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
 
   File? _getFileFromPath(String? path) {
     if (path == null || path.isEmpty) return null;
+    if (path.startsWith('http')) return null; // Skip network images
     return File(path);
   }
 
@@ -863,13 +849,11 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
       MaterialPageRoute(builder: (context) => const QRScannerScreen()),
     );
 
-    // Comprobación del resultado
     if (result != null && result is String) {
       setState(() {
-        _rifUrl = result; // Asegúrate de que 'result' sea una cadena no nula
+        _rifUrl = result;
       });
     } else {
-      // Manejo de error si el resultado es nulo o no es una cadena
       logger.e('Escaneo cancelado o fallido.');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Escaneo cancelado o fallido.')),
@@ -877,14 +861,11 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     }
   }
 
-  int _saveCounter = 0; // Contador para guardar documentos, inicia en 0
-
-  Future<void> _saveDocument() async {
+  Future<void> _updateDocument() async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
 
       try {
-        // Mostrar diálogo de progreso
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -893,72 +874,55 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
           },
         );
 
-        // Verificar tamaño de la imagen
-        if (_frontImage != null && await _isImageSizeValid(_frontImage)) {
-          Document document = Document(
-            id: 0,
-            type: _selectedType,
-            numberCi: _numberCi?.toString(),
-            receiptN: _receiptN,
-            rifUrl: _rifUrl,
-            taxDomicile: _taxDomicile,
-            sky: _sky,
-            communeRegister: null,
-            communityRif: null,
-            frontImage: _frontImage,
-            issuedAt: _issuedAt,
-            expiresAt: _expiresAt,
-            approved: false,
-            status: true,
-          );
+        final userId = widget.userId ?? Provider.of<UserProvider>(context, listen: false).userId;
+        if (userId == null) {
+          Navigator.of(context).pop();
+          _showCustomSnackBar(context, 'Error: ID de usuario no encontrado', Colors.red);
+          return;
+        }
 
-          await documentService.createDocument(
-            document,
-            widget.userId,
-            frontImageFile: _getFileFromPath(document.frontImage),
-          );
+        // Create updated document
+        Document updatedDocument = Document(
+          id: widget.document.id,
+          type: _selectedType,
+          numberCi: _numberCi?.toString(),
+          receiptN: _receiptN,
+          rifUrl: _rifUrl,
+          taxDomicile: _taxDomicile,
+          sky: _sky,
+          communeRegister: null,
+          communityRif: null,
+          frontImage: _frontImage,
+          issuedAt: _issuedAt,
+          expiresAt: _expiresAt,
+          approved: widget.document.approved,
+          status: widget.document.status,
+        );
 
-          if (mounted) {
-            setState(() {
-              _saveCounter++;
-            });
+        await documentService.updateDocument(
+          updatedDocument,
+          userId,
+          frontImageFile: _getFileFromPath(updatedDocument.frontImage),
+        );
 
-            final message = _saveCounter == 3
-                ? 'Límite alcanzado. Puedes avanzar al siguiente paso.'
-                : 'Documento guardado exitosamente.';
-
-            final color = _saveCounter == 3 ? Colors.blue : Colors.green;
-
-            _showCustomSnackBar(context, message, color);
-
-            Navigator.of(context)
-              ..pop() // Cerrar diálogo de progreso
-              ..pop(true); // Indicar éxito al retroceder
-          }
-        } else {
-          Navigator.of(context).pop(); // Cerrar diálogo de progreso
+        if (mounted) {
+          Navigator.of(context).pop(); // Close loading dialog
           _showCustomSnackBar(
             context,
-            'La imagen frontal supera los 2 MB.',
-            Colors.orange,
+            'Documento actualizado exitosamente',
+            Colors.green,
           );
+          Navigator.of(context).pop(true); // Return to previous screen with success
         }
       } catch (e) {
-        Navigator.of(context).pop(); // Cerrar diálogo de progreso
-        logger.e('Error al guardar el documento: $e');
+        Navigator.of(context).pop(); // Close loading dialog
+        logger.e('Error al actualizar el documento: $e');
         _showCustomSnackBar(
           context,
-          'Error al guardar el documento: $e',
+          'Error al actualizar el documento: $e',
           Colors.red,
         );
       }
     }
   }
-
-  Future<bool> _isImageSizeValid(String? path) async {
-    if (path == null) return false;
-    final file = File(path);
-    final sizeInBytes = await file.length();
-    return sizeInBytes <= 2048 * 1024; // 2048 KB
-  }
-}
+} 

@@ -411,13 +411,18 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
     );
   }
 
-  void _navigateToDocumentDetail(Document document) {
-    Navigator.push(
+  void _navigateToDocumentDetail(Document document) async {
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => DocumentDetailScreen(document: document),
       ),
     );
+    
+    // Si se regresa de la edición, refrescar la lista
+    if (result == true) {
+      _refreshDocuments();
+    }
   }
 
   Future<void> _showConfirmationDialog() async {

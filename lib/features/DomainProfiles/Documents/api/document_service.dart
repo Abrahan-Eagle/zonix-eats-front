@@ -77,7 +77,6 @@ class DocumentService {
           request.fields['number_ci'] = document.numberCi?.toString() ?? '';
           break;
         case 'passport':
-          request.fields['number_ci'] = document.numberCi?.toString() ?? '';
           request.fields['RECEIPT_N'] = document.receiptN?.toString() ?? '';
           break;
         case 'rif':
@@ -117,38 +116,99 @@ class DocumentService {
     }
   }
 
+  Future<void> updateDocument(
+    Document document,
+    int userId, {
+    File? frontImageFile,
+  }) async {
+    logger.i('Updating document ID: ${document.id} for profile ID: $userId');
 
+    try {
+      final token = await _getToken();
+      if (token == null) throw Exception('Token not found.');
 
+      final request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$baseUrl/api/documents/${document.id}'),
+      );
 
+      // Configure headers and basic fields
+      request.headers['Authorization'] = 'Bearer $token';
+      request.fields['_method'] = 'PUT'; // Laravel method override
+      request.fields['profile_id'] = userId.toString();
+      request.fields['type'] = document.type ?? '';
+      request.fields['issued_at'] = document.issuedAt?.toIso8601String() ?? '';
+      request.fields['expires_at'] = document.expiresAt?.toIso8601String() ?? '';
 
-Future<void> updateStatusCheckScanner(int userId) async {
-  String? token = await _getToken();
+      // Configure additional fields based on type
+      switch (document.type) {
+        case 'ci':
+          request.fields['number_ci'] = document.numberCi?.toString() ?? '';
+          break;
+        case 'passport':
+          request.fields['RECEIPT_N'] = document.receiptN?.toString() ?? '';
+          break;
+        case 'rif':
+          request.fields['sky'] = document.sky?.toString() ?? '';
+          request.fields['RECEIPT_N'] = document.receiptN?.toString() ?? '';
+          request.fields['rif_url'] = document.rifUrl ?? '';
+          request.fields['taxDomicile'] = document.taxDomicile ?? '';
+          break;
+        case 'neighborhood_association':
+          request.fields['commune_register'] = document.communeRegister ?? '';
+          request.fields['community_rif'] = document.communityRif ?? '';
+          break;
+        default:
+          logger.w('Unrecognized document type: ${document.type}');
+      }
+
+      // Attach images if available
+      if (frontImageFile != null) {
+        request.files.add(await http.MultipartFile.fromPath(
+          'front_image', frontImageFile.path,
+        ));
+      }
+
+      // Send the request
+      final response = await request.send();
+
+      if (response.statusCode == 200) {
+        logger.i('Document updated successfully.');
+      } else {
+        final responseBody = await response.stream.bytesToString();
+        logger.e('Error updating document: ${response.statusCode} - $responseBody');
+        throw Exception('Error updating document: $responseBody');
+      }
+    } catch (e) {
+      logger.e('Exception while updating document: $e');
+      rethrow;
+    }
+  }
+
+  Future<void> updateStatusCheckScanner(int userId) async {
+    String? token = await _getToken();
     if (token == null) {
       logger.e('Token no encontrado');
       throw Exception('Token no encontrado. Por favor, inicia sesión.');
     }
 
-  try {
-    final response = await http.post(
-      Uri.parse('$baseUrl/api/data-verification/$userId/update-status-check-scanner/documents'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      // Si necesitas enviar un cuerpo, puedes descomentar lo siguiente:
-      // body: json.encode({'user_id': userId}),
-    ).timeout(const Duration(seconds: 10));
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/data-verification/$userId/update-status-check-scanner/documents'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        // Si necesitas enviar un cuerpo, puedes descomentar lo siguiente:
+        // body: json.encode({'user_id': userId}),
+      ).timeout(const Duration(seconds: 10));
 
-    if (response.statusCode != 200) {
-      throw ApiException('Error al actualizar el estado: ${response.body}');
+      if (response.statusCode != 200) {
+        throw ApiException('Error al actualizar el estado: ${response.body}');
+      }
+    } catch (e) {
+      logger.e('Error al actualizar el estado: $e');
+      throw ApiException('Error al actualizar el estado: ${e.toString()}');
     }
-  }catch (e) {
-    logger.e('Error al actualizar el estado: $e');
-    throw ApiException('Error al actualizar el estado: ${e.toString()}');
   }
-}
-
-
-
-
 }
