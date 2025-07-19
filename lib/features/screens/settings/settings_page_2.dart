@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/DomainProfiles/Documents/screens/document_list_screen.dart';
-import 'package:zonix/features/DomainProfiles/Emails/screens/email_list_screen.dart';
+
 import 'package:zonix/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/profile_page.dart';
@@ -285,20 +285,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                             );
                           },
                         ),
-                        _buildListTile(
-                          context,
-                          icon: Icons.email_outlined,
-                          color: AppColors.orange,
-                          title: "Correos electrónicos", // TODO: internacionalizar
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => EmailListScreen(userId: userProvider.userId),
-                              ),
-                            );
-                          },
-                        ),
+
                       ],
                     ),
                   ),
