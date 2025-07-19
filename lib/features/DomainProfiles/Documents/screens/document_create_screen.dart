@@ -11,7 +11,6 @@ import 'package:provider/provider.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
 import 'package:flutter/scheduler.dart';
 
-
 final logger = Logger();
 final documentService = DocumentService();
 
@@ -22,8 +21,6 @@ final TextEditingController _communityRifController = TextEditingController();
 final TextEditingController _rifUrlController = TextEditingController();
 final TextEditingController _receiptNController = TextEditingController();
 final TextEditingController _skyController = TextEditingController();
-
-
 
 class CreateDocumentScreen extends StatefulWidget {
   final int userId;
@@ -185,172 +182,223 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Scaffold(
-      appBar: AppBar(title: const Text('Crear Documento')),
-      body: Padding(
+      backgroundColor: colorScheme.surface,
+      appBar: AppBar(
+        title: Text(
+          'Crear Documento',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface,
+          ),
+        ),
+        elevation: 0,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+      ),
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header con información
+              _buildHeaderCard(context),
+              
+              const SizedBox(height: 24),
+              
+              // Tipo de documento
               _buildTypeDropdown(),
-              const SizedBox(height: 16.0),
+              
+              const SizedBox(height: 24),
+              
+              // Campos específicos según el tipo
               if (_selectedType != null) _buildFieldsByType(),
-              const SizedBox(height: 16.0),
-              if (_frontImage != null) ...[
-                const SizedBox(height: 16.0),
-                // Tarjeta para mostrar la imagen escaneada
-                Card(
-                  elevation: 4.0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0),
-                  ),
-                  margin: const EdgeInsets.all(16.0),
-                  child: AspectRatio(
-                    aspectRatio: 16 / 10,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(10.0),
-                      child: Image.file(
-                        File(_frontImage!),
-                        width: double.infinity,
-                        height: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
-
-     
-
-                Builder(
-                  builder: (BuildContext context) {
-                    SchedulerBinding.instance.addPostFrameCallback((_) {
-                      _showCustomSnackBar(
-                        context,
-                        'Imagen escaneada',
-                        Colors.green,
-                      );
-                    });
-                    return const SizedBox.shrink(); // Devuelve un widget vacío
-                  },
-                ),
-
-
-
-
-              ],
+              
+              const SizedBox(height: 24),
+              
+              // Imagen escaneada
+              if (_frontImage != null) _buildImagePreview(),
+              
+              const SizedBox(height: 32),
             ],
           ),
         ),
       ),
-      floatingActionButton: Stack(
-        children: [
-          // Botón para escanear documento
-          Positioned(
-            right: 10,
-            bottom: 85,
-            child: FloatingActionButton(
-              onPressed: _scanDocument,
-              backgroundColor: Colors.orange,
-              child: const Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.camera, size: 20),
-                  Text(
-                    'Escanear',
-                    style: TextStyle(fontSize: 10, color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // Botón para guardar documento
-          Positioned(
-            right: 10,
-            bottom: 11,
-            child: FloatingActionButton(
-              onPressed: _saveDocument,
-              backgroundColor: Colors.green,
-              child: const Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.save, size: 20),
-                  Text(
-                    'Guardar',
-                    style: TextStyle(fontSize: 10, color: Colors.white),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
+      floatingActionButton: _buildFloatingActionButtons(context),
+    );
+  }
+
+  Widget _buildHeaderCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    return Card(
+      elevation: 4,
+      shadowColor: Colors.black.withOpacity(0.1),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colorScheme.primary.withOpacity(0.1),
+              colorScheme.primary.withOpacity(0.05),
+            ],
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.description,
+                    color: colorScheme.primary,
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Nuevo Documento',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                      Text(
+                        'Agrega un nuevo documento a tu perfil',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: colorScheme.onSurface.withOpacity(0.7),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildTypeDropdown() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     final Map<String, String> typeTranslations = {
       'ci': 'Cédula de Identidad',
       'passport': 'Pasaporte',
       'rif': 'RIF',
-      'neighborhood_association': 'Asociación de Vecinos',
     };
 
-    return DropdownButtonFormField<String>(
-      value: _selectedType,
-      items: typeTranslations.entries
-              .map(
-                (entry) => DropdownMenuItem(
-                  value: entry.key,
-                  child: Text(entry.value),
+    return Card(
+      elevation: 2,
+      shadowColor: Colors.black.withOpacity(0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Tipo de Documento',
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: _selectedType,
+              items: typeTranslations.entries
+                  .map(
+                    (entry) => DropdownMenuItem(
+                      value: entry.key,
+                      child: Row(
+                        children: [
+                          Icon(
+                            _getDocumentTypeIcon(entry.key),
+                            color: colorScheme.primary,
+                            size: 20,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(entry.value),
+                        ],
+                      ),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedType = value;
+                  _clearFields(); // Limpiar los campos
+                });
+              },
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              )
-              .toList(),
- 
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
+              ),
+              validator: (value) => value == null ? 'Seleccione un tipo' : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-onChanged: (value) {
-  setState(() {
-    _selectedType = value;
-    _clearFields(); // Limpiar los campos
-  });
-},
+  void _clearFields() {
+    debugPrint('Limpieza de campos iniciada');
+    setState(() {
+      // Limpiar las variables
+      _numberCi = null;
+      _frontImage = null;
+      _rifUrl = null;
+      _taxDomicile = null;
+      _sky = null;
 
-    decoration: const InputDecoration(labelText: 'Tipo de Documento'),
-    validator: (value) => value == null ? 'Seleccione un tipo' : null,
-  );
-}
+      _issuedAt = null;
+      _expiresAt = null;
+      _receiptN = null;
 
-void _clearFields() {
-  debugPrint('Limpieza de campos iniciada');
-  setState(() {
-    // Limpiar las variables
-    _numberCi = null;
-    _frontImage = null;
-    _rifUrl = null;
-    _taxDomicile = null;
-    _sky = null;
-    _communeRegister = null;
-    _communityRif = null;
-    _issuedAt = null;
-    _expiresAt = null;
-    _receiptN = null;
+      // Limpiar los controladores
+      _numberCiController.clear();
+      _taxDomicileController.clear();
 
-    // Limpiar los controladores
-    _numberCiController.clear();
-    _taxDomicileController.clear();
-    _communeRegisterController.clear();
-    _communityRifController.clear();
-    _rifUrlController.clear();
-    _receiptNController.clear();
-    _skyController.clear();
+      _rifUrlController.clear();
+      _receiptNController.clear();
+      _skyController.clear();
 
-    debugPrint('Campos limpiados exitosamente');
-  });
-}
-
+      debugPrint('Campos limpiados exitosamente');
+    });
+  }
 
   Widget _buildFieldsByType() {
     switch (_selectedType) {
@@ -360,94 +408,160 @@ void _clearFields() {
         return _buildPassportFields();
       case 'rif':
         return _buildRIFFields();
-      case 'neighborhood_association':
-        return _buildAssociationFields();
+
       default:
         return const SizedBox.shrink();
     }
   }
 
   Widget _buildCIFields() {
-    return Column(
-      children: [
+    return _buildFieldsCard(
+      'Información de Cédula',
+      Icons.badge,
+      [
         _buildNumberField(),
-        const SizedBox(height: 16.0),
-        //_buildImageRow('Imagen Frontal'),
-        // _showCapturedImages(), // Mostrar imágenes capturadas
+        const SizedBox(height: 20),
         _buildCommonFields(),
       ],
     );
   }
 
   Widget _buildPassportFields() {
-    return Column(
-      children: [
+    return _buildFieldsCard(
+      'Información de Pasaporte',
+      Icons.flight_takeoff,
+      [
         _buildNumberField(),
+        const SizedBox(height: 20),
         _buildReceiptNField(),
-        const SizedBox(height: 16.0),
-        //_buildImageRow('Imagen Frontal'),
-        // _showCapturedImages(),
+        const SizedBox(height: 20),
         _buildCommonFields(),
       ],
     );
   }
 
   Widget _buildRIFFields() {
-    return Column(
-      children: [
+    return _buildFieldsCard(
+      'Información de RIF',
+      Icons.business,
+      [
         _buildSkyField(),
+        const SizedBox(height: 20),
         _buildReceiptNField(),
-        _buildQRScannerField(), // Reemplaza el campo de URL RIF por el botón
+        const SizedBox(height: 20),
+        _buildQRScannerField(),
+        const SizedBox(height: 20),
         _buildTextField('Domicilio Fiscal', (value) => _taxDomicile = value),
-        const SizedBox(height: 16.0),
-        //_buildImageRow('Imagen Frontal'),
-        // _showCapturedImages(),
+        const SizedBox(height: 20),
         _buildCommonFields(),
       ],
     );
   }
 
-  Widget _buildAssociationFields() {
-    return Column(
-      children: [
-        _buildTextField('Registro Comunal', (value) => _communeRegister = value,),
-        _buildTextField('RIF Comunitario', (value) => _communityRif = value),
-        _buildTextField('Domicilio Fiscal', (value) => _taxDomicile = value),
-        _buildCommonFields(),
-      ],
+
+
+  Widget _buildFieldsCard(String title, IconData icon, List<Widget> children) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    return Card(
+      elevation: 2,
+      shadowColor: Colors.black.withOpacity(0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  icon,
+                  color: colorScheme.primary,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            ...children,
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildQRScannerField() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // const Text('URL RIF', style: TextStyle(fontSize: 16)),
-        const SizedBox(height: 16.0),
-        ElevatedButton.icon(
-          onPressed: _scanQRCode,
-          icon: const Icon(
-            Icons.qr_code_scanner,
-            size: 30,
-          ), // Aumenta el tamaño del icono
-          label: const Text(
-            'Escanear QR RIF',
-            style: TextStyle(fontSize: 18), // Aumenta el tamaño del texto
+        Text(
+          'QR RIF',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: colorScheme.onSurface,
           ),
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(
-              vertical: 16.0,
-              horizontal: 24.0,
-            ), // Aumenta el padding
-            minimumSize: const Size(
-              double.infinity,
-              60,
-            ), // Aumenta la altura mínima del botón
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            onPressed: _scanQRCode,
+            icon: const Icon(Icons.qr_code_scanner, size: 24),
+            label: const Text(
+              'Escanear QR RIF',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
           ),
         ),
         if (_rifUrl != null) ...[
-          const SizedBox(height: 16.0),
-          Text('URL escaneada: $_rifUrl'),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceVariant.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.check_circle,
+                  color: Colors.green,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'QR escaneado correctamente',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.green,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ],
       ],
     );
@@ -461,7 +575,7 @@ void _clearFields() {
           _issuedAt,
           (date) => _issuedAt = date,
         ),
-        const SizedBox(height: 16.0),
+        const SizedBox(height: 20),
         _buildDateField(
           'Fecha de Expiración',
           _expiresAt,
@@ -471,71 +585,90 @@ void _clearFields() {
     );
   }
 
-Widget _buildNumberField() {
-  return TextFormField(
-    controller: _numberCiController, // Asegúrate de vincular el controlador
-    decoration: const InputDecoration(labelText: 'N° Cédula'),
-    onSaved: (value) => _numberCi = int.tryParse(value ?? ''),
-    inputFormatters: [
-      FilteringTextInputFormatter.digitsOnly,
-      LengthLimitingTextInputFormatter(8), // Limitar a 8 caracteres
-    ],
-    keyboardType: TextInputType.number,
-    validator: (value) {
-      if (value == null || value.length < 7 || value.length > 8) {
-        return 'Por favor, ingrese un número entre 7 y 8 dígitos';
-      }
-      return null;
-    },
-  );
-}
-
-
+  Widget _buildNumberField() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    return TextFormField(
+      controller: _numberCiController, // Asegúrate de vincular el controlador
+      decoration: InputDecoration(
+        labelText: 'Número de Documento',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
+      onSaved: (value) => _numberCi = int.tryParse(value ?? ''),
+      inputFormatters: [
+        FilteringTextInputFormatter.digitsOnly,
+        LengthLimitingTextInputFormatter(8), // Limitar a 8 caracteres
+      ],
+      keyboardType: TextInputType.number,
+      validator: (value) {
+        if (value == null || value.length < 7 || value.length > 8) {
+          return 'Por favor, ingrese un número entre 7 y 8 dígitos';
+        }
+        return null;
+      },
+    );
+  }
 
   Widget _buildReceiptNField() {
-  return TextFormField(
-    controller: _receiptNController,
-    decoration: const InputDecoration(labelText: 'N° Comprobante'),
-    onSaved: (value) => _receiptN = int.tryParse(value ?? ''),
-    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-    keyboardType: TextInputType.number,
-  );
-}
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    return TextFormField(
+      controller: _receiptNController,
+      decoration: InputDecoration(
+        labelText: 'Número de Comprobante',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
+      onSaved: (value) => _receiptN = int.tryParse(value ?? ''),
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      keyboardType: TextInputType.number,
+    );
+  }
 
-// Widget _buildSkyField() {
-//   return TextFormField(
-//     controller: _skyController,
-//     decoration: const InputDecoration(labelText: 'N° Sky'),
-//     onSaved: (value) => _sky = int.tryParse(value ?? ''),
-//     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-//     keyboardType: TextInputType.number,
-//   );
-// }
-
-
-Widget _buildSkyField() {
-  return TextFormField(
-    controller: _skyController,
-    decoration: const InputDecoration(
-      labelText: 'N° Sky',
-      errorText: null, // Para mostrar el mensaje de error personalizado
-    ),
-    onSaved: (value) => _sky = int.tryParse(value ?? ''),
-    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-    keyboardType: TextInputType.number,
-    validator: (value) {
-      if (value == null || value.isEmpty) {
-        return 'Este campo es obligatorio';
-      }
-      // Verificar si el número tiene entre 9 y 11 dígitos
-      if (value.length < 9 || value.length > 11) {
-        return 'El número debe tener entre 9 y 11 dígitos';
-      }
-      return null; // Validación correcta
-    },
-  );
-}
-
+  Widget _buildSkyField() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    return TextFormField(
+      controller: _skyController,
+      decoration: InputDecoration(
+        labelText: 'Número Sky',
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
+      onSaved: (value) => _sky = int.tryParse(value ?? ''),
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      keyboardType: TextInputType.number,
+      validator: (value) {
+        if (value == null || value.isEmpty) {
+          return 'Este campo es obligatorio';
+        }
+        // Verificar si el número tiene entre 9 y 11 dígitos
+        if (value.length < 9 || value.length > 11) {
+          return 'El número debe tener entre 9 y 11 dígitos';
+        }
+        return null; // Validación correcta
+      },
+    );
+  }
 
   Widget _buildTextField(
     String label,
@@ -543,8 +676,20 @@ Widget _buildSkyField() {
     List<TextInputFormatter>? inputFormatters,
     TextInputType? keyboardType,
   }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return TextFormField(
-      decoration: InputDecoration(labelText: label),
+      decoration: InputDecoration(
+        labelText: label,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
       onSaved: onSaved,
       inputFormatters: inputFormatters, // Aplicar inputFormatters
       keyboardType: keyboardType, // Establecer el tipo de teclado
@@ -556,9 +701,19 @@ Widget _buildSkyField() {
     DateTime? date,
     ValueChanged<DateTime?> onDateSelected,
   ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
     return TextFormField(
       decoration: InputDecoration(
         labelText: label,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
         suffixIcon: IconButton(
           icon: const Icon(Icons.calendar_today),
           onPressed:
@@ -574,6 +729,129 @@ Widget _buildSkyField() {
         text: date != null ? '${date.toLocal()}'.split(' ')[0] : '',
       ),
     );
+  }
+
+  Widget _buildImagePreview() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    
+    return Card(
+      elevation: 2,
+      shadowColor: Colors.black.withOpacity(0.05),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.photo,
+                  color: colorScheme.primary,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Imagen del Documento',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: AspectRatio(
+                aspectRatio: 16 / 10,
+                child: Image.file(
+                  File(_frontImage!),
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Imagen escaneada correctamente',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.green,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFloatingActionButtons(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return Stack(
+      children: [
+        // Botón para escanear documento
+        Positioned(
+          right: 0,
+          bottom: 80,
+          child: FloatingActionButton.extended(
+            onPressed: _scanDocument,
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
+            icon: const Icon(Icons.camera_alt),
+            label: const Text('Escanear'),
+          ),
+        ),
+        // Botón para guardar documento
+        Positioned(
+          right: 0,
+          bottom: 0,
+          child: FloatingActionButton.extended(
+            onPressed: _saveDocument,
+            backgroundColor: Colors.green,
+            foregroundColor: Colors.white,
+            icon: const Icon(Icons.save),
+            label: const Text('Guardar'),
+          ),
+        ),
+      ],
+    );
+  }
+
+  IconData _getDocumentTypeIcon(String type) {
+    switch (type) {
+      case 'ci':
+        return Icons.badge;
+      case 'passport':
+        return Icons.flight_takeoff;
+      case 'rif':
+        return Icons.business;
+
+      default:
+        return Icons.description;
+    }
   }
 
   File? _getFileFromPath(String? path) {
@@ -603,171 +881,81 @@ Widget _buildSkyField() {
 
   int _saveCounter = 0; // Contador para guardar documentos, inicia en 0
 
-//   Future<void> _saveDocument() async {
-//   if (_formKey.currentState!.validate()) {
-//     _formKey.currentState!.save();
-//     try {
-//       // Mostrar un diálogo con indicador de progreso
-//       showDialog(
-//         context: context,
-//         barrierDismissible: false,
-//         builder: (BuildContext context) {
-//           return const Center(child: CircularProgressIndicator());
-//         },
-//       );
+  Future<void> _saveDocument() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
 
-//       // Verificar el tamaño de la imagen antes de enviarla
-//       if (_frontImage != null && await _isImageSizeValid(_frontImage)) {
-//         Document document = Document(
-//           id: 0,
-//           type: _selectedType,
-//           numberCi: _numberCi?.toString(),
-//           receiptN: _receiptN,
-//           rifUrl: _rifUrl,
-//           taxDomicile: _taxDomicile,
-//           sky: _sky,
-//           communeRegister: _communeRegister,
-//           communityRif: _communityRif,
-//           frontImage: _frontImage,
-//           issuedAt: _issuedAt,
-//           expiresAt: _expiresAt,
-//           approved: false,
-//           status: true,
-//         );
-
-//         await documentService.createDocument(
-//           document,
-//           widget.userId,
-//           frontImageFile: _getFileFromPath(document.frontImage),
-//         );
-
-//         if (mounted) {
-//           setState(() {
-//             _saveCounter++;
-//           });
-
-//           // Mensaje según contador
-//           if (_saveCounter == 3) {
-//             Provider.of<UserProvider>(
-//               context,
-//               listen: false,
-//             ).setDocumentCreated(true);
-//             _showCustomSnackBar(
-//               context,
-//               'Límite alcanzado. Puedes avanzar al siguiente paso.',
-//               Colors.blue,
-//             );
-//           } else {
-//             _showCustomSnackBar(
-//               context,
-//               'Documento guardado exitosamente',
-//               Colors.green,
-//             );
-//           }
-
-//           // Retroceder a la ventana anterior después de cerrar el diálogo
-//           Navigator.of(context)
-//             ..pop() // Cierra el diálogo
-//             ..pop(); // Retrocede a la ventana anterior
-//         }
-//       } else {
-//         Navigator.of(context).pop(); // Cerrar el diálogo modal
-//         _showCustomSnackBar(
-//           context,
-//           'La imagen frontal supera los 2 MB.',
-//           Colors.orange,
-//         );
-//       }
-//     } catch (e) {
-//       Navigator.of(context).pop(); // Cerrar el diálogo modal
-//       logger.e('Error al guardar el documento: $e');
-//       _showCustomSnackBar(
-//         context,
-//         'Error al guardar el documento: $e',
-//         Colors.red,
-//       );
-//     }
-//   }
-// }
-
-Future<void> _saveDocument() async {
-  if (_formKey.currentState!.validate()) {
-    _formKey.currentState!.save();
-
-    try {
-      // Mostrar diálogo de progreso
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const Center(child: CircularProgressIndicator());
-        },
-      );
-
-      // Verificar tamaño de la imagen
-      if (_frontImage != null && await _isImageSizeValid(_frontImage)) {
-        Document document = Document(
-          id: 0,
-          type: _selectedType,
-          numberCi: _numberCi?.toString(),
-          receiptN: _receiptN,
-          rifUrl: _rifUrl,
-          taxDomicile: _taxDomicile,
-          sky: _sky,
-          communeRegister: _communeRegister,
-          communityRif: _communityRif,
-          frontImage: _frontImage,
-          issuedAt: _issuedAt,
-          expiresAt: _expiresAt,
-          approved: false,
-          status: true,
+      try {
+        // Mostrar diálogo de progreso
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const Center(child: CircularProgressIndicator());
+          },
         );
 
-        await documentService.createDocument(
-          document,
-          widget.userId,
-          frontImageFile: _getFileFromPath(document.frontImage),
-        );
+        // Verificar tamaño de la imagen
+        if (_frontImage != null && await _isImageSizeValid(_frontImage)) {
+          Document document = Document(
+            id: 0,
+            type: _selectedType,
+            numberCi: _numberCi?.toString(),
+            receiptN: _receiptN,
+            rifUrl: _rifUrl,
+            taxDomicile: _taxDomicile,
+            sky: _sky,
+            communeRegister: null,
+            communityRif: null,
+            frontImage: _frontImage,
+            issuedAt: _issuedAt,
+            expiresAt: _expiresAt,
+            approved: false,
+            status: true,
+          );
 
-        if (mounted) {
-          setState(() {
-            _saveCounter++;
-          });
+          await documentService.createDocument(
+            document,
+            widget.userId,
+            frontImageFile: _getFileFromPath(document.frontImage),
+          );
 
-          final message = _saveCounter == 3
-              ? 'Límite alcanzado. Puedes avanzar al siguiente paso.'
-              : 'Documento guardado exitosamente.';
+          if (mounted) {
+            setState(() {
+              _saveCounter++;
+            });
 
-          final color = _saveCounter == 3 ? Colors.blue : Colors.green;
+            final message = _saveCounter == 3
+                ? 'Límite alcanzado. Puedes avanzar al siguiente paso.'
+                : 'Documento guardado exitosamente.';
 
-          _showCustomSnackBar(context, message, color);
+            final color = _saveCounter == 3 ? Colors.blue : Colors.green;
 
-          Navigator.of(context)
-            ..pop() // Cerrar diálogo de progreso
-            ..pop(true); // Indicar éxito al retroceder
+            _showCustomSnackBar(context, message, color);
+
+            Navigator.of(context)
+              ..pop() // Cerrar diálogo de progreso
+              ..pop(true); // Indicar éxito al retroceder
+          }
+        } else {
+          Navigator.of(context).pop(); // Cerrar diálogo de progreso
+          _showCustomSnackBar(
+            context,
+            'La imagen frontal supera los 2 MB.',
+            Colors.orange,
+          );
         }
-      } else {
+      } catch (e) {
         Navigator.of(context).pop(); // Cerrar diálogo de progreso
+        logger.e('Error al guardar el documento: $e');
         _showCustomSnackBar(
           context,
-          'La imagen frontal supera los 2 MB.',
-          Colors.orange,
+          'Error al guardar el documento: $e',
+          Colors.red,
         );
       }
-    } catch (e) {
-      Navigator.of(context).pop(); // Cerrar diálogo de progreso
-      logger.e('Error al guardar el documento: $e');
-      _showCustomSnackBar(
-        context,
-        'Error al guardar el documento: $e',
-        Colors.red,
-      );
     }
   }
-}
-
-
-
 
   Future<bool> _isImageSizeValid(String? path) async {
     if (path == null) return false;
