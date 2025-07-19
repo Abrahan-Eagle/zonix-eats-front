@@ -138,6 +138,51 @@ Future<List<StateModel>> fetchStates(int countryId) async {
     }
   }
 
+  Future<void> updateAddress(Address address, int userId) async {
+    logger.w('Actualizando dirección - ID: ${address.id}, UserID: $userId');
+    final token = await _getToken();
+    
+    logger.i('Token obtenido: $token');
+    logger.i('URL de actualización: $baseUrl/api/addresses/${address.id}');
+    
+    try {
+      final requestBody = {
+        'profile_id': userId,
+        'street': address.street,
+        'house_number': address.houseNumber,
+        'city_id': address.cityId,
+        'postal_code': address.postalCode,
+        'latitude': address.latitude,
+        'longitude': address.longitude,
+        'status': address.status,
+      };
+      
+      logger.i('Datos a enviar: ${json.encode(requestBody)}');
+      
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/addresses/${address.id}'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: json.encode(requestBody),
+      ).timeout(const Duration(seconds: 15));
+
+      logger.i('Response status: ${response.statusCode}');
+      logger.i('Response body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        logger.i('Dirección actualizada exitosamente');
+      } else {
+        logger.e('Error al actualizar la dirección: ${response.statusCode} ${response.body}');
+        throw ApiException('Error al actualizar la dirección: ${response.body}');
+      }
+    } catch (e) {
+      logger.e('Error en la solicitud de actualización de dirección: $e');
+      throw ApiException('Error en la solicitud de actualización de dirección: ${e.toString()}');
+    }
+  }
+
   Future<Address?> getAddressById(int id) async {
     final token = await _getToken();
     final response = await http.get(
