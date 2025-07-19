@@ -53,20 +53,13 @@ class OrderService extends ChangeNotifier {
         ? Uri.parse('${AppConfig.apiUrl}/api/commerce/orders')
         : Uri.parse('${AppConfig.apiUrl}/api/buyer/orders');
     
-    print('🔄 Llamando a $url');
-    
     final response = await http.get(
       url,
       headers: headers,
     );
     
-    print('📊 Status code: ${response.statusCode}');
-    print('📄 Response body: ${response.body}');
-    
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      print('🔍 Decoded data type: ${data.runtimeType}');
-      print('🔍 Decoded data: $data');
       
       // Handle different response structures
       List<dynamic> ordersData;
@@ -77,44 +70,31 @@ class OrderService extends ChangeNotifier {
           ordersData = data['data'];
         } else {
           // If it's a map but not wrapped, check if it contains orders
-          print('⚠️ Backend returned map without success/data wrapper');
-          print('📋 Map keys: ${data.keys.toList()}');
-          // Try to find orders in the map
           if (data.containsKey('orders')) {
             ordersData = data['orders'];
           } else {
-            print('❌ Map does not contain orders array');
             return [];
           }
         }
       } else if (data is List) {
         // If backend returns an array directly
-        print('⚠️ Backend returned array directly');
         ordersData = data;
       } else {
-        print('❌ Invalid response format from backend');
         return [];
       }
       
       if (ordersData is List) {
-        print('✅ Processing ${ordersData.length} orders');
         try {
           return ordersData.map<Order>((item) {
-            print('🔧 Processing order item: $item');
             return Order.fromJson(item);
           }).toList();
-        } catch (e, stack) {
-          print('❌ Error processing orders: $e');
-          print('📚 Stack trace: $stack');
+        } catch (e) {
           throw Exception('Error processing orders: $e');
         }
       } else {
-        print('❌ Orders data is not a list: ${ordersData.runtimeType}');
         return [];
       }
     } else {
-      print('❌ Error al obtener órdenes: ${response.statusCode}');
-      print('❌ Error response body: ${response.body}');
       throw Exception('Error al obtener órdenes: ${response.statusCode}');
     }
   }

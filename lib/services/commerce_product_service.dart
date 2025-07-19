@@ -15,8 +15,7 @@ class CommerceProductService {
       final List<dynamic> productsData = data['data'] is List ? data['data'] : [];
       return productsData.map((item) => CommerceProduct.fromJson(item)).toList();
     } else {
-      print('❌ Error al cargar productos: statusCode=${response.statusCode}, body=${response.body}');
-      throw Exception('Error al cargar productos');
+      throw Exception('Error al cargar productos: ${response.statusCode}');
     }
   }
 
