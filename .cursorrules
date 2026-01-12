@@ -1,0 +1,885 @@
+---
+description: "Guía de desarrollo Frontend (Flutter) para Zonix Eats"
+alwaysApply: true
+---
+
+## 🎯 ESTADO ACTUAL DEL PROYECTO
+
+**Versión:** 1.0.0  
+**Flutter SDK:** >=3.5.0 <4.0.0  
+**Dart:** 3.5.0+  
+**Estado:** ✅ MVP Completado - En desarrollo activo  
+**Archivos Dart:** 177 archivos  
+**Última actualización:** Diciembre 2024
+
+---
+
+## REGLAS FUNDAMENTALES DE COLABORACIÓN
+
+**IMPORTANTE: El usuario es el líder del proyecto. El asistente debe:**
+
+1. **SIEMPRE PREGUNTAR** antes de realizar cualquier acción
+2. **NUNCA crear archivos nuevos** si es para editar código existente
+3. **SIEMPRE sugerir detalladamente** qué hacer y esperar aprobación
+4. **NUNCA hacer push a git** sin orden explícita del usuario
+5. **NUNCA hacer merge a git** sin orden explícita del usuario
+6. **El usuario tiene el mando** - el asistente sugiere, el usuario decide
+
+**Flujo de trabajo:**
+- Asistente: "Sugiero hacer X, ¿quieres que proceda?"
+- Usuario: "Sí, hazlo" o "No, mejor Y"
+- Asistente: Ejecuta solo lo aprobado
+
+**CRÍTICO - Control de Git:**
+- ❌ **NUNCA hacer push automáticamente** - Solo cuando el usuario lo ordene explícitamente
+- ❌ **NUNCA hacer merge automáticamente** - Solo cuando el usuario lo ordene explícitamente
+- ✅ **Solo hacer commits locales** cuando se realicen cambios
+- ✅ **Esperar aprobación del usuario** antes de cualquier push o merge
+- ✅ **El usuario prueba primero** y da la orden cuando está seguro
+
+---
+
+## ARQUITECTURA Y ESTRUCTURA
+
+### Estructura del Proyecto
+
+```
+zonix-eats-front/
+├── lib/
+│   ├── config/
+│   │   └── app_config.dart          # Configuración central
+│   ├── features/
+│   │   ├── screens/                 # 30+ pantallas
+│   │   │   ├── auth/
+│   │   │   ├── products/
+│   │   │   ├── cart/
+│   │   │   ├── orders/
+│   │   │   ├── restaurants/
+│   │   │   ├── commerce/
+│   │   │   ├── delivery/
+│   │   │   └── ...
+│   │   ├── services/                 # 50+ servicios
+│   │   │   ├── auth/
+│   │   │   ├── cart_service.dart
+│   │   │   ├── order_service.dart
+│   │   │   ├── commerce_service.dart
+│   │   │   ├── websocket_service.dart
+│   │   │   └── ...
+│   │   └── DomainProfiles/           # Módulos de perfiles
+│   │       ├── Profiles/
+│   │       ├── Addresses/
+│   │       ├── Documents/
+│   │       └── Phones/
+│   ├── models/                       # Modelos de datos
+│   │   ├── order.dart
+│   │   ├── product.dart
+│   │   ├── commerce.dart
+│   │   └── ...
+│   ├── helpers/
+│   │   └── auth_helper.dart
+│   └── main.dart                     # Punto de entrada
+├── assets/                           # Recursos estáticos
+├── test/                             # Tests
+└── pubspec.yaml                      # Dependencias
+```
+
+### Patrón Arquitectónico
+
+**Feature-based Architecture con Provider Pattern:**
+- **Screens:** Pantallas de la aplicación
+- **Services:** Lógica de comunicación con API
+- **Models:** Modelos de datos
+- **Providers:** State management (Provider pattern)
+- **Utils:** Utilidades y helpers
+
+**Principios a seguir:**
+- ✅ Separation of Concerns
+- ✅ Single Responsibility Principle
+- ✅ DRY (Don't Repeat Yourself)
+- ✅ Feature-based organization
+
+---
+
+## CONVENCIONES DE CÓDIGO
+
+### Nomenclatura
+
+- **Archivos:** snake_case (ej: `cart_service.dart`)
+- **Clases:** PascalCase (ej: `CartService`)
+- **Variables:** lowerCamelCase (ej: `orderId`)
+- **Constantes:** UPPER_SNAKE_CASE (ej: `API_BASE_URL`)
+- **Widgets:** PascalCase con sufijo descriptivo (ej: `ProductCard`, `OrderListItem`)
+
+### Estructura de Servicios
+
+```dart
+import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
+import '../../config/app_config.dart';
+import '../../helpers/auth_helper.dart';
+
+class OrderService extends ChangeNotifier {
+  final String _baseUrl = AppConfig.apiUrl;
+  
+  Future<List<Order>> getOrders() async {
+    try {
+      final headers = await AuthHelper.getAuthHeaders();
+      final url = Uri.parse('$_baseUrl/api/buyer/orders');
+      
+      final response = await http.get(url, headers: headers);
+      
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return (data['data'] as List)
+              .map((json) => Order.fromJson(json))
+              .toList();
+        }
+      }
+      throw Exception('Error al obtener órdenes');
+    } catch (e) {
+      throw Exception('Error: $e');
+    }
+  }
+}
+```
+
+### Estructura de Pantallas
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../services/order_service.dart';
+
+class OrdersPage extends StatefulWidget {
+  const OrdersPage({super.key});
+
+  @override
+  State<OrdersPage> createState() => _OrdersPageState();
+}
+
+class _OrdersPageState extends State<OrdersPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<OrderService>().loadOrders();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Mis Órdenes')),
+      body: Consumer<OrderService>(
+        builder: (context, orderService, child) {
+          if (orderService.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          
+          if (orderService.orders.isEmpty) {
+            return const Center(child: Text('No hay órdenes'));
+          }
+          
+          return ListView.builder(
+            itemCount: orderService.orders.length,
+            itemBuilder: (context, index) {
+              final order = orderService.orders[index];
+              return OrderListItem(order: order);
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+```
+
+### Modelos de Datos
+
+```dart
+class Order {
+  final int id;
+  final int userId;
+  final int commerceId;
+  final String status;
+  final double total;
+  final DateTime createdAt;
+  final List<OrderItem> items;
+
+  Order({
+    required this.id,
+    required this.userId,
+    required this.commerceId,
+    required this.status,
+    required this.total,
+    required this.createdAt,
+    required this.items,
+  });
+
+  factory Order.fromJson(Map<String, dynamic> json) {
+    return Order(
+      id: json['id'],
+      userId: json['user_id'],
+      commerceId: json['commerce_id'],
+      status: json['status'],
+      total: (json['total'] ?? 0.0).toDouble(),
+      createdAt: DateTime.parse(json['created_at']),
+      items: (json['items'] as List?)
+          ?.map((item) => OrderItem.fromJson(item))
+          .toList() ?? [],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'user_id': userId,
+      'commerce_id': commerceId,
+      'status': status,
+      'total': total,
+      'created_at': createdAt.toIso8601String(),
+      'items': items.map((item) => item.toJson()).toList(),
+    };
+  }
+
+  Order copyWith({
+    int? id,
+    int? userId,
+    int? commerceId,
+    String? status,
+    double? total,
+    DateTime? createdAt,
+    List<OrderItem>? items,
+  }) {
+    return Order(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      commerceId: commerceId ?? this.commerceId,
+      status: status ?? this.status,
+      total: total ?? this.total,
+      createdAt: createdAt ?? this.createdAt,
+      items: items ?? this.items,
+    );
+  }
+}
+```
+
+---
+
+## STATE MANAGEMENT
+
+### Provider Pattern
+
+**Uso de Provider:**
+```dart
+// En main.dart
+MultiProvider(
+  providers: [
+    ChangeNotifierProvider(create: (_) => UserProvider()),
+    ChangeNotifierProvider(create: (_) => CartService()),
+    ChangeNotifierProvider(create: (_) => OrderService()),
+    // ...
+  ],
+  child: MyApp(),
+)
+
+// En pantalla
+Consumer<CartService>(
+  builder: (context, cartService, child) {
+    return Text('Items: ${cartService.items.length}');
+  },
+)
+
+// O con Provider.of
+final cartService = Provider.of<CartService>(context, listen: false);
+```
+
+**Reglas:**
+- ✅ Usar `Consumer` cuando necesites rebuilds automáticos
+- ✅ Usar `Provider.of` con `listen: false` para acciones únicas
+- ✅ Notificar cambios con `notifyListeners()` en servicios
+
+---
+
+## COMUNICACIÓN CON API
+
+### Configuración de URLs
+
+**SIEMPRE usar AppConfig:**
+```dart
+import '../../config/app_config.dart';
+
+final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders');
+```
+
+**NO hardcodear URLs:**
+```dart
+// ❌ MAL
+final url = Uri.parse('http://192.168.0.101:8000/api/orders');
+
+// ✅ BIEN
+final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders');
+```
+
+### Headers de Autenticación
+
+**SIEMPRE usar AuthHelper:**
+```dart
+import '../../helpers/auth_helper.dart';
+
+final headers = await AuthHelper.getAuthHeaders();
+```
+
+### Manejo de Errores
+
+```dart
+try {
+  final response = await http.get(url, headers: headers);
+  
+  if (response.statusCode == 200) {
+    final data = jsonDecode(response.body);
+    if (data['success'] == true) {
+      return data['data'];
+    } else {
+      throw Exception(data['message'] ?? 'Error desconocido');
+    }
+  } else if (response.statusCode == 401) {
+    // Token expirado - redirigir a login
+    await _handleUnauthorized();
+    throw Exception('Sesión expirada');
+  } else {
+    throw Exception('Error ${response.statusCode}');
+  }
+} catch (e) {
+  logger.e('Error en API: $e');
+  rethrow;
+}
+```
+
+### Estructura de Respuestas
+
+**Formato esperado del backend:**
+```json
+{
+  "success": true,
+  "data": { ... },
+  "message": "Operación exitosa"
+}
+```
+
+**Manejo:**
+```dart
+if (data['success'] == true && data['data'] != null) {
+  return processData(data['data']);
+} else {
+  throw Exception(data['message'] ?? 'Error');
+}
+```
+
+---
+
+## WEBSOCKET
+
+### WebSocketService
+
+**Singleton Pattern:**
+```dart
+final websocketService = WebSocketService();
+
+// Conectar
+await websocketService.connect();
+
+// Suscribirse a canal
+await websocketService.subscribeToUser(userId);
+
+// Escuchar mensajes
+websocketService.messageStream?.listen((message) {
+  if (message['type'] == 'order_status_changed') {
+    // Actualizar UI
+  }
+});
+```
+
+**Canales disponibles:**
+- `private-user.{userId}` - Notificaciones de usuario
+- `private-order.{orderId}` - Actualizaciones de orden
+- `private-chat.{orderId}` - Chat de orden
+- `private-commerce.{commerceId}` - Notificaciones de comercio
+
+---
+
+## ROLES Y NAVEGACIÓN
+
+### Roles del Sistema
+
+- **users** (Nivel 0): Cliente/Comprador
+- **commerce** (Nivel 1): Comercio/Restaurante
+- **delivery** (Nivel 2): Repartidor/Delivery
+- **transport** (Nivel 3): Agencia de Transporte
+- **affiliate** (Nivel 4): Afiliado a Delivery
+- **admin** (Nivel 5): Administrador
+
+### Navegación por Niveles
+
+**MainRouter maneja navegación multi-nivel:**
+```dart
+// Nivel 0: Comprador
+if (_selectedLevel == 0) {
+  switch (_bottomNavIndex) {
+    case 0: return const ProductsPage();
+    case 1: return const CartPage();
+    case 2: return const OrdersPage();
+    case 3: return const RestaurantsPage();
+  }
+}
+
+// Nivel 1: Comercio
+if (_selectedLevel == 1) {
+  switch (_bottomNavIndex) {
+    case 0: return const CommerceDashboardPage();
+    case 1: return const CommerceOrdersPage();
+    case 2: return const CommerceInventoryPage();
+    case 3: return const CommerceReportsPage();
+  }
+}
+```
+
+---
+
+## MEJORAS CRÍTICAS PENDIENTES
+
+### 🔴 CRÍTICO - Acción Inmediata
+
+1. **Implementar TODOs en commerce_service.dart**
+   - 12 métodos con `TODO: Replace with real API call`
+   - Actualmente usan datos mock
+   - **Archivo:** `lib/features/services/commerce_service.dart`
+   - **Líneas:** 237, 253, 268, 283, 299, 320, 341, 355, 370, 394, 430, 453
+
+2. **Eliminar Código Comentado**
+   - ~330 líneas comentadas en `main.dart`
+   - Afecta legibilidad y mantenibilidad
+   - **Archivo:** `lib/main.dart`
+
+3. **Implementar Internacionalización (i18n)**
+   - Múltiples strings hardcodeados en español
+   - **Archivos afectados:** `settings_page_2.dart` y otros
+   - **Recomendación:** Usar `flutter_localizations` o `intl`
+
+### 🟡 ALTO - Próximas Semanas
+
+4. **Implementar Subida de Imágenes**
+   - `commerce_data_service.dart` línea 204: `TODO: Implementar subida de imagen`
+   - `commerce_data_page.dart` línea 119: `TODO: Implementar selección de imagen`
+
+5. **Optimizar Performance**
+   - Implementar lazy loading de imágenes
+   - Cachear respuestas de API
+   - Optimizar re-renders
+
+6. **Mejorar Manejo de Errores**
+   - Manejo global de errores
+   - Retry automático para requests fallidos
+   - Mensajes de error más descriptivos
+
+---
+
+## UI/UX
+
+### Temas y Colores
+
+**Usar AppColors:**
+```dart
+import '../../utils/app_colors.dart';
+
+Container(
+  color: AppColors.blue,
+  child: Text(
+    'Texto',
+    style: TextStyle(color: AppColors.white),
+  ),
+)
+```
+
+**Temas:**
+- Light theme configurado
+- Dark theme configurado
+- Modo automático según sistema
+
+### Componentes Reutilizables
+
+**Crear widgets reutilizables:**
+```dart
+// lib/features/widgets/product_card.dart
+class ProductCard extends StatelessWidget {
+  final Product product;
+  
+  const ProductCard({super.key, required this.product});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Column(
+        children: [
+          Image.network(product.image),
+          Text(product.name),
+          Text('\$${product.price}'),
+        ],
+      ),
+    );
+  }
+}
+```
+
+---
+
+## TESTING
+
+### Estructura de Tests
+
+**Tests unitarios:**
+```dart
+// test/services/cart_service_test.dart
+void main() {
+  group('CartService', () {
+    test('addToCart agrega producto correctamente', () {
+      final service = CartService();
+      final item = CartItem(id: 1, nombre: 'Test', precio: 10.0, quantity: 1);
+      
+      service.addToCart(item);
+      
+      expect(service.items.length, 1);
+      expect(service.items.first.id, 1);
+    });
+  });
+}
+```
+
+**Tests de integración:**
+```dart
+// test/integration/order_flow_test.dart
+void main() {
+  testWidgets('Usuario puede crear orden completa', (tester) async {
+    // Setup
+    // Ejecutar flujo
+    // Verificar resultado
+  });
+}
+```
+
+### Ejecutar Tests
+
+```bash
+# Todos los tests
+flutter test
+
+# Tests específicos
+flutter test test/services/cart_service_test.dart
+
+# Con coverage
+flutter test --coverage
+```
+
+---
+
+## MEJORES PRÁCTICAS
+
+### Código
+
+1. ✅ **SIEMPRE usar AppConfig para URLs**
+2. ✅ **SIEMPRE usar AuthHelper para headers**
+3. ✅ **Manejar errores apropiadamente**
+4. ✅ **Usar try-catch en operaciones async**
+5. ✅ **Validar datos antes de usar**
+6. ✅ **Documentar métodos complejos con `///`**
+
+### Performance
+
+1. ✅ **Usar `const` constructors cuando sea posible**
+2. ✅ **Evitar rebuilds innecesarios con `Consumer` selectivo**
+3. ✅ **Usar `ListView.builder` para listas largas**
+4. ✅ **Cachear imágenes con `cached_network_image`**
+5. ✅ **Lazy load de rutas y widgets pesados**
+
+### Seguridad
+
+1. ✅ **NUNCA hardcodear tokens o secrets**
+2. ✅ **Usar `flutter_secure_storage` para datos sensibles**
+3. ✅ **Validar input del usuario**
+4. ✅ **Sanitizar datos antes de enviar a API**
+5. ✅ **Manejar tokens expirados apropiadamente**
+
+### UI/UX
+
+1. ✅ **Mostrar loading states**
+2. ✅ **Manejar estados de error**
+3. ✅ **Feedback visual para acciones del usuario**
+4. ✅ **Mensajes de error claros y útiles**
+5. ✅ **Diseño responsive**
+
+---
+
+## CONFIGURACIÓN
+
+### Variables de Entorno
+
+**Archivo `.env`:**
+```env
+API_URL_LOCAL=http://192.168.0.101:8000
+API_URL_PROD=https://zonix.uniblockweb.com
+```
+
+**Uso en código:**
+```dart
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+final apiUrl = dotenv.env['API_URL_LOCAL'] ?? 'http://localhost:8000';
+```
+
+### AppConfig
+
+**Configuración centralizada:**
+```dart
+class AppConfig {
+  static const String apiUrlLocal = 'http://192.168.0.101:8000';
+  static const String apiUrlProd = 'https://zonix.uniblockweb.com';
+  
+  static String get apiUrl {
+    const bool isProduction = bool.fromEnvironment('dart.vm.product');
+    return isProduction ? apiUrlProd : apiUrlLocal;
+  }
+  
+  static const String wsUrlLocal = 'ws://192.168.0.101:6001';
+  static const String wsUrlProd = 'wss://zonix.uniblockweb.com';
+  
+  static String get wsUrl {
+    const bool isProduction = bool.fromEnvironment('dart.vm.product');
+    return isProduction ? wsUrlProd : wsUrlLocal;
+  }
+}
+```
+
+---
+
+## DEPENDENCIAS PRINCIPALES
+
+### State Management
+- `provider: ^6.1.2` - State management
+
+### HTTP y Networking
+- `http: ^1.2.2` - Cliente HTTP
+- `web_socket_channel: ^2.4.0` - WebSocket
+
+### Storage
+- `flutter_secure_storage: ^9.2.2` - Almacenamiento seguro
+- `shared_preferences: ^2.3.2` - Preferencias locales
+
+### Autenticación
+- `google_sign_in: ^6.2.1` - Google Sign-In
+
+### UI
+- `flutter_svg: ^2.0.10+1` - SVG
+- `google_fonts: ^6.2.1` - Fuentes de Google
+- `shimmer: ^2.0.0` - Loading shimmer
+
+### Utilidades
+- `geolocator: ^13.0.1` - Geolocalización
+- `image_picker: ^1.1.2` - Selección de imágenes
+- `logger: ^2.4.0` - Logging
+- `intl: ^0.19.0` - Internacionalización
+
+---
+
+## REFERENCIAS
+
+- **Flutter Docs:** https://flutter.dev/docs
+- **Dart Docs:** https://dart.dev/guides
+- **Provider Docs:** https://pub.dev/packages/provider
+- **HTTP Package:** https://pub.dev/packages/http
+
+---
+
+## PROBLEMAS CONOCIDOS Y SOLUCIONES
+
+### Problema: Código Comentado Extenso
+
+**Ubicación:** `lib/main.dart`  
+**Problema:** ~330 líneas de código comentado  
+**Solución:** Eliminar código legacy comentado, usar control de versiones
+
+### Problema: TODOs Sin Implementar
+
+**Ubicación:** `lib/features/services/commerce_service.dart`  
+**Problema:** 12 métodos con datos mock  
+**Solución:** Implementar llamadas reales a API
+
+### Problema: Strings Hardcodeados
+
+**Ubicación:** Múltiples archivos  
+**Problema:** No hay internacionalización  
+**Solución:** Implementar i18n con `flutter_localizations`
+
+---
+
+## ANÁLISIS EXHAUSTIVO DEL PROYECTO
+
+### Documento de Análisis
+
+**Ubicación:** `ANALISIS_EXHAUSTIVO.md` (raíz del proyecto)
+
+Este documento contiene un análisis exhaustivo completo del proyecto realizado en Diciembre 2024, cubriendo todas las áreas:
+1. Arquitectura y Estructura
+2. Código y Calidad
+3. Lógica de Negocio
+4. Base de Datos
+5. Seguridad
+6. Performance
+7. Testing
+8. Frontend
+9. Backend/API
+10. DevOps e Infraestructura
+11. Documentación
+12. Estado y Mantenibilidad
+13. Oportunidades y Mejoras
+
+### Realizar Análisis Exhaustivo
+
+Cuando se solicite un análisis exhaustivo del proyecto, seguir los **PROMPTS COMPLETOS PARA ANÁLISIS EXHAUSTIVO** disponibles. Estos prompts proporcionan un marco estructurado para análisis profundos.
+
+**PROMPT MAESTRO - ANÁLISIS COMPLETO:**
+
+```
+Realiza un ANÁLISIS COMPLETO Y EXHAUSTIVO del proyecto Zonix Eats Frontend.
+
+INSTRUCCIONES GENERALES:
+- Explora TODA la estructura del proyecto sin dejar áreas sin revisar
+- Lee y analiza los archivos más importantes de cada módulo
+- Identifica patrones, anti-patrones y code smells
+- Proporciona ejemplos concretos de código cuando sea relevante
+- Prioriza hallazgos por criticidad (crítico, alto, medio, bajo)
+- Sugiere mejoras específicas y accionables
+
+REALIZA EL ANÁLISIS EN ESTAS SECCIONES:
+1. ARQUITECTURA Y ESTRUCTURA
+   - Mapea TODA la estructura de directorios y archivos (177 archivos Dart)
+   - Identifica patrón arquitectónico (Feature-based + Provider)
+   - Lista stack tecnológico completo (Flutter, Dart, dependencias)
+   - Analiza configuración y entorno
+
+2. CÓDIGO Y CALIDAD
+   - Revisa consistencia de estilo y convenciones Dart/Flutter
+   - Analiza complejidad ciclomática
+   - Detecta duplicación de código (DRY violations)
+   - Identifica code smells (God Object en main.dart, TODOs sin implementar)
+   - Evalúa aplicación de principios SOLID
+
+3. LÓGICA DE NEGOCIO
+   - Identifica modelos de datos y sus relaciones
+   - Mapea flujos de trabajo principales (carrito, órdenes, chat)
+   - Analiza servicios y su organización (50+ servicios)
+   - Revisa integración con backend
+
+4. BASE DE DATOS (Modelos y Estructura)
+   - Mapea modelos de datos (Order, Product, Commerce, etc.)
+   - Analiza estructura de datos en frontend
+   - Revisa serialización/deserialización (fromJson/toJson)
+
+5. SEGURIDAD
+   - Analiza almacenamiento seguro (flutter_secure_storage)
+   - Evalúa manejo de tokens y autenticación
+   - Revisa validación de input del usuario
+   - Analiza protección de datos sensibles
+
+6. PERFORMANCE
+   - Analiza bundle size y code splitting
+   - Evalúa tiempo de carga inicial
+   - Revisa renderizado y re-renders innecesarios
+   - Analiza optimización de imágenes y assets
+   - Evalúa caching de datos
+
+7. TESTING
+   - Analiza cobertura de tests Flutter
+   - Evalúa estrategia de testing
+   - Revisa calidad de tests existentes
+   - Identifica áreas sin cobertura
+
+8. FRONTEND
+   - Analiza UI/UX y componentes reutilizables
+   - Evalúa state management (Provider pattern)
+   - Revisa routing y navegación (MainRouter multi-nivel)
+   - Analiza optimización (lazy loading, memo, etc.)
+   - Evalúa accesibilidad (a11y)
+
+9. INTEGRACIÓN CON BACKEND
+   - Analiza consumo de APIs (150+ endpoints)
+   - Revisa manejo de errores de API
+   - Evalúa loading states y optimistic updates
+   - Analiza WebSocket y tiempo real
+
+10. DEVOPS E INFRAESTRUCTURA
+    - Analiza build y bundling
+    - Revisa configuración de ambientes
+    - Evalúa dependencias y vulnerabilidades
+
+11. DOCUMENTACIÓN
+    - Evalúa README y documentación técnica
+    - Revisa comentarios en código
+    - Identifica documentación faltante
+
+12. ESTADO Y MANTENIBILIDAD
+    - Identifica funcionalidades completadas
+    - Analiza TODOs pendientes (commerce_service.dart)
+    - Evalúa technical debt (código comentado, etc.)
+    - Calcula métricas del proyecto
+
+13. OPORTUNIDADES Y MEJORAS
+    - Identifica quick wins (TODOs críticos)
+    - Prioriza refactorizaciones (limpiar código comentado)
+    - Sugiere optimizaciones críticas
+    - Crea roadmap técnico
+
+Para cada sección, proporciona:
+- Análisis detallado con hallazgos específicos
+- Fortalezas identificadas
+- Debilidades y problemas encontrados
+- Ejemplos de código o referencias a archivos
+- Recomendaciones priorizadas
+- Impacto estimado de las mejoras
+```
+
+**PROMPTS ESPECÍFICOS DISPONIBLES:**
+
+Además del prompt maestro, existen prompts específicos para análisis profundos:
+- **PROMPT 1:** Análisis Arquitectónico y Estructural
+- **PROMPT 2:** Análisis de Código y Calidad
+- **PROMPT 3:** Análisis de Lógica de Negocio
+- **PROMPT 5:** Análisis de Seguridad
+- **PROMPT 6:** Análisis de Performance
+- **PROMPT 7:** Análisis de Testing
+- **PROMPT 8:** Análisis de Frontend (específico)
+- **PROMPT 10:** Análisis de DevOps e Infraestructura
+- **PROMPT 11:** Análisis de Documentación
+- **PROMPT 12:** Análisis de Estado y Mantenibilidad
+- **PROMPT 13:** Análisis de Oportunidades y Mejoras
+
+**Ver:** `prompts_analisis_completo.txt` (si existe) para prompts completos y detallados.
+
+### Actualizar Análisis
+
+**Cuándo actualizar:**
+- Después de cambios arquitectónicos importantes
+- Después de implementar mejoras críticas
+- Cada 3-6 meses o cuando se solicite
+- Antes de releases mayores
+
+**Cómo actualizar:**
+1. Revisar cambios desde último análisis
+2. Ejecutar análisis exhaustivo siguiendo prompts
+3. Actualizar `ANALISIS_EXHAUSTIVO.md`
+4. Actualizar esta sección con fecha de última actualización
+
+---
+
+**Última actualización:** Diciembre 2024  
+**Mantener este archivo actualizado con cambios arquitectónicos importantes**
