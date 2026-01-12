@@ -726,28 +726,30 @@ class AppConfig {
 
 ### Documento de Análisis
 
-**Ubicación:** `ANALISIS_EXHAUSTIVO.md` (raíz del proyecto)
+**Ubicación:** `ANALISIS_EXHAUSTIVO.md` (raíz del proyecto)  
+**Versión de Prompts:** 2.0 - Basada en Experiencia Real
 
 Este documento contiene un análisis exhaustivo completo del proyecto realizado en Diciembre 2024, cubriendo todas las áreas:
 1. Arquitectura y Estructura
 2. Código y Calidad
 3. Lógica de Negocio
 4. Base de Datos
-5. Seguridad
-6. Performance
-7. Testing
-8. Frontend
-9. Backend/API
+5. Seguridad (OWASP Top 10 completo)
+6. Performance (bottlenecks, quick wins, métricas)
+7. Testing (cobertura, estrategia, plan de mejora)
+8. Frontend (UI/UX, componentes, state management, routing)
+9. Integración con Backend
 10. DevOps e Infraestructura
 11. Documentación
-12. Estado y Mantenibilidad
-13. Oportunidades y Mejoras
+12. **Verificación de Coherencia entre Archivos** ⭐ NUEVO
+13. Estado y Mantenibilidad
+14. Oportunidades y Mejoras
 
 ### Realizar Análisis Exhaustivo
 
-Cuando se solicite un análisis exhaustivo del proyecto, seguir los **PROMPTS COMPLETOS PARA ANÁLISIS EXHAUSTIVO** disponibles. Estos prompts proporcionan un marco estructurado para análisis profundos.
+Cuando se solicite un análisis exhaustivo del proyecto, seguir los **PROMPTS COMPLETOS PARA ANÁLISIS EXHAUSTIVO v2.0** disponibles. Estos prompts proporcionan un marco estructurado para análisis profundos con verificación de coherencia.
 
-**PROMPT MAESTRO - ANÁLISIS COMPLETO:**
+**PROMPT MAESTRO - ANÁLISIS COMPLETO v2.0:**
 
 ```
 Realiza un ANÁLISIS COMPLETO Y EXHAUSTIVO del proyecto Zonix Eats Frontend.
@@ -756,11 +758,22 @@ INSTRUCCIONES GENERALES:
 - Explora TODA la estructura del proyecto sin dejar áreas sin revisar
 - Lee y analiza los archivos más importantes de cada módulo
 - Identifica patrones, anti-patrones y code smells
-- Proporciona ejemplos concretos de código cuando sea relevante
+- Proporciona ejemplos concretos de código cuando sea relevante (formato: archivo:línea)
 - Prioriza hallazgos por criticidad (crítico, alto, medio, bajo)
-- Sugiere mejoras específicas y accionables
+- Sugiere mejoras específicas y accionables con estimación de esfuerzo
+- **VERIFICA COHERENCIA** entre diferentes archivos de documentación (README, .cursorrules, etc.)
 
-REALIZA EL ANÁLISIS EN ESTAS SECCIONES:
+METODOLOGÍA DE ANÁLISIS:
+
+FASE 1: EXPLORACIÓN INICIAL
+1. Mapear estructura completa de directorios y archivos
+2. Identificar archivos de configuración clave (pubspec.yaml, .env, etc.)
+3. Leer archivos de documentación principales (README.md, .cursorrules, CHANGELOG.md, etc.)
+4. Identificar stack tecnológico completo y versiones
+5. Mapear dependencias principales y secundarias
+
+FASE 2: ANÁLISIS PROFUNDO POR ÁREA
+Realiza análisis exhaustivo en estas secciones:
 1. ARQUITECTURA Y ESTRUCTURA
    - Mapea TODA la estructura de directorios y archivos (177 archivos Dart)
    - Identifica patrón arquitectónico (Feature-based + Provider)
@@ -840,30 +853,68 @@ REALIZA EL ANÁLISIS EN ESTAS SECCIONES:
     - Crea roadmap técnico
 
 Para cada sección, proporciona:
-- Análisis detallado con hallazgos específicos
-- Fortalezas identificadas
-- Debilidades y problemas encontrados
-- Ejemplos de código o referencias a archivos
-- Recomendaciones priorizadas
-- Impacto estimado de las mejoras
+- Análisis detallado con hallazgos específicos (con ubicaciones de archivos)
+- Fortalezas identificadas (✅)
+- Debilidades y problemas encontrados (⚠️ o ❌)
+- Ejemplos concretos de código o referencias a archivos (usar formato archivo:línea)
+- Recomendaciones priorizadas con:
+  - Impacto estimado (Alto/Medio/Bajo)
+  - Esfuerzo estimado (horas/semanas)
+  - Prioridad (Crítica/Alta/Media/Baja)
+- Métricas cuantificables cuando sea posible
+
+FORMATO DE SALIDA:
+1. RESUMEN EJECUTIVO (al inicio):
+   - Estado general del proyecto
+   - Fortalezas principales (top 5)
+   - Áreas de mejora críticas (top 5)
+   - Score de mantenibilidad (X/10)
+   - Recomendación general (Production Ready / Necesita Mejoras / Crítico)
+
+2. ANÁLISIS POR SECCIÓN con subsecciones numeradas
+3. CHECKLIST DE VERIFICACIÓN FINAL antes de considerar completo
 ```
 
-**PROMPTS ESPECÍFICOS DISPONIBLES:**
+**PROMPTS ESPECÍFICOS DISPONIBLES (v2.0):**
 
 Además del prompt maestro, existen prompts específicos para análisis profundos:
 - **PROMPT 1:** Análisis Arquitectónico y Estructural
 - **PROMPT 2:** Análisis de Código y Calidad
 - **PROMPT 3:** Análisis de Lógica de Negocio
-- **PROMPT 5:** Análisis de Seguridad
-- **PROMPT 6:** Análisis de Performance
-- **PROMPT 7:** Análisis de Testing
-- **PROMPT 8:** Análisis de Frontend (específico)
+- **PROMPT 4:** Análisis de Base de Datos (modelos y estructura)
+- **PROMPT 5:** Análisis de Seguridad (OWASP Top 10 completo con checklist)
+- **PROMPT 6:** Análisis de Performance (bottlenecks, quick wins, métricas)
+- **PROMPT 7:** Análisis de Testing (cobertura, estrategia, plan de mejora)
+- **PROMPT 8:** Análisis de Frontend (UI/UX, componentes, state management, routing)
 - **PROMPT 10:** Análisis de DevOps e Infraestructura
 - **PROMPT 11:** Análisis de Documentación
-- **PROMPT 12:** Análisis de Estado y Mantenibilidad
-- **PROMPT 13:** Análisis de Oportunidades y Mejoras
+- **PROMPT 12:** ⭐ **Verificación de Coherencia entre Archivos** (NUEVO - CRÍTICO)
+- **PROMPT 13:** Análisis de Estado y Mantenibilidad
+- **PROMPT 14:** Análisis de Oportunidades y Mejoras (con roadmap técnico)
 
-**Ver:** `prompts_analisis_completo.txt` (si existe) para prompts completos y detallados.
+**Prompts Específicos Adicionales:**
+- Análisis Rápido pero Completo (versión concisa)
+- Análisis para Refactorización
+- Análisis para Onboarding
+- Análisis de Seguridad Profundo
+- Análisis de Performance Profundo
+- Análisis de Arquitectura Profundo
+- Análisis de Lógica de Negocio Profundo
+
+**Ver:** `prompts_analisis_completo.txt` (si existe) para prompts completos y detallados v2.0.
+
+### Checklist de Verificación Final
+
+Antes de considerar el análisis completo, verificar:
+- ✅ Todas las 14 secciones principales fueron analizadas
+- ✅ Se verificó coherencia entre diferentes archivos de documentación
+- ✅ Se identificaron y corrigieron discrepancias encontradas
+- ✅ Las métricas mencionadas son consistentes en toda la documentación
+- ✅ Se incluyeron métricas cuantificables cuando fue posible
+- ✅ Se proporcionaron estimaciones de esfuerzo para mejoras sugeridas
+- ✅ Se completó el checklist OWASP Top 10 completo
+- ✅ Se identificaron quick wins (alto impacto, bajo esfuerzo)
+- ✅ Se creó un roadmap técnico con corto/medio/largo plazo
 
 ### Actualizar Análisis
 
