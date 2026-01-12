@@ -338,7 +338,7 @@ test/
 
 ### 🔄 En Desarrollo / Pendiente
 
-- [ ] **CRÍTICO:** Implementar TODOs en `commerce_service.dart` (12 métodos)
+- [ ] **CRÍTICO:** Implementar TODOs en múltiples servicios (92 líneas encontradas en 10 servicios)
 - [ ] **CRÍTICO:** Eliminar código comentado extenso en `main.dart`
 - [ ] **ALTO:** Implementar internacionalización (i18n)
 - [ ] **ALTO:** Implementar subida de imágenes completa
@@ -351,10 +351,22 @@ test/
 
 ### Críticos
 
-1. **TODOs Sin Implementar**
-   - **Archivo:** `lib/features/services/commerce_service.dart`
-   - **Problema:** 12 métodos usan datos mock en lugar de API real
-   - **Líneas:** 237, 253, 268, 283, 299, 320, 341, 355, 370, 394, 430, 453
+1. **TODOs Sin Implementar (CRÍTICO)**
+   - **Ubicación:** Múltiples servicios en `lib/features/services/`
+   - **Problema:** 92 líneas con `TODO: Replace with real API call` encontradas en 10 servicios:
+     - `commerce_service.dart`: 12 TODOs (líneas 237, 253, 268, 283, 299, 320, 341, 355, 370, 394, 430, 453)
+     - `admin_service.dart`: 13 TODOs
+     - `analytics_service.dart`: 11 TODOs
+     - `affiliate_service.dart`: 10 TODOs
+     - `payment_service.dart`: 9 TODOs
+     - `delivery_service.dart`: 11 TODOs
+     - `transport_service.dart`: 13 TODOs
+     - `chat_service.dart`: 9 TODOs
+     - `location_service.dart`: 1 TODO
+     - `notification_service.dart`: 3 TODOs
+   - **Impacto:** Funcionalidades incompletas, aplicación no completamente funcional
+   - **Esfuerzo estimado:** 4-6 semanas
+   - **Prioridad:** 🔴 CRÍTICA
 
 2. **Código Comentado Extenso**
    - **Archivo:** `lib/main.dart`

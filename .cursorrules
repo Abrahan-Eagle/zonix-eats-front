@@ -9,8 +9,20 @@ alwaysApply: true
 **Flutter SDK:** >=3.5.0 <4.0.0  
 **Dart:** 3.5.0+  
 **Estado:** ✅ MVP Completado - En desarrollo activo  
-**Archivos Dart:** 177 archivos  
-**Última actualización:** Diciembre 2024
+**Archivos Dart:** 177 archivos (verificado)  
+**Líneas de código:** 58,987 líneas Dart en `lib/` (verificado)  
+**TODOs Pendientes:** 92 líneas con `TODO: Replace with real API call` en múltiples servicios:
+  - commerce_service.dart: 12 TODOs
+  - admin_service.dart: 13 TODOs
+  - analytics_service.dart: 11 TODOs
+  - affiliate_service.dart: 10 TODOs
+  - payment_service.dart: 9 TODOs
+  - delivery_service.dart: 11 TODOs
+  - transport_service.dart: 13 TODOs
+  - chat_service.dart: 9 TODOs
+  - location_service.dart: 1 TODO
+  - notification_service.dart: 3 TODOs  
+**Última actualización:** Enero 2025
 
 ---
 
@@ -451,8 +463,18 @@ if (_selectedLevel == 1) {
 
 ### 🔴 CRÍTICO - Acción Inmediata
 
-1. **Implementar TODOs en commerce_service.dart**
-   - 12 métodos con `TODO: Replace with real API call`
+1. **Implementar TODOs en Múltiples Servicios (CRÍTICO)**
+   - **Total:** 92 líneas con `TODO: Replace with real API call` encontradas
+   - `commerce_service.dart`: 12 TODOs
+   - `admin_service.dart`: 13 TODOs
+   - `analytics_service.dart`: 11 TODOs
+   - `affiliate_service.dart`: 10 TODOs
+   - `payment_service.dart`: 9 TODOs
+   - `delivery_service.dart`: 11 TODOs
+   - `transport_service.dart`: 13 TODOs
+   - `chat_service.dart`: 9 TODOs
+   - `location_service.dart`: 1 TODO
+   - `notification_service.dart`: 3 TODOs
    - Actualmente usan datos mock
    - **Archivo:** `lib/features/services/commerce_service.dart`
    - **Líneas:** 237, 253, 268, 283, 299, 320, 341, 355, 370, 394, 430, 453
@@ -708,11 +730,14 @@ class AppConfig {
 **Problema:** ~330 líneas de código comentado  
 **Solución:** Eliminar código legacy comentado, usar control de versiones
 
-### Problema: TODOs Sin Implementar
+### Problema: TODOs Sin Implementar (CRÍTICO)
 
-**Ubicación:** `lib/features/services/commerce_service.dart`  
-**Problema:** 12 métodos con datos mock  
-**Solución:** Implementar llamadas reales a API
+**Ubicación:** Múltiples servicios en `lib/features/services/`  
+**Problema:** 92 líneas con `TODO: Replace with real API call` en 10 servicios diferentes  
+**Impacto:** Funcionalidades incompletas, aplicación no completamente funcional  
+**Esfuerzo estimado:** 4-6 semanas  
+**Prioridad:** 🔴 CRÍTICA  
+**Solución:** Implementar llamadas reales a API siguiendo el patrón de servicios existentes
 
 ### Problema: Strings Hardcodeados
 
@@ -790,7 +815,7 @@ Realiza análisis exhaustivo en estas secciones:
 3. LÓGICA DE NEGOCIO
    - Identifica modelos de datos y sus relaciones
    - Mapea flujos de trabajo principales (carrito, órdenes, chat)
-   - Analiza servicios y su organización (50+ servicios)
+   - Analiza servicios y su organización (múltiples servicios con 92 TODOs pendientes)
    - Revisa integración con backend
 
 4. BASE DE DATOS (Modelos y Estructura)
@@ -825,7 +850,7 @@ Realiza análisis exhaustivo en estas secciones:
    - Evalúa accesibilidad (a11y)
 
 9. INTEGRACIÓN CON BACKEND
-   - Analiza consumo de APIs (150+ endpoints)
+   - Analiza consumo de APIs (232 endpoints verificados en backend)
    - Revisa manejo de errores de API
    - Evalúa loading states y optimistic updates
    - Analiza WebSocket y tiempo real
