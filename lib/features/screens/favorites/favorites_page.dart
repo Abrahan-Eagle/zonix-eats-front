@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
 import 'package:shimmer/shimmer.dart';
-import '../../../services/favorites_service.dart';
+import '../../services/favorites_service.dart';
 import '../../../models/product.dart';
 
 class FavoritesPage extends StatefulWidget {

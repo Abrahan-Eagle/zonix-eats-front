@@ -12,7 +12,7 @@ class MockProductService implements ProductService {
   final String apiUrl = 'http://test.com/api/products';
 
   @override
-  Future<List<Product>> fetchProducts() async {
+  Future<List<Product>> fetchProducts({int? categoryId}) async {
     return [
       Product(
         id: 1,

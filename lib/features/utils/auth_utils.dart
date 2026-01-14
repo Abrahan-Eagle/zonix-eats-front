@@ -113,8 +113,14 @@ class AuthUtils {
   }
 
   // Métodos para guardar y obtener la URL de la foto del usuario
-  static Future<void> saveUserPhotoUrl(String photoUrl) async {
-    await _storage.write(key: 'userPhotoUrl', value: photoUrl);
+  static Future<void> saveUserPhotoUrl(String? photoUrl) async {
+    // Solo guardar si la URL es válida y no está vacía
+    if (photoUrl != null && photoUrl.isNotEmpty && photoUrl != 'URL de foto no disponible') {
+      await _storage.write(key: 'userPhotoUrl', value: photoUrl);
+    } else {
+      // Guardar cadena vacía en lugar de texto descriptivo
+      await _storage.write(key: 'userPhotoUrl', value: '');
+    }
   }
 
   static Future<String?> getUserPhotoUrl() async {

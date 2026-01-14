@@ -38,8 +38,8 @@ flutter pub get
 ```dart
 // lib/config/app_config.dart
 class AppConfig {
-  static const String baseUrl = 'http://192.168.0.101:8000/api';
-  static const String echoServerUrl = 'http://192.168.0.101:6001';
+  static const String baseUrl = 'http://192.168.27.12:8000/api';
+  static const String echoServerUrl = 'http://192.168.27.12:6001';
 }
 ```
 

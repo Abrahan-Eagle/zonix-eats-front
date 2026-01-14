@@ -247,7 +247,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => RestaurantDetailsPage(restaurant: restaurant),
+                    builder: (context) => RestaurantDetailsPage.fromRestaurant(restaurant),
                   ),
                 );
               },

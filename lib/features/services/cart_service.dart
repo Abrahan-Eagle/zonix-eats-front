@@ -12,7 +12,7 @@ class CartService extends ChangeNotifier {
 
   final String _baseUrl = const bool.fromEnvironment('dart.vm.product')
       ? (dotenv.env['API_URL_PROD'] ?? 'https://zonix.uniblockweb.com')
-      : (dotenv.env['API_URL_LOCAL'] ?? 'http://192.168.0.101:8000');
+      : (dotenv.env['API_URL_LOCAL'] ?? 'http://192.168.27.12:8000');
 
   UnmodifiableListView<CartItem> get items => UnmodifiableListView(_cart);
 
@@ -55,26 +55,26 @@ class CartService extends ChangeNotifier {
   // POST /api/buyer/cart/add
   Future<void> addToRemoteCart(CartItem product) async {
     final headers = await AuthHelper.getAuthHeaders();
-          final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/cart/add');
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/cart/add');
     final response = await http.post(
       url,
-      body: jsonEncode({
-        'product_id': product.id, 
-        'quantity': product.quantity
-      }),
+      body:
+          jsonEncode({'product_id': product.id, 'quantity': product.quantity}),
       headers: headers,
     );
-    
+
     if (response.statusCode == 200 || response.statusCode == 201) {
       final data = jsonDecode(response.body);
       if (data['success'] == true) {
         // Sincronizar con el carrito local
         addToCart(product);
       } else {
-        throw Exception(data['message'] ?? 'Error al agregar producto al carrito');
+        throw Exception(
+            data['message'] ?? 'Error al agregar producto al carrito');
       }
     } else {
-      throw Exception('Error al agregar producto al carrito remoto: ${response.statusCode}');
+      throw Exception(
+          'Error al agregar producto al carrito remoto: ${response.statusCode}');
     }
   }
 
@@ -86,14 +86,16 @@ class CartService extends ChangeNotifier {
       url,
       headers: headers,
     );
-    
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       // Handle the new API response structure with success and data wrapper
       if (data['success'] == true && data['data'] != null) {
         final cartData = data['data'];
         if (cartData is List) {
-          final items = cartData.map<CartItem>((item) => CartItem.fromJson(item)).toList();
+          final items = cartData
+              .map<CartItem>((item) => CartItem.fromJson(item))
+              .toList();
           // Sincronizar con el carrito local
           _cart.clear();
           _cart.addAll(items);
@@ -103,7 +105,8 @@ class CartService extends ChangeNotifier {
       }
       return [];
     } else {
-      throw Exception('Error al obtener el carrito remoto: ${response.statusCode}');
+      throw Exception(
+          'Error al obtener el carrito remoto: ${response.statusCode}');
     }
   }
 
@@ -119,7 +122,7 @@ class CartService extends ChangeNotifier {
       }),
       headers: headers,
     );
-    
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['success'] == true) {
@@ -154,7 +157,7 @@ class CartService extends ChangeNotifier {
       url,
       headers: headers,
     );
-    
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['success'] == true) {
@@ -162,10 +165,12 @@ class CartService extends ChangeNotifier {
         _cart.removeWhere((item) => item.id == productId);
         notifyListeners();
       } else {
-        throw Exception(data['message'] ?? 'Error al eliminar producto del carrito');
+        throw Exception(
+            data['message'] ?? 'Error al eliminar producto del carrito');
       }
     } else {
-      throw Exception('Error al eliminar producto del carrito: ${response.statusCode}');
+      throw Exception(
+          'Error al eliminar producto del carrito: ${response.statusCode}');
     }
   }
 
@@ -178,7 +183,7 @@ class CartService extends ChangeNotifier {
       body: jsonEncode({'notes': notes}),
       headers: headers,
     );
-    
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['success'] == true) {
@@ -210,7 +215,7 @@ class CartService extends ChangeNotifier {
       url,
       headers: headers,
     );
-    
+
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['success'] == true) {
@@ -222,5 +227,19 @@ class CartService extends ChangeNotifier {
     } else {
       throw Exception('Error al limpiar carrito: ${response.statusCode}');
     }
+  }
+
+  // Métodos de conveniencia para compatibilidad
+  Future<List<CartItem>> getCart() async {
+    try {
+      return await fetchRemoteCart();
+    } catch (e) {
+      // Si falla, devolver carrito local
+      return List.from(_cart);
+    }
+  }
+
+  Future<void> removeFromCartById(int productId) async {
+    await removeFromRemoteCart(productId);
   }
 }

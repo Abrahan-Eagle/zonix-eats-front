@@ -234,7 +234,17 @@ class CacheHelper {
   static Future<List<Map<String, dynamic>>?> getRestaurants() async {
     return CacheService.get<List<Map<String, dynamic>>>(
       CacheService.restaurantsKey,
-      (data) => List<Map<String, dynamic>>.from(data),
+      (data) {
+        if (data is List) {
+          final list = data as List;
+          return List<Map<String, dynamic>>.from(
+            list.map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e as Map))
+          );
+        } else if (data is Map) {
+          return [Map<String, dynamic>.from(data as Map)];
+        }
+        return <Map<String, dynamic>>[];
+      },
     );
   }
   
@@ -251,7 +261,17 @@ class CacheHelper {
   static Future<List<Map<String, dynamic>>?> getProducts() async {
     return CacheService.get<List<Map<String, dynamic>>>(
       CacheService.productsKey,
-      (data) => List<Map<String, dynamic>>.from(data),
+      (data) {
+        if (data is List) {
+          final list = data as List;
+          return List<Map<String, dynamic>>.from(
+            list.map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e as Map))
+          );
+        } else if (data is Map) {
+          return [Map<String, dynamic>.from(data as Map)];
+        }
+        return <Map<String, dynamic>>[];
+      },
     );
   }
   
@@ -285,7 +305,17 @@ class CacheHelper {
   static Future<List<Map<String, dynamic>>?> getCart() async {
     return CacheService.get<List<Map<String, dynamic>>>(
       CacheService.cartKey,
-      (data) => List<Map<String, dynamic>>.from(data),
+      (data) {
+        if (data is List) {
+          final list = data as List;
+          return List<Map<String, dynamic>>.from(
+            list.map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e as Map))
+          );
+        } else if (data is Map) {
+          return [Map<String, dynamic>.from(data as Map)];
+        }
+        return <Map<String, dynamic>>[];
+      },
     );
   }
   

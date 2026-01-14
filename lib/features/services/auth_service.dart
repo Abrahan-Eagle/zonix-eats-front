@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../config/app_config.dart';
+import '../../config/app_config.dart';
 
 class AuthService {
   static const storage = FlutterSecureStorage();

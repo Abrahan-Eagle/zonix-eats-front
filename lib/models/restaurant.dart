@@ -95,6 +95,16 @@ class Restaurant {
   String get pagoMovilTelefono => mobilePaymentPhone ?? '';
   bool get abierto => open;
   Map<String, dynamic>? get horario => schedule;
+  
+  // Getters adicionales para compatibilidad
+  String get name => businessName;
+  bool get isOpen => open;
+  String get cuisine => profile?['cuisine']?.toString() ?? '';
+  double get rating => (profile?['rating'] as num?)?.toDouble() ?? 0.0;
+  int get reviewCount => profile?['review_count'] as int? ?? 0;
+  double get distance => 0.0; // Placeholder - calcular desde ubicación
+  int get deliveryTime => profile?['delivery_time'] as int? ?? 30;
+  double get deliveryFee => (profile?['delivery_fee'] as num?)?.toDouble() ?? 0.0;
 
   @override
   String toString() {

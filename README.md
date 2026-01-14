@@ -111,7 +111,7 @@ flutter run
 Crear archivo `.env` en la raíz del proyecto:
 
 ```env
-API_URL_LOCAL=http://192.168.0.101:8000
+API_URL_LOCAL=http://192.168.27.12:8000
 API_URL_PROD=https://zonix.uniblockweb.com
 ```
 
@@ -124,7 +124,7 @@ Las URLs se configuran en `lib/config/app_config.dart`:
 ```dart
 class AppConfig {
   // API URLs
-  static const String apiUrlLocal = 'http://192.168.0.101:8000';
+  static const String apiUrlLocal = 'http://192.168.27.12:8000';
   static const String apiUrlProd = 'https://zonix.uniblockweb.com';
   
   // WebSocket URLs
@@ -180,22 +180,28 @@ class AppConfig {
 - ✅ Reconexión automática
 
 ### Sistema Multi-Rol
-- ✅ **Nivel 0 (users):** Cliente/Comprador
+**Roles implementados y funcionales (MVP):**
+- ✅ **Level 0 (users):** Cliente/Comprador
   - Ver productos y restaurantes
   - Carrito y órdenes
   - Chat y notificaciones
-- ✅ **Nivel 1 (commerce):** Comercio/Restaurante
+- ✅ **Level 1 (commerce):** Comercio/Restaurante
   - Dashboard de comercio
   - Gestión de productos
   - Gestión de órdenes
   - Reportes
-- ✅ **Nivel 2 (delivery):** Repartidor
+- ✅ **Level 2 (delivery):** Repartidor
   - Órdenes asignadas
   - Actualización de ubicación
   - Historial de entregas
-- ✅ **Nivel 3 (transport):** Agencia de Transporte
-- ✅ **Nivel 4 (affiliate):** Afiliado a Delivery
-- ✅ **Nivel 5 (admin):** Administrador
+- ✅ **Level 3 (admin):** Administrador
+  - Gestión completa del sistema
+  - Usuarios y roles
+  - Reportes globales
+
+**Roles excluidos del MVP:**
+- ~~**transport** (Logística de mercancías)~~ - Funcionalidad futura
+- ~~**affiliate** (Sistema de referidos/comisiones)~~ - Funcionalidad futura
 
 ### Otras Funcionalidades
 - ✅ Sistema de reseñas/calificaciones
@@ -353,17 +359,17 @@ test/
 
 1. **TODOs Sin Implementar (CRÍTICO)**
    - **Ubicación:** Múltiples servicios en `lib/features/services/`
-   - **Problema:** 92 líneas con `TODO: Replace with real API call` encontradas en 10 servicios:
-     - `commerce_service.dart`: 12 TODOs (líneas 237, 253, 268, 283, 299, 320, 341, 355, 370, 394, 430, 453)
+   - **Problema:** 45 líneas con `TODO: Replace with real API call` encontradas en 6 servicios (MVP):
+     - ~~`commerce_service.dart`: 12 TODOs~~ ✅ COMPLETADO
+     - ~~`payment_service.dart`: 11 TODOs~~ ✅ COMPLETADO
      - `admin_service.dart`: 13 TODOs
      - `analytics_service.dart`: 11 TODOs
-     - `affiliate_service.dart`: 10 TODOs
-     - `payment_service.dart`: 9 TODOs
      - `delivery_service.dart`: 11 TODOs
-     - `transport_service.dart`: 13 TODOs
      - `chat_service.dart`: 9 TODOs
      - `location_service.dart`: 1 TODO
      - `notification_service.dart`: 3 TODOs
+     - ~~`affiliate_service.dart`: 10 TODOs~~ (EXCLUIDO DEL MVP)
+     - ~~`transport_service.dart`: 13 TODOs~~ (EXCLUIDO DEL MVP)
    - **Impacto:** Funcionalidades incompletas, aplicación no completamente funcional
    - **Esfuerzo estimado:** 4-6 semanas
    - **Prioridad:** 🔴 CRÍTICA
@@ -576,6 +582,50 @@ Cuando se solicite un análisis exhaustivo del proyecto, usar los **prompts comp
 3. Actualizar `ANALISIS_EXHAUSTIVO.md` con nuevos hallazgos
 4. Actualizar fecha de última actualización en este README
 
+## 🗺️ ROADMAP MVP - PLAN DE ACCIÓN PRIORIZADO
+
+**Estado actual:** ~72% completado  
+**Objetivo:** Llegar al 100% del MVP  
+**Tiempo estimado:** 6-9 semanas (~1.5-2 meses)  
+**Nota:** Se excluyeron `transport` y `affiliate` del MVP
+
+### 🔴 FASE 1: CRÍTICO - Funcionalidad Core (4-6 semanas)
+
+1. ✅ **Corregir Tests Fallando** (COMPLETADO) - Backend: Todos los tests pasan (204 tests, 751 assertions)
+2. ✅ **Migrar Carrito de Session a BD** (COMPLETADO) - Backend: Migrado a tablas `carts` y `cart_items`
+3. ✅ **TODOs Commerce Service** (COMPLETADO) - Frontend: 12 métodos implementados
+4. ✅ **TODOs Payment Service** (COMPLETADO) - Frontend: 11 métodos implementados
+5. ✅ **TODOs Delivery Service** (COMPLETADO) - Frontend: 11 métodos implementados
+6. ✅ **TODOs Chat Service** (COMPLETADO) - Frontend: 9 métodos implementados
+
+### 🟡 FASE 2: ALTA PRIORIDAD - Seguridad y Calidad (2-3 semanas)
+
+7. ✅ **Restringir CORS** (COMPLETADO) - Backend: Configurado desde `.env` con `CORS_ALLOWED_ORIGINS`
+8. ✅ **Rate Limiting** (COMPLETADO) - Backend: Configurado desde `.env` con límites específicos por tipo
+9. ✅ **Paginación en Endpoints** (COMPLETADO) - Backend: Agregada a todos los endpoints de listado
+10. ✅ **TODOs Admin Service** (COMPLETADO) - Frontend: 12 métodos implementados
+11. ✅ **TODOs Notification Service** (COMPLETADO) - Frontend: 3 métodos implementados
+12. ✅ **Índices BD Faltantes** (COMPLETADO) - Backend: Índices agregados para mejorar performance
+
+### 🟢 FASE 3: MEDIA PRIORIDAD - Optimizaciones (1-2 semanas)
+
+13. ✅ **TODOs Analytics Service** (COMPLETADO) - Frontend: 11 métodos implementados con llamadas reales a API
+14. ✅ **TODO Location Service** (COMPLETADO) - Frontend: getDeliveryRoutes implementado con llamada real a API
+15. ✅ **Limpiar Código Comentado** (COMPLETADO) - Frontend: ~330 líneas eliminadas de main.dart
+16. ✅ **Eager Loading Faltante** (COMPLETADO) - Backend: Eager loading agregado para evitar queries N+1
+17. ✅ **Analytics Commerce** (COMPLETADO) - Frontend: CommerceReportsPage conectado con API real, CommerceAnalyticsService creado
+
+### 🔵 FASE 4: BAJA PRIORIDAD - Mejoras Adicionales (2-3 semanas)
+
+17. **Documentación API (Swagger)** (1 semana) - Backend
+18. **Caching** (1 semana) - Backend
+19. **Internacionalización i18n** (1-2 semanas) - Frontend
+20. **Mejorar Sistema de Roles** (3-5 días) - Backend
+
+**Total TODOs para MVP:** 45 líneas en frontend (excluyendo transport y affiliate, commerce_service y payment_service completados)
+
+---
+
 ## 🔗 Referencias
 
 - **Flutter Docs:** https://flutter.dev/docs
@@ -595,5 +645,6 @@ Este proyecto es privado y confidencial.
 ---
 
 **Versión:** 1.0.0  
-**Última actualización:** Diciembre 2024  
-**Estado:** MVP Completado ✅ - En desarrollo activo
+**Última actualización:** Enero 2025  
+**Estado:** MVP ~72% completado ⚠️ - En desarrollo activo  
+**TODOs pendientes:** 68 líneas (excluyendo transport y affiliate del MVP)

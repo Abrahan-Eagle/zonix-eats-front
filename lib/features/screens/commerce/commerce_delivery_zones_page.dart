@@ -48,7 +48,6 @@ class _CommerceDeliveryZonesPageState extends State<CommerceDeliveryZonesPage> w
     setState(() {
       _zonesFuture = CommerceDeliveryZoneService.getDeliveryZones(
         status: _statusFilters[_statusTabs[_tabController.index]],
-        search: _searchQuery.isNotEmpty ? _searchQuery : null,
         sortBy: _sortBy,
         sortOrder: _sortOrder,
       );

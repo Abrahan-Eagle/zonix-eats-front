@@ -110,6 +110,11 @@ class RestaurantService {
   Future<Restaurant> fetchRestaurantDetails2(int commerceId) async {
     return await fetchRestaurantDetails(commerceId);
   }
+
+  // Alias method for backward compatibility
+  Future<List<Restaurant>> getRestaurants() async {
+    return await fetchRestaurants();
+  }
 }
 
 

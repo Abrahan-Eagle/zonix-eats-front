@@ -95,7 +95,9 @@ class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixi
       if (_currentUser != null) {
         await AuthUtils.saveUserName(_currentUser!.displayName ?? 'Nombre no disponible');
         await AuthUtils.saveUserEmail(_currentUser!.email ?? 'Email no disponible');
-        await AuthUtils.saveUserPhotoUrl(_currentUser!.photoUrl ?? 'URL de foto no disponible');
+        // Solo guardar photoUrl si es válida, de lo contrario guardar cadena vacía
+        final photoUrl = _currentUser!.photoUrl;
+        await AuthUtils.saveUserPhotoUrl(photoUrl?.isNotEmpty == true ? photoUrl : '');
 
         String? savedName = await _storage.read(key: 'userName');
         String? savedEmail = await _storage.read(key: 'userEmail');

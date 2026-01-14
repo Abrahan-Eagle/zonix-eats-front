@@ -1,17 +1,12 @@
 import 'package:flutter/foundation.dart';
-import 'package:zonix/features/services/auth/api_service.dart';
 import 'package:zonix/models/order.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../config/app_config.dart';
+import '../../helpers/auth_helper.dart';
 
 class DeliveryService extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
-  final _storage = const FlutterSecureStorage();
-  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
+  static String get baseUrl => AppConfig.apiUrl;
   
   // Mock data for development
   static final List<Order> _mockDeliveryOrders = [
@@ -135,24 +130,19 @@ class DeliveryService extends ChangeNotifier {
   // Get delivery orders (for DeliveryOrdersPage)
   Future<List<Map<String, dynamic>>> getDeliveryOrders() async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final response = await http.get(
         Uri.parse('$baseUrl/api/delivery/orders'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: await AuthHelper.getAuthHeaders(),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        if (data is List) {
+          return List<Map<String, dynamic>>.from(data);
+        }
         return List<Map<String, dynamic>>.from(data['data'] ?? []);
       } else {
-        // Fallback to mock data if API fails
-        await Future.delayed(Duration(milliseconds: 600));
-        return _mockDeliveryOrders.map((order) => order.toJson()).toList();
+        throw Exception('Error fetching delivery orders: ${response.statusCode}');
       }
     } catch (e) {
       // Fallback to mock data on error
@@ -164,20 +154,21 @@ class DeliveryService extends ChangeNotifier {
   // Update order status (for DeliveryOrdersPage)
   Future<void> updateOrderStatus(int orderId, String status) async {
     try {
-      // TODO: Replace with real API call
-      // await _apiService.put('/delivery/orders/$orderId/status', {'status': status});
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 400));
-      final index = _mockDeliveryOrders.indexWhere((order) => order.id == orderId);
-      if (index != -1) {
-        final updatedOrder = _mockDeliveryOrders[index].copyWith(
-          status: status,
-          updatedAt: DateTime.now(),
-          actualDeliveryTime: status == 'delivered' ? DateTime.now() : null,
-        );
-        _mockDeliveryOrders[index] = updatedOrder;
-        notifyListeners();
+      final response = await http.patch(
+        Uri.parse('$baseUrl/api/delivery/orders/$orderId/status'),
+        headers: await AuthHelper.getAuthHeaders(),
+        body: jsonEncode({'status': status}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          notifyListeners();
+          return;
+        }
+        throw Exception('Error updating order status: ${data['message'] ?? 'Unknown error'}');
+      } else {
+        throw Exception('Error updating order status: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('Error updating order status: $e');
@@ -187,60 +178,73 @@ class DeliveryService extends ChangeNotifier {
   // Get available orders for delivery
   Future<List<Order>> getAvailableOrders() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/delivery/available-orders');
-      // return (response['data'] as List).map((json) => Order.fromJson(json)).toList();
-      
-      // Mock data for now
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/delivery/available-orders'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return (data['data'] as List).map((json) => Order.fromJson(json)).toList();
+        }
+        return [];
+      } else {
+        throw Exception('Error fetching available orders: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 500));
       return _mockDeliveryOrders.where((order) => 
         order.status == 'ready' || order.status == 'confirmed'
       ).toList();
-    } catch (e) {
-      throw Exception('Error fetching available orders: $e');
     }
   }
 
   // Get orders assigned to delivery agent
   Future<List<Order>> getAssignedOrders(int deliveryAgentId) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/delivery/assigned-orders/$deliveryAgentId');
-      // return (response['data'] as List).map((json) => Order.fromJson(json)).toList();
-      
-      // Mock data for now
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/delivery/assigned-orders/$deliveryAgentId'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return (data['data'] as List).map((json) => Order.fromJson(json)).toList();
+        }
+        return [];
+      } else {
+        throw Exception('Error fetching assigned orders: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 400));
       return _mockDeliveryOrders.where((order) => 
         order.deliveryAgentId == deliveryAgentId
       ).toList();
-    } catch (e) {
-      throw Exception('Error fetching assigned orders: $e');
     }
   }
 
   // Accept order for delivery
   Future<Order> acceptOrder(int orderId, int deliveryAgentId) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.post('/delivery/accept-order', {
-      //   'order_id': orderId,
-      //   'delivery_agent_id': deliveryAgentId,
-      // });
-      // return Order.fromJson(response['data']);
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 600));
-      final index = _mockDeliveryOrders.indexWhere((o) => o.id == orderId);
-      if (index != -1) {
-        final updatedOrder = _mockDeliveryOrders[index].copyWith(
-          deliveryAgentId: deliveryAgentId,
-          status: 'out_for_delivery',
-          updatedAt: DateTime.now(),
-        );
-        _mockDeliveryOrders[index] = updatedOrder;
-        return updatedOrder;
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/delivery/orders/$orderId/accept'),
+        headers: await AuthHelper.getAuthHeaders(),
+        body: jsonEncode({'notes': ''}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Order.fromJson(data['data']);
+        }
+        throw Exception('Error accepting order: Invalid response');
+      } else {
+        throw Exception('Error accepting order: ${response.statusCode}');
       }
-      throw Exception('Order not found');
     } catch (e) {
       throw Exception('Error accepting order: $e');
     }
@@ -249,26 +253,21 @@ class DeliveryService extends ChangeNotifier {
   // Update delivery status
   Future<Order> updateDeliveryStatus(int orderId, String status) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.put('/delivery/update-status', {
-      //   'order_id': orderId,
-      //   'status': status,
-      // });
-      // return Order.fromJson(response['data']);
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 500));
-      final index = _mockDeliveryOrders.indexWhere((o) => o.id == orderId);
-      if (index != -1) {
-        final updatedOrder = _mockDeliveryOrders[index].copyWith(
-          status: status,
-          updatedAt: DateTime.now(),
-          actualDeliveryTime: status == 'delivered' ? DateTime.now() : null,
-        );
-        _mockDeliveryOrders[index] = updatedOrder;
-        return updatedOrder;
+      final response = await http.patch(
+        Uri.parse('$baseUrl/api/delivery/orders/$orderId/status'),
+        headers: await AuthHelper.getAuthHeaders(),
+        body: jsonEncode({'status': status}),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Order.fromJson(data['data']);
+        }
+        throw Exception('Error updating delivery status: Invalid response');
+      } else {
+        throw Exception('Error updating delivery status: ${response.statusCode}');
       }
-      throw Exception('Order not found');
     } catch (e) {
       throw Exception('Error updating delivery status: $e');
     }
@@ -277,14 +276,33 @@ class DeliveryService extends ChangeNotifier {
   // Get delivery history
   Future<List<Order>> getDeliveryHistory(int deliveryAgentId, {DateTime? startDate, DateTime? endDate}) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/delivery/history/$deliveryAgentId', {
-      //   'start_date': startDate?.toIso8601String(),
-      //   'end_date': endDate?.toIso8601String(),
-      // });
-      // return (response['data'] as List).map((json) => Order.fromJson(json)).toList();
-      
-      // Mock data for now
+      final queryParams = <String, String>{};
+      if (startDate != null) {
+        queryParams['start_date'] = startDate.toIso8601String();
+      }
+      if (endDate != null) {
+        queryParams['end_date'] = endDate.toIso8601String();
+      }
+
+      final uri = Uri.parse('$baseUrl/api/delivery/history/$deliveryAgentId')
+          .replace(queryParameters: queryParams);
+
+      final response = await http.get(
+        uri,
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return (data['data'] as List).map((json) => Order.fromJson(json)).toList();
+        }
+        return [];
+      } else {
+        throw Exception('Error fetching delivery history: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 400));
       var orders = _mockDeliveryOrders.where((order) => 
         order.deliveryAgentId == deliveryAgentId && 
@@ -299,22 +317,39 @@ class DeliveryService extends ChangeNotifier {
       }
       
       return orders;
-    } catch (e) {
-      throw Exception('Error fetching delivery history: $e');
     }
   }
 
   // Get delivery earnings
   Future<Map<String, dynamic>> getDeliveryEarnings(int deliveryAgentId, {DateTime? startDate, DateTime? endDate}) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/delivery/earnings/$deliveryAgentId', {
-      //   'start_date': startDate?.toIso8601String(),
-      //   'end_date': endDate?.toIso8601String(),
-      // });
-      // return response['data'];
-      
-      // Mock data for now
+      final queryParams = <String, String>{};
+      if (startDate != null) {
+        queryParams['start_date'] = startDate.toIso8601String();
+      }
+      if (endDate != null) {
+        queryParams['end_date'] = endDate.toIso8601String();
+      }
+
+      final uri = Uri.parse('$baseUrl/api/delivery/earnings/$deliveryAgentId')
+          .replace(queryParameters: queryParams);
+
+      final response = await http.get(
+        uri,
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+        throw Exception('Error fetching delivery earnings: Invalid response');
+      } else {
+        throw Exception('Error fetching delivery earnings: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 600));
       final deliveredOrders = _mockDeliveryOrders.where((order) => 
         order.deliveryAgentId == deliveryAgentId && 
@@ -339,25 +374,34 @@ class DeliveryService extends ChangeNotifier {
         'total_earnings': totalEarnings,
         'total_deliveries': totalDeliveries,
         'average_delivery_time': averageDeliveryTime,
-        'today_earnings': totalEarnings * 0.3, // Mock: 30% of total
-        'weekly_earnings': totalEarnings * 0.7, // Mock: 70% of total
+        'today_earnings': totalEarnings * 0.3,
+        'weekly_earnings': totalEarnings * 0.7,
         'monthly_earnings': totalEarnings,
         'delivery_fees': deliveredOrders.map((o) => o.deliveryFee).toList(),
         'delivery_dates': deliveredOrders.map((o) => o.createdAt.toIso8601String()).toList(),
       };
-    } catch (e) {
-      throw Exception('Error fetching delivery earnings: $e');
     }
   }
 
   // Get delivery routes
   Future<List<Map<String, dynamic>>> getDeliveryRoutes(int deliveryAgentId) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/delivery/routes/$deliveryAgentId');
-      // return List<Map<String, dynamic>>.from(response['data']);
-      
-      // Mock data for now
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/delivery/routes/$deliveryAgentId'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return List<Map<String, dynamic>>.from(data['data']);
+        }
+        return [];
+      } else {
+        throw Exception('Error fetching delivery routes: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 500));
       return [
         {
@@ -381,24 +425,30 @@ class DeliveryService extends ChangeNotifier {
           'end_location': {'lat': -12.0464, 'lng': -77.0428},
         },
       ];
-    } catch (e) {
-      throw Exception('Error fetching delivery routes: $e');
     }
   }
 
   // Update delivery location
   Future<void> updateDeliveryLocation(int deliveryAgentId, double lat, double lng) async {
     try {
-      // TODO: Replace with real API call
-      // await _apiService.post('/delivery/update-location', {
-      //   'delivery_agent_id': deliveryAgentId,
-      //   'latitude': lat,
-      //   'longitude': lng,
-      // });
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 300));
-      // In a real implementation, this would update the delivery agent's location
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/delivery/location/update'),
+        headers: await AuthHelper.getAuthHeaders(),
+        body: jsonEncode({
+          'latitude': lat,
+          'longitude': lng,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return;
+        }
+        throw Exception('Error updating delivery location: ${data['message'] ?? 'Unknown error'}');
+      } else {
+        throw Exception('Error updating delivery location: ${response.statusCode}');
+      }
     } catch (e) {
       throw Exception('Error updating delivery location: $e');
     }
@@ -407,11 +457,22 @@ class DeliveryService extends ChangeNotifier {
   // Get delivery statistics
   Future<Map<String, dynamic>> getDeliveryStatistics(int deliveryAgentId) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/delivery/statistics/$deliveryAgentId');
-      // return response['data'];
-      
-      // Mock data for now
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/delivery/statistics/$deliveryAgentId'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+        throw Exception('Error fetching delivery statistics: Invalid response');
+      } else {
+        throw Exception('Error fetching delivery statistics: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 600));
       return {
         'total_deliveries': 156,
@@ -436,24 +497,30 @@ class DeliveryService extends ChangeNotifier {
           {'day': 'Domingo', 'deliveries': 20, 'earnings': 300.0},
         ],
       };
-    } catch (e) {
-      throw Exception('Error fetching delivery statistics: $e');
     }
   }
 
   // Report delivery issue
   Future<void> reportDeliveryIssue(int orderId, String issue, String description) async {
     try {
-      // TODO: Replace with real API call
-      // await _apiService.post('/delivery/report-issue', {
-      //   'order_id': orderId,
-      //   'issue': issue,
-      //   'description': description,
-      // });
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 500));
-      // In a real implementation, this would create a support ticket
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/delivery/orders/$orderId/report-issue'),
+        headers: await AuthHelper.getAuthHeaders(),
+        body: jsonEncode({
+          'issue': issue,
+          'description': description,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          return;
+        }
+        throw Exception('Error reporting delivery issue: ${data['message'] ?? 'Unknown error'}');
+      } else {
+        throw Exception('Error reporting delivery issue: ${response.statusCode}');
+      }
     } catch (e) {
       throw Exception('Error reporting delivery issue: $e');
     }

@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../models/commerce_order.dart';
 import '../../config/app_config.dart';
-import '../../utils/auth_helper.dart';
+import '../../helpers/auth_helper.dart';
 
 class CommerceOrderService {
   static const FlutterSecureStorage _storage = FlutterSecureStorage();

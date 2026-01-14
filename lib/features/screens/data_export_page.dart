@@ -421,7 +421,7 @@ class _DataExportPageState extends State<DataExportPage> {
             Text('ID: ${export['id']}'),
             Text('Estado: ${_getStatusText(export['status'] ?? '')}'),
             Text('Formato: ${export['format']?.toUpperCase()}'),
-            Text('Tipos de datos: ${(export['data_types'] as List<dynamic>?)?.map(_getDataTypeText).join(', ')}'),
+            Text('Tipos de datos: ${(export['data_types'] as List<dynamic>?)?.map((e) => _getDataTypeText(e.toString())).join(', ')}'),
             if (export['created_at'] != null)
               Text('Solicitado: ${_formatDate(DateTime.parse(export['created_at']))}'),
             if (export['completed_at'] != null)

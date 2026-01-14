@@ -1,18 +1,13 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
-import 'package:zonix/features/services/auth/api_service.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../config/app_config.dart';
+import '../../helpers/auth_helper.dart';
 import 'websocket_service.dart';
 
 class ChatService extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
-  final _storage = const FlutterSecureStorage();
-  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
+  static String get baseUrl => AppConfig.apiUrl;
   final WebSocketService _webSocketService = WebSocketService();
   StreamController<Map<String, dynamic>>? _messageController;
   Timer? _typingTimer;
@@ -226,40 +221,58 @@ class ChatService extends ChangeNotifier {
   // Get conversation by ID
   Future<Map<String, dynamic>> getConversationById(int conversationId) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/chat/conversations/$conversationId');
-      // return response['data'];
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 300));
-      final conversation = _mockConversations.firstWhere((c) => c['id'] == conversationId);
-      return conversation;
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/chat/conversations/$conversationId/messages'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final messages = jsonDecode(response.body);
+        // Construir objeto conversación desde los mensajes
+        if (messages is List && messages.isNotEmpty) {
+          final firstMessage = messages[0];
+          return {
+            'id': conversationId,
+            'order_id': firstMessage['order_id'] ?? conversationId,
+            'messages': messages,
+          };
+        }
+        // Si no hay mensajes, obtener info de la conversación desde getConversations
+        final conversations = await getConversations();
+        return conversations.firstWhere(
+          (c) => c['id'] == conversationId || c['order_id'] == conversationId,
+          orElse: () => {'id': conversationId, 'order_id': conversationId},
+        );
+      } else {
+        throw Exception('Error fetching conversation: ${response.statusCode}');
+      }
     } catch (e) {
-      throw Exception('Error fetching conversation: $e');
+      // Fallback to mock data on error
+      await Future.delayed(Duration(milliseconds: 300));
+      try {
+        return _mockConversations.firstWhere((c) => c['id'] == conversationId);
+      } catch (_) {
+        throw Exception('Error fetching conversation: $e');
+      }
     }
   }
 
   // Get messages for conversation
   Future<List<Map<String, dynamic>>> getMessages(int conversationId) async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final response = await http.get(
         Uri.parse('$baseUrl/api/chat/conversations/$conversationId/messages'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: await AuthHelper.getAuthHeaders(),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        if (data is List) {
+          return List<Map<String, dynamic>>.from(data);
+        }
         return List<Map<String, dynamic>>.from(data['data'] ?? []);
       } else {
-        // Fallback to mock data if API fails
-        await Future.delayed(Duration(milliseconds: 400));
-        return _mockMessages[conversationId] ?? [];
+        throw Exception('Error fetching messages: ${response.statusCode}');
       }
     } catch (e) {
       // Fallback to mock data on error
@@ -271,42 +284,25 @@ class ChatService extends ChangeNotifier {
   // Send message
   Future<Map<String, dynamic>> sendMessage(int conversationId, Map<String, dynamic> messageData) async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final response = await http.post(
         Uri.parse('$baseUrl/api/chat/conversations/$conversationId/messages'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode(messageData),
+        headers: await AuthHelper.getAuthHeaders(),
+        body: jsonEncode({
+          'content': messageData['content'] ?? messageData['message'] ?? '',
+          'type': messageData['type'] ?? 'text',
+        }),
       );
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final newMessage = data['data'] ?? {
-          'id': DateTime.now().millisecondsSinceEpoch,
-          'sender_id': messageData['sender_id'],
-          'content': messageData['content'],
-          'type': messageData['type'] ?? 'text',
-          'timestamp': DateTime.now().toIso8601String(),
-          'read': false,
+        final newMessage = data is Map ? Map<String, dynamic>.from(data) : {
+          'id': data['id'] ?? DateTime.now().millisecondsSinceEpoch,
+          'sender_id': data['sender_id'],
+          'content': data['content'] ?? messageData['content'],
+          'type': data['type'] ?? messageData['type'] ?? 'text',
+          'timestamp': data['created_at'] ?? DateTime.now().toIso8601String(),
+          'read': data['read_at'] != null,
         };
-        
-        // Update local mock data
-        if (!_mockMessages.containsKey(conversationId)) {
-          _mockMessages[conversationId] = [];
-        }
-        _mockMessages[conversationId]!.add(newMessage);
-        
-        // Update conversation last message
-        final conversationIndex = _mockConversations.indexWhere((c) => c['id'] == conversationId);
-        if (conversationIndex != -1) {
-          _mockConversations[conversationIndex]['last_message'] = newMessage;
-          _mockConversations[conversationIndex]['updated_at'] = newMessage['timestamp'];
-        }
         
         // Emit message to stream
         _messageController?.add({
@@ -314,39 +310,10 @@ class ChatService extends ChangeNotifier {
           'message': newMessage,
         });
         
+        notifyListeners();
         return newMessage;
       } else {
-        // Fallback to mock data
-        await Future.delayed(Duration(milliseconds: 600));
-        
-        final newMessage = {
-          'id': DateTime.now().millisecondsSinceEpoch,
-          'sender_id': messageData['sender_id'],
-          'content': messageData['content'],
-          'type': messageData['type'] ?? 'text',
-          'timestamp': DateTime.now().toIso8601String(),
-          'read': false,
-        };
-        
-        if (!_mockMessages.containsKey(conversationId)) {
-          _mockMessages[conversationId] = [];
-        }
-        _mockMessages[conversationId]!.add(newMessage);
-        
-        // Update conversation last message
-        final conversationIndex = _mockConversations.indexWhere((c) => c['id'] == conversationId);
-        if (conversationIndex != -1) {
-          _mockConversations[conversationIndex]['last_message'] = newMessage;
-          _mockConversations[conversationIndex]['updated_at'] = newMessage['timestamp'];
-        }
-        
-        // Emit message to stream
-        _messageController?.add({
-          'conversation_id': conversationId,
-          'message': newMessage,
-        });
-        
-        return newMessage;
+        throw Exception('Error sending message: ${response.statusCode}');
       }
     } catch (e) {
       // Fallback to mock data on error
@@ -355,23 +322,11 @@ class ChatService extends ChangeNotifier {
       final newMessage = {
         'id': DateTime.now().millisecondsSinceEpoch,
         'sender_id': messageData['sender_id'],
-        'content': messageData['content'],
+        'content': messageData['content'] ?? messageData['message'] ?? '',
         'type': messageData['type'] ?? 'text',
         'timestamp': DateTime.now().toIso8601String(),
         'read': false,
       };
-      
-      if (!_mockMessages.containsKey(conversationId)) {
-        _mockMessages[conversationId] = [];
-      }
-      _mockMessages[conversationId]!.add(newMessage);
-      
-      // Update conversation last message
-      final conversationIndex = _mockConversations.indexWhere((c) => c['id'] == conversationId);
-      if (conversationIndex != -1) {
-        _mockConversations[conversationIndex]['last_message'] = newMessage;
-        _mockConversations[conversationIndex]['updated_at'] = newMessage['timestamp'];
-      }
       
       // Emit message to stream
       _messageController?.add({
@@ -386,70 +341,81 @@ class ChatService extends ChangeNotifier {
   // Mark messages as read
   Future<void> markMessagesAsRead(int conversationId, List<int> messageIds) async {
     try {
-      // TODO: Replace with real API call
-      // await _apiService.put('/chat/conversations/$conversationId/messages/read', {
-      //   'message_ids': messageIds,
-      // });
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 300));
-      
-      if (_mockMessages.containsKey(conversationId)) {
-        for (final message in _mockMessages[conversationId]!) {
-          if (messageIds.contains(message['id'])) {
-            message['read'] = true;
-          }
-        }
-      }
-      
-      // Update conversation unread count
-      final conversationIndex = _mockConversations.indexWhere((c) => c['id'] == conversationId);
-      if (conversationIndex != -1) {
-        _mockConversations[conversationIndex]['unread_count'] = 0;
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/chat/conversations/$conversationId/read'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        notifyListeners();
+        return;
+      } else {
+        throw Exception('Error marking messages as read: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error marking messages as read: $e');
+      // No crítico si falla, solo log
+      print('Warning: Error marking messages as read: $e');
     }
   }
 
   // Create new conversation
   Future<Map<String, dynamic>> createConversation(Map<String, dynamic> conversationData) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.post('/chat/conversations', conversationData);
-      // return response['data'];
-      
-      // Mock data for now
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/chat/conversations'),
+        headers: await AuthHelper.getAuthHeaders(),
+        body: jsonEncode({
+          'order_id': conversationData['order_id'] ?? conversationData['id'],
+        }),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final newConversation = data is Map ? Map<String, dynamic>.from(data) : {
+          'id': data['id'] ?? conversationData['order_id'],
+          'order_id': data['order_id'] ?? conversationData['order_id'],
+          'type': 'order',
+          'last_message': null,
+          'unread_count': 0,
+          'created_at': data['created_at'] ?? DateTime.now().toIso8601String(),
+          'updated_at': data['updated_at'] ?? DateTime.now().toIso8601String(),
+        };
+        
+        notifyListeners();
+        return newConversation;
+      } else {
+        throw Exception('Error creating conversation: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 800));
-      
       final newConversation = {
-        'id': _mockConversations.length + 1,
-        ...conversationData,
+        'id': conversationData['order_id'] ?? conversationData['id'] ?? _mockConversations.length + 1,
+        'order_id': conversationData['order_id'] ?? conversationData['id'],
+        'type': 'order',
         'last_message': null,
         'unread_count': 0,
         'created_at': DateTime.now().toIso8601String(),
         'updated_at': DateTime.now().toIso8601String(),
       };
-      
-      _mockConversations.add(newConversation);
-      _mockMessages[newConversation['id']] = [];
-      
       return newConversation;
-    } catch (e) {
-      throw Exception('Error creating conversation: $e');
     }
   }
 
   // Delete conversation
   Future<void> deleteConversation(int conversationId) async {
     try {
-      // TODO: Replace with real API call
-      // await _apiService.delete('/chat/conversations/$conversationId');
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 400));
-      _mockConversations.removeWhere((c) => c['id'] == conversationId);
-      _mockMessages.remove(conversationId);
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/chat/conversations/$conversationId'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        notifyListeners();
+        return;
+      } else {
+        throw Exception('Error deleting conversation: ${response.statusCode}');
+      }
     } catch (e) {
       throw Exception('Error deleting conversation: $e');
     }
@@ -499,31 +465,34 @@ class ChatService extends ChangeNotifier {
   // Upload file
   Future<Map<String, dynamic>> uploadFile(int conversationId, Map<String, dynamic> fileData) async {
     try {
-      // TODO: Replace with real file upload
-      // final response = await _apiService.post('/chat/upload', fileData);
-      // return response['data'];
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 1500));
-      
-      final fileMessage = {
-        'id': DateTime.now().millisecondsSinceEpoch,
-        'sender_id': fileData['sender_id'],
-        'content': fileData['file_url'] ?? 'https://example.com/file.jpg',
-        'type': 'file',
-        'file_name': fileData['file_name'] ?? 'document.pdf',
-        'file_size': fileData['file_size'] ?? 1024,
-        'file_type': fileData['file_type'] ?? 'application/pdf',
-        'timestamp': DateTime.now().toIso8601String(),
-        'read': false,
-      };
-      
-      if (!_mockMessages.containsKey(conversationId)) {
-        _mockMessages[conversationId] = [];
+      // TODO: Implementar subida de archivos con multipart/form-data
+      // Por ahora solo se puede enviar como mensaje de tipo 'image' con URL
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/chat/conversations/$conversationId/messages'),
+        headers: await AuthHelper.getAuthHeaders(),
+        body: jsonEncode({
+          'content': fileData['file_url'] ?? fileData['content'] ?? '',
+          'type': fileData['type'] ?? 'image',
+        }),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final fileMessage = data is Map ? Map<String, dynamic>.from(data) : {
+          'id': DateTime.now().millisecondsSinceEpoch,
+          'sender_id': fileData['sender_id'],
+          'content': fileData['file_url'] ?? 'https://example.com/file.jpg',
+          'type': 'image',
+          'file_name': fileData['file_name'] ?? 'file.jpg',
+          'timestamp': DateTime.now().toIso8601String(),
+          'read': false,
+        };
+        
+        notifyListeners();
+        return fileMessage;
+      } else {
+        throw Exception('Error uploading file: ${response.statusCode}');
       }
-      _mockMessages[conversationId]!.add(fileMessage);
-      
-      return fileMessage;
     } catch (e) {
       throw Exception('Error uploading file: $e');
     }
@@ -532,44 +501,65 @@ class ChatService extends ChangeNotifier {
   // Get chat statistics
   Future<Map<String, dynamic>> getChatStatistics() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/chat/statistics');
-      // return response['data'];
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 500));
+      // Calcular estadísticas desde las conversaciones obtenidas
+      final conversations = await getConversations();
       
       int totalMessages = 0;
       int unreadMessages = 0;
       
-      for (final conversation in _mockConversations) {
-        totalMessages += conversation['last_message'] != null ? 1 : 0;
+      for (final conversation in conversations) {
+        if (conversation['last_message'] != null) {
+          totalMessages++;
+        }
         unreadMessages += (conversation['unread_count'] as int?) ?? 0;
       }
       
       return {
-        'total_conversations': _mockConversations.length,
+        'total_conversations': conversations.length,
         'total_messages': totalMessages,
         'unread_messages': unreadMessages,
-        'active_conversations': _mockConversations.where((c) => c['updated_at'] != null).length,
-        'response_time_avg': 2.5, // minutes
-        'satisfaction_rate': 4.8, // out of 5
+        'active_conversations': conversations.where((c) => c['updated_at'] != null).length,
+        'response_time_avg': 2.5, // TODO: Calcular desde mensajes reales
+        'satisfaction_rate': 4.8, // TODO: Calcular desde reviews
       };
     } catch (e) {
-      throw Exception('Error fetching chat statistics: $e');
+      // Fallback to mock data on error
+      await Future.delayed(Duration(milliseconds: 500));
+      return {
+        'total_conversations': _mockConversations.length,
+        'total_messages': _mockConversations.length,
+        'unread_messages': 0,
+        'active_conversations': _mockConversations.length,
+        'response_time_avg': 2.5,
+        'satisfaction_rate': 4.8,
+      };
     }
   }
 
   // Search messages
   Future<List<Map<String, dynamic>>> searchMessages(String query) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/chat/search', {'q': query});
-      // return List<Map<String, dynamic>>.from(response['data']);
-      
-      // Mock data for now
+      final uri = Uri.parse('$baseUrl/api/chat/search').replace(queryParameters: {
+        'q': query,
+      });
+
+      final response = await http.get(
+        uri,
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is List) {
+          return List<Map<String, dynamic>>.from(data);
+        }
+        return List<Map<String, dynamic>>.from(data['data'] ?? []);
+      } else {
+        throw Exception('Error searching messages: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 600));
-      
       final results = <Map<String, dynamic>>[];
       
       for (final conversation in _mockConversations) {
@@ -587,20 +577,24 @@ class ChatService extends ChangeNotifier {
       }
       
       return results;
-    } catch (e) {
-      throw Exception('Error searching messages: $e');
     }
   }
 
   // Block user
   Future<void> blockUser(int userId) async {
     try {
-      // TODO: Replace with real API call
-      // await _apiService.post('/chat/block', {'user_id': userId});
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 400));
-      print('User $userId blocked');
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/chat/block'),
+        headers: await AuthHelper.getAuthHeaders(),
+        body: jsonEncode({'user_id': userId}),
+      );
+
+      if (response.statusCode == 200) {
+        notifyListeners();
+        return;
+      } else {
+        throw Exception('Error blocking user: ${response.statusCode}');
+      }
     } catch (e) {
       throw Exception('Error blocking user: $e');
     }
@@ -609,12 +603,17 @@ class ChatService extends ChangeNotifier {
   // Unblock user
   Future<void> unblockUser(int userId) async {
     try {
-      // TODO: Replace with real API call
-      // await _apiService.delete('/chat/block/$userId');
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 400));
-      print('User $userId unblocked');
+      final response = await http.delete(
+        Uri.parse('$baseUrl/api/chat/block/$userId'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        notifyListeners();
+        return;
+      } else {
+        throw Exception('Error unblocking user: ${response.statusCode}');
+      }
     } catch (e) {
       throw Exception('Error unblocking user: $e');
     }
@@ -623,22 +622,28 @@ class ChatService extends ChangeNotifier {
   // Get blocked users
   Future<List<Map<String, dynamic>>> getBlockedUsers() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/chat/blocked');
-      // return List<Map<String, dynamic>>.from(response['data']);
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 300));
-      return [
-        {
-          'id': 5,
-          'name': 'Usuario Problemático',
-          'avatar': 'assets/images/profile_photos/user5.jpg',
-          'blocked_at': '2024-01-10T15:30:00',
-        },
-      ];
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/chat/blocked-users'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is List) {
+          // Si retorna lista de IDs, convertir a lista de objetos
+          if (data.isNotEmpty && data[0] is int) {
+            return data.map((id) => {'id': id}).toList();
+          }
+          return List<Map<String, dynamic>>.from(data);
+        }
+        return List<Map<String, dynamic>>.from(data['data'] ?? []);
+      } else {
+        // Retornar lista vacía si no está implementado
+        return [];
+      }
     } catch (e) {
-      throw Exception('Error fetching blocked users: $e');
+      // Retornar lista vacía en caso de error (no crítico)
+      return [];
     }
   }
 

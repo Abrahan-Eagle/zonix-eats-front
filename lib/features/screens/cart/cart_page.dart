@@ -149,6 +149,8 @@ class CartPage extends StatelessWidget {
                                                     nombre: item.nombre,
                                                     precio: item.precio,
                                                     quantity: item.quantity + 1,
+                                                    imagen: item.imagen,
+                                                    image: item.image,
                                                   ));
                                                 },
                                                 borderRadius: BorderRadius.circular(15),

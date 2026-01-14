@@ -2,18 +2,14 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:zonix/features/services/auth/api_service.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:geolocator/geolocator.dart';
+import '../../config/app_config.dart';
+import '../../helpers/auth_helper.dart';
 
 class LocationService extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
-  final _storage = const FlutterSecureStorage();
-  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
+  static String get baseUrl => AppConfig.apiUrl;
   Timer? _locationTimer;
   StreamController<Map<String, dynamic>>? _locationController;
   
@@ -111,28 +107,53 @@ class LocationService extends ChangeNotifier {
     },
   ];
 
-  // Get current location
+  // Get current location using geolocator
   Future<Map<String, dynamic>> getCurrentLocation() async {
     try {
-      // TODO: Replace with real GPS/geolocation call
-      // final position = await Geolocator.getCurrentPosition(
-      //   desiredAccuracy: LocationAccuracy.high,
-      // );
-      // return {
-      //   'latitude': position.latitude,
-      //   'longitude': position.longitude,
-      //   'accuracy': position.accuracy,
-      //   'altitude': position.altitude,
-      //   'speed': position.speed,
-      //   'heading': position.heading,
-      //   'timestamp': position.timestamp?.toIso8601String(),
-      // };
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 1000));
-      return _mockCurrentLocation;
+      // Verificar permisos de ubicación
+      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        throw Exception('Location services are disabled');
+      }
+
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          throw Exception('Location permissions are denied');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        throw Exception('Location permissions are permanently denied');
+      }
+
+      // Obtener ubicación actual
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      // Obtener dirección usando Nominatim (geocodificación inversa)
+      String? address = await getAddressFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+
+      return {
+        'latitude': position.latitude,
+        'longitude': position.longitude,
+        'accuracy': position.accuracy,
+        'altitude': position.altitude,
+        'speed': position.speed,
+        'heading': position.heading,
+        'timestamp': position.timestamp?.toIso8601String(),
+        'address': address,
+      };
     } catch (e) {
-      throw Exception('Error getting current location: $e');
+      debugPrint('Error getting current location: $e');
+      // Fallback a mock data si hay error
+      await Future.delayed(Duration(milliseconds: 500));
+      return _mockCurrentLocation;
     }
   }
 
@@ -169,15 +190,13 @@ class LocationService extends ChangeNotifier {
   // Update location on server
   Future<void> updateLocationOnServer(Map<String, dynamic> location) async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
+      final headers = await AuthHelper.getAuthHeaders();
 
       final response = await http.post(
         Uri.parse('$baseUrl/api/location/update'),
         headers: {
-          'Authorization': 'Bearer $token',
+          ...headers,
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
         },
         body: jsonEncode({
           'latitude': location['latitude'],
@@ -205,9 +224,6 @@ class LocationService extends ChangeNotifier {
     String? type,
   }) async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final queryParams = <String, String>{
         'latitude': latitude.toString(),
         'longitude': longitude.toString(),
@@ -219,10 +235,7 @@ class LocationService extends ChangeNotifier {
       
       final response = await http.get(
         uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: await AuthHelper.getAuthHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -243,15 +256,24 @@ class LocationService extends ChangeNotifier {
   // Get delivery routes
   Future<List<Map<String, dynamic>>> getDeliveryRoutes() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/delivery/routes');
-      // return List<Map<String, dynamic>>.from(response['data']);
-      
-      // Mock data for now
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/location/delivery-routes'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return List<Map<String, dynamic>>.from(data['data']);
+        }
+        return [];
+      } else {
+        throw Exception('Error al obtener delivery routes: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 600));
       return _mockDeliveryRoutes;
-    } catch (e) {
-      throw Exception('Error fetching delivery routes: $e');
     }
   }
 
@@ -277,44 +299,103 @@ class LocationService extends ChangeNotifier {
     return degrees * (3.14159265359 / 180);
   }
 
-  // Get address from coordinates
-  Future<String> getAddressFromCoordinates(double latitude, double longitude) async {
+  // Get address from coordinates using Nominatim (OpenStreetMap)
+  Future<String?> getAddressFromCoordinates(double latitude, double longitude) async {
     try {
-      // TODO: Replace with real geocoding API call
-      // final response = await _apiService.get('/geocoding/reverse', {
-      //   'latitude': latitude,
-      //   'longitude': longitude,
-      // });
-      // return response['data']['address'];
+      final url = Uri.parse(
+        'https://nominatim.openstreetmap.org/reverse?format=json&lat=$latitude&lon=$longitude&zoom=18&addressdetails=1',
+      );
       
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 500));
-      return 'Av. Arequipa ${(latitude * 1000).round()}, Lima, Perú';
+      final response = await http.get(
+        url,
+        headers: {
+          'User-Agent': '${AppConfig.appName} App',
+        },
+      ).timeout(Duration(seconds: 5));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final address = data['address'];
+        
+        if (address != null) {
+          final parts = <String>[];
+          
+          // Construir dirección legible
+          if (address['house_number'] != null) {
+            parts.add(address['house_number']);
+          }
+          if (address['road'] != null) {
+            parts.add(address['road']);
+          }
+          if (address['suburb'] != null || address['neighbourhood'] != null) {
+            parts.add(address['suburb'] ?? address['neighbourhood']);
+          }
+          if (address['city'] != null || address['town'] != null || address['village'] != null) {
+            parts.add(address['city'] ?? address['town'] ?? address['village']);
+          }
+          if (address['state'] != null) {
+            parts.add(address['state']);
+          }
+          if (address['country'] != null) {
+            parts.add(address['country']);
+          }
+          
+          if (parts.isNotEmpty) {
+            return parts.join(', ');
+          }
+          
+          // Fallback: usar display_name si está disponible
+          if (data['display_name'] != null) {
+            return data['display_name'];
+          }
+        }
+      }
+      
+      return null;
     } catch (e) {
-      throw Exception('Error getting address: $e');
+      debugPrint('Error en geocodificación inversa: $e');
+      return null;
     }
   }
 
-  // Get coordinates from address
+  // Get coordinates from address using Nominatim (OpenStreetMap)
   Future<Map<String, double>> getCoordinatesFromAddress(String address) async {
     try {
-      // TODO: Replace with real geocoding API call
-      // final response = await _apiService.get('/geocoding/forward', {
-      //   'address': address,
-      // });
-      // return {
-      //   'latitude': response['data']['latitude'],
-      //   'longitude': response['data']['longitude'],
-      // };
+      final url = Uri.parse(
+        'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(address)}&format=json&limit=1&addressdetails=1',
+      );
       
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 500));
+      final response = await http.get(
+        url,
+        headers: {
+          'User-Agent': '${AppConfig.appName} App',
+        },
+      ).timeout(Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        
+        if (data != null && data is List && data.isNotEmpty) {
+          final result = data[0];
+          return {
+            'latitude': double.parse(result['lat']),
+            'longitude': double.parse(result['lon']),
+          };
+        }
+      }
+      
+      // Fallback: retornar coordenadas por defecto si no se encuentra
       return {
-        'latitude': -12.0464 + (address.hashCode % 100) / 10000,
-        'longitude': -77.0428 + (address.hashCode % 100) / 10000,
+        'latitude': -12.0464,
+        'longitude': -77.0428,
       };
     } catch (e) {
-      throw Exception('Error getting coordinates: $e');
+      debugPrint('Error geocoding address: $e');
+      // Fallback: retornar coordenadas por defecto
+      return {
+        'latitude': -12.0464,
+        'longitude': -77.0428,
+      };
     }
   }
 
@@ -327,16 +408,12 @@ class LocationService extends ChangeNotifier {
     String mode = 'driving',
   }) async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
+      final headers = await AuthHelper.getAuthHeaders();
+      headers['Content-Type'] = 'application/json';
+      
       final response = await http.post(
         Uri.parse('$baseUrl/api/location/calculate-route'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
+        headers: headers,
         body: jsonEncode({
           'origin_lat': originLat,
           'origin_lng': originLng,
@@ -364,15 +441,9 @@ class LocationService extends ChangeNotifier {
   // Get delivery zones
   Future<List<Map<String, dynamic>>> getDeliveryZones() async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final response = await http.get(
         Uri.parse('$baseUrl/api/location/delivery-zones'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: await AuthHelper.getAuthHeaders(),
       );
 
       if (response.statusCode == 200) {

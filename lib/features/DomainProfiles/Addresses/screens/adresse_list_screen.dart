@@ -8,6 +8,8 @@ import 'package:webview_flutter/webview_flutter.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zonix/widgets/osm_map_widget.dart';
+import 'package:latlong2/latlong.dart';
 
 class AddressModel with ChangeNotifier {
   Address? _address;
@@ -304,60 +306,76 @@ class AddressPage extends StatelessWidget {
   }
 
   Widget _buildMapCard(Address address, BuildContext context, bool isSmallScreen) {
+    if (address.latitude == null || address.longitude == null) {
+      return SizedBox.shrink();
+    }
+
     return Padding(
       padding: EdgeInsets.all(isSmallScreen ? 16.0 : 24.0),
-      child: GestureDetector(
-        onTap: () async {
-          final url = 'https://www.google.com/maps/search/?api=1&query=${address.latitude},${address.longitude}';
-          try {
-            if (await canLaunchUrl(Uri.parse(url))) {
-              await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-            }
-          } catch (e) {
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('No se pudo abrir el mapa: $e'),
-                  backgroundColor: Colors.red,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Mapa usando OpenStreetMap (como en CorralX)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: OsmMapWidget(
+              center: LatLng(address.latitude!, address.longitude!),
+              zoom: 15.0,
+              height: 200,
+              markers: [
+                MapMarker.create(
+                  point: LatLng(address.latitude!, address.longitude!),
+                  iconData: Icons.location_on,
+                  color: Theme.of(context).colorScheme.primary,
                 ),
-              );
-            }
-          }
-        },
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1976D2),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF1976D2).withOpacity(0.4),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
-              ),
-            ],
+              ],
+            ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.map,
-                color: Colors.white,
-                size: 24,
+          SizedBox(height: 12),
+          // Botón para abrir en navegador externo
+          GestureDetector(
+            onTap: () async {
+              final url = 'https://www.openstreetmap.org/?mlat=${address.latitude}&mlon=${address.longitude}&zoom=15';
+              try {
+                if (await canLaunchUrl(Uri.parse(url))) {
+                  await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('No se pudo abrir el mapa: $e'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              }
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(width: 12),
-              const Text(
-                'Ver Ubicación en el Mapa',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.open_in_new, color: Colors.white, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    'Abrir en OpenStreetMap',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

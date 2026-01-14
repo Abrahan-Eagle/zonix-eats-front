@@ -45,20 +45,33 @@ class RestaurantDetailsPage extends StatefulWidget {
   final String? banco;
   final String? cedula;
 
-  const RestaurantDetailsPage({
+  RestaurantDetailsPage({
     Key? key,
-    required this.commerceId,
-    required this.nombreLocal,
-    required this.direccion,
-    required this.telefono,
-    required this.abierto,
+    Restaurant? restaurant,
+    int? commerceId,
+    String? nombreLocal,
+    String? direccion,
+    String? telefono,
+    bool? abierto,
     this.horario,
     this.logoUrl,
     this.rating,
     this.tiempoEntrega,
     this.banco,
     this.cedula,
-  }) : super(key: key);
+  }) : commerceId = restaurant?.id ?? commerceId ?? 0,
+       nombreLocal = restaurant?.nombreLocal ?? nombreLocal ?? '',
+       direccion = restaurant?.direccion ?? direccion ?? '',
+       telefono = restaurant?.telefono ?? telefono ?? '',
+       abierto = restaurant?.abierto ?? abierto ?? false,
+       super(key: key);
+
+  // Constructor factory para compatibilidad
+  factory RestaurantDetailsPage.fromRestaurant(Restaurant restaurant) {
+    return RestaurantDetailsPage(
+      restaurant: restaurant,
+    );
+  }
 
   @override
   State<RestaurantDetailsPage> createState() => _RestaurantDetailsPageState();

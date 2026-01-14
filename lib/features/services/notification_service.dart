@@ -1,18 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
-import 'package:zonix/features/services/auth/api_service.dart';
 import 'package:zonix/models/notification_item.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../config/app_config.dart';
+import '../../helpers/auth_helper.dart';
 
 class NotificationService extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
-  final _storage = const FlutterSecureStorage();
-  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
+  static String get baseUrl => AppConfig.apiUrl;
   
   // Mock data for development
   static final List<Map<String, dynamic>> _mockNotifications = [
@@ -74,9 +69,6 @@ class NotificationService extends ChangeNotifier {
   // Get all notifications
   Future<List<Map<String, dynamic>>> getNotifications({String? type, bool? read}) async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final queryParams = <String, String>{};
       if (type != null) queryParams['type'] = type;
       if (read != null) queryParams['read'] = read.toString();
@@ -85,10 +77,7 @@ class NotificationService extends ChangeNotifier {
       
       final response = await http.get(
         uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: await AuthHelper.getAuthHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -145,15 +134,9 @@ class NotificationService extends ChangeNotifier {
   // Mark all notifications as read
   Future<void> markAllAsRead() async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final response = await http.put(
         Uri.parse('$baseUrl/api/notifications/mark-all-read'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: await AuthHelper.getAuthHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -180,15 +163,9 @@ class NotificationService extends ChangeNotifier {
   // Delete notification
   Future<void> deleteNotification(int notificationId) async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final response = await http.delete(
         Uri.parse('$baseUrl/api/notifications/$notificationId'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: await AuthHelper.getAuthHeaders(),
       );
 
       if (response.statusCode != 200) {
@@ -258,22 +235,27 @@ class NotificationService extends ChangeNotifier {
   // Send push notification
   Future<void> sendPushNotification(Map<String, dynamic> notification) async {
     try {
-      // TODO: Replace with real API call
-      // await _apiService.post('/notifications/push', notification);
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 600));
-      final newNotification = {
-        'id': _mockNotifications.length + 1,
-        'title': notification['title'],
-        'message': notification['message'],
-        'type': notification['type'] ?? 'system',
-        'priority': notification['priority'] ?? 'medium',
-        'read': false,
-        'created_at': DateTime.now().toIso8601String(),
-        'data': notification['data'] ?? {},
-      };
-      _mockNotifications.insert(0, newNotification);
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/notifications/push'),
+        headers: await AuthHelper.getAuthHeaders(),
+        body: jsonEncode({
+          'title': notification['title'],
+          'message': notification['message'] ?? notification['body'],
+          'type': notification['type'] ?? 'system',
+          'data': notification['data'] ?? {},
+        }),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          notifyListeners();
+          return;
+        }
+        throw Exception('Error en respuesta del servidor');
+      } else {
+        throw Exception('Error al enviar notificación push: ${response.statusCode}');
+      }
     } catch (e) {
       throw Exception('Error sending push notification: $e');
     }
@@ -282,11 +264,22 @@ class NotificationService extends ChangeNotifier {
   // Get notification settings
   Future<Map<String, dynamic>> getNotificationSettings() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/notifications/settings');
-      // return response['data'];
-      
-      // Mock data for now
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/notifications/settings'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+        throw Exception('Error en respuesta del servidor');
+      } else {
+        throw Exception('Error al obtener configuración: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 300));
       return {
         'push_notifications': true,
@@ -296,26 +289,35 @@ class NotificationService extends ChangeNotifier {
         'commission_notifications': true,
         'maintenance_notifications': true,
         'system_notifications': true,
+        'chat_notifications': true,
         'quiet_hours': {
-          'enabled': true,
+          'enabled': false,
           'start': '22:00',
           'end': '08:00',
         },
       };
-    } catch (e) {
-      throw Exception('Error fetching notification settings: $e');
     }
   }
 
   // Update notification settings
   Future<void> updateNotificationSettings(Map<String, dynamic> settings) async {
     try {
-      // TODO: Replace with real API call
-      // await _apiService.put('/notifications/settings', settings);
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 500));
-      // In a real implementation, this would update the user's settings
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/notifications/settings'),
+        headers: await AuthHelper.getAuthHeaders(),
+        body: jsonEncode(settings),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          notifyListeners();
+          return;
+        }
+        throw Exception('Error en respuesta del servidor');
+      } else {
+        throw Exception('Error al actualizar configuración: ${response.statusCode}');
+      }
     } catch (e) {
       throw Exception('Error updating notification settings: $e');
     }
@@ -433,11 +435,7 @@ class NotificationService extends ChangeNotifier {
 
       final response = await http.post(
         Uri.parse('$baseUrl/api/notifications'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
+        headers: await AuthHelper.getAuthHeaders(),
         body: jsonEncode({
           'title': title,
           'body': body,

@@ -37,7 +37,7 @@ class _CartPageState extends State<CartPage> {
     });
 
     try {
-      final cart = await _cartService.getCart();
+      final cart = await _cartService.fetchRemoteCart();
       setState(() {
         _cartItems = cart;
         _calculateTotals();
@@ -54,7 +54,7 @@ class _CartPageState extends State<CartPage> {
   }
 
   void _calculateTotals() {
-    _subtotal = _cartItems.fold(0.0, (sum, item) => sum + (item.price * item.quantity));
+    _subtotal = _cartItems.fold(0.0, (sum, item) => sum + ((item.precio ?? 0.0) * item.quantity));
     _deliveryFee = _subtotal > 0 ? 2.50 : 0.0; // Delivery fee
     _tax = _subtotal * 0.12; // 12% tax
     _total = _subtotal + _deliveryFee + _tax;
@@ -81,7 +81,7 @@ class _CartPageState extends State<CartPage> {
 
   Future<void> _removeItem(CartItem item) async {
     try {
-      await _cartService.removeFromCart(item.id);
+      await _cartService.removeFromRemoteCart(item.id);
       await _loadCart();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -101,7 +101,7 @@ class _CartPageState extends State<CartPage> {
 
   Future<void> _clearCart() async {
     try {
-      await _cartService.clearCart();
+      await _cartService.clearRemoteCart();
       await _loadCart();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -266,9 +266,9 @@ class _CartPageState extends State<CartPage> {
                       // Product Image
                       ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: item.product.image != null
+                        child: (item.imagen != null || item.image != null)
                             ? Image.network(
-                                item.product.image!,
+                                item.image ?? item.imagen ?? '',
                                 width: 80,
                                 height: 80,
                                 fit: BoxFit.cover,
@@ -295,7 +295,7 @@ class _CartPageState extends State<CartPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              item.product.name,
+                              item.nombre,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -303,7 +303,7 @@ class _CartPageState extends State<CartPage> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              '\$${item.price.toStringAsFixed(2)}',
+                              '\$${(item.precio ?? 0.0).toStringAsFixed(2)}',
                               style: const TextStyle(
                                 fontSize: 14,
                                 color: Colors.green,

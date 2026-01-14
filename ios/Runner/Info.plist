@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Esta app necesita acceso a tu ubicación para encontrar restaurantes cercanos y gestionar entregas.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Esta app necesita acceso continuo a tu ubicación para rastrear entregas en tiempo real.</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>Esta app necesita acceso continuo a tu ubicación para rastrear entregas en tiempo real.</string>
 </dict>
 </plist>

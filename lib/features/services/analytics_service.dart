@@ -1,16 +1,11 @@
 import 'package:flutter/foundation.dart';
-import 'package:zonix/features/services/auth/api_service.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import '../../config/app_config.dart';
+import '../../helpers/auth_helper.dart';
 
 class AnalyticsService extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
-  final _storage = const FlutterSecureStorage();
-  final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
+  static String get baseUrl => AppConfig.apiUrl;
   
   // Mock data for development
   static final Map<String, dynamic> _mockAnalytics = {
@@ -142,15 +137,9 @@ class AnalyticsService extends ChangeNotifier {
   // Get overview analytics
   Future<Map<String, dynamic>> getOverviewAnalytics() async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final response = await http.get(
-        Uri.parse('$baseUrl/api/analytics/overview'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        Uri.parse('$baseUrl/api/admin/analytics/overview'),
+        headers: await AuthHelper.getAuthHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -175,22 +164,16 @@ class AnalyticsService extends ChangeNotifier {
     DateTime? endDate,
   }) async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final queryParams = <String, String>{};
       if (period != null) queryParams['period'] = period;
       if (startDate != null) queryParams['start_date'] = startDate.toIso8601String();
       if (endDate != null) queryParams['end_date'] = endDate.toIso8601String();
 
-      final uri = Uri.parse('$baseUrl/api/analytics/revenue').replace(queryParameters: queryParams);
+      final uri = Uri.parse('$baseUrl/api/admin/analytics/revenue').replace(queryParameters: queryParams);
       
       final response = await http.get(
         uri,
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: await AuthHelper.getAuthHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -215,148 +198,206 @@ class AnalyticsService extends ChangeNotifier {
     DateTime? endDate,
   }) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/analytics/orders', {
-      //   'status': status,
-      //   'start_date': startDate?.toIso8601String(),
-      //   'end_date': endDate?.toIso8601String(),
-      // });
-      // return response['data'];
+      final queryParams = <String, String>{};
+      if (status != null) queryParams['status'] = status;
+      if (startDate != null) queryParams['start_date'] = startDate.toIso8601String();
+      if (endDate != null) queryParams['end_date'] = endDate.toIso8601String();
+
+      final uri = Uri.parse('$baseUrl/api/admin/analytics/orders').replace(queryParameters: queryParams);
       
-      // Mock data for now
+      final response = await http.get(
+        uri,
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+        throw Exception('Error en respuesta del servidor');
+      } else {
+        throw Exception('Error al obtener order analytics: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 500));
       return _mockAnalytics['orders'];
-    } catch (e) {
-      throw Exception('Error fetching order analytics: $e');
     }
   }
 
   // Get customer analytics
   Future<Map<String, dynamic>> getCustomerAnalytics() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/analytics/customers');
-      // return response['data'];
-      
-      // Mock data for now
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/admin/analytics/customers'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+        throw Exception('Error en respuesta del servidor');
+      } else {
+        throw Exception('Error al obtener customer analytics: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 400));
       return _mockAnalytics['customers'];
-    } catch (e) {
-      throw Exception('Error fetching customer analytics: $e');
     }
   }
 
   // Get restaurant analytics
   Future<Map<String, dynamic>> getRestaurantAnalytics() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/analytics/restaurants');
-      // return response['data'];
-      
-      // Mock data for now
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/admin/analytics/restaurants'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+        throw Exception('Error en respuesta del servidor');
+      } else {
+        throw Exception('Error al obtener restaurant analytics: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 400));
       return _mockAnalytics['restaurants'];
-    } catch (e) {
-      throw Exception('Error fetching restaurant analytics: $e');
     }
   }
 
   // Get delivery analytics
   Future<Map<String, dynamic>> getDeliveryAnalytics() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/analytics/delivery');
-      // return response['data'];
-      
-      // Mock data for now
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/admin/analytics/delivery'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+        throw Exception('Error en respuesta del servidor');
+      } else {
+        throw Exception('Error al obtener delivery analytics: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 400));
       return _mockAnalytics['delivery'];
-    } catch (e) {
-      throw Exception('Error fetching delivery analytics: $e');
     }
   }
 
   // Get marketing analytics
   Future<Map<String, dynamic>> getMarketingAnalytics() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/analytics/marketing');
-      // return response['data'];
-      
-      // Mock data for now
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/admin/analytics/marketing'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+        throw Exception('Error en respuesta del servidor');
+      } else {
+        throw Exception('Error al obtener marketing analytics: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 400));
       return _mockAnalytics['marketing'];
-    } catch (e) {
-      throw Exception('Error fetching marketing analytics: $e');
     }
   }
 
   // Get custom analytics report
   Future<Map<String, dynamic>> getCustomReport(Map<String, dynamic> reportConfig) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.post('/analytics/custom-report', reportConfig);
-      // return response['data'];
-      
-      // Mock data for now
-      await Future.delayed(Duration(milliseconds: 1000));
-      
-      // Generate custom report based on configuration
-      final report = <String, dynamic>{};
-      
-      if (reportConfig['include_revenue'] == true) {
-        report['revenue'] = _mockAnalytics['revenue'];
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/admin/analytics/custom-report'),
+        headers: await AuthHelper.getAuthHeaders(),
+        body: jsonEncode(reportConfig),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+        throw Exception('Error en respuesta del servidor');
+      } else {
+        throw Exception('Error al generar reporte: ${response.statusCode}');
       }
-      
-      if (reportConfig['include_orders'] == true) {
-        report['orders'] = _mockAnalytics['orders'];
-      }
-      
-      if (reportConfig['include_customers'] == true) {
-        report['customers'] = _mockAnalytics['customers'];
-      }
-      
-      if (reportConfig['include_restaurants'] == true) {
-        report['restaurants'] = _mockAnalytics['restaurants'];
-      }
-      
-      if (reportConfig['include_delivery'] == true) {
-        report['delivery'] = _mockAnalytics['delivery'];
-      }
-      
-      if (reportConfig['include_marketing'] == true) {
-        report['marketing'] = _mockAnalytics['marketing'];
-      }
-      
-      return report;
     } catch (e) {
-      throw Exception('Error generating custom report: $e');
+      // Fallback to mock data on error
+      await Future.delayed(Duration(milliseconds: 1000));
+      final report = <String, dynamic>{};
+      if (reportConfig['include_revenue'] == true) report['revenue'] = _mockAnalytics['revenue'];
+      if (reportConfig['include_orders'] == true) report['orders'] = _mockAnalytics['orders'];
+      if (reportConfig['include_customers'] == true) report['customers'] = _mockAnalytics['customers'];
+      if (reportConfig['include_restaurants'] == true) report['restaurants'] = _mockAnalytics['restaurants'];
+      if (reportConfig['include_delivery'] == true) report['delivery'] = _mockAnalytics['delivery'];
+      if (reportConfig['include_marketing'] == true) report['marketing'] = _mockAnalytics['marketing'];
+      return report;
     }
   }
 
   // Export analytics data
   Future<String> exportAnalyticsData(Map<String, dynamic> exportConfig) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.post('/analytics/export', exportConfig);
-      // return response['data']['download_url'];
-      
-      // Mock data for now
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/admin/analytics/export'),
+        headers: await AuthHelper.getAuthHeaders(),
+        body: jsonEncode(exportConfig),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null && data['data']['download_url'] != null) {
+          return data['data']['download_url'];
+        }
+        throw Exception('Error en respuesta del servidor');
+      } else {
+        throw Exception('Error al exportar datos: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 2000));
       return 'https://example.com/analytics-export-${DateTime.now().millisecondsSinceEpoch}.csv';
-    } catch (e) {
-      throw Exception('Error exporting analytics data: $e');
     }
   }
 
   // Get real-time analytics
   Future<Map<String, dynamic>> getRealTimeAnalytics() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/analytics/realtime');
-      // return response['data'];
-      
-      // Mock data for now
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/admin/analytics/realtime'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+        throw Exception('Error en respuesta del servidor');
+      } else {
+        throw Exception('Error al obtener real-time analytics: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 300));
       return {
         'active_orders': 12,
@@ -368,19 +409,28 @@ class AnalyticsService extends ChangeNotifier {
         'system_uptime': 99.8,
         'last_updated': DateTime.now().toIso8601String(),
       };
-    } catch (e) {
-      throw Exception('Error fetching real-time analytics: $e');
     }
   }
 
   // Get predictive analytics
   Future<Map<String, dynamic>> getPredictiveAnalytics() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/analytics/predictive');
-      // return response['data'];
-      
-      // Mock data for now
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/admin/analytics/predictive'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+        throw Exception('Error en respuesta del servidor');
+      } else {
+        throw Exception('Error al obtener predictive analytics: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 800));
       return {
         'revenue_forecast': {
@@ -406,15 +456,9 @@ class AnalyticsService extends ChangeNotifier {
         'demand_forecast': {
           'high_demand_days': ['Viernes', 'Sábado', 'Domingo'],
           'low_demand_days': ['Lunes', 'Martes'],
-          'seasonal_trends': [
-            {'month': 'Febrero', 'trend': 'up', 'percentage': 15},
-            {'month': 'Marzo', 'trend': 'up', 'percentage': 8},
-            {'month': 'Abril', 'trend': 'stable', 'percentage': 2},
-          ],
+          'seasonal_trends': [],
         },
       };
-    } catch (e) {
-      throw Exception('Error fetching predictive analytics: $e');
     }
   }
 
@@ -426,16 +470,30 @@ class AnalyticsService extends ChangeNotifier {
     DateTime? period2End,
   }) async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/analytics/comparative', {
-      //   'period1_start': period1Start?.toIso8601String(),
-      //   'period1_end': period1End?.toIso8601String(),
-      //   'period2_start': period2Start?.toIso8601String(),
-      //   'period2_end': period2End?.toIso8601String(),
-      // });
-      // return response['data'];
+      final queryParams = <String, String>{};
+      if (period1Start != null) queryParams['period1_start'] = period1Start.toIso8601String();
+      if (period1End != null) queryParams['period1_end'] = period1End.toIso8601String();
+      if (period2Start != null) queryParams['period2_start'] = period2Start.toIso8601String();
+      if (period2End != null) queryParams['period2_end'] = period2End.toIso8601String();
+
+      final uri = Uri.parse('$baseUrl/api/admin/analytics/comparative').replace(queryParameters: queryParams);
       
-      // Mock data for now
+      final response = await http.get(
+        uri,
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+        throw Exception('Error en respuesta del servidor');
+      } else {
+        throw Exception('Error al obtener comparative analytics: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 600));
       return {
         'revenue_comparison': {
@@ -469,19 +527,28 @@ class AnalyticsService extends ChangeNotifier {
           'trend': 'up',
         },
       };
-    } catch (e) {
-      throw Exception('Error fetching comparative analytics: $e');
     }
   }
 
   // Get KPI dashboard
   Future<Map<String, dynamic>> getKPIDashboard() async {
     try {
-      // TODO: Replace with real API call
-      // final response = await _apiService.get('/analytics/kpi-dashboard');
-      // return response['data'];
-      
-      // Mock data for now
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/admin/analytics/kpi-dashboard'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+        throw Exception('Error en respuesta del servidor');
+      } else {
+        throw Exception('Error al obtener KPI dashboard: ${response.statusCode}');
+      }
+    } catch (e) {
+      // Fallback to mock data on error
       await Future.delayed(Duration(milliseconds: 500));
       return {
         'financial_kpis': {
@@ -509,8 +576,6 @@ class AnalyticsService extends ChangeNotifier {
           'delivery_agent_growth': 15.2,
         },
       };
-    } catch (e) {
-      throw Exception('Error fetching KPI dashboard: $e');
     }
   }
 

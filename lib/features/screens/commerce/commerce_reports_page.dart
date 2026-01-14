@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/models/order.dart';
+import '../../../services/commerce_analytics_service.dart';
 
 class CommerceReportsPage extends StatefulWidget {
   const CommerceReportsPage({Key? key}) : super(key: key);
@@ -9,6 +10,7 @@ class CommerceReportsPage extends StatefulWidget {
 }
 
 class _CommerceReportsPageState extends State<CommerceReportsPage> {
+  final CommerceAnalyticsService _analyticsService = CommerceAnalyticsService();
   bool _isLoading = true;
   String _selectedPeriod = 'Hoy';
   final List<String> _periods = ['Hoy', 'Esta Semana', 'Este Mes', 'Este Año'];
@@ -30,33 +32,50 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
     });
 
     try {
-      // Simular carga de datos de reportes
-      await Future.delayed(const Duration(seconds: 1));
+      // Cargar datos reales desde la API
+      final overview = await _analyticsService.getOverview();
+      final products = await _analyticsService.getProducts();
+      final revenue = await _analyticsService.getRevenue();
+      
       if (!mounted) return;
+      
+      // Procesar datos de overview
+      final overviewData = Map<String, dynamic>.from(overview);
       setState(() {
         _salesData = {
-          'totalSales': 125000.0,
-          'totalOrders': 45,
-          'averageOrderValue': 2777.78,
-          'growthRate': 12.5,
-          'customerCount': 28,
-          'repeatCustomers': 15,
+          'totalSales': (overviewData['total_sales'] as num?)?.toDouble() ?? 0.0,
+          'totalOrders': overviewData['total_orders'] ?? 0,
+          'averageOrderValue': (overviewData['average_order_value'] as num?)?.toDouble() ?? 0.0,
+          'growthRate': (overviewData['growth_rate'] as num?)?.toDouble() ?? 0.0,
+          'customerCount': overviewData['customer_count'] ?? 0,
+          'repeatCustomers': overviewData['repeat_customers'] ?? 0,
         };
         
-        _topProducts = [
-          {'name': 'Hamburguesa Clásica', 'sales': 25000, 'quantity': 8},
-          {'name': 'Pizza Margherita', 'sales': 18000, 'quantity': 4},
-          {'name': 'Coca Cola', 'sales': 12000, 'quantity': 15},
-          {'name': 'Papas Fritas', 'sales': 9000, 'quantity': 6},
-          {'name': 'Tarta de Chocolate', 'sales': 6000, 'quantity': 5},
-        ];
+        // Procesar productos más vendidos
+        final productsData = Map<String, dynamic>.from(products);
+        final topProductsList = productsData['top_products'] as List? ?? [];
+        _topProducts = topProductsList.map((item) {
+          final product = Map<String, dynamic>.from(item);
+          return {
+            'name': product['name'] ?? 'Producto',
+            'sales': (product['revenue'] as num?)?.toDouble() ?? 0.0,
+            'quantity': product['sales'] ?? 0,
+          };
+        }).toList();
         
-        _salesByCategory = [
-          {'category': 'Comida', 'sales': 43000, 'percentage': 34.4},
-          {'category': 'Bebidas', 'sales': 20000, 'percentage': 16.0},
-          {'category': 'Snacks', 'sales': 9000, 'percentage': 7.2},
-          {'category': 'Postres', 'sales': 6000, 'percentage': 4.8},
-        ];
+        // Procesar ventas por categoría (si está disponible)
+        final revenueData = Map<String, dynamic>.from(revenue);
+        final byProduct = revenueData['by_product'] as List? ?? [];
+        _salesByCategory = byProduct.take(4).map((item) {
+          final product = Map<String, dynamic>.from(item);
+          final totalSales = _salesData['totalSales'] as double? ?? 1.0;
+          final productSales = (product['revenue'] as num?)?.toDouble() ?? 0.0;
+          return {
+            'category': product['name'] ?? 'Categoría',
+            'sales': productSales,
+            'percentage': totalSales > 0 ? (productSales / totalSales) * 100 : 0.0,
+          };
+        }).toList();
         
         _isLoading = false;
       });
@@ -69,6 +88,16 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
         SnackBar(content: Text('Error al cargar reportes: $e')),
       );
     }
+  }
+
+  String _buildRetentionRateText() {
+    final customerCount = _salesData['customerCount'] as num? ?? 0;
+    final repeatCustomers = _salesData['repeatCustomers'] as num? ?? 0;
+    if (customerCount > 0) {
+      final rate = (repeatCustomers / customerCount) * 100;
+      return 'Tasa de retención: ${rate.toStringAsFixed(1)}%';
+    }
+    return 'Tasa de retención: 0.0%';
   }
 
   Widget _buildMetricCard(String title, String value, IconData icon, Color color, String subtitle) {
@@ -341,22 +370,22 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
                 color: Colors.blue[50],
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Row(
-                children: [
-                  Icon(Icons.trending_up, color: Colors.blue),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Tasa de retención: ${((_salesData['repeatCustomers'] / _salesData['customerCount']) * 100).toStringAsFixed(1)}%',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                      overflow: TextOverflow.ellipsis,
+                    child: Row(
+                      children: [
+                        Icon(Icons.trending_up, color: Colors.blue),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _buildRetentionRateText(),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
             ),
           ],
         ),

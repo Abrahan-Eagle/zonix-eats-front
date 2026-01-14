@@ -11,17 +11,17 @@ alwaysApply: true
 **Estado:** ✅ MVP Completado - En desarrollo activo  
 **Archivos Dart:** 177 archivos (verificado)  
 **Líneas de código:** 58,987 líneas Dart en `lib/` (verificado)  
-**TODOs Pendientes:** 92 líneas con `TODO: Replace with real API call` en múltiples servicios:
+**TODOs Pendientes:** 68 líneas con `TODO: Replace with real API call` en múltiples servicios (excluyendo transport y affiliate del MVP):
   - commerce_service.dart: 12 TODOs
   - admin_service.dart: 13 TODOs
   - analytics_service.dart: 11 TODOs
-  - affiliate_service.dart: 10 TODOs
   - payment_service.dart: 9 TODOs
   - delivery_service.dart: 11 TODOs
-  - transport_service.dart: 13 TODOs
   - chat_service.dart: 9 TODOs
   - location_service.dart: 1 TODO
-  - notification_service.dart: 3 TODOs  
+  - notification_service.dart: 3 TODOs
+  - ~~affiliate_service.dart: 10 TODOs~~ (EXCLUIDO DEL MVP)
+  - ~~transport_service.dart: 13 TODOs~~ (EXCLUIDO DEL MVP)  
 **Última actualización:** Enero 2025
 
 ---
@@ -328,7 +328,7 @@ final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders');
 **NO hardcodear URLs:**
 ```dart
 // ❌ MAL
-final url = Uri.parse('http://192.168.0.101:8000/api/orders');
+final url = Uri.parse('http://192.168.27.12:8000/api/orders');
 
 // ✅ BIEN
 final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders');
@@ -423,14 +423,17 @@ websocketService.messageStream?.listen((message) {
 
 ## ROLES Y NAVEGACIÓN
 
-### Roles del Sistema
+### Roles del Sistema (MVP)
 
-- **users** (Nivel 0): Cliente/Comprador
-- **commerce** (Nivel 1): Comercio/Restaurante
-- **delivery** (Nivel 2): Repartidor/Delivery
-- **transport** (Nivel 3): Agencia de Transporte
-- **affiliate** (Nivel 4): Afiliado a Delivery
-- **admin** (Nivel 5): Administrador
+**Roles implementados y funcionales:**
+- **users** (Level 0): Cliente/Comprador ✅
+- **commerce** (Level 1): Comercio/Restaurante ✅
+- **delivery** (Level 2): Repartidor/Delivery ✅
+- **admin** (Level 3): Administrador ✅
+
+**Roles excluidos del MVP:**
+- ~~**transport**~~ - Logística de mercancías (funcionalidad futura)
+- ~~**affiliate**~~ - Sistema de referidos/comisiones (funcionalidad futura)
 
 ### Navegación por Niveles
 
@@ -464,17 +467,17 @@ if (_selectedLevel == 1) {
 ### 🔴 CRÍTICO - Acción Inmediata
 
 1. **Implementar TODOs en Múltiples Servicios (CRÍTICO)**
-   - **Total:** 92 líneas con `TODO: Replace with real API call` encontradas
+   - **Total:** 68 líneas con `TODO: Replace with real API call` encontradas (MVP)
    - `commerce_service.dart`: 12 TODOs
    - `admin_service.dart`: 13 TODOs
    - `analytics_service.dart`: 11 TODOs
-   - `affiliate_service.dart`: 10 TODOs
    - `payment_service.dart`: 9 TODOs
    - `delivery_service.dart`: 11 TODOs
-   - `transport_service.dart`: 13 TODOs
    - `chat_service.dart`: 9 TODOs
    - `location_service.dart`: 1 TODO
    - `notification_service.dart`: 3 TODOs
+   - ~~`affiliate_service.dart`: 10 TODOs~~ (EXCLUIDO DEL MVP)
+   - ~~`transport_service.dart`: 13 TODOs~~ (EXCLUIDO DEL MVP)
    - Actualmente usan datos mock
    - **Archivo:** `lib/features/services/commerce_service.dart`
    - **Líneas:** 237, 253, 268, 283, 299, 320, 341, 355, 370, 394, 430, 453
@@ -648,7 +651,7 @@ flutter test --coverage
 
 **Archivo `.env`:**
 ```env
-API_URL_LOCAL=http://192.168.0.101:8000
+API_URL_LOCAL=http://192.168.27.12:8000
 API_URL_PROD=https://zonix.uniblockweb.com
 ```
 
@@ -664,7 +667,7 @@ final apiUrl = dotenv.env['API_URL_LOCAL'] ?? 'http://localhost:8000';
 **Configuración centralizada:**
 ```dart
 class AppConfig {
-  static const String apiUrlLocal = 'http://192.168.0.101:8000';
+  static const String apiUrlLocal = 'http://192.168.27.12:8000';
   static const String apiUrlProd = 'https://zonix.uniblockweb.com';
   
   static String get apiUrl {

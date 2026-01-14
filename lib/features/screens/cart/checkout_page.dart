@@ -85,6 +85,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               nombre: item.nombre,
                               precio: item.precio,
                               quantity: item.quantity + 1,
+                              imagen: item.imagen,
+                              image: item.image,
                             ));
                           },
                         ),

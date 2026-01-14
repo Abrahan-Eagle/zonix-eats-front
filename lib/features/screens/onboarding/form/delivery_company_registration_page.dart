@@ -35,6 +35,7 @@ class _DeliveryCompanyRegistrationPageState extends State<DeliveryCompanyRegistr
   final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
+  final _ciController = TextEditingController();
   
   bool _isLoading = false;
   bool _activo = true;
@@ -94,6 +95,7 @@ class _DeliveryCompanyRegistrationPageState extends State<DeliveryCompanyRegistr
     _lastNameController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
+    _ciController.dispose();
     super.dispose();
   }
 
