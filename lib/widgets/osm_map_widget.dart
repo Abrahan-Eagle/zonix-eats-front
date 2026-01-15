@@ -27,9 +27,10 @@ class OsmMapWidget extends StatelessWidget {
       height: height ?? 300,
       width: width ?? double.infinity,
       child: FlutterMap(
+        mapController: MapController(),
         options: MapOptions(
-          center: center,
-          zoom: zoom,
+          initialCenter: center,
+          initialZoom: zoom,
           minZoom: 5.0,
           maxZoom: 18.0,
           onTap: onTap != null ? (tapPosition, point) => onTap!(point) : null,

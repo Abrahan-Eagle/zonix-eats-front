@@ -20,7 +20,7 @@ class ChatService extends ChangeNotifier {
       'order_id': 123,
       'participants': [
         {'id': 1, 'name': 'Juan Pérez', 'role': 'customer', 'avatar': 'assets/images/profile_photos/user1.jpg'},
-        {'id': 2, 'name': 'María García', 'role': 'delivery_agent', 'avatar': 'assets/images/profile_photos/user2.jpg'},
+        {'id': 2, 'name': 'María García', 'role': 'delivery', 'avatar': 'assets/images/profile_photos/user2.jpg'},
       ],
       'last_message': {
         'id': 15,
@@ -192,15 +192,9 @@ class ChatService extends ChangeNotifier {
   // Get conversations
   Future<List<Map<String, dynamic>>> getConversations() async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final response = await http.get(
         Uri.parse('$baseUrl/api/chat/conversations'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: await AuthHelper.getAuthHeaders(),
       );
 
       if (response.statusCode == 200) {

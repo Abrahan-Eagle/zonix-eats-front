@@ -30,6 +30,12 @@ class UserProvider with ChangeNotifier {
   int _userId = 0;
   String _userGoogleId = '';
   String _role = '';
+  
+  // Caché para evitar múltiples llamadas simultáneas
+  Future<Map<String, dynamic>>? _getUserDetailsFuture;
+  Map<String, dynamic>? _cachedUserDetails;
+  DateTime? _cacheTimestamp;
+  static const Duration _cacheDuration = Duration(minutes: 1); // Cache válido por 1 minuto
 
   // Getters para obtener la información del usuario
   bool get isAuthenticated => _isAuthenticated;
@@ -128,7 +134,35 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  Future<Map<String, dynamic>> getUserDetails() async {
+  Future<Map<String, dynamic>> getUserDetails({bool forceRefresh = false}) async {
+    // Si hay un request en progreso, devolver ese mismo Future para evitar múltiples llamadas
+    if (_getUserDetailsFuture != null && !forceRefresh) {
+      return _getUserDetailsFuture!;
+    }
+    
+    // Si hay caché válido y no se fuerza refresh, devolver caché
+    if (_cachedUserDetails != null && 
+        _cacheTimestamp != null && 
+        DateTime.now().difference(_cacheTimestamp!) < _cacheDuration &&
+        !forceRefresh) {
+      logger.i('Returning cached user details');
+      return _cachedUserDetails!;
+    }
+    
+    // Crear nuevo Future para la llamada
+    _getUserDetailsFuture = _fetchUserDetails();
+    
+    try {
+      final result = await _getUserDetailsFuture!;
+      _cachedUserDetails = result;
+      _cacheTimestamp = DateTime.now();
+      return result;
+    } finally {
+      _getUserDetailsFuture = null;
+    }
+  }
+  
+  Future<Map<String, dynamic>> _fetchUserDetails() async {
     try {
       final token = await _storage.read(key: 'token');
       if (token == null) {
@@ -137,7 +171,6 @@ class UserProvider with ChangeNotifier {
 
       logger.i('Retrieved token: $token');
       final response = await http.get(
-        // Uri.parse('${AppConfig.apiUrl}/api/auth/user'),
         Uri.parse('$baseUrl/api/auth/user'),
         headers: {
           'Authorization': 'Bearer $token',
@@ -173,12 +206,25 @@ class UserProvider with ChangeNotifier {
           'userId': _userId, 
           'userGoogleId': _userGoogleId
         };
+      } else if (response.statusCode == 429) {
+        // Rate limiting: esperar un poco y usar caché si está disponible
+        logger.w('Rate limit exceeded (429), using cache if available');
+        if (_cachedUserDetails != null) {
+          return _cachedUserDetails!;
+        }
+        logger.e('Error: ${response.statusCode} - Rate limit exceeded');
+        throw Exception('Demasiadas solicitudes. Por favor, espera un momento.');
       } else {
         logger.e('Error: ${response.statusCode} - ${response.body}');
         throw Exception('Error al obtener detalles del usuario');
       }
     } catch (e) {
       logger.e('Exception: $e');
+      // Si hay error y tenemos caché, devolver caché
+      if (_cachedUserDetails != null && !(e is Exception && e.toString().contains('Token no encontrado'))) {
+        logger.w('Error fetching user details, returning cached data');
+        return _cachedUserDetails!;
+      }
       rethrow;
     }
   }
@@ -239,6 +285,12 @@ class UserProvider with ChangeNotifier {
     _userPhotoUrl = '';
     _userId = 0;
     _userGoogleId = '';
+    _role = '';
+    
+    // Limpiar caché
+    _cachedUserDetails = null;
+    _cacheTimestamp = null;
+    _getUserDetailsFuture = null;
 
     // Limpia en el almacenamiento seguro
     await _storage.delete(key: 'profileCreated');

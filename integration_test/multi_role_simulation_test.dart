@@ -273,6 +273,8 @@ void main() {
       // Buscar carrito
       final cartIcon = find.byIcon(Icons.shopping_cart);
       final cartButton = find.textContaining('Carrito', findRichText: true);
+      final addToCartButtons = find.textContaining('Agregar', findRichText: true);
+      final hasAddToCartButtons = addToCartButtons.evaluate().isNotEmpty;
 
       if (cartIcon.evaluate().isNotEmpty || cartButton.evaluate().isNotEmpty || hasAddToCartButtons) {
         print('✅ Elementos de carrito encontrados');

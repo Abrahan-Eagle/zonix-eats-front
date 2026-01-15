@@ -16,7 +16,7 @@ class MockUserProvider extends UserProvider {
   String get userRole => role;
 
   @override
-  Future<Map<String, dynamic>> getUserDetails() async {
+  Future<Map<String, dynamic>> getUserDetails({bool forceRefresh = false}) async {
     return {
       'users': {
         'id': 1,

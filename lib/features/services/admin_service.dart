@@ -14,7 +14,7 @@ class AdminService extends ChangeNotifier {
       'name': 'Juan Pérez',
       'email': 'juan.perez@email.com',
       'phone': '+51 123 456 789',
-      'role': 'buyer',
+      'role': 'users',
       'level': 0,
       'status': 'active',
       'created_at': '2024-01-01',
@@ -215,9 +215,6 @@ class AdminService extends ChangeNotifier {
   // Get all users
   Future<List<Map<String, dynamic>>> getUsers({String? role, String? status}) async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final queryParams = <String, String>{};
       if (role != null) queryParams['role'] = role;
       if (status != null) queryParams['status'] = status;
@@ -366,7 +363,7 @@ class AdminService extends ChangeNotifier {
         'active_users': _mockUsers.where((u) => u['status'] == 'active').length,
         'suspended_users': _mockUsers.where((u) => u['status'] == 'suspended').length,
         'user_distribution': {
-          'buyers': _mockUsers.where((u) => u['role'] == 'buyer').length,
+          'users': _mockUsers.where((u) => u['role'] == 'users').length,
           'commerce': _mockUsers.where((u) => u['role'] == 'commerce').length,
           'delivery': _mockUsers.where((u) => u['role'] == 'delivery').length,
         },

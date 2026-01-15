@@ -7,7 +7,7 @@ import 'dart:convert';
 
 class UserProviderMock extends UserProvider {
   @override
-  Future<Map<String, dynamic>> getUserDetails() async {
+  Future<Map<String, dynamic>> getUserDetails({bool forceRefresh = false}) async {
     // Simula una respuesta exitosa de usuario
     return {
       'users': {
@@ -32,7 +32,7 @@ class UserProviderMock extends UserProvider {
 
 class CommerceUserProviderMock extends UserProvider {
   @override
-  Future<Map<String, dynamic>> getUserDetails() async {
+  Future<Map<String, dynamic>> getUserDetails({bool forceRefresh = false}) async {
     return {
       'users': {
         'id': 2,
@@ -55,7 +55,7 @@ class CommerceUserProviderMock extends UserProvider {
 
 class DeliveryUserProviderMock extends UserProvider {
   @override
-  Future<Map<String, dynamic>> getUserDetails() async {
+  Future<Map<String, dynamic>> getUserDetails({bool forceRefresh = false}) async {
     return {
       'users': {
         'id': 3,

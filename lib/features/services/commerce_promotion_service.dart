@@ -1,13 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 
 class CommercePromotionService {
-  static const FlutterSecureStorage _storage = FlutterSecureStorage();
   static String get baseUrl => AppConfig.apiUrl;
   static final Logger _logger = Logger();
 
@@ -67,18 +65,15 @@ class CommercePromotionService {
     String? sortBy,
     String? sortOrder,
   }) async {
-    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
+      final headers = await AuthHelper.getAuthHeaders();
       final queryParams = <String, String>{};
       if (status != null && status.isNotEmpty) queryParams['status'] = status;
       if (type != null && type.isNotEmpty) queryParams['type'] = type;
       if (sortBy != null) queryParams['sort_by'] = sortBy;
       if (sortOrder != null) queryParams['sort_order'] = sortOrder;
 
-      final uri = Uri.parse('${baseUrl}/commerce/promotions').replace(queryParameters: queryParams);
+      final uri = Uri.parse('$baseUrl/api/commerce/promotions').replace(queryParameters: queryParams);
       
       final response = await http.get(
         uri,
@@ -107,13 +102,10 @@ class CommercePromotionService {
 
   // Obtener una promoción específica
   static Future<Map<String, dynamic>> getPromotion(int id) async {
-    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
+      final headers = await AuthHelper.getAuthHeaders();
       final response = await http.get(
-        Uri.parse('$baseUrl/commerce/promotions/$id'),
+        Uri.parse('$baseUrl/api/commerce/promotions/$id'),
         headers: headers,
       );
 
@@ -130,14 +122,11 @@ class CommercePromotionService {
 
   // Crear nueva promoción
   static Future<Map<String, dynamic>> createPromotion(Map<String, dynamic> data, {File? imageFile}) async {
-    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
+      final headers = await AuthHelper.getAuthHeaders();
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('$baseUrl/commerce/promotions'),
+        Uri.parse('$baseUrl/api/commerce/promotions'),
       );
 
       request.headers.addAll(headers);
@@ -178,14 +167,11 @@ class CommercePromotionService {
 
   // Actualizar promoción
   static Future<Map<String, dynamic>> updatePromotion(int id, Map<String, dynamic> data, {File? imageFile}) async {
-    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
+      final headers = await AuthHelper.getAuthHeaders();
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('$baseUrl/commerce/promotions/$id'),
+        Uri.parse('$baseUrl/api/commerce/promotions/$id'),
       );
 
       request.headers.addAll(headers);
@@ -229,13 +215,10 @@ class CommercePromotionService {
 
   // Eliminar promoción
   static Future<void> deletePromotion(int id) async {
-    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
+      final headers = await AuthHelper.getAuthHeaders();
       final response = await http.delete(
-        Uri.parse('$baseUrl/commerce/promotions/$id'),
+        Uri.parse('$baseUrl/api/commerce/promotions/$id'),
         headers: headers,
       );
 
@@ -249,13 +232,10 @@ class CommercePromotionService {
 
   // Activar/desactivar promoción
   static Future<Map<String, dynamic>> togglePromotionStatus(int id) async {
-    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
+      final headers = await AuthHelper.getAuthHeaders();
       final response = await http.put(
-        Uri.parse('$baseUrl/commerce/promotions/$id/toggle'),
+        Uri.parse('$baseUrl/api/commerce/promotions/$id/toggle'),
         headers: headers,
       );
 
@@ -272,13 +252,10 @@ class CommercePromotionService {
 
   // Obtener estadísticas de promociones
   static Future<Map<String, dynamic>> getPromotionStats() async {
-    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
+      final headers = await AuthHelper.getAuthHeaders();
       final response = await http.get(
-        Uri.parse('$baseUrl/commerce/promotions/stats'),
+        Uri.parse('$baseUrl/api/commerce/promotions/stats'),
         headers: headers,
       );
 
@@ -321,4 +298,4 @@ class CommercePromotionService {
   static Future<List<Map<String, dynamic>>> getExpiringSoonPromotions() async {
     return getPromotions(status: 'expiring_soon');
   }
-} 
+}

@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'websocket_service.dart';
 import '../../config/app_config.dart';
@@ -12,7 +11,6 @@ class CommerceNotificationService {
   factory CommerceNotificationService() => _instance;
   CommerceNotificationService._internal();
 
-  static const FlutterSecureStorage _storage = FlutterSecureStorage();
   static String get baseUrl => AppConfig.apiUrl;
   final Logger _logger = Logger();
 
@@ -35,11 +33,8 @@ class CommerceNotificationService {
     String? sortOrder,
     int? perPage,
   }) async {
-    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
+      final headers = await AuthHelper.getAuthHeaders();
       final queryParams = <String, String>{};
       if (type != null && type.isNotEmpty) queryParams['type'] = type;
       if (read != null) queryParams['read'] = read.toString();
@@ -47,7 +42,7 @@ class CommerceNotificationService {
       if (sortOrder != null) queryParams['sort_order'] = sortOrder;
       if (perPage != null) queryParams['per_page'] = perPage.toString();
 
-      final uri = Uri.parse('$baseUrl/commerce/notifications').replace(queryParameters: queryParams);
+      final uri = Uri.parse('$baseUrl/api/commerce/notifications').replace(queryParameters: queryParams);
       
       final response = await http.get(
         uri,
@@ -107,13 +102,10 @@ class CommerceNotificationService {
 
   // Obtener una notificación específica
   Future<Map<String, dynamic>> getNotification(int id) async {
-    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
+      final headers = await AuthHelper.getAuthHeaders();
       final response = await http.get(
-        Uri.parse('$baseUrl/commerce/notifications/$id'),
+        Uri.parse('$baseUrl/api/commerce/notifications/$id'),
         headers: headers,
       );
 
@@ -131,13 +123,10 @@ class CommerceNotificationService {
 
   // Marcar notificación como leída
   Future<void> markAsRead(int id) async {
-    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
+      final headers = await AuthHelper.getAuthHeaders();
       final response = await http.post(
-        Uri.parse('$baseUrl/commerce/notifications/$id/read'),
+        Uri.parse('$baseUrl/api/commerce/notifications/$id/read'),
         headers: headers,
       );
 
@@ -159,13 +148,10 @@ class CommerceNotificationService {
 
   // Marcar todas las notificaciones como leídas
   Future<void> markAllAsRead() async {
-    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
+      final headers = await AuthHelper.getAuthHeaders();
       final response = await http.post(
-        Uri.parse('$baseUrl/commerce/notifications/mark-all-read'),
+        Uri.parse('$baseUrl/api/commerce/notifications/mark-all-read'),
         headers: headers,
       );
 
@@ -186,13 +172,10 @@ class CommerceNotificationService {
 
   // Eliminar notificación
   Future<void> deleteNotification(int id) async {
-    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
+      final headers = await AuthHelper.getAuthHeaders();
       final response = await http.delete(
-        Uri.parse('$baseUrl/commerce/notifications/$id'),
+        Uri.parse('$baseUrl/api/commerce/notifications/$id'),
         headers: headers,
       );
 
@@ -211,13 +194,10 @@ class CommerceNotificationService {
 
   // Obtener estadísticas de notificaciones
   Future<Map<String, dynamic>> getNotificationStats() async {
-    final headers = await AuthHelper.getAuthHeaders();
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
+      final headers = await AuthHelper.getAuthHeaders();
       final response = await http.get(
-        Uri.parse('$baseUrl/commerce/notifications/stats'),
+        Uri.parse('$baseUrl/api/commerce/notifications/stats'),
         headers: headers,
       );
 

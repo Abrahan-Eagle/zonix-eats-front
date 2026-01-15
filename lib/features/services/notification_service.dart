@@ -112,15 +112,9 @@ class NotificationService extends ChangeNotifier {
   // Mark notification as read
   Future<void> markAsRead(int notificationId) async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final response = await http.post(
         Uri.parse('$baseUrl/api/notifications/$notificationId/read'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: await AuthHelper.getAuthHeaders(),
       );
 
       if (response.statusCode != 200) {
@@ -179,15 +173,9 @@ class NotificationService extends ChangeNotifier {
   // Get notification count
   Future<Map<String, dynamic>> getNotificationCount() async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final response = await http.get(
         Uri.parse('$baseUrl/api/notifications/count'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: await AuthHelper.getAuthHeaders(),
       );
 
       if (response.statusCode == 200) {
@@ -430,9 +418,6 @@ class NotificationService extends ChangeNotifier {
     Map<String, dynamic>? data,
   }) async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
       final response = await http.post(
         Uri.parse('$baseUrl/api/notifications'),
         headers: await AuthHelper.getAuthHeaders(),

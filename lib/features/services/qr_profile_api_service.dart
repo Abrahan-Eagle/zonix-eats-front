@@ -1,13 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../helpers/auth_helper.dart';
 import '../../config/app_config.dart';
 
 final logger = Logger();
-const FlutterSecureStorage _storage = FlutterSecureStorage(); // Inicializa _storage
 final String baseUrl = const bool.fromEnvironment('dart.vm.product')
       ? dotenv.env['API_URL_PROD']!
       : dotenv.env['API_URL_LOCAL']!;
@@ -17,34 +15,51 @@ final String baseUrl = const bool.fromEnvironment('dart.vm.product')
 class QrProfileApiService {
 
 Future<String?> sendUserIdToBackend(int userId) async {
-  logger.e('User ID enviado al backend: $userId');
-  logger.e('Base URL: $baseUrl');
+  logger.i('User ID enviado al backend: $userId');
+  logger.i('Base URL: $baseUrl');
 
-  final token = await _storage.read(key: 'token');
   try {
+    final headers = await AuthHelper.getAuthHeaders();
+    // Verificar primero si el endpoint existe, si no, usar un endpoint alternativo
     final response = await http.get(
-      Uri.parse('$baseUrl/api/qr-profile/$userId'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
+      Uri.parse('$baseUrl/api/profiles/$userId/qr'),
+      headers: headers,
+    ).timeout(
+      const Duration(seconds: 10),
+      onTimeout: () {
+        throw Exception('Timeout al obtener perfil QR');
       },
     );
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      if (data != null && data.containsKey('profileId')) {
-        // Convertimos a String antes de devolver
-        return data['profileId'].toString();
+      if (data != null) {
+        // Intentar diferentes formatos de respuesta
+        if (data.containsKey('profileId')) {
+          return data['profileId'].toString();
+        } else if (data.containsKey('data') && data['data'] is Map && data['data'].containsKey('profileId')) {
+          return data['data']['profileId'].toString();
+        } else if (data.containsKey('id')) {
+          return data['id'].toString();
+        } else {
+          logger.w('Respuesta inesperada del backend: ${response.body}');
+          return null;
+        }
       } else {
-        logger.e('Respuesta inesperada del backend: ${response.body}');
+        logger.w('Respuesta vacía del backend');
         return null;
       }
+    } else if (response.statusCode == 404) {
+      // Endpoint no existe, retornar null sin error crítico
+      logger.w('Endpoint QR profile no disponible (404)');
+      return null;
     } else {
-      logger.e('Error al enviar ID de usuario al backend: ${response.statusCode}');
+      logger.w('Error al enviar ID de usuario al backend: ${response.statusCode}');
       return null;
     }
   } catch (e) {
-    logger.e('Error de solicitud HTTP: $e');
+    // No lanzar error crítico, solo loggear
+    logger.w('Error de solicitud HTTP: $e');
     return null;
   }
 }

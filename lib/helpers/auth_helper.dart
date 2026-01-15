@@ -1,7 +1,7 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class AuthHelper {
-  static final storage = const FlutterSecureStorage();
+  static const storage = FlutterSecureStorage();
   
   static Future<Map<String, String>> getAuthHeaders() async {
     try {
@@ -18,7 +18,15 @@ class AuthHelper {
         'Content-Type': 'application/json',
       };
     } catch (e) {
-      throw Exception('Error al obtener headers de autenticación: $e');
+      // Si hay error de encriptación (BAD_DECRYPT), limpiar almacenamiento
+      if (e.toString().contains('BAD_DECRYPT') || e.toString().contains('BadPaddingException')) {
+        try {
+          await storage.deleteAll();
+        } catch (_) {
+          // Ignorar errores al limpiar
+        }
+      }
+      rethrow;
     }
   }
 
@@ -26,6 +34,14 @@ class AuthHelper {
     try {
       return await storage.read(key: 'token');
     } catch (e) {
+      // Si hay error de encriptación (BAD_DECRYPT), limpiar almacenamiento
+      if (e.toString().contains('BAD_DECRYPT') || e.toString().contains('BadPaddingException')) {
+        try {
+          await storage.deleteAll();
+        } catch (_) {
+          // Ignorar errores al limpiar
+        }
+      }
       return null;
     }
   }

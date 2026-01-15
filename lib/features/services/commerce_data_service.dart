@@ -1,13 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logger/logger.dart';
 import '../../helpers/auth_helper.dart';
 import '../../config/app_config.dart';
 
 class CommerceDataService {
-  static const FlutterSecureStorage _storage = FlutterSecureStorage();
   static String get baseUrl => AppConfig.apiUrl;
   static final Logger _logger = Logger();
 
@@ -28,12 +26,8 @@ class CommerceDataService {
 
   // Obtener datos del comercio
   static Future<Map<String, dynamic>> getCommerceData() async {
-    final headers = await AuthHelper.getAuthHeaders();
-
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
+      final headers = await AuthHelper.getAuthHeaders();
       final response = await http.get(
         Uri.parse('$baseUrl/api/buyer/profiles'),
         headers: headers,
@@ -198,10 +192,7 @@ class CommerceDataService {
   // Subir imagen del comercio
   static Future<String> uploadCommerceImage(String imagePath) async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) throw Exception('Token no encontrado');
-
-      // TODO: Implementar subida de imagen
+      // TODO: Implementar subida de imagen usando AuthHelper.getAuthHeaders()
       // Por ahora retornamos una imagen local
       await Future.delayed(const Duration(seconds: 1));
       return 'assets/default_avatar.png';

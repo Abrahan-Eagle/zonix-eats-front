@@ -41,8 +41,6 @@ import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/features/screens/orders/commerce_orders_page.dart';
 import 'package:zonix/features/services/commerce_service.dart';
 import 'package:zonix/features/services/delivery_service.dart';
-import 'package:zonix/features/services/transport_service.dart';
-import 'package:zonix/features/services/affiliate_service.dart';
 import 'package:zonix/features/services/admin_service.dart';
 import 'package:zonix/features/services/notification_service.dart';
 import 'package:zonix/features/services/location_service.dart';
@@ -56,14 +54,6 @@ import 'package:zonix/features/screens/delivery/delivery_orders_page.dart';
 import 'package:zonix/features/screens/delivery/delivery_history_page.dart';
 import 'package:zonix/features/screens/delivery/delivery_routes_page.dart';
 import 'package:zonix/features/screens/delivery/delivery_earnings_page.dart';
-import 'package:zonix/features/screens/transport/transport_fleet_page.dart';
-import 'package:zonix/features/screens/transport/transport_orders_page.dart';
-import 'package:zonix/features/screens/transport/transport_analytics_page.dart';
-import 'package:zonix/features/screens/transport/transport_settings_page.dart';
-import 'package:zonix/features/screens/affiliate/affiliate_dashboard_page.dart';
-import 'package:zonix/features/screens/affiliate/affiliate_commissions_page.dart';
-import 'package:zonix/features/screens/affiliate/affiliate_support_page.dart';
-import 'package:zonix/features/screens/affiliate/affiliate_statistics_page.dart';
 import 'package:zonix/features/screens/admin/admin_dashboard_page.dart';
 import 'package:zonix/features/screens/admin/admin_users_page.dart';
 import 'package:zonix/features/screens/admin/admin_security_page.dart';
@@ -78,13 +68,11 @@ import 'package:zonix/features/screens/commerce/commerce_profile_page.dart';
 /*
  * ZONIX EATS - Aplicación Multi-Rol
  * 
- * Niveles de usuario:
- * 0 - Comprador: Productos, Carrito, Mis Órdenes, Restaurantes
- * 1 - Tiendas/Comercio: Dashboard, Inventario, Órdenes, Reportes
- * 2 - Delivery: Entregas, Historial, Rutas, Ganancias
- * 3 - Agencia de Transporte: Flota, Conductores, Rutas, Métricas
- * 4 - Afiliado a Delivery: Afiliaciones, Comisiones, Soporte, Estadísticas
- * 5 - Administrador: Panel Admin, Usuarios, Seguridad, Sistema
+ * Niveles de usuario (según roles):
+ * 0 - Comprador (users): Productos, Carrito, Mis Órdenes, Restaurantes
+ * 1 - Tiendas/Comercio (commerce): Dashboard, Inventario, Órdenes, Reportes
+ * 2 - Delivery (delivery): Entregas, Historial, Rutas, Ganancias
+ * 3 - Administrador (admin): Panel Admin, Usuarios, Seguridad, Sistema
  */
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
@@ -130,8 +118,6 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => OrderService()),
         ChangeNotifierProvider(create: (_) => CommerceService()),
         ChangeNotifierProvider(create: (_) => DeliveryService()),
-        ChangeNotifierProvider(create: (_) => TransportService()),
-        ChangeNotifierProvider(create: (_) => AffiliateService()),
         ChangeNotifierProvider(create: (_) => AdminService()),
         ChangeNotifierProvider(create: (_) => NotificationService()),
         ChangeNotifierProvider(create: (_) => LocationService()),
@@ -293,7 +279,16 @@ class MainRouterState extends State<MainRouter> {
   Future<void> _loadLastPosition() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      _selectedLevel = prefs.getInt('selectedLevel') ?? 0;
+      int savedLevel = prefs.getInt('selectedLevel') ?? 0;
+      // Validar que el nivel guardado sea válido (0-3)
+      // Si es 4 o 5 (niveles eliminados), convertir a 3 (admin)
+      if (savedLevel == 4 || savedLevel == 5) {
+        _selectedLevel = 3; // Admin
+      } else if (savedLevel > 3) {
+        _selectedLevel = 0; // Default a comprador
+      } else {
+        _selectedLevel = savedLevel;
+      }
       _bottomNavIndex = prefs.getInt('bottomNavIndex') ?? 0;
       logger.i(
         'Loaded last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex',
@@ -375,47 +370,7 @@ class MainRouterState extends State<MainRouter> {
           ),
         ];
         break;
-      case 3: // Agencia de Transporte
-        items = [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.local_shipping),
-            label: 'Flota',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.assignment),
-            label: 'Pedidos',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.analytics),
-            label: 'Analíticas',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Configuración',
-          ),
-        ];
-        break;
-      case 4: // Afiliado a Delivery
-        items = [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.percent),
-            label: 'Comisiones',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.support_agent),
-            label: 'Soporte',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.analytics),
-            label: 'Estadísticas',
-          ),
-        ];
-        break;
-      case 5: // Administrador
+      case 3: // Administrador
         items = [
           const BottomNavigationBarItem(
             icon: Icon(Icons.admin_panel_settings),
@@ -456,24 +411,6 @@ class MainRouterState extends State<MainRouter> {
       ),
     );
 
-    // // Agregar elementos específicos según el rol si el nivel es 0
-    // if (level == 0) {
-    //   if (role == 'sales_admin') { 
-    //     items.insert( 2, const BottomNavigationBarItem( icon: Icon(Icons.qr_code), label: 'Verificar', ),);
-       
-    //     items.insert( 3, const BottomNavigationBarItem( icon: Icon(Icons.check_circle), label: 'Aprobar', ),);
-    //   }
-
-    //   if (role == 'dispatcher') {
-    //     items.insert(
-    //       2,
-    //       const BottomNavigationBarItem(
-    //         icon: Icon(Icons.workspace_premium),
-    //         label: 'Despachar',
-    //       ),
-    //     );
-    //   }
-    // }
 
     // Devolver los items y el contador
     return items;
@@ -673,13 +610,6 @@ class MainRouterState extends State<MainRouter> {
                 final role = userProvider.userRole;
                 logger.i('Role fetched: $role');
 
-                // if (_selectedLevel == 0) {
-                //   if (_bottomNavIndex == 0) return const HelpAndFAQPage();
-                //   if (_bottomNavIndex == 1) return const HelpAndFAQPage();
-                //   if (_bottomNavIndex == 2 && role == 'sales_admin') return const TicketScannerScreen();
-                //   if (_bottomNavIndex == 3 && role == 'sales_admin') return const CheckScannerScreen();
-                //   if (_bottomNavIndex == 2 && role == 'dispatcher') return const DispatcherScreen();
-                // }
 
                 // Nivel 0: Comprador
                 if (_selectedLevel == 0) {
@@ -729,40 +659,8 @@ class MainRouterState extends State<MainRouter> {
                   }
                 }
 
-                // Nivel 3: Agencia de Transporte
+                // Nivel 3: Administrador
                 if (_selectedLevel == 3) {
-                  switch (_bottomNavIndex) {
-                    case 0:
-                      return TransportFleetPage(); // Flota
-                    case 1:
-                      return const TransportOrdersPage(); // Gestión de Pedidos
-                    case 2:
-                      return const TransportAnalyticsPage(); // Analíticas
-                    case 3:
-                      return const TransportSettingsPage(); // Configuración
-                    default:
-                      return TransportFleetPage();
-                  }
-                }
-
-                // Nivel 4: Afiliado a Delivery
-                if (_selectedLevel == 4) {
-                  switch (_bottomNavIndex) {
-                    case 0:
-                      return AffiliateDashboardPage(); // Dashboard
-                    case 1:
-                      return const AffiliateCommissionsPage(); // Comisiones
-                    case 2:
-                      return const AffiliateSupportPage(); // Soporte
-                    case 3:
-                      return const AffiliateStatisticsPage(); // Estadísticas
-                    default:
-                      return AffiliateDashboardPage();
-                  }
-                }
-
-                // Nivel 5: Administrador
-                if (_selectedLevel == 5) {
                   switch (_bottomNavIndex) {
                     case 0:
                       return AdminDashboardPage(); // Panel Admin
@@ -794,9 +692,7 @@ class MainRouterState extends State<MainRouter> {
           _createLevelButton(0, Icons.shopping_bag, 'Comprador'),
           _createLevelButton(1, Icons.storefront, 'Tiendas'),
           _createLevelButton(2, Icons.delivery_dining, 'Delivery'),
-          _createLevelButton(3, Icons.local_shipping, 'Agencia de Transporte'),
-          _createLevelButton(4, Icons.handshake, 'Afiliado a Delivery'),
-          _createLevelButton(5, Icons.admin_panel_settings, 'Administrador'),
+          _createLevelButton(3, Icons.admin_panel_settings, 'Administrador'),
         ],
       ),
 

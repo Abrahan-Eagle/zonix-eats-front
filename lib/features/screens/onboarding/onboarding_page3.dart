@@ -75,11 +75,11 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
                     
                     SizedBox(height: screenHeight * 0.04),
                     
-                    // Role cards - Solo buyer y commerce
+                    // Role cards - Solo users (comprador) y commerce (comerciante)
                     Column(
                       children: [
                         _buildRoleCard(
-                          role: 'buyer',
+                          role: 'users',
                           title: 'Cliente',
                           subtitle: 'Ordena tu comida favorita',
                           icon: Icons.person,
@@ -125,8 +125,8 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
                         ),
                         child: ElevatedButton(
                           onPressed: () {
-                            if (selectedRole == 'buyer') {
-                              // Registra automáticamente como buyer y continúa al siguiente onboarding
+                            if (selectedRole == 'users') {
+                              // Registra automáticamente como users (comprador) y continúa al siguiente onboarding
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -145,7 +145,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
                             ),
                           ),
                           child: Text(
-                            selectedRole == 'buyer' 
+                            selectedRole == 'users' 
                               ? 'Continuar como Cliente' 
                               : 'Continuar como ${_getRoleTitle(selectedRole!)}',
                             style: TextStyle(
@@ -283,7 +283,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
 
   String _getRoleTitle(String role) {
     switch (role) {
-      case 'buyer':
+      case 'users':
         return 'Cliente';
       case 'commerce':
         return 'Restaurante';

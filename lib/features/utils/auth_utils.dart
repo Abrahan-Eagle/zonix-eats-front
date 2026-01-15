@@ -8,18 +8,29 @@ final ApiService _apiService = ApiService();
 class AuthUtils {
   // Método para verificar si el usuario está autenticado
   static Future<bool> isAuthenticated() async {
-    final token = await getToken();
-    final expiryDateStr = await getExpiryDate();
+    try {
+      final token = await getToken();
+      final expiryDateStr = await getExpiryDate();
 
-    if (token != null && expiryDateStr != null) {
-      final expiryDate = DateTime.parse(expiryDateStr);
-      if (DateTime.now().isBefore(expiryDate)) {
-        return true; // El token es válido
-      } else {
-        await _storage.deleteAll(); // Eliminar token si ha expirado
+      if (token != null && expiryDateStr != null) {
+        final expiryDate = DateTime.parse(expiryDateStr);
+        if (DateTime.now().isBefore(expiryDate)) {
+          return true; // El token es válido
+        } else {
+          await _storage.deleteAll(); // Eliminar token si ha expirado
+        }
       }
+      return false; // No hay token o ha expirado
+    } catch (e) {
+      // Si hay error de encriptación (almacenamiento corrupto), limpiar y retornar false
+      logger.w('Error verificando autenticación, limpiando almacenamiento: $e');
+      try {
+        await _storage.deleteAll();
+      } catch (_) {
+        // Ignorar errores al limpiar
+      }
+      return false;
     }
-    return false; // No hay token o ha expirado
   }
 
   // Método para guardar el token y la fecha de expiración
@@ -31,12 +42,33 @@ class AuthUtils {
 
   // Método para obtener el token
   static Future<String?> getToken() async {
-    return await _storage.read(key: 'token');
+    try {
+      return await _storage.read(key: 'token');
+    } catch (e) {
+      // Si hay error de encriptación (BAD_DECRYPT), el almacenamiento está corrupto
+      if (e.toString().contains('BAD_DECRYPT') || e.toString().contains('BadPaddingException')) {
+        logger.w('Almacenamiento seguro corrupto, limpiando: $e');
+        try {
+          await _storage.deleteAll();
+        } catch (_) {
+          // Ignorar errores al limpiar
+        }
+      }
+      return null;
+    }
   }
 
   // Método para obtener la fecha de expiración
   static Future<String?> getExpiryDate() async {
-    return await _storage.read(key: 'expiryDate');
+    try {
+      return await _storage.read(key: 'expiryDate');
+    } catch (e) {
+      // Si hay error de encriptación, retornar null
+      if (e.toString().contains('BAD_DECRYPT') || e.toString().contains('BadPaddingException')) {
+        logger.w('Error leyendo fecha de expiración: $e');
+      }
+      return null;
+    }
   }
 
   // Método para eliminar todos los tokens
@@ -75,17 +107,37 @@ class AuthUtils {
 
   // Método para obtener el userId como int
   static Future<int?> getUserId() async {
-    final userIdStr = await _storage.read(key: 'userId');
-    if (userIdStr != null) {
-      return int.tryParse(userIdStr); // Convertir a int
+    try {
+      final userIdStr = await _storage.read(key: 'userId');
+      if (userIdStr != null) {
+        return int.tryParse(userIdStr); // Convertir a int
+      }
+      return null; // Retorna null si no se encuentra o no es un número válido
+    } catch (e) {
+      if (e.toString().contains('BAD_DECRYPT') || e.toString().contains('BadPaddingException')) {
+        logger.w('Error leyendo userId: $e');
+        try {
+          await _storage.deleteAll();
+        } catch (_) {}
+      }
+      return null;
     }
-    return null; // Retorna null si no se encuentra o no es un número válido
   }
 
 
 
   static Future<String?> getUserGoogleId() async {
-    return await _storage.read(key: 'userGoogleId');
+    try {
+      return await _storage.read(key: 'userGoogleId');
+    } catch (e) {
+      if (e.toString().contains('BAD_DECRYPT') || e.toString().contains('BadPaddingException')) {
+        logger.w('Error leyendo userGoogleId: $e');
+        try {
+          await _storage.deleteAll();
+        } catch (_) {}
+      }
+      return null;
+    }
   }
 
   
@@ -100,7 +152,17 @@ class AuthUtils {
   }
 
   static Future<String?> getUserName() async {
-    return await _storage.read(key: 'userName');
+    try {
+      return await _storage.read(key: 'userName');
+    } catch (e) {
+      if (e.toString().contains('BAD_DECRYPT') || e.toString().contains('BadPaddingException')) {
+        logger.w('Error leyendo userName: $e');
+        try {
+          await _storage.deleteAll();
+        } catch (_) {}
+      }
+      return null;
+    }
   }
 
   // Métodos para guardar y obtener el correo electrónico del usuario
@@ -109,7 +171,17 @@ class AuthUtils {
   }
 
   static Future<String?> getUserEmail() async {
-    return await _storage.read(key: 'userEmail');
+    try {
+      return await _storage.read(key: 'userEmail');
+    } catch (e) {
+      if (e.toString().contains('BAD_DECRYPT') || e.toString().contains('BadPaddingException')) {
+        logger.w('Error leyendo userEmail: $e');
+        try {
+          await _storage.deleteAll();
+        } catch (_) {}
+      }
+      return null;
+    }
   }
 
   // Métodos para guardar y obtener la URL de la foto del usuario
@@ -124,11 +196,31 @@ class AuthUtils {
   }
 
   static Future<String?> getUserPhotoUrl() async {
-    return await _storage.read(key: 'userPhotoUrl');
+    try {
+      return await _storage.read(key: 'userPhotoUrl');
+    } catch (e) {
+      if (e.toString().contains('BAD_DECRYPT') || e.toString().contains('BadPaddingException')) {
+        logger.w('Error leyendo userPhotoUrl: $e');
+        try {
+          await _storage.deleteAll();
+        } catch (_) {}
+      }
+      return null;
+    }
   }
 
   static Future<String?> getUserRole() async {
-    return await _storage.read(key: 'role');
+    try {
+      return await _storage.read(key: 'role');
+    } catch (e) {
+      if (e.toString().contains('BAD_DECRYPT') || e.toString().contains('BadPaddingException')) {
+        logger.w('Error leyendo role: $e');
+        try {
+          await _storage.deleteAll();
+        } catch (_) {}
+      }
+      return null;
+    }
   }
 }
 

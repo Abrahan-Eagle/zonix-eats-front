@@ -145,13 +145,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             Row(
               children: [
                 Expanded(
-                  child: _buildHealthMetric('Uptime', _systemHealth!['uptime'], Icons.timer),
+                  child: _buildHealthMetric('Uptime', _systemHealth!['uptime']?.toString() ?? 'N/A', Icons.timer),
                 ),
                 Expanded(
-                  child: _buildHealthMetric('Respuesta', _systemHealth!['response_time'], Icons.speed),
+                  child: _buildHealthMetric('Respuesta', _systemHealth!['response_time']?.toString() ?? 'N/A', Icons.speed),
                 ),
                 Expanded(
-                  child: _buildHealthMetric('Conexiones', _systemHealth!['active_connections'].toString(), Icons.people),
+                  child: _buildHealthMetric('Conexiones', _systemHealth!['active_connections']?.toString() ?? '0', Icons.people),
                 ),
               ],
             ),
@@ -159,15 +159,15 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             Row(
               children: [
                 Expanded(
-                  child: _buildResourceUsage('CPU', _systemHealth!['cpu_usage'], Colors.blue),
+                  child: _buildResourceUsage('CPU', _systemHealth!['cpu_usage']?.toString() ?? '0%', Colors.blue),
                 ),
                 SizedBox(width: 16),
                 Expanded(
-                  child: _buildResourceUsage('Memoria', _systemHealth!['memory_usage'], Colors.green),
+                  child: _buildResourceUsage('Memoria', _systemHealth!['memory_usage']?.toString() ?? '0%', Colors.green),
                 ),
                 SizedBox(width: 16),
                 Expanded(
-                  child: _buildResourceUsage('Disco', _systemHealth!['disk_usage'], Colors.orange),
+                  child: _buildResourceUsage('Disco', _systemHealth!['disk_usage']?.toString() ?? '0%', Colors.orange),
                 ),
               ],
             ),

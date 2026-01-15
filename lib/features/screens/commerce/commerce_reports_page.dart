@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/models/order.dart';
-import '../../../services/commerce_analytics_service.dart';
+import 'package:zonix/features/services/commerce_analytics_service.dart';
 
 class CommerceReportsPage extends StatefulWidget {
   const CommerceReportsPage({Key? key}) : super(key: key);

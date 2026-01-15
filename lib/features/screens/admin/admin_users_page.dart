@@ -395,11 +395,9 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                 border: OutlineInputBorder(),
               ),
               items: const [
-                DropdownMenuItem(value: 'buyer', child: Text('Comprador')),
+                DropdownMenuItem(value: 'users', child: Text('Comprador')),
                 DropdownMenuItem(value: 'commerce', child: Text('Comercio')),
                 DropdownMenuItem(value: 'delivery', child: Text('Delivery')),
-                DropdownMenuItem(value: 'transport', child: Text('Transporte')),
-                DropdownMenuItem(value: 'affiliate', child: Text('Afiliado')),
                 DropdownMenuItem(value: 'admin', child: Text('Administrador')),
               ],
               onChanged: (value) {},

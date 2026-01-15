@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import '../../../services/commerce_product_service.dart';
-import '../../../services/commerce_order_service.dart';
-import '../../../models/commerce_product.dart';
-import '../../../models/commerce_order.dart';
+import 'package:zonix/features/services/commerce_product_service.dart';
+import 'package:zonix/features/services/commerce_order_service.dart';
+import 'package:zonix/models/commerce_product.dart';
+import 'package:zonix/models/commerce_order.dart';
 import 'package:zonix/features/services/notification_service.dart';
-import '../../../services/commerce_profile_service.dart';
+import 'package:zonix/services/commerce_profile_service.dart';
 import 'package:zonix/features/services/websocket_service.dart';
 import 'dart:async';
-import '../../../models/commerce_profile.dart';
+import 'package:zonix/models/commerce_profile.dart';
 
 class CommerceDashboardPage extends StatefulWidget {
   final CommerceProfile? initialProfile;
@@ -87,8 +87,8 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
       _error = null;
     });
     try {
-      final products = await _productService.fetchProducts();
-      final orders = await _orderService.fetchOrders();
+      final products = await CommerceProductService.getProducts();
+      final orders = await CommerceOrderService.getOrders();
       final profile = await _profileService.fetchProfile();
       if (!mounted) return;
       setState(() {

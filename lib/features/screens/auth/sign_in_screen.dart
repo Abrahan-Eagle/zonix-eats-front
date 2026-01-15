@@ -70,15 +70,21 @@ class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixi
   }
 
   Future<void> _checkAuthentication() async {
-    isAuthenticated = await AuthUtils.isAuthenticated();
-    if (isAuthenticated) {
-      _currentUser = await GoogleSignInService.getCurrentUser();
-      if (_currentUser != null) {
-        logger.i('Foto de usuario: ${_currentUser!.photoUrl}');
-        await _storage.write(key: 'userPhotoUrl', value: _currentUser!.photoUrl);
-        logger.i('Nombre de usuario: ${_currentUser!.displayName}');
-        await _storage.write(key: 'displayName', value: _currentUser!.displayName);
+    try {
+      isAuthenticated = await AuthUtils.isAuthenticated();
+      if (isAuthenticated) {
+        _currentUser = await GoogleSignInService.getCurrentUser();
+        if (_currentUser != null) {
+          logger.i('Foto de usuario: ${_currentUser!.photoUrl}');
+          await _storage.write(key: 'userPhotoUrl', value: _currentUser!.photoUrl);
+          logger.i('Nombre de usuario: ${_currentUser!.displayName}');
+          await _storage.write(key: 'displayName', value: _currentUser!.displayName);
+        }
       }
+    } catch (e) {
+      // Manejar errores de autenticación sin crashear la app
+      logger.w('Error al verificar autenticación: $e');
+      isAuthenticated = false;
     }
     if (!mounted) return;
     setState(() {});
