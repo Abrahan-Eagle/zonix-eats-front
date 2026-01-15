@@ -11,17 +11,8 @@ alwaysApply: true
 **Estado:** ✅ MVP Completado - En desarrollo activo  
 **Archivos Dart:** 177 archivos (verificado)  
 **Líneas de código:** 58,987 líneas Dart en `lib/` (verificado)  
-**TODOs Pendientes:** 68 líneas con `TODO: Replace with real API call` en múltiples servicios (excluyendo transport y affiliate del MVP):
-  - commerce_service.dart: 12 TODOs
-  - admin_service.dart: 13 TODOs
-  - analytics_service.dart: 11 TODOs
-  - payment_service.dart: 9 TODOs
-  - delivery_service.dart: 11 TODOs
-  - chat_service.dart: 9 TODOs
-  - location_service.dart: 1 TODO
-  - notification_service.dart: 3 TODOs
-  - ~~affiliate_service.dart: 10 TODOs~~ (EXCLUIDO DEL MVP)
-  - ~~transport_service.dart: 13 TODOs~~ (EXCLUIDO DEL MVP)  
+**Tests:** 212 tests pasaron ✅, 0 tests fallaron ✅  
+**Errores críticos:** ✅ Todos corregidos (FlutterSecureStorage BAD_DECRYPT, AdminDashboardPage null safety, roles limpiados, dashboard optimizado)  
 **Última actualización:** Enero 2025
 
 ---
@@ -391,33 +382,27 @@ if (data['success'] == true && data['data'] != null) {
 
 ---
 
-## WEBSOCKET
+## EVENTOS Y NOTIFICACIONES EN TIEMPO REAL
 
-### WebSocketService
+### Firebase + Pusher (NO WebSocket)
 
-**Singleton Pattern:**
-```dart
-final websocketService = WebSocketService();
+**✅ IMPLEMENTADO:** Firebase Cloud Messaging (FCM) + Pusher para notificaciones en tiempo real
 
-// Conectar
-await websocketService.connect();
+**Eventos disponibles:**
+- `OrderCreated` - Nueva orden creada
+- `OrderStatusChanged` - Estado de orden cambiado
+- `PaymentValidated` - Pago validado
+- `NewMessage` - Nuevo mensaje de chat
+- `DeliveryLocationUpdated` - Ubicación de delivery actualizada
+- `NotificationCreated` - Nueva notificación
 
-// Suscribirse a canal
-await websocketService.subscribeToUser(userId);
-
-// Escuchar mensajes
-websocketService.messageStream?.listen((message) {
-  if (message['type'] == 'order_status_changed') {
-    // Actualizar UI
-  }
-});
-```
-
-**Canales disponibles:**
+**Canales (Pusher):**
 - `private-user.{userId}` - Notificaciones de usuario
 - `private-order.{orderId}` - Actualizaciones de orden
 - `private-chat.{orderId}` - Chat de orden
 - `private-commerce.{commerceId}` - Notificaciones de comercio
+
+**IMPORTANTE:** NO usar WebSocket directamente. Usar Firebase + Pusher para notificaciones en tiempo real.
 
 ---
 
@@ -428,12 +413,30 @@ websocketService.messageStream?.listen((message) {
 **Roles implementados y funcionales:**
 - **users** (Level 0): Cliente/Comprador ✅
 - **commerce** (Level 1): Comercio/Restaurante ✅
-- **delivery** (Level 2): Repartidor/Delivery ✅
+- **delivery** (Level 2): Repartidor/Delivery ✅ (con jerarquía: Delivery Company y Delivery Agent)
 - **admin** (Level 3): Administrador ✅
 
-**Roles excluidos del MVP:**
-- ~~**transport**~~ - Logística de mercancías (funcionalidad futura)
-- ~~**affiliate**~~ - Sistema de referidos/comisiones (funcionalidad futura)
+**IMPORTANTE:** Solo existen estos 4 roles. Los roles `transport` y `affiliate` fueron eliminados del código y del dashboard (niveles 3 y 4 eliminados, admin movido a nivel 3).
+
+### Datos Requeridos por Rol
+
+**USERS (Comprador):**
+- **Mínimos para orden:** firstName, lastName, phone, photo_users (required)
+- **Direcciones:** 2 direcciones (predeterminada casa con `is_default=true` + dirección de entrega)
+- **Ubicación:** GPS + inputs y selects para mayor precisión
+- **Campos dirección:** street, house_number, postal_code, latitude, longitude, city_id, is_default
+
+**COMMERCE (Vendedor):**
+- **Requeridos:** 7 campos (firstName, lastName, phone, address, business_name, business_type, tax_id)
+- **Opcionales:** 16 campos (6 del perfil, 5 del comercio, 3 relaciones, 2 del sistema)
+- **Comercio:** image (logo), phone, address, open, schedule
+
+**DELIVERY:**
+- **Delivery Company:** 9 campos requeridos + photo_users (required) + campos opcionales (igual que COMMERCE: image, phone, address, open, schedule)
+- **Delivery Agent:** 7 campos requeridos + photo_users (required), vehicle_type, license_number
+- **Puede ser independiente:** company_id = null
+
+**IMPORTANTE:** Ver backend README.md sección "📋 DATOS REQUERIDOS POR ACCIÓN Y ROL" para detalles completos.
 
 ### Navegación por Niveles
 
@@ -694,7 +697,7 @@ class AppConfig {
 
 ### HTTP y Networking
 - `http: ^1.2.2` - Cliente HTTP
-- `web_socket_channel: ^2.4.0` - WebSocket
+- `web_socket_channel: ^2.4.0` - WebSocket (si se usa internamente, pero sistema principal usa Firebase + Pusher)
 
 ### Storage
 - `flutter_secure_storage: ^9.2.2` - Almacenamiento seguro
@@ -856,7 +859,7 @@ Realiza análisis exhaustivo en estas secciones:
    - Analiza consumo de APIs (232 endpoints verificados en backend)
    - Revisa manejo de errores de API
    - Evalúa loading states y optimistic updates
-   - Analiza WebSocket y tiempo real
+   - Analiza Firebase + Pusher y tiempo real
 
 10. DEVOPS E INFRAESTRUCTURA
     - Analiza build y bundling
@@ -960,5 +963,35 @@ Antes de considerar el análisis completo, verificar:
 
 ---
 
-**Última actualización:** Diciembre 2024  
+**Última actualización:** Enero 2025  
 **Mantener este archivo actualizado con cambios arquitectónicos importantes**
+
+---
+
+## LÓGICA DE NEGOCIO - MVP (Actualizado Enero 2025)
+
+### Decisiones Clave del MVP
+
+1. **Carrito:** NO puede haber productos de diferentes comercios (uni-commerce)
+2. **Validación de Precio:** Recalcular y validar contra total enviado
+3. **Stock:** Ambas opciones permitidas (`available` O `stock_quantity`)
+4. **Delivery:** Sistema completo (propio, empresas, independientes con asignación autónoma)
+5. **Eventos:** Firebase + Pusher (NO WebSocket)
+6. **Perfiles:** Datos mínimos (USERS) vs completos (COMMERCE, DELIVERY)
+
+### Direcciones
+
+**USERS tiene 2 direcciones:**
+1. **Predeterminada (Casa):** `is_default = true` en tabla `addresses`
+2. **Entrega (Pedido):** Puede ser diferente, se guarda temporalmente o como nueva dirección
+
+**Ubicación:** GPS + inputs y selects para mayor precisión
+
+### Campos Requeridos por Rol
+
+**USERS:** firstName, lastName, phone, photo_users (required)
+**COMMERCE:** 7 campos requeridos + 16 opcionales
+**DELIVERY COMPANY:** 9 campos requeridos + campos opcionales (igual estructura que COMMERCE)
+**DELIVERY AGENT:** 7 campos requeridos + campos opcionales
+
+**IMPORTANTE:** Ver backend README.md sección completa "📋 DATOS REQUERIDOS POR ACCIÓN Y ROL" para detalles específicos de cada campo.

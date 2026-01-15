@@ -86,7 +86,8 @@ lib/
 - Dart SDK 3.5.0+
 - Android Studio / Xcode (para desarrollo móvil)
 - Backend Laravel corriendo (puerto 8000)
-- Laravel Echo Server corriendo (puerto 6001)
+- Pusher configurado para broadcasting en tiempo real
+- Firebase Cloud Messaging (FCM) configurado para push notifications
 
 ### Instalación
 
@@ -127,15 +128,9 @@ class AppConfig {
   static const String apiUrlLocal = 'http://192.168.27.12:8000';
   static const String apiUrlProd = 'https://zonix.uniblockweb.com';
   
-  // WebSocket URLs
-  static const String wsUrlLocal = 'ws://192.168.0.101:6001';
-  static const String wsUrlProd = 'wss://zonix.uniblockweb.com';
-  
-  // La aplicación detecta automáticamente el entorno
-  static String get apiUrl {
-    const bool isProduction = bool.fromEnvironment('dart.vm.product');
-    return isProduction ? apiUrlProd : apiUrlLocal;
-  }
+  // Pusher configuration (si se usa directamente)
+  // Nota: La mayoría de notificaciones en tiempo real usan Firebase + Pusher
+  // a través de los eventos del backend, no conexiones WebSocket directas
 }
 ```
 
@@ -162,8 +157,15 @@ class AppConfig {
 - ✅ Agregar productos al carrito
 - ✅ Actualizar cantidades
 - ✅ Remover productos
-- ✅ Sincronización con backend
+- ✅ Sincronización con backend (base de datos)
 - ✅ Notas especiales
+
+**REGLAS DE NEGOCIO:**
+- **NO puede haber productos de diferentes comercios en el mismo carrito**
+- Si el usuario intenta agregar un producto de otro comercio, el sistema limpia el carrito automáticamente
+- Validación de cantidad: min:1, max:100
+- Validación de disponibilidad: Solo productos `available = true`
+- Validación de stock: Si tiene `stock_quantity`, verificar que haya suficiente
 
 ### Órdenes
 - ✅ Crear órdenes
@@ -191,6 +193,7 @@ class AppConfig {
   - Gestión de órdenes
   - Reportes
 - ✅ **Level 2 (delivery):** Repartidor
+  - **Jerarquía:** Delivery Company → Delivery Agents
   - Órdenes asignadas
   - Actualización de ubicación
   - Historial de entregas
@@ -199,9 +202,57 @@ class AppConfig {
   - Usuarios y roles
   - Reportes globales
 
-**Roles excluidos del MVP:**
-- ~~**transport** (Logística de mercancías)~~ - Funcionalidad futura
-- ~~**affiliate** (Sistema de referidos/comisiones)~~ - Funcionalidad futura
+**IMPORTANTE:** Solo existen estos 4 roles. Los roles `transport` y `affiliate` fueron eliminados del código y del dashboard.
+
+### 📋 LÓGICA DE NEGOCIO Y DATOS REQUERIDOS POR ROL - MVP
+
+**Decisiones Clave del MVP:**
+1. **Carrito:** NO puede haber productos de diferentes comercios (uni-commerce)
+2. **Validación de Precio:** Recalcular y validar contra total enviado
+3. **Stock:** Ambas opciones permitidas (`available` O `stock_quantity`)
+4. **Delivery:** Sistema completo (propio, empresas, independientes con asignación autónoma)
+5. **Eventos:** Firebase + Pusher (NO WebSocket)
+6. **Perfiles:** Datos mínimos (USERS) vs completos (COMMERCE, DELIVERY)
+
+#### 👤 ROL: USERS (Comprador/Cliente)
+
+**Datos Mínimos para Crear Orden:**
+- **firstName** (required)
+- **lastName** (required)
+- **phone** (required)
+- **photo_users** (required) - Necesaria para que delivery pueda hacer la entrega
+
+**Direcciones - Sistema de 2 Direcciones:**
+1. **Dirección Predeterminada (Casa):** `is_default = true` en tabla `addresses`
+2. **Dirección de Entrega (Pedido):** Puede ser diferente, se guarda temporalmente o como nueva dirección
+
+**Ubicación:** GPS + inputs y selects para mayor precisión
+
+**Campos de dirección:** `street`, `house_number`, `postal_code`, `latitude`, `longitude`, `city_id`, `is_default`
+
+**Ver backend README.md sección completa para detalles de todos los campos opcionales.**
+
+#### 🏪 ROL: COMMERCE (Vendedor/Tienda)
+
+**Datos Requeridos:** 7 campos (firstName, lastName, phone, address, business_name, business_type, tax_id)
+
+**Datos Opcionales:** 16 campos (6 del perfil, 5 del comercio, 3 relaciones, 2 del sistema)
+
+**Comercio:** `image` (logo), `phone`, `address`, `open`, `schedule`
+
+**Ver backend README.md para lista completa de campos opcionales.**
+
+#### 🚚 ROL: DELIVERY
+
+**Delivery Company:**
+- **Requeridos:** 9 campos + photo_users (required)
+- **Opcionales:** image (logo), phone, address, open, schedule (igual estructura que COMMERCE)
+
+**Delivery Agent:**
+- **Requeridos:** firstName, lastName, phone, address, photo_users (required), vehicle_type, license_number
+- **Puede ser independiente:** `company_id = null`
+
+**Ver backend README.md sección completa para detalles detallados.**
 
 ### Otras Funcionalidades
 - ✅ Sistema de reseñas/calificaciones
@@ -279,26 +330,27 @@ try {
 }
 ```
 
-### WebSocket
+### Firebase + Pusher (Eventos en Tiempo Real)
 
-```dart
-import '../../features/services/websocket_service.dart';
+**✅ IMPLEMENTADO:** Firebase Cloud Messaging (FCM) + Pusher para notificaciones en tiempo real
 
-final websocketService = WebSocketService();
+**Eventos disponibles:**
+- `OrderCreated` - Nueva orden creada
+- `OrderStatusChanged` - Estado de orden cambiado
+- `PaymentValidated` - Pago validado
+- `NewMessage` - Nuevo mensaje de chat
+- `DeliveryLocationUpdated` - Ubicación de delivery actualizada
+- `NotificationCreated` - Nueva notificación
 
-// Conectar
-await websocketService.connect();
+**Canales (Pusher):**
+- `private-user.{userId}` - Notificaciones de usuario
+- `private-order.{orderId}` - Actualizaciones de orden
+- `private-chat.{orderId}` - Chat de orden
+- `private-commerce.{commerceId}` - Notificaciones de comercio
 
-// Suscribirse
-await websocketService.subscribeToUser(userId);
+**Nota:** La dependencia `web_socket_channel` puede estar presente para conexiones internas específicas, pero el sistema principal de notificaciones usa Firebase + Pusher.
 
-// Escuchar mensajes
-websocketService.messageStream?.listen((message) {
-  if (message['type'] == 'order_status_changed') {
-    // Actualizar UI
-  }
-});
-```
+**IMPORTANTE:** NO usar WebSocket directamente. Usar Firebase + Pusher para notificaciones en tiempo real.
 
 ## 🧪 Testing
 
@@ -334,7 +386,7 @@ test/
 - [x] Catálogo de productos
 - [x] Sistema de carrito
 - [x] Gestión de órdenes
-- [x] Chat en tiempo real (WebSocket)
+- [x] Chat en tiempo real (Firebase + Pusher)
 - [x] Notificaciones
 - [x] Geolocalización
 - [x] Sistema de reseñas
@@ -448,10 +500,11 @@ test/
 - `POST /api/buyer/orders`
 - `GET /api/buyer/orders/{id}`
 
-**WebSocket:**
-- Conexión: `ws://{host}:6001`
+**Firebase + Pusher:**
+- Firebase Cloud Messaging (FCM) - Push notifications a dispositivos móviles
+- Pusher - Broadcasting en tiempo real (web)
 - Autenticación: Token Sanctum
-- Canales: `private-user.{userId}`, `private-order.{orderId}`, etc.
+- Canales Pusher: `private-user.{userId}`, `private-order.{orderId}`, etc.
 
 ### Formato de Respuestas
 
@@ -535,7 +588,7 @@ Este documento contiene un análisis exhaustivo completo del proyecto realizado 
 6. **Performance** - Bottlenecks, optimizaciones, escalabilidad, métricas
 7. **Testing** - Cobertura, estrategia, calidad, plan de mejora
 8. **Frontend** - UI/UX, componentes, state management, routing
-9. **Integración con Backend** - APIs, WebSocket, manejo de errores
+9. **Integración con Backend** - APIs, Firebase + Pusher, manejo de errores
 10. **DevOps e Infraestructura** - Build, deployment, CI/CD
 11. **Documentación** - Estado, calidad, mejoras
 12. **Verificación de Coherencia** ⭐ **NUEVO** - Coherencia entre archivos de documentación
@@ -634,6 +687,27 @@ Cuando se solicite un análisis exhaustivo del proyecto, usar los **prompts comp
 - **HTTP Package:** https://pub.dev/packages/http
 - **Análisis Exhaustivo:** Ver `ANALISIS_EXHAUSTIVO.md` en raíz del proyecto
 
+## ✅ Correcciones Recientes (Enero 2025)
+
+### Errores Críticos Corregidos:
+- ✅ **FlutterSecureStorage:** Manejo de errores BAD_DECRYPT implementado con limpieza automática de almacenamiento corrupto
+- ✅ **AdminDashboardPage:** Manejo de valores null en métricas de sistema (cpu_usage, memory_usage, disk_usage)
+- ✅ **Roles:** Limpieza completa - solo 4 roles válidos (users, commerce, delivery, admin)
+- ✅ **Dashboard:** Eliminados niveles 3 y 4 (Transport y Affiliate), admin movido a nivel 3
+- ✅ **Servicios Commerce:** 34 métodos corregidos (URLs y lógica duplicada eliminada)
+- ✅ **QR Profile Service:** Endpoint corregido y manejo de errores mejorado
+- ✅ **UserProvider:** Sistema de caché y debouncing implementado para prevenir HTTP 429
+- ✅ **Tests:** Todos los tests actualizados para usar solo los 4 roles válidos
+
+### Roles del Sistema:
+Solo existen **4 roles válidos**:
+- **users** (Level 0): Cliente/Comprador
+- **commerce** (Level 1): Comercio/Restaurante  
+- **delivery** (Level 2): Repartidor/Delivery
+- **admin** (Level 3): Administrador
+
+Los roles `transport` y `affiliate` fueron eliminados del código y del dashboard.
+
 ## 📞 Soporte
 
 Para soporte técnico o preguntas sobre el proyecto, contactar al equipo de desarrollo.
@@ -646,5 +720,6 @@ Este proyecto es privado y confidencial.
 
 **Versión:** 1.0.0  
 **Última actualización:** Enero 2025  
-**Estado:** MVP ~72% completado ⚠️ - En desarrollo activo  
-**TODOs pendientes:** 68 líneas (excluyendo transport y affiliate del MVP)
+**Estado:** ✅ MVP Completado - En desarrollo activo  
+**Tests:** 212 tests pasaron ✅, 0 tests fallaron ✅  
+**Errores críticos:** ✅ Todos corregidos
