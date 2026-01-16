@@ -974,18 +974,60 @@ Antes de considerar el análisis completo, verificar:
 
 1. **Carrito:** NO puede haber productos de diferentes comercios (uni-commerce)
 2. **Validación de Precio:** Recalcular y validar contra total enviado
-3. **Stock:** Ambas opciones permitidas (`available` O `stock_quantity`)
-4. **Delivery:** Sistema completo (propio, empresas, independientes con asignación autónoma)
+3. **Stock:** AMBAS opciones (`available` Y `stock_quantity`) - Validar siempre available, si tiene stock_quantity validar cantidad
+4. **Delivery:** Sistema completo (propio, empresas, independientes) + Asignación autónoma con expansión de área
 5. **Eventos:** Firebase + Pusher (NO WebSocket)
 6. **Perfiles:** Datos mínimos (USERS) vs completos (COMMERCE, DELIVERY)
+7. **photo_users:** Required estricto (bloquea creación de orden)
+8. **Geolocalización Comercios:** Búsqueda inicial 1-1.5km, expansión automática a 4-5km
+9. **Asignación Delivery:** Autónoma con expansión automática de área (1-1.5km → 4-5km → continua)
+10. **Cancelación:** Límite 5 minutos O hasta validación de pago
+11. **Reembolsos:** Manual (no automático)
 
-### Direcciones
+### Direcciones y Geolocalización
 
 **USERS tiene 2 direcciones:**
 1. **Predeterminada (Casa):** `is_default = true` en tabla `addresses`
+   - **Uso:** Base para búsqueda de comercios por geolocalización
+   - **Ubicación:** GPS + inputs y selects para mayor precisión
 2. **Entrega (Pedido):** Puede ser diferente, se guarda temporalmente o como nueva dirección
+   - **Ubicación:** GPS + inputs y selects para mayor precisión
 
-**Ubicación:** GPS + inputs y selects para mayor precisión
+**Búsqueda de Comercios por Geolocalización:**
+- **Rango inicial:** 1-1.5 km desde dirección predeterminada del usuario
+- **Expansión automática:** Si no hay comercios abiertos, expande automáticamente a 4-5 km
+- **Expansión manual:** Usuario puede ampliar rango si desea buscar más lejos
+- **Cálculo:** Haversine para calcular distancia entre coordenadas GPS
+
+### 💰 MODELO DE NEGOCIO - RESUMEN
+
+**Costos y Precios:**
+- **Costo Delivery:** Híbrido (Base fija + Por distancia) - Cliente paga
+- **Membresía/Comisión:** Membresía mensual obligatoria (base) + Comisión % sobre ventas del mes (extra)
+- **Mínimo pedido:** No hay mínimo
+- **Tarifa servicio:** No hay
+- **Propinas:** No permitidas
+
+**Pagos:**
+- **Métodos:** Todos (efectivo, transferencia, tarjeta, pago móvil, digitales)
+- **Quién recibe:** Comercio directamente
+- **Manejo:** Tiempo real
+- **Pago a delivery:** Del comercio (después de recibir pago del cliente) → **Delivery recibe 100% del delivery_fee** (Opción A confirmada)
+
+**Límites:**
+- **Distancia máxima:** 60 minutos de tiempo estimado
+- **Quejas/Disputas:** Sistema de tickets con admin
+
+**Ver backend README.md sección "💰 MODELO DE NEGOCIO" para detalles completos.**
+
+### Penalizaciones y Tiempos Límite
+
+**Cancelaciones:** Penalizaciones si exceden límites (5 cancelaciones/rechazos)
+**Tiempos límite:** 5 minutos para subir/validar comprobante (cancelación automática)
+**Rating:** Obligatorio, separado (comercio/delivery), no editable
+**Promociones:** Manual (comercio/admin), código o automático
+**Métodos de pago:** Solo UN método por orden (no mitad y mitad)
+**Delivery no encontrado:** Continúa buscando, no cancela orden
 
 ### Campos Requeridos por Rol
 

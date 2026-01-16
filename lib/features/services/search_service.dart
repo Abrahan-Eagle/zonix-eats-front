@@ -8,17 +8,23 @@ class SearchService {
   final Logger _logger = Logger();
 
   // GET /api/buyer/search/restaurants - Buscar restaurantes
+  // Lógica de geolocalización:
+  // - Rango inicial: 1-1.5 km (1500 metros)
+  // - Si no encuentra comercios abiertos, expansión automática a 4-5 km (5000 metros)
+  // - Usuario puede ampliar manualmente el rango si desea buscar más lejos
   Future<List<Map<String, dynamic>>> searchRestaurants({
     String? query,
     String? category,
     double? latitude,
     double? longitude,
-    double? radius,
+    double? radius, // Por defecto 1.5 km (1500 metros), expansión automática a 5 km (5000 metros)
     String? sortBy,
     String? order,
     int? page,
     int? limit,
   }) async {
+    // Si no se especifica radius, usar 1.5 km por defecto (1500 metros)
+    final defaultRadius = radius ?? 1.5;
     try {
       final headers = await AuthHelper.getAuthHeaders();
       final queryParams = <String, String>{};
@@ -27,7 +33,8 @@ class SearchService {
       if (category != null) queryParams['category'] = category;
       if (latitude != null) queryParams['latitude'] = latitude.toString();
       if (longitude != null) queryParams['longitude'] = longitude.toString();
-      if (radius != null) queryParams['radius'] = radius.toString();
+      // Radius en km: por defecto 1.5 km, expansión automática a 5 km si no hay comercios abiertos
+      queryParams['radius'] = defaultRadius.toString();
       if (sortBy != null) queryParams['sort_by'] = sortBy;
       if (order != null) queryParams['order'] = order;
       if (page != null) queryParams['page'] = page.toString();

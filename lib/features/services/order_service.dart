@@ -36,10 +36,33 @@ class OrderService extends ChangeNotifier {
       if (data['success'] == true && data['data'] != null) {
         return Order.fromJson(data['data']);
       } else {
-        throw Exception(data['message'] ?? 'Error al crear la orden');
+        // Manejar errores específicos del backend
+        String errorMessage = data['message'] ?? 'Error al crear la orden';
+        if (data['missing_field'] != null) {
+          // Si falta un campo requerido (ej: photo_users), mostrar mensaje específico
+          if (data['missing_field'] == 'photo_users') {
+            errorMessage = 'Se requiere una foto de perfil para crear una orden. Por favor, completa tu perfil.';
+          } else {
+            errorMessage = 'Se requiere ${data['missing_field']} para crear una orden. Por favor, completa tu perfil.';
+          }
+        }
+        throw Exception(errorMessage);
       }
     } else {
-      throw Exception('Error al crear la orden: ${response.statusCode}');
+      // Manejar códigos de error HTTP específicos
+      final data = response.body.isNotEmpty ? jsonDecode(response.body) : null;
+      String errorMessage = 'Error al crear la orden: ${response.statusCode}';
+      
+      if (data != null && data['message'] != null) {
+        errorMessage = data['message'];
+        // Detectar si falta photo_users
+        if (data['missing_field'] == 'photo_users' || 
+            (errorMessage.contains('photo_users') || errorMessage.contains('foto'))) {
+          errorMessage = 'Se requiere una foto de perfil para crear una orden. Por favor, completa tu perfil.';
+        }
+      }
+      
+      throw Exception(errorMessage);
     }
   }
 
@@ -149,12 +172,20 @@ class OrderService extends ChangeNotifier {
   }
 
   // POST /api/buyer/orders/{id}/cancel - Cancelar orden
-  Future<void> cancelOrder(int orderId) async {
+  // Nota: El backend valida que solo se puede cancelar en pending_payment y dentro de 5 minutos
+  Future<void> cancelOrder(int orderId, {String? reason}) async {
     final headers = await AuthHelper.getAuthHeaders();
     final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/cancel');
+    
+    final body = reason != null ? jsonEncode({'reason': reason}) : jsonEncode({'reason': 'Cancelación por usuario'});
+    
     final response = await http.post(
       url,
-      headers: headers,
+      body: body,
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
     );
     
     if (response.statusCode == 200) {
@@ -162,10 +193,14 @@ class OrderService extends ChangeNotifier {
       if (data['success'] == true) {
         return;
       } else {
-        throw Exception(data['message'] ?? 'Error al cancelar la orden');
+        // Manejar errores específicos (ej: tiempo límite expirado)
+        String errorMessage = data['message'] ?? 'Error al cancelar la orden';
+        throw Exception(errorMessage);
       }
     } else {
-      throw Exception('Error al cancelar la orden: ${response.statusCode}');
+      final data = response.body.isNotEmpty ? jsonDecode(response.body) : null;
+      String errorMessage = data?['message'] ?? 'Error al cancelar la orden: ${response.statusCode}';
+      throw Exception(errorMessage);
     }
   }
 
