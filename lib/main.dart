@@ -60,7 +60,7 @@ import 'package:zonix/features/screens/admin/admin_security_page.dart';
 import 'package:zonix/features/screens/admin/admin_analytics_page.dart';
 
 import 'package:zonix/features/screens/help/help_and_faq_page.dart';
-import 'package:zonix/features/services/websocket_service.dart';
+import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_profile_page.dart';
@@ -124,8 +124,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => PaymentService()),
         ChangeNotifierProvider(create: (_) => ChatService()),
         ChangeNotifierProvider(create: (_) => AnalyticsService()),
-        // WebSocket Service como singleton
-        Provider<WebSocketService>.value(value: WebSocketService()),
+        // PusherService se maneja como singleton interno, no necesitamos Provider aquí.
       ],
       child: MyApp(isIntegrationTest: isIntegrationTest),
     ),

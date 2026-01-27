@@ -13,7 +13,8 @@ alwaysApply: true
 **Líneas de código:** 58,987 líneas Dart en `lib/` (verificado)  
 **Tests:** 212 tests pasaron ✅, 0 tests fallaron ✅  
 **Errores críticos:** ✅ Todos corregidos (FlutterSecureStorage BAD_DECRYPT, AdminDashboardPage null safety, roles limpiados, dashboard optimizado)  
-**Última actualización:** Enero 2025
+**TODOs servicios MVP:** ✅ Completados (commerce, payment, delivery, chat, admin, analytics, location, notification; código comentado eliminado)  
+**Última actualización:** 27 Enero 2025
 
 ---
 
@@ -467,30 +468,25 @@ if (_selectedLevel == 1) {
 
 ## MEJORAS CRÍTICAS PENDIENTES
 
-### 🔴 CRÍTICO - Acción Inmediata
+### 🔴 CRÍTICO - Acción Inmediata (RESUELTOS ✅)
 
-1. **Implementar TODOs en Múltiples Servicios (CRÍTICO)**
-   - **Total:** 68 líneas con `TODO: Replace with real API call` encontradas (MVP)
-   - `commerce_service.dart`: 12 TODOs
-   - `admin_service.dart`: 13 TODOs
-   - `analytics_service.dart`: 11 TODOs
-   - `payment_service.dart`: 9 TODOs
-   - `delivery_service.dart`: 11 TODOs
-   - `chat_service.dart`: 9 TODOs
-   - `location_service.dart`: 1 TODO
-   - `notification_service.dart`: 3 TODOs
-   - ~~`affiliate_service.dart`: 10 TODOs~~ (EXCLUIDO DEL MVP)
-   - ~~`transport_service.dart`: 13 TODOs~~ (EXCLUIDO DEL MVP)
-   - Actualmente usan datos mock
-   - **Archivo:** `lib/features/services/commerce_service.dart`
-   - **Líneas:** 237, 253, 268, 283, 299, 320, 341, 355, 370, 394, 430, 453
+1. ~~**Implementar TODOs en Múltiples Servicios (CRÍTICO)**~~ ✅ **COMPLETADO**
+   - ~~commerce_service.dart~~ ✅ COMPLETADO
+   - ~~admin_service.dart~~ ✅ COMPLETADO
+   - ~~analytics_service.dart~~ ✅ COMPLETADO
+   - ~~payment_service.dart~~ ✅ COMPLETADO
+   - ~~delivery_service.dart~~ ✅ COMPLETADO
+   - ~~chat_service.dart~~ ✅ COMPLETADO
+   - ~~location_service.dart~~ ✅ COMPLETADO
+   - ~~notification_service.dart~~ ✅ COMPLETADO
+   - ~~`affiliate_service.dart`~~ (EXCLUIDO DEL MVP)
+   - ~~`transport_service.dart`~~ (EXCLUIDO DEL MVP)
+   - Todos los servicios MVP usan llamadas reales a API
 
-2. **Eliminar Código Comentado**
-   - ~330 líneas comentadas en `main.dart`
-   - Afecta legibilidad y mantenibilidad
-   - **Archivo:** `lib/main.dart`
+2. ~~**Eliminar Código Comentado**~~ ✅ **COMPLETADO**
+   - ~330 líneas comentadas eliminadas de `main.dart`
 
-3. **Implementar Internacionalización (i18n)**
+3. **Implementar Internacionalización (i18n)** (PENDIENTE)
    - Múltiples strings hardcodeados en español
    - **Archivos afectados:** `settings_page_2.dart` y otros
    - **Recomendación:** Usar `flutter_localizations` o `intl`
@@ -736,14 +732,11 @@ class AppConfig {
 **Problema:** ~330 líneas de código comentado  
 **Solución:** Eliminar código legacy comentado, usar control de versiones
 
-### Problema: TODOs Sin Implementar (CRÍTICO)
+### ~~Problema: TODOs Sin Implementar (CRÍTICO)~~ ✅ RESUELTO
 
 **Ubicación:** Múltiples servicios en `lib/features/services/`  
-**Problema:** 92 líneas con `TODO: Replace with real API call` en 10 servicios diferentes  
-**Impacto:** Funcionalidades incompletas, aplicación no completamente funcional  
-**Esfuerzo estimado:** 4-6 semanas  
-**Prioridad:** 🔴 CRÍTICA  
-**Solución:** Implementar llamadas reales a API siguiendo el patrón de servicios existentes
+**Estado:** ✅ **COMPLETADO** - commerce, payment, delivery, chat, admin, analytics, location, notification implementados con llamadas reales a API  
+**Solución aplicada:** Todos los servicios MVP siguen el patrón de servicios existentes con API real
 
 ### Problema: Strings Hardcodeados
 
@@ -821,7 +814,7 @@ Realiza análisis exhaustivo en estas secciones:
 3. LÓGICA DE NEGOCIO
    - Identifica modelos de datos y sus relaciones
    - Mapea flujos de trabajo principales (carrito, órdenes, chat)
-   - Analiza servicios y su organización (múltiples servicios con 92 TODOs pendientes)
+   - Analiza servicios y su organización (TODOs MVP completados: commerce, payment, delivery, chat, admin, analytics, location, notification)
    - Revisa integración con backend
 
 4. BASE DE DATOS (Modelos y Estructura)
@@ -873,12 +866,12 @@ Realiza análisis exhaustivo en estas secciones:
 
 12. ESTADO Y MANTENIBILIDAD
     - Identifica funcionalidades completadas
-    - Analiza TODOs pendientes (commerce_service.dart)
+    - Analiza estado de servicios (TODOs MVP completados)
     - Evalúa technical debt (código comentado, etc.)
     - Calcula métricas del proyecto
 
 13. OPORTUNIDADES Y MEJORAS
-    - Identifica quick wins (TODOs críticos)
+    - Identifica quick wins (TODOs MVP completados; i18n, subida imágenes pendientes)
     - Prioriza refactorizaciones (limpiar código comentado)
     - Sugiere optimizaciones críticas
     - Crea roadmap técnico
@@ -963,7 +956,7 @@ Antes de considerar el análisis completo, verificar:
 
 ---
 
-**Última actualización:** Enero 2025  
+**Última actualización:** 27 Enero 2025  
 **Mantener este archivo actualizado con cambios arquitectónicos importantes**
 
 ---

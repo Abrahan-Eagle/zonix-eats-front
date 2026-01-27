@@ -4,11 +4,9 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
-import 'websocket_service.dart';
 
 class ChatService extends ChangeNotifier {
   static String get baseUrl => AppConfig.apiUrl;
-  final WebSocketService _webSocketService = WebSocketService();
   StreamController<Map<String, dynamic>>? _messageController;
   Timer? _typingTimer;
   

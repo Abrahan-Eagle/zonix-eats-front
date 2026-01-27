@@ -5,7 +5,7 @@ import 'package:zonix/models/commerce_product.dart';
 import 'package:zonix/models/commerce_order.dart';
 import 'package:zonix/features/services/notification_service.dart';
 import 'package:zonix/services/commerce_profile_service.dart';
-import 'package:zonix/features/services/websocket_service.dart';
+import 'package:zonix/features/services/pusher_service.dart';
 import 'dart:async';
 import 'package:zonix/models/commerce_profile.dart';
 
@@ -110,27 +110,30 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
     try {
       final profile = await _profileService.fetchProfile();
       _commerceId = profile.id;
-      setState(() { _profile = profile; });
-      await WebSocketService().connect();
-      await WebSocketService().subscribeToCommerce(_commerceId!);
-      _wsSubscription = WebSocketService().messageStream?.listen((event) {
-        if (event['type'] == 'order_created' || event['type'] == 'order_status_changed' || event['type'] == 'payment_validated') {
-          _loadNotificationCount();
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Nueva notificación: ${event['type']}')),
-            );
-          }
-        }
-        if (event['type'] == 'notification') {
-          _loadNotificationCount();
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Notificación: ${event['data']['title'] ?? ''}')),
-            );
-          }
-        }
+      setState(() {
+        _profile = profile;
       });
+
+      // Usar Pusher en lugar de WebSocket directo
+      _wsSubscription?.cancel();
+      await PusherService.instance.subscribeToProfileChannel(
+        'profile.${_commerceId!}',
+        onDomainEvent: (eventName, data) {
+          if (eventName == 'OrderCreated' ||
+              eventName == 'OrderStatusChanged' ||
+              eventName == 'PaymentValidated' ||
+              eventName == 'NotificationCreated') {
+            _loadNotificationCount();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Nuevo evento: $eventName'),
+                ),
+              );
+            }
+          }
+        },
+      );
     } catch (e) {
       // Ignorar errores de conexión para no bloquear el dashboard
     }

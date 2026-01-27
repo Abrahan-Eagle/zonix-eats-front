@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/models/order.dart';
 import 'package:zonix/features/services/order_service.dart';
-import 'package:zonix/features/services/websocket_service.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/helpers/auth_helper.dart';
 import 'dart:async'; // Added for StreamSubscription
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/services/pusher_service.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -21,7 +21,6 @@ class _OrdersPageState extends State<OrdersPage> {
   List<Order> _orders = [];
   bool _isLoading = true;
   String? _error;
-  WebSocketService? _webSocketService;
   StreamSubscription? _webSocketSubscription;
 
   @override
@@ -69,22 +68,39 @@ class _OrdersPageState extends State<OrdersPage> {
     if (!AppConfig.enableWebsockets) return;
 
     try {
-      _webSocketService = WebSocketService();
-      await _webSocketService!.connect();
-      
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       final user = userProvider.user;
-      
+
       if (user != null) {
-        // Suscribirse a actualizaciones de órdenes del usuario
-        await _webSocketService!.subscribeToChannel('orders.user.${user['id']}');
-        
-        _webSocketSubscription = _webSocketService!.messageStream?.listen((message) {
-          _handleWebSocketMessage(message);
-        });
+        final channelName = 'profile.${user['id']}';
+
+        _webSocketSubscription?.cancel();
+        await PusherService.instance.subscribeToProfileChannel(
+          channelName,
+          onDomainEvent: (eventName, data) {
+            final mapped = <String, dynamic>{
+              'type': _mapPusherEventToType(eventName),
+              'data': data,
+            };
+            _handleWebSocketMessage(mapped);
+          },
+        );
       }
     } catch (e) {
-      print('Error inicializando WebSocket: $e');
+      print('Error inicializando Pusher: $e');
+    }
+  }
+
+  String _mapPusherEventToType(String eventName) {
+    switch (eventName) {
+      case 'OrderStatusChanged':
+        return 'order_status_changed';
+      case 'OrderCreated':
+        return 'order_created';
+      case 'PaymentValidated':
+        return 'payment_validated';
+      default:
+        return eventName;
     }
   }
 

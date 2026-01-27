@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
-import 'websocket_service.dart';
+import 'package:zonix/features/services/pusher_service.dart';
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 
@@ -228,7 +228,7 @@ class CommerceNotificationService {
     };
   }
 
-  // Conectar WebSocket para notificaciones en tiempo real
+  // Conectar Pusher para notificaciones en tiempo casi real (reemplaza WebSocket)
   Future<void> connectWebSocket(int commerceId) async {
     if (_isConnected) return;
 
@@ -236,50 +236,49 @@ class CommerceNotificationService {
       _commerceId = commerceId;
       _notificationsController = StreamController<List<Map<String, dynamic>>>.broadcast();
 
-      // Conectar WebSocket
-      await WebSocketService().connect();
-      
-      // Suscribirse a canales de comercio
-      await WebSocketService().subscribeToCommerce(commerceId);
-      await WebSocketService().subscribeToPrivateChannel('user.$commerceId');
+      // Suscribirse a canal de perfil/comercio en Pusher
+      // Canal de ejemplo: profile.{commerceId} (debe alinearse con backend)
+      _wsSubscription?.cancel();
 
-      // Escuchar mensajes
-      _wsSubscription = WebSocketService().messageStream?.listen((event) {
-        _handleWebSocketMessage(event);
-      });
+      final ok = await PusherService.instance.subscribeToProfileChannel(
+        'profile.$commerceId',
+        onDomainEvent: (eventName, data) {
+          _handlePusherEvent(eventName, data);
+        },
+      );
 
-      _isConnected = true;
-      _logger.i('WebSocket conectado para notificaciones de comercio');
+      _isConnected = ok;
+      _logger.i('Pusher conectado para notificaciones de comercio: $ok');
     } catch (e) {
       _logger.e('Error conectando WebSocket: $e');
       _isConnected = false;
     }
   }
 
-  // Manejar mensajes de WebSocket
-  void _handleWebSocketMessage(Map<String, dynamic> event) {
+  // Manejar eventos recibidos por Pusher (mapeados a la API interna previa)
+  void _handlePusherEvent(String eventName, Map<String, dynamic> data) {
     try {
-      switch (event['type']) {
-        case 'notification':
-          _handleNewNotification(event['data']);
+      switch (eventName) {
+        case 'NotificationCreated':
+          _handleNewNotification(data);
           break;
-        case 'order_created':
-          _handleOrderCreated(event['data']);
+        case 'OrderCreated':
+          _handleOrderCreated(data);
           break;
-        case 'order_status_changed':
-          _handleOrderStatusChanged(event['data']);
+        case 'OrderStatusChanged':
+          _handleOrderStatusChanged(data);
           break;
-        case 'payment_validated':
-          _handlePaymentValidated(event['data']);
+        case 'PaymentValidated':
+          _handlePaymentValidated(data);
           break;
-        case 'delivery_request':
-          _handleDeliveryRequest(event['data']);
+        case 'DeliveryRequestCreated':
+          _handleDeliveryRequest(data);
           break;
         default:
-          _logger.d('Evento WebSocket no manejado: ${event['type']}');
+          _logger.d('Evento Pusher no manejado: $eventName');
       }
     } catch (e) {
-      _logger.e('Error manejando mensaje WebSocket: $e');
+      _logger.e('Error manejando evento Pusher: $e');
     }
   }
 

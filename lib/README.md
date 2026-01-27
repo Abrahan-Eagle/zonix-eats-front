@@ -180,13 +180,16 @@ class OrderService {
 }
 ```
 
-### WebSocketService
+### PusherService (Realtime)
 ```dart
-class WebSocketService {
-  Future<void> connect();
+class PusherService {
+  Future<bool> initialize();
+  Future<bool> subscribeToProfileChannel(
+    String channelName, {
+    required Function(String eventName, Map<String, dynamic> data) onDomainEvent,
+  });
+  Future<void> unsubscribeFromChannel(String channelName);
   Future<void> disconnect();
-  Stream<Map<String, dynamic>> get messageStream;
-  Future<void> sendMessage(String message);
 }
 ```
 

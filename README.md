@@ -467,40 +467,36 @@ test/
 
 ### 🔄 En Desarrollo / Pendiente
 
-- [ ] **CRÍTICO:** Implementar TODOs en múltiples servicios (92 líneas encontradas en 10 servicios)
-- [ ] **CRÍTICO:** Eliminar código comentado extenso en `main.dart`
+- [x] ~~**CRÍTICO:** Implementar TODOs en múltiples servicios~~ ✅ **COMPLETADO** (commerce, payment, delivery, chat, admin, analytics, location, notification)
+- [x] ~~**CRÍTICO:** Eliminar código comentado extenso en `main.dart`~~ ✅ **COMPLETADO**
 - [ ] **ALTO:** Implementar internacionalización (i18n)
 - [ ] **ALTO:** Implementar subida de imágenes completa
 - [ ] Pagos reales (MercadoPago, PayPal)
 - [ ] Push notifications nativas
-- [ ] Analytics y métricas
+- [x] ~~Analytics y métricas~~ ✅ **COMPLETADO** (CommerceReportsPage + CommerceAnalyticsService con API real)
 - [ ] Optimizaciones de performance
 
 ## 🐛 Problemas Conocidos
 
-### Críticos
+### Críticos (RESUELTOS ✅)
 
-1. **TODOs Sin Implementar (CRÍTICO)**
+1. ~~**TODOs Sin Implementar (CRÍTICO)**~~ ✅ **COMPLETADO**
    - **Ubicación:** Múltiples servicios en `lib/features/services/`
-   - **Problema:** 45 líneas con `TODO: Replace with real API call` encontradas en 6 servicios (MVP):
+   - **Estado actual:** Todos los servicios MVP con llamadas reales a API:
      - ~~`commerce_service.dart`: 12 TODOs~~ ✅ COMPLETADO
      - ~~`payment_service.dart`: 11 TODOs~~ ✅ COMPLETADO
-     - `admin_service.dart`: 13 TODOs
-     - `analytics_service.dart`: 11 TODOs
-     - `delivery_service.dart`: 11 TODOs
-     - `chat_service.dart`: 9 TODOs
-     - `location_service.dart`: 1 TODO
-     - `notification_service.dart`: 3 TODOs
-     - ~~`affiliate_service.dart`: 10 TODOs~~ (EXCLUIDO DEL MVP)
-     - ~~`transport_service.dart`: 13 TODOs~~ (EXCLUIDO DEL MVP)
-   - **Impacto:** Funcionalidades incompletas, aplicación no completamente funcional
-   - **Esfuerzo estimado:** 4-6 semanas
-   - **Prioridad:** 🔴 CRÍTICA
+     - ~~`admin_service.dart`: 13 TODOs~~ ✅ COMPLETADO
+     - ~~`analytics_service.dart`: 11 TODOs~~ ✅ COMPLETADO
+     - ~~`delivery_service.dart`: 11 TODOs~~ ✅ COMPLETADO
+     - ~~`chat_service.dart`: 9 TODOs~~ ✅ COMPLETADO
+     - ~~`location_service.dart`: 1 TODO~~ ✅ COMPLETADO
+     - ~~`notification_service.dart`: 3 TODOs~~ ✅ COMPLETADO
+     - ~~`affiliate_service.dart`~~ (EXCLUIDO DEL MVP)
+     - ~~`transport_service.dart`~~ (EXCLUIDO DEL MVP)
 
-2. **Código Comentado Extenso**
+2. ~~**Código Comentado Extenso**~~ ✅ **COMPLETADO**
    - **Archivo:** `lib/main.dart`
-   - **Problema:** ~330 líneas de código comentado
-   - **Solución:** Eliminar código legacy
+   - **Solución aplicada:** ~330 líneas de código comentado eliminadas
 
 ### Altos
 
@@ -708,9 +704,8 @@ Cuando se solicite un análisis exhaustivo del proyecto, usar los **prompts comp
 
 ## 🗺️ ROADMAP MVP - PLAN DE ACCIÓN PRIORIZADO
 
-**Estado actual:** ~72% completado  
-**Objetivo:** Llegar al 100% del MVP  
-**Tiempo estimado:** 6-9 semanas (~1.5-2 meses)  
+**Estado actual:** MVP completado (~100% fases 1-3)  
+**Objetivo:** Llegar al 100% del MVP ✅  
 **Nota:** Se excluyeron `transport` y `affiliate` del MVP
 
 ### 🔴 FASE 1: CRÍTICO - Funcionalidad Core (4-6 semanas)
@@ -746,7 +741,7 @@ Cuando se solicite un análisis exhaustivo del proyecto, usar los **prompts comp
 19. **Internacionalización i18n** (1-2 semanas) - Frontend
 20. **Mejorar Sistema de Roles** (3-5 días) - Backend
 
-**Total TODOs para MVP:** 45 líneas en frontend (excluyendo transport y affiliate, commerce_service y payment_service completados)
+**Total TODOs para MVP:** ✅ **TODOS COMPLETADOS** (commerce, payment, delivery, chat, admin, analytics, location, notification; código comentado eliminado; analytics commerce con API real)
 
 ---
 
@@ -770,6 +765,11 @@ Cuando se solicite un análisis exhaustivo del proyecto, usar los **prompts comp
 - ✅ **UserProvider:** Sistema de caché y debouncing implementado para prevenir HTTP 429
 - ✅ **Tests:** Todos los tests actualizados para usar solo los 4 roles válidos
 
+### Completado 27 Enero 2025 (MVP listo):
+- ✅ **TODOs servicios MVP:** commerce, payment, delivery, chat, admin, analytics, location, notification con llamadas reales a API
+- ✅ **Código comentado:** ~330 líneas eliminadas de `main.dart`
+- ✅ **Analytics commerce:** CommerceReportsPage + CommerceAnalyticsService con API real
+
 ### Roles del Sistema:
 Solo existen **4 roles válidos**:
 - **users** (Level 0): Cliente/Comprador
@@ -790,7 +790,8 @@ Este proyecto es privado y confidencial.
 ---
 
 **Versión:** 1.0.0  
-**Última actualización:** Enero 2025  
+**Última actualización:** 27 Enero 2025  
 **Estado:** ✅ MVP Completado - En desarrollo activo  
 **Tests:** 212 tests pasaron ✅, 0 tests fallaron ✅  
-**Errores críticos:** ✅ Todos corregidos
+**Errores críticos:** ✅ Todos corregidos  
+**TODOs servicios MVP:** ✅ Completados (commerce, payment, delivery, chat, admin, analytics, location, notification)

@@ -109,10 +109,15 @@ class MockOrderService extends _i1.Mock implements _i3.OrderService {
       ) as _i4.Future<void>);
 
   @override
-  _i4.Future<void> cancelOrder(int? orderId) => (super.noSuchMethod(
+  _i4.Future<void> cancelOrder(
+    int? orderId, {
+    String? reason,
+  }) =>
+      (super.noSuchMethod(
         Invocation.method(
           #cancelOrder,
           [orderId],
+          {#reason: reason},
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
