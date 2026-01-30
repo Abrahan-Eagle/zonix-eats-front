@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:zonix/features/services/pusher_service.dart';
+import 'package:zonix/features/services/websocket_service.dart';
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 
