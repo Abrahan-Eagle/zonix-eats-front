@@ -25,7 +25,7 @@ lib/
 │   │   ├── cart_service.dart
 │   │   ├── order_service.dart
 │   │   ├── commerce_service.dart
-│   │   ├── websocket_service.dart
+│   │   ├── (Pusher/FCM para tiempo real; websocket_service.dart es legacy/placeholder)
 │   │   └── ...
 │   └── DomainProfiles/          # Módulos de perfiles
 │       ├── Profiles/
@@ -55,7 +55,7 @@ lib/
 
 **Networking:**
 - `http: ^1.2.2` - Cliente HTTP para API REST
-- `web_socket_channel: ^2.4.0` - Comunicación WebSocket
+- `pusher_channels_flutter` - Broadcasting en tiempo real (Pusher). No se usan WebSockets directos.
 
 **Storage:**
 - `flutter_secure_storage: ^9.2.2` - Almacenamiento seguro (tokens)
@@ -175,11 +175,11 @@ class AppConfig {
 - ✅ Cancelar órdenes
 - ✅ Subir comprobante de pago
 
-### Chat en Tiempo Real
-- ✅ WebSocket implementado
-- ✅ Mensajería por orden
+### Chat y notificaciones en tiempo real
+- ✅ Firebase Cloud Messaging (FCM) + Pusher (no WebSocket directo)
+- ✅ Mensajería por orden vía canales Pusher
 - ✅ Notificaciones en tiempo real
-- ✅ Reconexión automática
+- ✅ Reconexión automática (Pusher)
 
 ### Sistema Multi-Rol
 **Roles implementados y funcionales (MVP):**
@@ -419,9 +419,7 @@ try {
 - `private-chat.{orderId}` - Chat de orden
 - `private-commerce.{commerceId}` - Notificaciones de comercio
 
-**Nota:** La dependencia `web_socket_channel` puede estar presente para conexiones internas específicas, pero el sistema principal de notificaciones usa Firebase + Pusher.
-
-**IMPORTANTE:** NO usar WebSocket directamente. Usar Firebase + Pusher para notificaciones en tiempo real.
+**IMPORTANTE:** El sistema de notificaciones en tiempo real usa exclusivamente Firebase + Pusher. NO usar WebSocket directo; los canales y eventos se gestionan desde el backend con Pusher.
 
 ## 🧪 Testing
 
@@ -790,7 +788,7 @@ Este proyecto es privado y confidencial.
 ---
 
 **Versión:** 1.0.0  
-**Última actualización:** 27 Enero 2025  
+**Última actualización:** 9 Febrero 2025  
 **Estado:** ✅ MVP Completado - En desarrollo activo  
 **Tests:** 212 tests pasaron ✅, 0 tests fallaron ✅  
 **Errores críticos:** ✅ Todos corregidos  

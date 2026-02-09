@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:zonix/features/services/pusher_service.dart';
-import 'package:zonix/features/services/websocket_service.dart';
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 
@@ -411,14 +410,13 @@ class CommerceNotificationService {
     }
   }
 
-  // Desconectar WebSocket
+  // Desconectar suscripciones en tiempo real
   Future<void> disconnect() async {
     try {
       _wsSubscription?.cancel();
-      WebSocketService().disconnect();
       _notificationsController?.close();
       _isConnected = false;
-      _logger.i('WebSocket desconectado');
+      _logger.i('Notificaciones de comercio desconectadas');
     } catch (e) {
       _logger.e('Error desconectando WebSocket: $e');
     }

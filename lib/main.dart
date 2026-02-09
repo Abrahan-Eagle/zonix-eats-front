@@ -23,6 +23,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:zonix/features/screens/profile/profile_page.dart';
 import 'package:zonix/features/screens/settings/settings_page_2.dart';
 import 'package:zonix/features/screens/auth/sign_in_screen.dart';
+import 'package:zonix/features/screens/onboarding/onboarding_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 
@@ -64,6 +65,7 @@ import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_profile_page.dart';
+import 'package:zonix/features/screens/onboarding/onboarding_provider.dart';
 
 /*
  * ZONIX EATS - Aplicación Multi-Rol
@@ -114,6 +116,7 @@ Future<void> main() async {
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => OnboardingProvider()),
         ChangeNotifierProvider(create: (_) => CartService()),
         ChangeNotifierProvider(create: (_) => OrderService()),
         ChangeNotifierProvider(create: (_) => CommerceService()),
@@ -216,11 +219,13 @@ class MyApp extends StatelessWidget {
       home: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
           logger.i('isAuthenticated: ${userProvider.isAuthenticated}');
-          if (userProvider.isAuthenticated) {
-            return const MainRouter();
-          } else {
+          if (!userProvider.isAuthenticated) {
             return const SignInScreen();
           }
+          if (!userProvider.completedOnboarding) {
+            return const OnboardingScreen();
+          }
+          return const MainRouter();
         },
       ),
       routes: {
@@ -255,23 +260,11 @@ class MainRouterState extends State<MainRouter> {
 
    Future<void> _loadProfile() async {
       try {
-        final userProvider = Provider.of<UserProvider>(context, listen: false);
-
-        // Obtén los detalles del usuario y verifica su contenido
-        final userDetails = await userProvider.getUserDetails();
-       
-
-        // Extrae y valida el ID del usuario
-        final id = userDetails['userId'];
-        if (id == null || id is! int) {
-          throw Exception('El ID del usuario es inválido: $id');
-        }
-        // Obtén el perfil usando el ID del usuario
-        _profile = await ProfileService().getProfileById(id);
-       
-        setState(() {});
+        // Perfil del usuario autenticado (GET /api/profile), no requiere user id ni profile id
+        _profile = await ProfileService().getMyProfile();
+        if (mounted) setState(() {});
       } catch (e) {
-        logger.e('Error obteniendo el ID del usuario: $e');
+        logger.e('Error obteniendo el perfil: $e');
       }
     }
 

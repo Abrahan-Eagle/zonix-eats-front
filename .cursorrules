@@ -14,7 +14,7 @@ alwaysApply: true
 **Tests:** 212 tests pasaron ✅, 0 tests fallaron ✅  
 **Errores críticos:** ✅ Todos corregidos (FlutterSecureStorage BAD_DECRYPT, AdminDashboardPage null safety, roles limpiados, dashboard optimizado)  
 **TODOs servicios MVP:** ✅ Completados (commerce, payment, delivery, chat, admin, analytics, location, notification; código comentado eliminado)  
-**Última actualización:** 27 Enero 2025
+**Última actualización:** 9 Febrero 2025
 
 ---
 
@@ -67,7 +67,7 @@ zonix-eats-front/
 │   │   │   ├── cart_service.dart
 │   │   │   ├── order_service.dart
 │   │   │   ├── commerce_service.dart
-│   │   │   ├── websocket_service.dart
+│   │   │   ├── pusher_service.dart    # Tiempo real (Pusher). websocket_service.dart es legacy/placeholder
 │   │   │   └── ...
 │   │   └── DomainProfiles/           # Módulos de perfiles
 │   │       ├── Profiles/
@@ -693,7 +693,7 @@ class AppConfig {
 
 ### HTTP y Networking
 - `http: ^1.2.2` - Cliente HTTP
-- `web_socket_channel: ^2.4.0` - WebSocket (si se usa internamente, pero sistema principal usa Firebase + Pusher)
+- `pusher_channels_flutter` - Tiempo real (Pusher). No usar WebSocket directo; sistema principal es Firebase + Pusher
 
 ### Storage
 - `flutter_secure_storage: ^9.2.2` - Almacenamiento seguro
@@ -956,12 +956,12 @@ Antes de considerar el análisis completo, verificar:
 
 ---
 
-**Última actualización:** 27 Enero 2025  
+**Última actualización:** 9 Febrero 2025  
 **Mantener este archivo actualizado con cambios arquitectónicos importantes**
 
 ---
 
-## LÓGICA DE NEGOCIO - MVP (Actualizado Enero 2025)
+## LÓGICA DE NEGOCIO - MVP (Actualizado Febrero 2025)
 
 ### Decisiones Clave del MVP
 

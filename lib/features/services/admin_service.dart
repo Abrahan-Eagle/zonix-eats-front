@@ -56,7 +56,7 @@ class AdminService extends ChangeNotifier {
       'name': 'Ana Martínez',
       'email': 'ana.martinez@email.com',
       'phone': '+51 111 222 333',
-      'role': 'transport',
+      'role': 'admin',
       'level': 3,
       'status': 'suspended',
       'created_at': '2024-01-12',
@@ -70,8 +70,8 @@ class AdminService extends ChangeNotifier {
       'name': 'Luis Fernández',
       'email': 'luis.fernandez@email.com',
       'phone': '+51 444 555 666',
-      'role': 'affiliate',
-      'level': 4,
+      'role': 'commerce',
+      'level': 1,
       'status': 'active',
       'created_at': '2024-01-15',
       'last_login': '2024-01-15T18:30:00',
@@ -363,10 +363,12 @@ class AdminService extends ChangeNotifier {
         'active_users': _mockUsers.where((u) => u['status'] == 'active').length,
         'suspended_users': _mockUsers.where((u) => u['status'] == 'suspended').length,
         'user_distribution': {
-          'users': _mockUsers.where((u) => u['role'] == 'users').length,
+          'buyers': _mockUsers.where((u) => u['role'] == 'users').length,
           'commerce': _mockUsers.where((u) => u['role'] == 'commerce').length,
           'delivery': _mockUsers.where((u) => u['role'] == 'delivery').length,
+          'admin': _mockUsers.where((u) => u['role'] == 'admin').length,
         },
+        'metrics': _mockSystemStats,
       };
     }
   }
