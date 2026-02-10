@@ -38,13 +38,18 @@ class OnboardingScreenState extends State<OnboardingScreen> {
 
   Future<void> _completeOnboarding(int userId) async {
     if (_isLoading) return;
-    
+
     setState(() => _isLoading = true);
-    
+
     try {
       await _onboardingService.completeOnboarding(userId);
       if (!mounted) return;
-      
+
+      // Marcar onboarding completado en memoria y en storage para que no vuelva a mostrarse
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      userProvider.setCompletedOnboarding(true);
+
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainRouter()),
@@ -52,12 +57,12 @@ class OnboardingScreenState extends State<OnboardingScreen> {
     } catch (e) {
       debugPrint("Error al completar el onboarding: $e");
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
-       const SnackBar(
-          content:  Text('Error al completar el onboarding'),
+        const SnackBar(
+          content: Text('Error al completar el onboarding'),
           behavior: SnackBarBehavior.floating,
-          margin:  EdgeInsets.all(20),
+          margin: EdgeInsets.all(20),
         ),
       );
     } finally {
@@ -72,8 +77,17 @@ class OnboardingScreenState extends State<OnboardingScreen> {
     
     if (_currentPage == onboardingPages.length - 1) {
       final userId = Provider.of<UserProvider>(context, listen: false).userId;
-      if (userId != null) {
+      if (userId > 0) {
         _completeOnboarding(userId);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No se pudo identificar tu cuenta. Cierra sesión e inicia de nuevo.'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
     } else {
       _controller.nextPage(
@@ -164,8 +178,15 @@ class OnboardingScreenState extends State<OnboardingScreen> {
                             TextButton(
                               onPressed: () async {
                                 final userId = userProvider.userId;
-                                if (userId != null) {
+                                if (userId > 0) {
                                   await _completeOnboarding(userId);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('No se pudo identificar tu cuenta. Cierra sesión e inicia de nuevo.'),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
                                 }
                               },
                               child: const Text('Saltar'),

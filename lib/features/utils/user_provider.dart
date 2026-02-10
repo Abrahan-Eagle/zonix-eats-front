@@ -30,7 +30,8 @@ class UserProvider with ChangeNotifier {
   int _userId = 0;
   String _userGoogleId = '';
   String _role = '';
-  
+  bool _completedOnboarding = false;
+
   // Caché para evitar múltiples llamadas simultáneas
   Future<Map<String, dynamic>>? _getUserDetailsFuture;
   Map<String, dynamic>? _cachedUserDetails;
@@ -51,7 +52,8 @@ class UserProvider with ChangeNotifier {
   int get userId => _userId;
   String get userGoogleId => _userGoogleId;
   String get userRole => _role;
-  
+  bool get completedOnboarding => _completedOnboarding;
+
   // Getter para obtener el usuario completo
   Map<String, dynamic> get user => {
     'id': _userId,
@@ -99,6 +101,12 @@ class UserProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  void setCompletedOnboarding(bool value) {
+    _completedOnboarding = value;
+    _storage.write(key: 'userCompletedOnboarding', value: value ? '1' : '0');
+    notifyListeners();
+  }
+
   // Verifica si el usuario está autenticado y carga los datos si es necesario
   Future<void> checkAuthentication() async {
     try {
@@ -123,6 +131,7 @@ class UserProvider with ChangeNotifier {
       _role = await AuthUtils.getUserRole() ?? '';
       _userId = await AuthUtils.getUserId() ?? 0;
       _userGoogleId = await AuthUtils.getUserGoogleId() ?? '';
+      _completedOnboarding = (await _storage.read(key: 'userCompletedOnboarding')) == '1';
       _profileCreated = (await _storage.read(key: 'profileCreated')) == 'true';
       _adresseCreated = (await _storage.read(key: 'adresseCreated')) == 'true';
       _documentCreated = (await _storage.read(key: 'documentCreated')) == 'true';
@@ -197,7 +206,10 @@ class UserProvider with ChangeNotifier {
         _userGoogleId = userDetails['google_id'] ?? '';
         _userId = userDetails['id'] ?? 0;
         _role = userDetails['role'] ?? '';
-        
+        _completedOnboarding = userDetails['completed_onboarding'] == 1 ||
+            userDetails['completed_onboarding'] == true ||
+            userDetails['completed_onboarding']?.toString() == '1';
+
         logger.i('User details: $userDetails');
         logger.i('User role: $_role');
         return {

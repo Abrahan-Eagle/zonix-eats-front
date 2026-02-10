@@ -26,6 +26,26 @@ class ProfileService {
     return await _storage.read(key: 'token');
   }
 
+  /// Perfil del usuario autenticado (GET /api/profile).
+  Future<Profile?> getMyProfile() async {
+    final token = await _getToken();
+    if (token == null) return null;
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/profile'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data is Map<String, dynamic>) {
+        return Profile.fromJson(data);
+      }
+    }
+    return null;
+  }
+
   // Recupera un perfil por ID.
   Future<Profile?> getProfileById(int id) async {
         logger.i('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: $id');
