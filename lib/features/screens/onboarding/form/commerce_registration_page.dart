@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix/features/screens/onboarding/onboarding_service.dart';
+import 'package:zonix/features/screens/onboarding/onboarding_provider.dart';
+import 'package:zonix/features/services/commerce_data_service.dart';
+import 'package:zonix/main.dart';
 
 class CommerceRegistrationPage extends StatefulWidget {
   const CommerceRegistrationPage({super.key});
@@ -592,18 +598,61 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
       setState(() => _isLoading = true);
       
       try {
-        // Aquí implementarías la lógica para enviar los datos al backend
-        await Future.delayed(const Duration(seconds: 2)); // Simulación
-        
-        // Mostrar mensaje de éxito
+        final userProvider = Provider.of<UserProvider>(context, listen: false);
+        final userId = userProvider.userId;
+
+        if (userId <= 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No se pudo identificar tu cuenta. Cierra sesión e inicia de nuevo.'),
+              backgroundColor: Color(0xFFE74C3C),
+            ),
+          );
+          return;
+        }
+
+        // Enviar datos del comercio al backend usando el servicio dedicado.
+        final commerceResult = await CommerceDataService.createCommerce({
+          'user_id': userId,
+          'business_name': _nombreLocalController.text.trim(),
+          'business_type': 'Restaurante',
+          'tax_id': _pagoMovilCedulaController.text.trim(),
+          'address': _direccionController.text.trim(),
+          'phone': _telefonoController.text.trim(),
+          'open': _abierto,
+          'schedule': _horario,
+          'mobile_payment_bank': _pagoMovilBancoController.text.trim(),
+          'mobile_payment_id': _pagoMovilCedulaController.text.trim(),
+          'mobile_payment_phone': _pagoMovilTelefonoController.text.trim(),
+        });
+
+        if (commerceResult['success'] != true) {
+          throw Exception(commerceResult['message'] ?? 'No se pudo registrar el comercio');
+        }
+
+        final onboardingService = OnboardingService();
+        await onboardingService.completeOnboarding(userId, role: 'commerce');
+
+        // Actualizar estado global de onboarding y rol
+        final onboardingProvider = Provider.of<OnboardingProvider>(context, listen: false);
+        onboardingProvider.setRole('commerce');
+
+        // Marcar onboarding completado localmente para que no se vuelva a mostrar
+        userProvider.setCompletedOnboarding(true);
+
+        if (!mounted) return;
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Comercio registrado exitosamente'),
+            content: Text('Comercio registrado y onboarding completado'),
             backgroundColor: Color(0xFF27AE60),
           ),
         );
-        
-        Navigator.pop(context);
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MainRouter()),
+        );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

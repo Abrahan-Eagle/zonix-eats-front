@@ -539,6 +539,7 @@ Future<void> _createProfile() async {
             right: 10,
             bottom: 85, // Separación del botón inferior
             child: FloatingActionButton(
+              heroTag: 'profile_photo_fab',
               onPressed: _pickImage,
               backgroundColor: Colors.blue, // Color distintivo
               child: const Column(
@@ -559,6 +560,7 @@ Future<void> _createProfile() async {
             right: 10,
             bottom: 11, // Espaciado desde el borde inferior
             child: FloatingActionButton(
+              heroTag: 'profile_save_fab',
               onPressed: _createProfile,
               backgroundColor: Colors.green, // Color distintivo
               child: const Column(

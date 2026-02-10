@@ -30,20 +30,25 @@ class AddressService {
 
 
 Future<List<Country>> fetchCountries() async {
-  logger.e('0000000000000000000000000000000000000000000000000000000000000000000000000');
   final token = await _getToken();
   try {
     final response = await http.post(
       Uri.parse('$baseUrl/api/addresses/getCountries'),
-      headers: {'Authorization': 'Bearer $token'},
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
     ).timeout(const Duration(seconds: 10));
 
-    logger.i('00000000000000 Response status: ${response.statusCode}');
-    logger.i('00000000000000 Response body: ${response.body}');
-
-  if (response.statusCode == 200) {
-      List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => Country.fromJson(json)).toList();
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      List<dynamic> data = decoded is List
+          ? decoded
+          : (decoded is Map && decoded['data'] != null)
+              ? decoded['data'] as List<dynamic>
+              : [];
+      return data.map((json) => Country.fromJson(json as Map<String, dynamic>)).toList();
     } else {
       throw Exception('Error al cargar los países');
     }
@@ -54,21 +59,26 @@ Future<List<Country>> fetchCountries() async {
 }
 
 Future<List<StateModel>> fetchStates(int countryId) async {
-  logger.e('1111111111111111111111111111111111111111111111111111111111111111111111111: $countryId');
   final token = await _getToken();
   try {
     final response = await http.post(
       Uri.parse('$baseUrl/api/addresses/get-states-by-country'),
-      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
       body: json.encode({'countries_id': countryId}),
     ).timeout(const Duration(seconds: 10));
 
-    logger.i('11111111111111111 Response status: ${response.statusCode}');
-    logger.i('11111111111111111 Response body: ${response.body}');
-
-  if (response.statusCode == 200) {
-      List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => StateModel.fromJson(json)).toList();
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      List<dynamic> data = decoded is List
+          ? decoded
+          : (decoded is Map && decoded['data'] != null)
+              ? decoded['data'] as List<dynamic>
+              : [];
+      return data.map((json) => StateModel.fromJson(json as Map<String, dynamic>)).toList();
     } else {
       throw Exception('Error al cargar los estados');
     }
@@ -78,22 +88,27 @@ Future<List<StateModel>> fetchStates(int countryId) async {
   }
 }
     
- Future<List<City>> fetchCitiesByState(int stateId) async {
-  logger.e('2222222222222222222222222222222222222222222222222222222222222222222222222: $stateId');
+Future<List<City>> fetchCitiesByState(int stateId) async {
   final token = await _getToken();
   try {
     final response = await http.post(
       Uri.parse('$baseUrl/api/addresses/get-cities-by-state'),
-      headers: {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'},
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
       body: json.encode({'state_id': stateId}),
     ).timeout(const Duration(seconds: 10));
 
-    logger.i('222222222222222 Response status: ${response.statusCode}');
-    logger.i('222222222222222 Response body: ${response.body}');
-
-  if (response.statusCode == 200) {
-      List<dynamic> data = jsonDecode(response.body);
-      return data.map((json) => City.fromJson(json)).toList();
+    if (response.statusCode == 200) {
+      final decoded = jsonDecode(response.body);
+      List<dynamic> data = decoded is List
+          ? decoded
+          : (decoded is Map && decoded['data'] != null)
+              ? decoded['data'] as List<dynamic>
+              : [];
+      return data.map((json) => City.fromJson(json as Map<String, dynamic>)).toList();
     } else {
       throw Exception('Error al cargar los ciudades');
     }
@@ -105,15 +120,16 @@ Future<List<StateModel>> fetchStates(int countryId) async {
 
 
 
+  /// Crea una dirección. [userId] es el user_id del usuario (el backend lo espera en profile_id).
+  /// Si el backend responde 409 "Ya tiene un registro guardado", se considera éxito.
   Future<void> createAddress(Address address, int userId) async {
-
-    logger.w('addressUSERID: ${address.id}  userIduserIduserIdUSERID: $userId  createAddress: ${address.latitude} ${address.longitude}');
     final token = await _getToken();
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/api/addresses'),
         headers: {
           'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
         body: json.encode({
@@ -128,11 +144,20 @@ Future<List<StateModel>> fetchStates(int countryId) async {
         }),
       ).timeout(const Duration(seconds: 10));
 
-      if (response.statusCode != 201) {
-        logger.e('Error al crear la dirección: ${response.statusCode} ${response.body}');
-        throw ApiException('al crear la dirección: ${response.body}');
+      if (response.statusCode == 201) {
+        return;
       }
+      if (response.statusCode == 409) {
+        final body = response.body;
+        if (body.contains('Ya tiene un registro guardado') ||
+            (body.isNotEmpty && body.contains('registro guardado'))) {
+          return;
+        }
+      }
+      logger.e('Error al crear la dirección: ${response.statusCode} ${response.body}');
+      throw ApiException('al crear la dirección: ${response.body}');
     } catch (e) {
+      if (e is ApiException) rethrow;
       logger.e('Error en la solicitud de creación de dirección: $e');
       throw ApiException('Error en la solicitud de creación de dirección: ${e.toString()}');
     }
@@ -206,21 +231,7 @@ Future<List<StateModel>> fetchStates(int countryId) async {
     }
   }
 
-  // Método auxiliar para manejar la respuesta de la API
-  _handleResponse<T>(http.Response response, T Function(dynamic) fromJson) {
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return fromJson(data);
-    } else {
-      logger.e('Error en la solicitud: ${response.statusCode} ${response.body}');
-      throw ApiException('Error en la solicitud: ${response.statusCode} ${response.body}');
-    }
-  }
-
-
-
-
-Future<void> updateStatusCheckScanner(int userId) async {
+  Future<void> updateStatusCheckScanner(int userId) async {
   String? token = await _getToken();
     if (token == null) {
       logger.e('Token no encontrado');

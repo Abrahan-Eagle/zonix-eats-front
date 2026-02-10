@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix/main.dart';
 import './form/commerce_registration_page.dart';
-import './onboarding_page4.dart';
+import 'onboarding_provider.dart';
+import 'onboarding_service.dart';
+import 'client_onboarding_flow.dart';
 
 class OnboardingPage3 extends StatefulWidget {
   const OnboardingPage3({super.key});
@@ -124,13 +129,19 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
                           ],
                         ),
                         child: ElevatedButton(
-                          onPressed: () {
+                          onPressed: () async {
                             if (selectedRole == 'users') {
-                              // Registra automáticamente como users (comprador) y continúa al siguiente onboarding
-                              Navigator.push(
+                              // Nuevo flujo completo de onboarding de cliente:
+                              // se recogen los datos en memoria y al final se
+                              // crean perfil, dirección, teléfono y se marca
+                              // completed_onboarding.
+                              final onboardingProvider = Provider.of<OnboardingProvider>(context, listen: false);
+                              onboardingProvider.setRole('users');
+
+                              await Navigator.push(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (context) => const OnboardingPage4(),
+                                  builder: (context) => const ClientOnboardingFlow(),
                                 ),
                               );
                             } else {
@@ -185,6 +196,9 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
         setState(() {
           selectedRole = role;
         });
+        // Guardar el rol seleccionado en el provider global de onboarding
+        final onboardingProvider = Provider.of<OnboardingProvider>(context, listen: false);
+        onboardingProvider.setRole(role);
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),

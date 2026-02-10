@@ -22,7 +22,10 @@ class OnboardingService {
   }
 
   // Completar el proceso de onboarding del usuario
-  Future<void> completeOnboarding(int userId) async {
+  Future<void> completeOnboarding(
+    int userId, {
+    String? role,
+  }) async {
     final token = await _getToken();
     
     if (token == null) {
@@ -31,13 +34,21 @@ class OnboardingService {
     }
     
     try {
+      // Por ahora marcamos completed_onboarding en true y, si se proporciona,
+      // también actualizamos el rol del usuario (users / commerce).
+      final Map<String, dynamic> payload = {
+        'completed_onboarding': true,
+      };
+      if (role != null && role.isNotEmpty) {
+        payload['role'] = role;
+      }
       final response = await http.put(
         Uri.parse('$baseUrl/api/onboarding/$userId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({'completed_onboarding': true}),
+        body: jsonEncode(payload),
       );
 
       if (response.statusCode == 200) {

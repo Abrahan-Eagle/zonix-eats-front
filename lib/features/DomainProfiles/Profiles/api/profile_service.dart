@@ -79,8 +79,8 @@ class ProfileService {
       throw Exception('Error al obtener los perfiles');
     }
   }
-// Crea un nuevo perfil.
-Future<void> createProfile(Profile profile, int userId, {File? imageFile}) async {
+// Crea un nuevo perfil. Devuelve el id del perfil (creado o ya existente si 409).
+Future<int> createProfile(Profile profile, int userId, {File? imageFile}) async {
   try {
     final token = await _getToken();
     if (token == null) throw Exception('Token no encontrado.');
@@ -90,36 +90,60 @@ Future<void> createProfile(Profile profile, int userId, {File? imageFile}) async
       ..headers['Authorization'] = 'Bearer $token'
       ..headers['Accept'] = 'application/json'
       ..fields['firstName'] = profile.firstName
-      ..fields['middleName'] = profile.middleName ?? '' 
+      ..fields['middleName'] = profile.middleName
       ..fields['lastName'] = profile.lastName
-      ..fields['secondLastName'] = profile.secondLastName ?? ''
+      ..fields['secondLastName'] = profile.secondLastName
       ..fields['date_of_birth'] = profile.dateOfBirth
       ..fields['maritalStatus'] = profile.maritalStatus
       ..fields['sex'] = profile.sex
-      ..fields['user_id'] = userId.toString(); // Agregar user_id
+      ..fields['user_id'] = userId.toString();
 
-    // Agrega la imagen si está presente.
     if (imageFile != null) {
       final image = await http.MultipartFile.fromPath(
         'photo_users',
         imageFile.path,
-        contentType: MediaType('image', 'jpeg'), // Ajusta si necesitas otro formato.
+        contentType: MediaType('image', 'jpeg'),
       );
       request.files.add(image);
     }
 
     final response = await request.send();
-
-    // Loguea el response recibido.
     logger.i('Response Status: ${response.statusCode}');
     final responseData = await http.Response.fromStream(response);
+    final body = responseData.body;
 
     if (response.statusCode == 200 || response.statusCode == 201) {
-      logger.i('Perfil creado exitosamente: ${responseData.body}');
-    } else {
-      logger.e('Error al crear el perfil: ${responseData.body}');
-      throw Exception('Error al crear el perfil: ${responseData.body}');
+      logger.i('Perfil creado exitosamente: $body');
+      final decoded = jsonDecode(body);
+      if (decoded is Map<String, dynamic>) {
+        final data = decoded['data'] ?? decoded;
+        final profileData = data is Map ? data['profile'] ?? data : null;
+        if (profileData is Map && profileData['id'] != null) {
+          return (profileData['id'] as num).toInt();
+        }
+      }
+      final existing = await getMyProfile();
+      if (existing != null) return existing.id;
+      throw Exception('No se pudo obtener el perfil creado.');
     }
+
+    if (response.statusCode == 409) {
+      // Ya existe un perfil: usar el que devuelve el backend
+      final decoded = jsonDecode(body);
+      if (decoded is Map<String, dynamic> && decoded['profile'] != null) {
+        final profileJson = decoded['profile'] as Map<String, dynamic>;
+        final id = profileJson['id'];
+        if (id != null) {
+          logger.i('Perfil ya existente, usando id: $id');
+          return (id is num) ? id.toInt() : int.parse(id.toString());
+        }
+      }
+      final existing = await getMyProfile();
+      if (existing != null) return existing.id;
+    }
+
+    logger.e('Error al crear el perfil: $body');
+    throw Exception('Error al crear el perfil: $body');
   } catch (e) {
     logger.e('Excepción: $e');
     rethrow;
@@ -138,9 +162,9 @@ Future<void> createProfile(Profile profile, int userId, {File? imageFile}) async
         ..headers['Authorization'] = 'Bearer $token'
         ..headers['Accept'] = 'application/json'
         ..fields['firstName'] = profile.firstName
-        ..fields['middleName'] = profile.middleName ?? '' 
+        ..fields['middleName'] = profile.middleName
         ..fields['lastName'] = profile.lastName
-        ..fields['secondLastName'] = profile.secondLastName ?? ''
+        ..fields['secondLastName'] = profile.secondLastName
         ..fields['date_of_birth'] = profile.dateOfBirth
         ..fields['maritalStatus'] = profile.maritalStatus
         ..fields['sex'] = profile.sex;

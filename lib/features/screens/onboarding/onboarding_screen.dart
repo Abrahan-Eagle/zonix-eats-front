@@ -1,17 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'onboarding_page1.dart';
 import 'onboarding_page2.dart';
 import 'onboarding_page3.dart';
-import 'onboarding_page4.dart';
-import 'onboarding_page5.dart';
-import 'package:zonix/features/utils/user_provider.dart';
-import 'package:provider/provider.dart';
-import 'onboarding_service.dart';
-import 'package:zonix/main.dart';
-
-final OnboardingService _onboardingService = OnboardingService();
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -28,67 +19,22 @@ class OnboardingScreenState extends State<OnboardingScreen> {
   List<Widget> get onboardingPages {
     return const [
       WelcomePage(),
-      OnboardingPage1(),
-      OnboardingPage2(),
-      OnboardingPage3(),
-      OnboardingPage4(),
-      OnboardingPage5(),
+      OnboardingPage1(), // Intro 1 - beneficios
+      OnboardingPage2(), // Intro 2 - pedidos fáciles
+      OnboardingPage3(), // Selección de rol (users / commerce) y punto de bifurcación por rol
     ];
-  }
-
-  Future<void> _completeOnboarding(int userId) async {
-    if (_isLoading) return;
-
-    setState(() => _isLoading = true);
-
-    try {
-      await _onboardingService.completeOnboarding(userId);
-      if (!mounted) return;
-
-      // Marcar onboarding completado en memoria y en storage para que no vuelva a mostrarse
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      userProvider.setCompletedOnboarding(true);
-
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MainRouter()),
-      );
-    } catch (e) {
-      debugPrint("Error al completar el onboarding: $e");
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Error al completar el onboarding'),
-          behavior: SnackBarBehavior.floating,
-          margin: EdgeInsets.all(20),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
-    }
   }
 
   void _handleNext() {
     if (_isLoading) return;
-    
+
     if (_currentPage == onboardingPages.length - 1) {
-      final userId = Provider.of<UserProvider>(context, listen: false).userId;
-      if (userId > 0) {
-        _completeOnboarding(userId);
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No se pudo identificar tu cuenta. Cierra sesión e inicia de nuevo.'),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      }
+      // Última página: el cierre visual del onboarding se maneja desde los
+      // flujos específicos de rol (Cliente / Restaurante) en OnboardingPage3
+      // y CommerceRegistrationPage. Aquí no marcamos el onboarding como
+      // completado para asegurarnos de que el usuario haya creado su perfil
+      // y dirección/comercio en las pantallas correspondientes.
+      return;
     } else {
       _controller.nextPage(
         duration: const Duration(milliseconds: 300),
@@ -115,7 +61,6 @@ class OnboardingScreenState extends State<OnboardingScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
 
     return WillPopScope(
       onWillPop: () async => false,
@@ -168,47 +113,35 @@ class OnboardingScreenState extends State<OnboardingScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // Botón Atrás/Saltar
-                          if (_currentPage > 0)
-                            TextButton(
-                              onPressed: _handleBack,
-                              child: const Text('Atrás'),
+                      // Botón Atrás (sin opción de Saltar el onboarding completo)
+                      if (_currentPage > 0)
+                        TextButton(
+                          onPressed: _handleBack,
+                          child: const Text('Atrás'),
+                        )
+                      else
+                        const SizedBox(width: 80),
+
+                          // Botón Siguiente solo en las intros.
+                          // En la última página (OnboardingPage3) el flujo
+                          // continúa mediante el botón propio de selección de rol.
+                          if (_currentPage < onboardingPages.length - 1)
+                            FloatingActionButton(
+                              onPressed: _handleNext,
+                              backgroundColor: theme.primaryColor,
+                              elevation: 2,
+                              child: _isLoading
+                                  ? const CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2,
+                                    )
+                                  : const Icon(
+                                      Icons.arrow_forward,
+                                      color: Colors.white,
+                                    ),
                             )
                           else
-                            TextButton(
-                              onPressed: () async {
-                                final userId = userProvider.userId;
-                                if (userId > 0) {
-                                  await _completeOnboarding(userId);
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('No se pudo identificar tu cuenta. Cierra sesión e inicia de nuevo.'),
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                }
-                              },
-                              child: const Text('Saltar'),
-                            ),
-
-                          // Botón Siguiente/Finalizar
-                          FloatingActionButton(
-                            onPressed: _handleNext,
-                            backgroundColor: theme.primaryColor,
-                            elevation: 2,
-                            child: _isLoading
-                                ? const CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  )
-                                : Icon(
-                                    _currentPage == onboardingPages.length - 1
-                                        ? Icons.check
-                                        : Icons.arrow_forward,
-                                    color: Colors.white,
-                                  ),
-                          ),
+                            const SizedBox(width: 56, height: 56),
                         ],
                       ),
                     ],
