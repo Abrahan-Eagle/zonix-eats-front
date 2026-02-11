@@ -59,9 +59,20 @@ class GoogleSignInService {
         final response = await _apiService.sendTokenToBackend(processedResult);
 
         if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          await AuthUtils.saveToken(data['token'], data['expires_in']); // Guardar el token devuelto por el backend
-          await _storage.write(key: 'role', value: data['user']['role']); // Guardar el rol
+          final data = jsonDecode(response.body) as Map<String, dynamic>?;
+          if (data == null) {
+            logger.e('Backend devolvió respuesta vacía');
+            return null;
+          }
+          final token = data['token']?.toString();
+          final expiresIn = data['expires_in'] is int ? data['expires_in'] as int : (int.tryParse(data['expires_in']?.toString() ?? '0') ?? 3600);
+          if (token == null || token.isEmpty) {
+            logger.e('Backend no devolvió token');
+            return null;
+          }
+          await AuthUtils.saveToken(token, expiresIn);
+          final role = data['user']?['role']?.toString() ?? 'users';
+          await _storage.write(key: 'role', value: role);
           logger.i('Token guardado correctamente con su expiración.');
           return user; // Retorna el usuario autenticado
         } else {

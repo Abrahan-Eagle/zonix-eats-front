@@ -62,6 +62,30 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
     );
     
     _animationController.forward();
+
+    // Prefill de dirección con la misma dirección capturada en el formulario 2
+    // del onboarding (street, houseNumber, postalCode).
+    final onboarding = Provider.of<OnboardingProvider>(context, listen: false);
+    final street = onboarding.street;
+    final houseNumber = onboarding.houseNumber;
+    final postalCode = onboarding.postalCode;
+
+    final buffer = StringBuffer();
+    if (street != null && street.trim().isNotEmpty) {
+      buffer.write(street.trim());
+    }
+    if (houseNumber != null && houseNumber.trim().isNotEmpty) {
+      if (buffer.isNotEmpty) buffer.write(' ');
+      buffer.write('#${houseNumber.trim()}');
+    }
+    if (postalCode != null && postalCode.trim().isNotEmpty) {
+      if (buffer.isNotEmpty) buffer.write(', ');
+      buffer.write('CP ${postalCode.trim()}');
+    }
+
+    if (buffer.isNotEmpty) {
+      _direccionController.text = buffer.toString();
+    }
   }
 
   @override

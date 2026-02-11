@@ -163,12 +163,50 @@ class CommerceDataService {
     }
   }
 
-  // Crear nuevo comercio
+  /// Crea comercio cuando el perfil ya existe (onboarding comercio).
+  /// Usa POST /api/profiles/add-commerce y devuelve data.id para vincular la dirección.
+  static Future<Map<String, dynamic>> createCommerceForExistingProfile(
+    int profileId,
+    Map<String, dynamic> data,
+  ) async {
+    final headers = await AuthHelper.getAuthHeaders();
+    final body = Map<String, dynamic>.from(data)..['profile_id'] = profileId;
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/profiles/add-commerce'),
+      headers: headers,
+      body: jsonEncode(body),
+    );
+    if (response.statusCode == 201) {
+      final result = jsonDecode(response.body);
+      return result;
+    }
+    if (response.statusCode == 409) {
+      final decoded = jsonDecode(response.body);
+      if (decoded['data']?['id'] != null) {
+        return {'success': true, 'data': decoded['data']};
+      }
+    }
+    _logger.e('add-commerce falló: ${response.statusCode} body: ${response.body.length > 300 ? response.body.substring(0, 300) : response.body}');
+    String msg = 'Error al crear comercio';
+    try {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map && decoded['message'] != null) {
+        msg = decoded['message'].toString();
+        if (decoded['errors'] != null && decoded['errors'] is Map) {
+          final errs = (decoded['errors'] as Map).values;
+          if (errs.isNotEmpty) msg = '$msg ${errs.first}';
+        }
+      }
+    } catch (_) {}
+    throw Exception('$msg (${response.statusCode})');
+  }
+
+  // Crear nuevo comercio (perfil + comercio en una llamada; para flujos sin perfil previo)
   static Future<Map<String, dynamic>> createCommerce(Map<String, dynamic> data) async {
     final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/api/buyer/profiles/commerce'),
+        Uri.parse('$baseUrl/api/profiles/commerce'),
         headers: headers,
         body: jsonEncode(data),
       );

@@ -121,10 +121,30 @@ Future<List<City>> fetchCitiesByState(int stateId) async {
 
 
   /// Crea una dirección. [userId] es el user_id del usuario (el backend lo espera en profile_id).
-  /// Si el backend responde 409 "Ya tiene un registro guardado", se considera éxito.
-  Future<void> createAddress(Address address, int userId) async {
+  /// [role] opcional: 'users', 'commerce', 'delivery', 'admin'.
+  /// [commerceId] opcional: cuando la dirección es del establecimiento (role commerce), vincula a este comercio.
+  Future<void> createAddress(Address address, int userId, {String? role, int? commerceId}) async {
     final token = await _getToken();
     try {
+      // Opción A: dirección del establecimiento → solo commerce_id (no enviar profile_id).
+      final isCommerceAddress = commerceId != null && commerceId > 0;
+      final body = <String, dynamic>{
+        'street': address.street,
+        'house_number': address.houseNumber,
+        'city_id': address.cityId,
+        'postal_code': address.postalCode,
+        'latitude': address.latitude,
+        'longitude': address.longitude,
+        'status': address.status,
+      };
+      if (isCommerceAddress) {
+        body['commerce_id'] = commerceId!;
+        body['role'] = role ?? 'commerce';
+      } else {
+        body['profile_id'] = userId;
+        if (role != null && role.isNotEmpty) body['role'] = role;
+      }
+
       final response = await http.post(
         Uri.parse('$baseUrl/api/addresses'),
         headers: {
@@ -132,25 +152,16 @@ Future<List<City>> fetchCitiesByState(int stateId) async {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
         },
-        body: json.encode({
-          'profile_id': userId,
-          'street': address.street,
-          'house_number': address.houseNumber,
-          'city_id': address.cityId,
-          'postal_code': address.postalCode,
-          'latitude': address.latitude,
-          'longitude': address.longitude,
-          'status': address.status,
-        }),
+        body: json.encode(body),
       ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 201) {
         return;
       }
       if (response.statusCode == 409) {
-        final body = response.body;
-        if (body.contains('Ya tiene un registro guardado') ||
-            (body.isNotEmpty && body.contains('registro guardado'))) {
+        final resBody = response.body;
+        if (resBody.contains('Ya tiene un registro guardado') ||
+            (resBody.isNotEmpty && resBody.contains('registro guardado'))) {
           return;
         }
       }

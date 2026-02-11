@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -10,6 +11,7 @@ import 'package:latlong2/latlong.dart' as latLng;
 import 'package:image_picker/image_picker.dart';
 
 import 'onboarding_provider.dart';
+import 'package:zonix/features/services/commerce_data_service.dart';
 import 'onboarding_service.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
@@ -32,8 +34,15 @@ import 'package:zonix/main.dart';
 /// (OnboardingProvider y controladores). Al finalizar se hacen las únicas
 /// llamadas de escritura al backend: crear Profile, Address, Phone y marcar
 /// completed_onboarding.
+///
+/// El parámetro [isCommerce] permite reutilizar este flujo para el rol
+/// comerciante, cambiando solo el paso final (navegación).
 class ClientOnboardingFlow extends StatefulWidget {
-  const ClientOnboardingFlow({super.key});
+  const ClientOnboardingFlow({super.key, this.isCommerce = false});
+
+  /// Cuando es `true`, al terminar se navega al flujo de registro de comercio
+  /// en lugar de completar el onboarding del comprador.
+  final bool isCommerce;
 
   @override
   State<ClientOnboardingFlow> createState() => _ClientOnboardingFlowState();
@@ -76,13 +85,30 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
   DateTime? _lastGeocodingCall;
   bool _isLoadingLocation = false;
 
-  // STEP 3 – Teléfono
+  // STEP 2 (commerce): dirección del dueño — se guarda en provider, no se persiste hasta el final.
+
+  // STEP 3 (solo commerce) – Datos del comercio (tabla commerces)
+  final _step3FormKey = GlobalKey<FormState>();
+  final _commerceNameController = TextEditingController();
+  final _commerceTaxIdController = TextEditingController();
+  final _commerceOwnerCiController = TextEditingController();
+  final _commercePhoneController = TextEditingController();
+  bool _commerceOpen = false;
+  Map<String, Map<String, String>> _commerceSchedule = {};
+
+  // STEP 4 (solo commerce) – Dirección del establecimiento (misma vista que paso 2, role commerce)
+  final _step4FormKey = GlobalKey<FormState>();
+  final _streetCommerceController = TextEditingController();
+  final _houseNumberCommerceController = TextEditingController();
+  final _postalCodeCommerceController = TextEditingController();
+
+  // STEP 1 incluye teléfono
   final _phoneController = TextEditingController();
   List<Map<String, dynamic>> _operatorCodes = [];
   Map<String, dynamic>? _selectedOperator;
   bool _isLoadingOperators = false;
 
-  // Foto y términos
+  // Foto
   XFile? _selectedPhoto;
 
   @override
@@ -92,6 +118,17 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     _loadCountries();
     _getCurrentLocation();
     _loadOperatorCodes();
+    if (widget.isCommerce) {
+      _commerceSchedule = {
+        'lunes': {'inicio': '', 'fin': '', 'cerrado': 'false'},
+        'martes': {'inicio': '', 'fin': '', 'cerrado': 'false'},
+        'miercoles': {'inicio': '', 'fin': '', 'cerrado': 'false'},
+        'jueves': {'inicio': '', 'fin': '', 'cerrado': 'false'},
+        'viernes': {'inicio': '', 'fin': '', 'cerrado': 'false'},
+        'sabado': {'inicio': '', 'fin': '', 'cerrado': 'false'},
+        'domingo': {'inicio': '', 'fin': '', 'cerrado': 'false'},
+      };
+    }
   }
 
   Future<void> _pickProfilePhoto() async {
@@ -134,6 +171,13 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     _streetController.dispose();
     _houseNumberController.dispose();
     _postalCodeController.dispose();
+    _commerceNameController.dispose();
+    _commerceTaxIdController.dispose();
+    _commerceOwnerCiController.dispose();
+    _commercePhoneController.dispose();
+    _streetCommerceController.dispose();
+    _houseNumberCommerceController.dispose();
+    _postalCodeCommerceController.dispose();
     _phoneController.dispose();
     _mapController.dispose();
     super.dispose();
@@ -280,6 +324,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       _cityId = value?.id;
     });
   }
+
 
   static List<Map<String, dynamic>> _fallbackOperatorCodes() {
     return [
@@ -686,6 +731,8 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     );
   }
 
+  int get _totalSteps => widget.isCommerce ? 4 : 2;
+
   Future<void> _handleNext() async {
     if (_currentStep == 0) {
       if (_step1FormKey.currentState?.validate() != true || _birthDate == null || _selectedSex == null) {
@@ -743,7 +790,32 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         longitude: _longitude!,
       );
 
+      if (widget.isCommerce) {
+        _goToStep(2);
+        return;
+      }
       await _handleSubmit();
+    } else if (widget.isCommerce && _currentStep == 2) {
+      if (_step3FormKey.currentState?.validate() != true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Completa los datos de tu comercio (nombre del local y teléfono).'),
+          ),
+        );
+        return;
+      }
+      _goToStep(3);
+    } else if (widget.isCommerce && _currentStep == 3) {
+      if (_step4FormKey.currentState?.validate() != true ||
+          _selectedCity == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Completa la dirección del establecimiento (país, estado, ciudad y dirección).'),
+          ),
+        );
+        return;
+      }
+      await _handleSubmitCommerce();
     }
   }
 
@@ -869,15 +941,14 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         }
       }
 
-      // 4) Marcar onboarding completado
+      // 4) Flujo comprador: marcar onboarding completado y llevar al MainRouter
+      if (!mounted) return;
+      if (dialogShown) Navigator.of(context).pop();
+
       final onboardingService = OnboardingService();
       await onboardingService.completeOnboarding(userId, role: 'users');
       userProvider.setCompletedOnboarding(true);
-
       onboarding.setRole('users');
-
-      if (!mounted) return;
-      if (dialogShown) Navigator.of(context).pop(); // Cerrar solo el diálogo de progreso
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -885,13 +956,214 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         ),
       );
 
-      if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const MainRouter()),
         (route) => false,
       );
     } catch (e, stackTrace) {
       debugPrint('Onboarding error: $e');
+      debugPrint('$stackTrace');
+      if (!mounted) return;
+      if (dialogShown) {
+        try { Navigator.of(context).pop(); } catch (_) {}
+      }
+      final message = _userFriendlyErrorMessage(e);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Colors.red.shade700,
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isSubmitting = false);
+      }
+    }
+  }
+
+  /// Flujo comercio: guarda todo al final (perfil, dirección dueño, teléfono, comercio, dirección establecimiento).
+  Future<void> _handleSubmitCommerce() async {
+    final onboarding = context.read<OnboardingProvider>();
+
+    setState(() => _isSubmitting = true);
+    bool dialogShown = false;
+
+    try {
+      final userProvider = context.read<UserProvider>();
+      int userId = userProvider.userId;
+      if (userId <= 0) {
+        try {
+          final details = await userProvider.getUserDetails(forceRefresh: true);
+          userId = details['userId'] ?? userProvider.userId;
+        } catch (_) {}
+      }
+      if (userId <= 0) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No se pudo identificar tu cuenta. Cierra sesión e inicia de nuevo.'),
+            ),
+          );
+        }
+        return;
+      }
+      if (_selectedPhoto == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Agrega una foto de perfil para continuar.'),
+            ),
+          );
+        }
+        return;
+      }
+
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+      dialogShown = true;
+
+      // 1) Crear perfil
+      final profile = Profile(
+        id: 0,
+        userId: userId,
+        firstName: onboarding.firstName ?? _firstNameController.text.trim(),
+        middleName: onboarding.middleName ?? '',
+        lastName: onboarding.lastName ?? _lastNameController.text.trim(),
+        secondLastName: onboarding.secondLastName ?? _secondLastNameController.text.trim(),
+        photo: null,
+        dateOfBirth: (onboarding.dateOfBirth ?? _birthDate)!.toIso8601String().split('T').first,
+        maritalStatus: 'single',
+        sex: onboarding.sex ?? _selectedSex ?? 'M',
+        status: 'notverified',
+        phone: null,
+        address: null,
+        businessName: null,
+        businessType: null,
+        taxId: null,
+        vehicleType: null,
+        licenseNumber: null,
+      );
+      final profileService = ProfileService();
+      final profileId = await profileService.createProfile(
+        profile,
+        userId,
+        imageFile: File(_selectedPhoto!.path),
+      );
+      if (profileId <= 0) throw Exception('No se pudo obtener el perfil.');
+
+      // 2) Dirección del dueño (formulario 2)
+      final addressOwner = Address(
+        id: null,
+        street: onboarding.street ?? _streetController.text.trim(),
+        houseNumber: onboarding.houseNumber ?? _houseNumberController.text.trim(),
+        postalCode: onboarding.postalCode ?? _postalCodeController.text.trim(),
+        latitude: onboarding.latitude ?? _latitude ?? 0.0,
+        longitude: onboarding.longitude ?? _longitude ?? 0.0,
+        status: 'notverified',
+        profileId: profileId,
+        cityId: onboarding.cityId ?? _cityId ?? 0,
+      );
+      final addressService = AddressService();
+      await addressService.createAddress(addressOwner, userId);
+
+      // 3) Teléfono
+      final number = _phoneController.text.trim();
+      if (number.length == 7) {
+        final op = _selectedOperator ?? (_operatorCodes.isNotEmpty ? _operatorCodes.first : null);
+        final operatorId = op?['id'] ?? 0;
+        final operatorName = op?['code']?.toString() ?? op?['name']?.toString() ?? '';
+        if (operatorId > 0) {
+          final phone = Phone(
+            id: 0,
+            profileId: profileId,
+            operatorCodeId: operatorId is int ? operatorId : int.tryParse(operatorId.toString()) ?? 0,
+            operatorCodeName: operatorName,
+            number: number,
+            isPrimary: true,
+            status: true,
+          );
+          final phoneService = PhoneService();
+          await phoneService.createPhone(phone, userId);
+          userProvider.setPhoneCreated(true);
+        }
+      }
+
+      // 4) Crear comercio (tabla commerces; la dirección va en addresses con role commerce)
+      final addressEstablishmentStr = '${_streetController.text.trim()} ${_houseNumberController.text.trim()}'.trim();
+      // Teléfono del comercio: mismo formato que el del usuario (0 + código + 7 dígitos)
+      String commercePhone = _commercePhoneController.text.trim();
+      final opCommerce = _selectedOperator ?? (_operatorCodes.isNotEmpty ? _operatorCodes.first : null);
+      final opCode = opCommerce?['code']?.toString();
+      if (opCode != null && opCode.isNotEmpty && commercePhone.length == 7) {
+        commercePhone = '0$opCode$commercePhone';
+      }
+      final commerceResult = await CommerceDataService.createCommerceForExistingProfile(
+        profileId,
+        {
+          'business_name': _commerceNameController.text.trim(),
+          'business_type': 'Restaurante',
+          'tax_id': _commerceTaxIdController.text.trim().isEmpty
+              ? 'N/A'
+              : _commerceTaxIdController.text.trim(),
+          'address': addressEstablishmentStr,
+          'open': _commerceOpen,
+          'schedule': _commerceSchedule.isEmpty ? '' : jsonEncode(_commerceSchedule),
+          'owner_ci': _commerceOwnerCiController.text.trim(),
+        },
+      );
+      if (commerceResult['success'] != true) {
+        throw Exception(commerceResult['message'] ?? 'No se pudo registrar el comercio');
+      }
+      // Id del comercio recién creado para vincular la dirección del establecimiento.
+      final commerceId = commerceResult['data']?['id'] is int
+          ? commerceResult['data']['id'] as int
+          : (commerceResult['data']?['id'] != null
+              ? int.tryParse(commerceResult['data']['id'].toString())
+              : null);
+
+      // 5) Dirección del establecimiento (formulario 4) en addresses con role commerce y commerce_id.
+      final addressEstablishment = Address(
+        id: null,
+        street: _streetController.text.trim(),
+        houseNumber: _houseNumberController.text.trim().isEmpty ? '' : _houseNumberController.text.trim(),
+        postalCode: _postalCodeController.text.trim().isEmpty ? '' : _postalCodeController.text.trim(),
+        latitude: _latitude ?? 0.0,
+        longitude: _longitude ?? 0.0,
+        status: 'notverified',
+        profileId: profileId,
+        cityId: _selectedCity?.id ?? _cityId ?? 0,
+      );
+      await addressService.createAddress(
+        addressEstablishment,
+        userId,
+        role: 'commerce',
+        commerceId: commerceId,
+      );
+
+      if (!mounted) return;
+      if (dialogShown) Navigator.of(context).pop();
+
+      final onboardingService = OnboardingService();
+      await onboardingService.completeOnboarding(userId, role: 'commerce');
+      userProvider.setCompletedOnboarding(true);
+      onboarding.setRole('commerce');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Comercio registrado. Onboarding completado.'),
+        ),
+      );
+
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const MainRouter()),
+        (route) => false,
+      );
+    } catch (e, stackTrace) {
+      debugPrint('Onboarding commerce error: $e');
       debugPrint('$stackTrace');
       if (!mounted) return;
       if (dialogShown) {
@@ -923,9 +1195,18 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     if (msg.contains('409')) {
       return 'Ya tienes datos registrados. Si el problema continúa, contacta soporte.';
     }
+    if (msg.contains('(401)') || msg.contains('Unauthenticated')) {
+      return 'Sesión expirada o no autorizado. Cierra sesión e inicia de nuevo.';
+    }
+    if (msg.contains('(404)')) {
+      return 'No se encontró la ruta del servidor. Revisa que la API esté en /api/profiles/add-commerce.';
+    }
     // Errores específicos por área
     if (msg.contains('Error al crear el perfil') || msg.contains('profiles')) {
       return 'Hubo un problema al guardar tus datos personales. Revisa nombre, fecha de nacimiento y género.';
+    }
+    if (msg.contains('Error al crear comercio') || msg.contains('add-commerce')) {
+      return 'Hubo un problema al registrar el comercio. Revisa nombre, RIF y dirección del local.';
     }
     if (msg.contains('Error al crear dirección') || msg.contains('/buyer/addresses')) {
       return 'Hubo un problema con tu dirección. Revisa país, estado, ciudad y calle antes de intentar de nuevo.';
@@ -977,11 +1258,11 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
               children: [
                 Expanded(
                   child: LinearProgressIndicator(
-                    value: (_currentStep + 1) / 2,
+                    value: (_currentStep + 1) / _totalSteps,
                   ),
                 ),
                 const SizedBox(width: 12),
-                Text('Paso ${_currentStep + 1} de 2'),
+                Text('Paso ${_currentStep + 1} de $_totalSteps'),
               ],
             ),
           ),
@@ -990,10 +1271,17 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             child: PageView(
               controller: _pageController,
               physics: const NeverScrollableScrollPhysics(),
-              children: [
-                _buildStep1(size),
-                _buildStep2(size),
-              ],
+              children: widget.isCommerce
+                  ? [
+                      _buildStep1(size),
+                      _buildStep2(size),
+                      _buildStep3Commerce(size),
+                      _buildStep4Address(size),
+                    ]
+                  : [
+                      _buildStep1(size),
+                      _buildStep2(size),
+                    ],
             ),
           ),
         ],
@@ -1007,7 +1295,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             child: ElevatedButton(
               onPressed: _isSubmitting ? null : _handleNext,
               child: Text(
-                _currentStep < 1 ? 'Continuar' : 'Finalizar',
+                _currentStep < _totalSteps - 1 ? 'Continuar' : 'Finalizar',
               ),
             ),
           ),
@@ -1592,10 +1880,466 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     );
   }
 
+  Widget _buildStep3Commerce(Size size) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    const primaryColor = Color(0xFFF18805);
+    final isTablet = size.width > 600;
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(
+        horizontal: isTablet ? 32 : 16,
+        vertical: 16,
+      ),
+      child: Form(
+        key: _step3FormKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: colorScheme.primary.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: primaryColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.store_outlined,
+                      color: colorScheme.onPrimary,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Datos del comercio',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onBackground,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Nombre del local, RIF/CI y teléfono del establecimiento.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onBackground.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Nombre del local / Razón social (inspirado en CorralX)
+            TextFormField(
+              controller: _commerceNameController,
+              decoration: InputDecoration(
+                labelText: 'Nombre del local *',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryColor, width: 2),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: colorScheme.error, width: 2),
+                ),
+                filled: true,
+                fillColor: colorScheme.surface,
+                helperText: 'Ej: Hacienda La Esperanza C.A.',
+              ),
+              validator: (value) {
+                final text = value?.trim() ?? '';
+                if (text.isEmpty) {
+                  return 'El nombre del local es obligatorio';
+                }
+                if (text.length < 3) {
+                  return 'Mínimo 3 caracteres';
+                }
+                if (text.length > 150) {
+                  return 'Máximo 150 caracteres';
+                }
+                // Mismo patrón que CorralX pero adaptado (letras, números, espacios, guiones y puntos)
+                if (!RegExp(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-.]+$').hasMatch(text)) {
+                  return 'Caracteres no válidos';
+                }
+                return null;
+              },
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+            ),
+            const SizedBox(height: 16),
+            // RIF (mismo comportamiento que en CorralX: opcional + formatter dedicado)
+            TextFormField(
+              controller: _commerceTaxIdController,
+              keyboardType: TextInputType.text,
+              inputFormatters: [
+                _RIFVenezuelaInputFormatter(),
+              ],
+              decoration: InputDecoration(
+                labelText: 'RIF (Opcional)',
+                hintText: 'Ej: J-12345678-9',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryColor, width: 2),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: colorScheme.error, width: 2),
+                ),
+                filled: true,
+                fillColor: colorScheme.surface,
+                helperText: 'Formato: V-12345678-9 o J-12345678-9',
+              ),
+              validator: (value) {
+                if (value != null && value.trim().isNotEmpty) {
+                  final rif = value.trim().toUpperCase();
+                  final rifRegex = RegExp(r'^(V|J)-\d{8}-\d$');
+                  if (!rifRegex.hasMatch(rif)) {
+                    return 'Formato: V-12345678-9 o J-12345678-9';
+                  }
+                  final digits = rif.replaceAll(RegExp(r'[^0-9]'), '');
+                  if (digits.length != 9) {
+                    return 'Debe tener 9 dígitos';
+                  }
+                }
+                return null;
+              },
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+            ),
+            const SizedBox(height: 16),
+            // CI del dueño del comercio
+            TextFormField(
+              controller: _commerceOwnerCiController,
+              decoration: InputDecoration(
+                labelText: 'CI *',
+                hintText: 'V-12345678',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryColor, width: 2),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: colorScheme.error, width: 2),
+                ),
+                filled: true,
+                fillColor: colorScheme.surface,
+              ),
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                _CIVenezuelaInputFormatter(),
+              ],
+              onChanged: (value) {
+                // Asegurar prefijo V- como en CorralX
+                if (!value.startsWith('V-')) {
+                  _commerceOwnerCiController.value = TextEditingValue(
+                    text: 'V-',
+                    selection: const TextSelection.collapsed(offset: 2),
+                  );
+                }
+              },
+              validator: (value) {
+                final ci = (value ?? '').trim().toUpperCase();
+                if (ci.isEmpty || ci == 'V-') {
+                  return 'La CI es obligatoria';
+                }
+                final regex = RegExp(r'^[VE]-\d{7,8}$');
+                if (!regex.hasMatch(ci)) {
+                  return 'Formato: V-12345678 o E-12345678';
+                }
+                return null;
+              },
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+            ),
+            const SizedBox(height: 16),
+            // Teléfono del local con mismo patrón que el teléfono del usuario
+            if (_isLoadingOperators)
+              const Center(child: CircularProgressIndicator())
+            else if (_operatorCodes.isNotEmpty)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: DropdownButtonFormField<Map<String, dynamic>>(
+                      value: _selectedOperator,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        labelText: 'Código operadora',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: primaryColor, width: 2),
+                        ),
+                        filled: true,
+                        fillColor: colorScheme.surface,
+                      ),
+                      items: _operatorCodes
+                          .map(
+                            (code) => DropdownMenuItem<Map<String, dynamic>>(
+                              value: code,
+                              child: Text('0${code['code'] ?? ''}'),
+                            ),
+                          )
+                          .toList(),
+                      validator: (value) {
+                        if (value == null) {
+                          return 'Selecciona un código';
+                        }
+                        return null;
+                      },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                      onChanged: (value) {
+                        setState(() => _selectedOperator = value);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 2,
+                    child: TextFormField(
+                      controller: _commercePhoneController,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(7),
+                      ],
+                      decoration: InputDecoration(
+                        labelText: 'Teléfono del local *',
+                        hintText: 'Ej: 4149055',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: primaryColor, width: 2),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: colorScheme.error, width: 2),
+                        ),
+                        filled: true,
+                        fillColor: colorScheme.surface,
+                      ),
+                      keyboardType: TextInputType.phone,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Ingresa un número de teléfono';
+                        }
+                        final clean = value.trim();
+                        if (clean.length != 7) {
+                          return 'Debe tener exactamente 7 dígitos';
+                        }
+                        return null;
+                      },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                    ),
+                  ),
+                ],
+              )
+            else
+              const SizedBox.shrink(),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Icon(
+                  _commerceOpen ? Icons.check_circle : Icons.cancel,
+                  color: _commerceOpen ? Colors.green : Colors.red,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  'Local ${_commerceOpen ? 'abierto' : 'cerrado'}',
+                  style: theme.textTheme.titleMedium,
+                ),
+                const Spacer(),
+                Switch(
+                  value: _commerceOpen,
+                  onChanged: (v) => setState(() => _commerceOpen = v),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStep4Address(Size size) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    const primaryColor = Color(0xFFF18805);
+    final isTablet = size.width > 600;
+
+    if (_countries.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        if (_countries.isEmpty) {
+          _applyCountriesFallback();
+          _loadCountries();
+        }
+      });
+    }
+
+    return SingleChildScrollView(
+      padding: EdgeInsets.symmetric(
+        horizontal: isTablet ? 32 : 16,
+        vertical: 16,
+      ),
+      child: Form(
+        key: _step4FormKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: colorScheme.primary.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: primaryColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.store_mall_directory_outlined,
+                      color: colorScheme.onPrimary,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Dirección del establecimiento',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onBackground,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Misma vista que tu dirección; identificada como comercio.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onBackground.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildMapCard(context),
+            const SizedBox(height: 24),
+            _buildSectionHeader(
+              icon: Icons.public,
+              label: 'UBICACIÓN REGIONAL',
+              color: primaryColor,
+            ),
+            const SizedBox(height: 12),
+            _buildTwoColumnRow(
+              _buildCountryDropdown(colorScheme),
+              _selectedCountry != null
+                  ? _buildStateDropdown(colorScheme)
+                  : const SizedBox.shrink(),
+            ),
+            const SizedBox(height: 12),
+            _buildTwoColumnRow(
+              _selectedState != null
+                  ? _buildCityDropdown(colorScheme)
+                  : const SizedBox.shrink(),
+              const SizedBox.shrink(),
+            ),
+            const SizedBox(height: 24),
+            _buildSectionHeader(
+              icon: Icons.location_on_outlined,
+              label: 'DETALLES DE LA DIRECCIÓN',
+              color: primaryColor,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _streetController,
+              decoration: InputDecoration(
+                labelText: 'Dirección *',
+                hintText: 'Ej: Av. Principal, Local 1',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryColor, width: 2),
+                ),
+                filled: true,
+                fillColor: colorScheme.surface,
+              ),
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Ingresa una dirección';
+                if (v.trim().length < 5) return 'La dirección parece muy corta';
+                return null;
+              },
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _houseNumberController,
+              decoration: InputDecoration(
+                labelText: 'Número / Local',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                filled: true,
+                fillColor: colorScheme.surface,
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _postalCodeController,
+              decoration: InputDecoration(
+                labelText: 'Código postal',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                filled: true,
+                fillColor: colorScheme.surface,
+              ),
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   String _normalizeName(String input) {
     final cleaned =
-        input.replaceAll(RegExp(r'[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]'), '');
-    final parts = cleaned.toLowerCase().trim().split(RegExp(r'\\s+'));
+        input.replaceAll(RegExp(r'[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]'), '');
+    final parts = cleaned.toLowerCase().trim().split(RegExp(r'\s+'));
     return parts
         .map((w) =>
             w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
@@ -1881,6 +2625,116 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       },
     );
   }
+}
 
+/// Formatter para CI venezolana (V-12345678) inspirado en CorralX.
+class _CIVenezuelaInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    String text = newValue.text.toUpperCase();
+
+    // Asegurar prefijo V-
+    if (!text.startsWith('V-')) {
+      text = 'V-';
+    }
+
+    // Tomar solo dígitos después de V-
+    final digits = text.substring(2).replaceAll(RegExp(r'[^0-9]'), '');
+
+    // Limitar a 8 dígitos
+    final limitedDigits =
+        digits.length > 8 ? digits.substring(0, 8) : digits;
+
+    final result = 'V-$limitedDigits';
+
+    return TextEditingValue(
+      text: result,
+      selection: TextSelection.collapsed(offset: result.length),
+    );
+  }
+}
+
+/// Formatter para RIF venezolano (V- o J-12345678-9) copiado de CorralX.
+class _RIFVenezuelaInputFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    String text = newValue.text.toUpperCase();
+
+    if (text.isEmpty) {
+      return newValue;
+    }
+
+    final isDeleting = newValue.text.length < oldValue.text.length;
+
+    if (isDeleting && (text.length <= 2 || text == 'V' || text == 'J')) {
+      if (text == 'V') {
+        return TextEditingValue(
+          text: 'V-',
+          selection: const TextSelection.collapsed(offset: 2),
+        );
+      } else if (text == 'J') {
+        return TextEditingValue(
+          text: 'J-',
+          selection: const TextSelection.collapsed(offset: 2),
+        );
+      }
+      if (text.length <= 1) {
+        return newValue;
+      }
+    }
+
+    String? prefix;
+    if (text.startsWith('V-')) {
+      prefix = 'V-';
+    } else if (text.startsWith('J-')) {
+      prefix = 'J-';
+    } else if (text.startsWith('V')) {
+      return TextEditingValue(
+        text: 'V-',
+        selection: const TextSelection.collapsed(offset: 2),
+      );
+    } else if (text.startsWith('J')) {
+      return TextEditingValue(
+        text: 'J-',
+        selection: const TextSelection.collapsed(offset: 2),
+      );
+    } else {
+      return oldValue;
+    }
+
+    String numbers = text.replaceAll(RegExp(r'[^0-9]'), '');
+
+    if (numbers.length > 9) {
+      numbers = numbers.substring(0, 9);
+    }
+
+    if (numbers.isEmpty) {
+      return TextEditingValue(
+        text: prefix,
+        selection: TextSelection.collapsed(offset: prefix.length),
+      );
+    }
+
+    String formattedText;
+    if (numbers.length <= 8) {
+      formattedText = '$prefix$numbers';
+    } else {
+      formattedText =
+          '$prefix${numbers.substring(0, 8)}-${numbers.substring(8)}';
+    }
+
+    final cursorPosition = formattedText.length;
+
+    return TextEditingValue(
+      text: formattedText,
+      selection: TextSelection.collapsed(offset: cursorPosition),
+    );
+  }
 }
 
