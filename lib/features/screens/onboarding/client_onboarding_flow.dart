@@ -822,7 +822,11 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       );
 
       final profileService = ProfileService();
-      final profileId = await profileService.createProfile(profile, userId);
+      final profileId = await profileService.createProfile(
+        profile,
+        userId,
+        imageFile: File(_selectedPhoto!.path),
+      );
       if (profileId <= 0) {
         throw Exception('No se pudo obtener el perfil.');
       }
@@ -919,8 +923,18 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     if (msg.contains('409')) {
       return 'Ya tienes datos registrados. Si el problema continúa, contacta soporte.';
     }
+    // Errores específicos por área
+    if (msg.contains('Error al crear el perfil') || msg.contains('profiles')) {
+      return 'Hubo un problema al guardar tus datos personales. Revisa nombre, fecha de nacimiento y género.';
+    }
+    if (msg.contains('Error al crear dirección') || msg.contains('/buyer/addresses')) {
+      return 'Hubo un problema con tu dirección. Revisa país, estado, ciudad y calle antes de intentar de nuevo.';
+    }
+    if (msg.contains('Error al crear teléfono')) {
+      return 'Hubo un problema al guardar tu teléfono. Verifica el código 0XXX y el número de 7 dígitos.';
+    }
     if (msg.contains('400')) {
-      return 'Datos del teléfono no válidos. Revisa el número e intenta de nuevo.';
+      return 'Hay datos no válidos. Revisa teléfono y dirección e intenta de nuevo.';
     }
     if (msg.contains('422') || msg.contains('validation')) {
       return 'Revisa los datos ingresados e intenta de nuevo.';
