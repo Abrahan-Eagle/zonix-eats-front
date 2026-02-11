@@ -63,8 +63,8 @@ class PhoneService {
       logger.i('Creating phone: ${phone.toString()}');
       
       final digitsOnly = phone.number.replaceAll(RegExp(r'\D'), '');
-      if (digitsOnly.length < 7 || digitsOnly.length > 15) {
-        throw Exception('El número debe tener entre 7 y 15 dígitos');
+      if (digitsOnly.length != 7) {
+        throw Exception('El número debe tener exactamente 7 dígitos');
       }
 
       final token = await _getToken();
@@ -89,6 +89,26 @@ class PhoneService {
             : Phone.fromJson(data);
         logger.i('Phone created successfully: ${createdPhone.id}');
         return createdPhone;
+      } else if (response.statusCode == 400) {
+        // Puede ser validación (incluido número duplicado). Intentamos parsear.
+        try {
+          final body = jsonDecode(response.body) as Map<String, dynamic>;
+          final error = body['error'];
+          final numberErrors = (error?['number'] as List?)?.cast<dynamic>();
+          if (numberErrors != null &&
+              numberErrors.any(
+                (e) => e.toString().toLowerCase().contains('ya est') ||
+                    e.toString().toLowerCase().contains('registrado'),
+              )) {
+            logger.w(
+                'Número ya registrado en backend, se continúa el flujo de onboarding sin bloquear.');
+            return phone;
+          }
+        } catch (e) {
+          logger.w('No se pudo parsear detalle de error 400 al crear teléfono: $e');
+        }
+        logger.e('Error creating phone: ${response.statusCode} - ${response.body}');
+        throw Exception('Error al crear teléfono: ${response.statusCode}');
       } else {
         logger.e('Error creating phone: ${response.statusCode} - ${response.body}');
         throw Exception('Error al crear teléfono: ${response.statusCode}');

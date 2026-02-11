@@ -113,6 +113,27 @@ class OnboardingProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // --- Foto de usuario (ruta local seleccionada en onboarding) ---
+
+  String? _photoPath;
+  String? get photoPath => _photoPath;
+
+  void setPhotoPath(String? path) {
+    _photoPath = path;
+    notifyListeners();
+  }
+
+  // --- Aceptación de términos y privacidad durante el onboarding ---
+
+  bool _termsAccepted = false;
+  bool get termsAccepted => _termsAccepted;
+
+  void setTermsAccepted(bool accepted) {
+    if (_termsAccepted == accepted) return;
+    _termsAccepted = accepted;
+    notifyListeners();
+  }
+
   /// Limpia todo el draft (si se quiere reiniciar onboarding).
   void reset() {
     _currentStep = 0;
@@ -130,6 +151,8 @@ class OnboardingProvider with ChangeNotifier {
     _postalCode = null;
     _cityId = null;
     _rawPhone = null;
+    _photoPath = null;
+    _termsAccepted = false;
     notifyListeners();
   }
 }

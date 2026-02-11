@@ -1,9 +1,13 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as latLng;
+import 'package:image_picker/image_picker.dart';
 
 import 'onboarding_provider.dart';
 import 'onboarding_service.dart';
@@ -78,6 +82,9 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
   Map<String, dynamic>? _selectedOperator;
   bool _isLoadingOperators = false;
 
+  // Foto y términos
+  XFile? _selectedPhoto;
+
   @override
   void initState() {
     super.initState();
@@ -85,6 +92,37 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     _loadCountries();
     _getCurrentLocation();
     _loadOperatorCodes();
+  }
+
+  Future<void> _pickProfilePhoto() async {
+    final picker = ImagePicker();
+    try {
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1200,
+        imageQuality: 80,
+      );
+      if (pickedFile != null) {
+        setState(() {
+          _selectedPhoto = pickedFile;
+        });
+        context.read<OnboardingProvider>().setPhotoPath(pickedFile.path);
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se tomó ninguna foto.'),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al tomar la foto: $e'),
+        ),
+      );
+    }
   }
 
   @override
@@ -130,6 +168,10 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
 
     if (provider.rawPhone != null) {
       _phoneController.text = provider.rawPhone!;
+    }
+
+    if (provider.photoPath != null && provider.photoPath!.isNotEmpty) {
+      _selectedPhoto = XFile(provider.photoPath!);
     }
   }
 
@@ -257,15 +299,14 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       if (!mounted) return;
       setState(() {
         _operatorCodes = codes.isNotEmpty ? codes : _fallbackOperatorCodes();
-        if (_operatorCodes.isNotEmpty && _selectedOperator == null) {
-          _selectedOperator = _operatorCodes.first;
-        }
+        // Que el usuario esté obligado a elegir un código explícitamente.
+        _selectedOperator = null;
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _operatorCodes = _fallbackOperatorCodes();
-        if (_operatorCodes.isNotEmpty) _selectedOperator = _operatorCodes.first;
+        _selectedOperator = null;
       });
     } finally {
       if (mounted) {
@@ -673,6 +714,11 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     } else if (_currentStep == 1) {
       if (_step2FormKey.currentState?.validate() != true ||
           _selectedCity == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Completa todos los campos de dirección (país, estado, ciudad y dirección).'),
+          ),
+        );
         return;
       }
 
@@ -723,6 +769,18 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('No se pudo identificar tu cuenta. Cierra sesión e inicia de nuevo.'),
+            ),
+          );
+        }
+        return;
+      }
+
+      // Validar foto antes de llamar a la API
+      if (_selectedPhoto == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Agrega una foto de perfil para continuar.'),
             ),
           );
         }
@@ -784,10 +842,9 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       final addressService = AddressService();
       await addressService.createAddress(address, userId);
 
-      // 3) Crear teléfono (solo dígitos, 7-15 caracteres)
-      final rawNumber = _phoneController.text.trim().replaceAll(RegExp(r'\D'), '');
-      final number = rawNumber.length > 15 ? rawNumber.substring(0, 15) : rawNumber;
-      if (number.length >= 7) {
+      // 3) Crear teléfono (exactamente 7 dígitos)
+      final number = _phoneController.text.trim();
+      if (number.length == 7) {
         final op = _selectedOperator ?? (_operatorCodes.isNotEmpty ? _operatorCodes.first : null);
         final operatorId = op?['id'] ?? 0;
         final operatorName = op?['code']?.toString() ?? op?['name']?.toString() ?? '';
@@ -1023,6 +1080,15 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             const SizedBox(height: 8),
             TextFormField(
               controller: _firstNameController,
+              onChanged: (value) {
+                final normalized = _normalizeName(value);
+                if (normalized != value) {
+                  _firstNameController.value = TextEditingValue(
+                    text: normalized,
+                    selection: TextSelection.collapsed(offset: normalized.length),
+                  );
+                }
+              },
               decoration: InputDecoration(
                 labelText: 'Nombre(s) *',
                 border: OutlineInputBorder(
@@ -1054,6 +1120,15 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _lastNameController,
+              onChanged: (value) {
+                final normalized = _normalizeName(value);
+                if (normalized != value) {
+                  _lastNameController.value = TextEditingValue(
+                    text: normalized,
+                    selection: TextSelection.collapsed(offset: normalized.length),
+                  );
+                }
+              },
               decoration: InputDecoration(
                 labelText: 'Apellido(s) *',
                 border: OutlineInputBorder(
@@ -1148,7 +1223,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             ),
             const SizedBox(height: 4),
             Text(
-              'Te contactaremos solo en caso de que sea necesario.',
+              'Te contactaremos solo si necesitamos comunicarte algo importante sobre tus pedidos.',
               style: theme.textTheme.bodySmall?.copyWith(
                 color: colorScheme.onBackground.withOpacity(0.7),
               ),
@@ -1185,10 +1260,19 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                           .map(
                             (code) => DropdownMenuItem<Map<String, dynamic>>(
                               value: code,
-                              child: Text('+${code['code'] ?? ''}'),
+                              child: Text(
+                                '0${code['code'] ?? ''}',
+                              ),
                             ),
                           )
                           .toList(),
+                      validator: (value) {
+                        if (value == null) {
+                          return 'Selecciona un código';
+                        }
+                        return null;
+                      },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
                       onChanged: (value) {
                         setState(() => _selectedOperator = value);
                       },
@@ -1199,9 +1283,13 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                     flex: 2,
                     child: TextFormField(
                       controller: _phoneController,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.digitsOnly,
+                        LengthLimitingTextInputFormatter(7),
+                      ],
                       decoration: InputDecoration(
                         labelText: 'Número de celular *',
-                        hintText: 'Ej: 414 9055555',
+                        hintText: 'Ej: 4149055',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -1225,9 +1313,12 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                         if (value == null || value.trim().isEmpty) {
                           return 'Ingresa un número de teléfono';
                         }
-                        if (value.trim().length < 7) {
-                          return 'El número parece muy corto';
+                        final clean = value.trim();
+                        if (clean.length != 7) {
+                          return 'Debe tener exactamente 7 dígitos';
                         }
+                        // El input formatter ya restringe a dígitos, así que no
+                        // es necesario validar caracteres no numéricos aquí.
                         return null;
                       },
                       autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -1235,6 +1326,46 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                   ),
                 ],
               ),
+            const SizedBox(height: 24),
+            // Foto de perfil (similar a create_profile_page pero simplificada)
+            Text(
+              'Tu foto de perfil',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onBackground,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 32,
+                  backgroundColor: colorScheme.surfaceVariant,
+                  backgroundImage: _selectedPhoto != null
+                      ? FileImage(File(_selectedPhoto!.path))
+                      : null,
+                  child: _selectedPhoto == null
+                      ? const Icon(Icons.person_outline, size: 32)
+                      : null,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Toma una foto clara de tu rostro.'),
+                      const SizedBox(height: 8),
+                      OutlinedButton.icon(
+                        onPressed: _pickProfilePhoto,
+                        icon: const Icon(Icons.camera_alt_outlined),
+                        label: const Text('Tomar foto'),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
             const SizedBox(height: 24),
           ],
         ),
@@ -1445,6 +1576,16 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         ),
       ),
     );
+  }
+
+  String _normalizeName(String input) {
+    final cleaned =
+        input.replaceAll(RegExp(r'[^a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]'), '');
+    final parts = cleaned.toLowerCase().trim().split(RegExp(r'\\s+'));
+    return parts
+        .map((w) =>
+            w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
+        .join(' ');
   }
 
   Widget _buildMapCard(BuildContext context) {
