@@ -73,7 +73,6 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
   bool _isLoadingLocation = false;
 
   // STEP 3 – Teléfono
-  final _step3FormKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
   List<Map<String, dynamic>> _operatorCodes = [];
   Map<String, dynamic>? _selectedOperator;
@@ -240,6 +239,16 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     });
   }
 
+  static List<Map<String, dynamic>> _fallbackOperatorCodes() {
+    return [
+      {'id': 1, 'name': '0412', 'code': '412'},
+      {'id': 2, 'name': '0414', 'code': '414'},
+      {'id': 3, 'name': '0424', 'code': '424'},
+      {'id': 4, 'name': '0416', 'code': '416'},
+      {'id': 5, 'name': '0426', 'code': '426'},
+    ];
+  }
+
   Future<void> _loadOperatorCodes() async {
     setState(() => _isLoadingOperators = true);
     try {
@@ -247,13 +256,17 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       final codes = await service.fetchOperatorCodes();
       if (!mounted) return;
       setState(() {
-        _operatorCodes = codes;
-        if (codes.isNotEmpty) {
-          _selectedOperator = codes.first;
+        _operatorCodes = codes.isNotEmpty ? codes : _fallbackOperatorCodes();
+        if (_operatorCodes.isNotEmpty && _selectedOperator == null) {
+          _selectedOperator = _operatorCodes.first;
         }
       });
     } catch (_) {
-      // Si falla, dejamos la lista vacía; el usuario igual podrá escribir el número.
+      if (!mounted) return;
+      setState(() {
+        _operatorCodes = _fallbackOperatorCodes();
+        if (_operatorCodes.isNotEmpty) _selectedOperator = _operatorCodes.first;
+      });
     } finally {
       if (mounted) {
         setState(() => _isLoadingOperators = false);
@@ -654,6 +667,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         dateOfBirth: _birthDate!,
         sex: _selectedSex!,
       );
+      provider.setRawPhone(_phoneController.text.trim());
 
       _goToStep(1);
     } else if (_currentStep == 1) {
@@ -683,21 +697,15 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         longitude: _longitude!,
       );
 
-      _goToStep(2);
-    } else if (_currentStep == 2) {
       await _handleSubmit();
     }
   }
 
   Future<void> _handleSubmit() async {
-    if (_step3FormKey.currentState?.validate() != true) {
-      return;
-    }
-
     final onboarding = context.read<OnboardingProvider>();
-    onboarding.setRawPhone(_phoneController.text.trim());
 
     setState(() => _isSubmitting = true);
+    bool dialogShown = false;
 
     try {
       final userProvider = context.read<UserProvider>();
@@ -711,21 +719,24 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       }
 
       if (userId <= 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se pudo identificar tu cuenta. Cierra sesión e inicia de nuevo.'),
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No se pudo identificar tu cuenta. Cierra sesión e inicia de nuevo.'),
+            ),
+          );
+        }
         return;
       }
 
-      // Mostrar diálogo de carga
+      // Mostrar diálogo de carga solo después de validar userId
       if (!mounted) return;
       showDialog(
         context: context,
         barrierDismissible: false,
         builder: (_) => const Center(child: CircularProgressIndicator()),
       );
+      dialogShown = true;
 
       // 1) Crear perfil
       final profile = Profile(
@@ -773,23 +784,28 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       final addressService = AddressService();
       await addressService.createAddress(address, userId);
 
-      // 3) Crear teléfono
-      if (_phoneController.text.trim().isNotEmpty) {
-        final operatorId = _selectedOperator?['id'] ?? 0;
-        final operatorName = _selectedOperator?['code'] ?? '';
+      // 3) Crear teléfono (solo dígitos, 7-15 caracteres)
+      final rawNumber = _phoneController.text.trim().replaceAll(RegExp(r'\D'), '');
+      final number = rawNumber.length > 15 ? rawNumber.substring(0, 15) : rawNumber;
+      if (number.length >= 7) {
+        final op = _selectedOperator ?? (_operatorCodes.isNotEmpty ? _operatorCodes.first : null);
+        final operatorId = op?['id'] ?? 0;
+        final operatorName = op?['code']?.toString() ?? op?['name']?.toString() ?? '';
 
-        final phone = Phone(
-          id: 0,
-          profileId: profileId,
-          operatorCodeId: operatorId,
-          operatorCodeName: operatorName,
-          number: _phoneController.text.trim(),
-          isPrimary: true,
-          status: true,
-        );
-        final phoneService = PhoneService();
-        await phoneService.createPhone(phone, userId);
-        userProvider.setPhoneCreated(true);
+        if (operatorId > 0) {
+          final phone = Phone(
+            id: 0,
+            profileId: profileId,
+            operatorCodeId: operatorId is int ? operatorId : int.tryParse(operatorId.toString()) ?? 0,
+            operatorCodeName: operatorName,
+            number: number,
+            isPrimary: true,
+            status: true,
+          );
+          final phoneService = PhoneService();
+          await phoneService.createPhone(phone, userId);
+          userProvider.setPhoneCreated(true);
+        }
       }
 
       // 4) Marcar onboarding completado
@@ -800,7 +816,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       onboarding.setRole('users');
 
       if (!mounted) return;
-      Navigator.of(context).pop(); // Cerrar diálogo de progreso
+      if (dialogShown) Navigator.of(context).pop(); // Cerrar solo el diálogo de progreso
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -808,16 +824,23 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         ),
       );
 
+      if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const MainRouter()),
         (route) => false,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('Onboarding error: $e');
+      debugPrint('$stackTrace');
       if (!mounted) return;
-      Navigator.of(context).pop(); // Cerrar diálogo de progreso si estaba abierto
+      if (dialogShown) {
+        try { Navigator.of(context).pop(); } catch (_) {}
+      }
+      final message = _userFriendlyErrorMessage(e);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Error al completar el onboarding: $e'),
+          content: Text(message),
+          backgroundColor: Colors.red.shade700,
         ),
       );
     } finally {
@@ -825,6 +848,31 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         setState(() => _isSubmitting = false);
       }
     }
+  }
+
+  /// Convierte excepciones de API/red en mensajes entendibles para el usuario.
+  String _userFriendlyErrorMessage(Object e) {
+    final msg = e.toString();
+    if (msg.contains('SocketException') || msg.contains('Connection') || msg.contains('Failed host lookup')) {
+      return 'Sin conexión. Revisa tu internet e intenta de nuevo.';
+    }
+    if (msg.contains('401') || msg.contains('Unauthorized')) {
+      return 'Sesión expirada. Cierra sesión e inicia de nuevo.';
+    }
+    if (msg.contains('409')) {
+      return 'Ya tienes datos registrados. Si el problema continúa, contacta soporte.';
+    }
+    if (msg.contains('400')) {
+      return 'Datos del teléfono no válidos. Revisa el número e intenta de nuevo.';
+    }
+    if (msg.contains('422') || msg.contains('validation')) {
+      return 'Revisa los datos ingresados e intenta de nuevo.';
+    }
+    if (msg.contains('500') || msg.contains('Server')) {
+      return 'Error del servidor. Intenta más tarde.';
+    }
+    if (e is Exception && msg.length < 120) return msg;
+    return 'No se pudo completar el registro. Intenta de nuevo.';
   }
 
   Future<void> _pickBirthDate() async {
@@ -858,11 +906,11 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
               children: [
                 Expanded(
                   child: LinearProgressIndicator(
-                    value: (_currentStep + 1) / 3,
+                    value: (_currentStep + 1) / 2,
                   ),
                 ),
                 const SizedBox(width: 12),
-                Text('Paso ${_currentStep + 1} de 3'),
+                Text('Paso ${_currentStep + 1} de 2'),
               ],
             ),
           ),
@@ -874,7 +922,6 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
               children: [
                 _buildStep1(size),
                 _buildStep2(size),
-                _buildStep3(size),
               ],
             ),
           ),
@@ -889,7 +936,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             child: ElevatedButton(
               onPressed: _isSubmitting ? null : _handleNext,
               child: Text(
-                _currentStep < 2 ? 'Continuar' : 'Finalizar',
+                _currentStep < 1 ? 'Continuar' : 'Finalizar',
               ),
             ),
           ),
@@ -899,35 +946,102 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
   }
 
   Widget _buildStep1(Size size) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    const primaryColor = Color(0xFFF18805);
+    final isTablet = size.width > 600;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(
+        horizontal: isTablet ? 32 : 16,
+        vertical: 16,
+      ),
       child: Form(
         key: _step1FormKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 8),
-            const Text(
-              'Cuéntanos más de ti',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+            // Cabecera tipo CorralX: icono + título + subtítulo
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: colorScheme.primary.withOpacity(0.3),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: primaryColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.person_outline,
+                      color: colorScheme.onPrimary,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Cuéntanos más de ti',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onBackground,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Completa tus datos para terminar de crear tu cuenta. Los campos con * son obligatorios.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onBackground.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 4),
-            const Text(
-              'Completa tus datos para terminar de crear tu cuenta.',
-            ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               '¿Cómo te llamas?',
-              style: TextStyle(fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onBackground,
+              ),
             ),
             const SizedBox(height: 8),
             TextFormField(
               controller: _firstNameController,
-              decoration: const InputDecoration(
-                labelText: 'Nombre(s)',
+              decoration: InputDecoration(
+                labelText: 'Nombre(s) *',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryColor, width: 2),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: colorScheme.error, width: 2),
+                ),
+                filled: true,
+                fillColor: colorScheme.surface,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 20 : 16,
+                  vertical: isTablet ? 20 : 16,
+                ),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -935,12 +1049,30 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                 }
                 return null;
               },
+              autovalidateMode: AutovalidateMode.onUserInteraction,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _lastNameController,
-              decoration: const InputDecoration(
-                labelText: 'Apellido(s)',
+              decoration: InputDecoration(
+                labelText: 'Apellido(s) *',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryColor, width: 2),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: colorScheme.error, width: 2),
+                ),
+                filled: true,
+                fillColor: colorScheme.surface,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 20 : 16,
+                  vertical: isTablet ? 20 : 16,
+                ),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -948,30 +1080,55 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                 }
                 return null;
               },
+              autovalidateMode: AutovalidateMode.onUserInteraction,
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               '¿Cuándo naciste?',
-              style: TextStyle(fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onBackground,
+              ),
             ),
             const SizedBox(height: 8),
             InkWell(
               onTap: _pickBirthDate,
               child: InputDecorator(
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: 'DD/MM/AAAA',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: primaryColor, width: 2),
+                  ),
+                  filled: true,
+                  fillColor: colorScheme.surface,
+                  contentPadding: EdgeInsets.symmetric(
+                    horizontal: isTablet ? 20 : 16,
+                    vertical: isTablet ? 20 : 16,
+                  ),
                 ),
                 child: Text(
                   _birthDate == null
                       ? 'Selecciona tu fecha de nacimiento'
                       : '${_birthDate!.day.toString().padLeft(2, '0')}/${_birthDate!.month.toString().padLeft(2, '0')}/${_birthDate!.year}',
+                  style: TextStyle(
+                    color: _birthDate == null
+                        ? colorScheme.onSurfaceVariant
+                        : colorScheme.onSurface,
+                  ),
                 ),
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               '¿Con qué género te identificas?',
-              style: TextStyle(fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onBackground,
+              ),
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -981,6 +1138,104 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                 _buildGenderChip('M', 'Masculino'),
               ],
             ),
+            const SizedBox(height: 24),
+            Text(
+              'Datos de contacto',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onBackground,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Te contactaremos solo en caso de que sea necesario.',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colorScheme.onBackground.withOpacity(0.7),
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (_isLoadingOperators)
+              const Center(child: CircularProgressIndicator())
+            else if (_operatorCodes.isNotEmpty)
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: DropdownButtonFormField<Map<String, dynamic>>(
+                      value: _selectedOperator,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        labelText: 'Código de país',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: primaryColor, width: 2),
+                        ),
+                        filled: true,
+                        fillColor: colorScheme.surface,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: isTablet ? 20 : 16,
+                          vertical: isTablet ? 20 : 16,
+                        ),
+                      ),
+                      items: _operatorCodes
+                          .map(
+                            (code) => DropdownMenuItem<Map<String, dynamic>>(
+                              value: code,
+                              child: Text('+${code['code'] ?? ''}'),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() => _selectedOperator = value);
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    flex: 2,
+                    child: TextFormField(
+                      controller: _phoneController,
+                      decoration: InputDecoration(
+                        labelText: 'Número de celular *',
+                        hintText: 'Ej: 414 9055555',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: primaryColor, width: 2),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: colorScheme.error, width: 2),
+                        ),
+                        filled: true,
+                        fillColor: colorScheme.surface,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: isTablet ? 20 : 16,
+                          vertical: isTablet ? 20 : 16,
+                        ),
+                      ),
+                      keyboardType: TextInputType.phone,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Ingresa un número de teléfono';
+                        }
+                        if (value.trim().length < 7) {
+                          return 'El número parece muy corto';
+                        }
+                        return null;
+                      },
+                      autovalidateMode: AutovalidateMode.onUserInteraction,
+                    ),
+                  ),
+                ],
+              ),
+            const SizedBox(height: 24),
           ],
         ),
       ),
@@ -1000,7 +1255,9 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
 
   Widget _buildStep2(Size size) {
     final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     const primaryColor = Color(0xFFF18805);
+    final isTablet = size.width > 600;
 
     // Si llegamos al paso de dirección y aún no hay países: mostrar fallback de inmediato y recargar desde API
     if (_countries.isEmpty) {
@@ -1014,23 +1271,65 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(
+        horizontal: isTablet ? 32 : 16,
+        vertical: 16,
+      ),
       child: Form(
         key: _step2FormKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 8),
-            const Text(
-              'Dirección de entrega',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+            // Cabecera tipo CorralX para paso dirección
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: colorScheme.primary.withOpacity(0.3),
+                  width: 1,
+                ),
               ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Confirma en el mapa y completa tu dirección principal para tus pedidos.',
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: primaryColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      Icons.location_on_outlined,
+                      color: colorScheme.onPrimary,
+                      size: 28,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Dirección de entrega',
+                          style: theme.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onBackground,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Confirma en el mapa y completa tu dirección principal para tus pedidos.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onBackground.withOpacity(0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
             const SizedBox(height: 16),
 
@@ -1069,9 +1368,26 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _streetController,
-              decoration: const InputDecoration(
-                labelText: 'Dirección',
+              decoration: InputDecoration(
+                labelText: 'Dirección *',
                 hintText: 'Ej: C. las Torres, Urb. Centro',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryColor, width: 2),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: colorScheme.error, width: 2),
+                ),
+                filled: true,
+                fillColor: colorScheme.surface,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 20 : 16,
+                  vertical: isTablet ? 20 : 16,
+                ),
               ),
               validator: (value) {
                 if (value == null || value.trim().isEmpty) {
@@ -1082,19 +1398,46 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                 }
                 return null;
               },
+              autovalidateMode: AutovalidateMode.onUserInteraction,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _houseNumberController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Número de piso / Apartamento / Casa',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryColor, width: 2),
+                ),
+                filled: true,
+                fillColor: colorScheme.surface,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 20 : 16,
+                  vertical: isTablet ? 20 : 16,
+                ),
               ),
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _postalCodeController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Código postal',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: primaryColor, width: 2),
+                ),
+                filled: true,
+                fillColor: colorScheme.surface,
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: isTablet ? 20 : 16,
+                  vertical: isTablet ? 20 : 16,
+                ),
               ),
               keyboardType: TextInputType.number,
             ),
@@ -1384,69 +1727,5 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     );
   }
 
-  Widget _buildStep3(Size size) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Form(
-        key: _step3FormKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 8),
-            const Text(
-              'Tu número de contacto',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              'Lo usaremos solo si necesitamos comunicarnos sobre tus pedidos.',
-            ),
-            const SizedBox(height: 24),
-            if (_isLoadingOperators)
-              const Center(child: CircularProgressIndicator())
-            else if (_operatorCodes.isNotEmpty)
-              DropdownButtonFormField<Map<String, dynamic>>(
-                value: _selectedOperator,
-                items: _operatorCodes
-                    .map(
-                      (code) => DropdownMenuItem<Map<String, dynamic>>(
-                        value: code,
-                        child: Text('+${code['code'] ?? ''}'),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) {
-                  setState(() => _selectedOperator = value);
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Operador',
-                ),
-              ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _phoneController,
-              decoration: const InputDecoration(
-                labelText: 'Número de celular',
-                hintText: 'Ej: 4149055555',
-              ),
-              keyboardType: TextInputType.phone,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Ingresa un número de teléfono';
-                }
-                if (value.trim().length < 7) {
-                  return 'El número parece muy corto';
-                }
-                return null;
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 

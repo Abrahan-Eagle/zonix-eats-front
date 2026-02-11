@@ -62,9 +62,9 @@ class PhoneService {
     try {
       logger.i('Creating phone: ${phone.toString()}');
       
-      // Validaciones
-      if (!phone.isValidNumber) {
-        throw Exception('El número de teléfono no es válido');
+      final digitsOnly = phone.number.replaceAll(RegExp(r'\D'), '');
+      if (digitsOnly.length < 7 || digitsOnly.length > 15) {
+        throw Exception('El número debe tener entre 7 y 15 dígitos');
       }
 
       final token = await _getToken();
@@ -82,8 +82,11 @@ class PhoneService {
       logger.i('Create phone response: ${response.statusCode}');
 
       if (response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        final createdPhone = Phone.fromJson(data);
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final phoneJson = data['phone'];
+        final createdPhone = phoneJson != null
+            ? Phone.fromJson(Map<String, dynamic>.from(phoneJson as Map))
+            : Phone.fromJson(data);
         logger.i('Phone created successfully: ${createdPhone.id}');
         return createdPhone;
       } else {
