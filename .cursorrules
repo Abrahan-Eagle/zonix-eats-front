@@ -11,10 +11,10 @@ alwaysApply: true
 **Estado:** ✅ MVP Completado - En desarrollo activo  
 **Archivos Dart:** 177 archivos (verificado)  
 **Líneas de código:** 58,987 líneas Dart en `lib/` (verificado)  
-**Tests:** 212 tests pasaron ✅, 0 tests fallaron ✅  
+**Tests:** 214 tests pasaron ✅, 0 tests fallaron ✅ (incl. onboarding: payload schedule string, testWidgets con pump)  
 **Errores críticos:** ✅ Todos corregidos (FlutterSecureStorage BAD_DECRYPT, AdminDashboardPage null safety, roles limpiados, dashboard optimizado)  
 **TODOs servicios MVP:** ✅ Completados (commerce, payment, delivery, chat, admin, analytics, location, notification; código comentado eliminado)  
-**Última actualización:** 9 Febrero 2025
+**Última actualización:** 11 Febrero 2025
 
 ---
 
@@ -956,7 +956,7 @@ Antes de considerar el análisis completo, verificar:
 
 ---
 
-**Última actualización:** 9 Febrero 2025  
+**Última actualización:** 11 Febrero 2025 
 **Mantener este archivo actualizado con cambios arquitectónicos importantes**
 
 ---
@@ -991,6 +991,11 @@ Antes de considerar el análisis completo, verificar:
 - **Expansión automática:** Si no hay comercios abiertos, expande automáticamente a 4-5 km
 - **Expansión manual:** Usuario puede ampliar rango si desea buscar más lejos
 - **Cálculo:** Haversine para calcular distancia entre coordenadas GPS
+
+**Onboarding comercio (paso 4):**
+- Crear comercio: `CommerceDataService.createCommerceForExistingProfile(profileId, data)` → `POST /api/profiles/add-commerce`. Devuelve `data.id` (commerce_id).
+- **schedule:** Enviar siempre como **string** (backend valida string). Si es Map: `schedule.isEmpty ? '' : jsonEncode(_commerceSchedule)`.
+- Dirección del establecimiento: `AddressService.createAddress(..., role: 'commerce', commerceId: commerceId)` sin profile_id en el body cuando hay commerceId.
 
 ### 💰 MODELO DE NEGOCIO - RESUMEN
 

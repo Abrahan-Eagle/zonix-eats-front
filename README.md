@@ -325,6 +325,11 @@ class AppConfig {
 
 **Ver backend README.md sección completa para detalles detallados.**
 
+### Onboarding comercio (paso 4)
+- ✅ Crear comercio con perfil existente: `POST /api/profiles/add-commerce` (createCommerceForExistingProfile)
+- ✅ Envío de `schedule` como **string** (jsonEncode del Map) para cumplir validación del backend
+- ✅ Dirección del establecimiento con `commerce_id` (AddressService.createAddress con commerceId, sin profile_id en body)
+
 ### Otras Funcionalidades
 - ✅ Sistema de reseñas/calificaciones
 - ✅ Favoritos
@@ -565,6 +570,9 @@ test/
 - `POST /api/buyer/orders`
 - `GET /api/buyer/orders/{id}`
 
+**Onboarding comercio:**
+- `POST /api/profiles/add-commerce` — Añadir comercio a perfil existente (body: profile_id, business_name, business_type, tax_id, address, open, **schedule** como string, owner_ci)
+
 **Firebase + Pusher:**
 - Firebase Cloud Messaging (FCM) - Push notifications a dispositivos móviles
 - Pusher - Broadcasting en tiempo real (web)
@@ -788,8 +796,8 @@ Este proyecto es privado y confidencial.
 ---
 
 **Versión:** 1.0.0  
-**Última actualización:** 9 Febrero 2025  
+**Última actualización:** 11 Febrero 2025  
 **Estado:** ✅ MVP Completado - En desarrollo activo  
-**Tests:** 212 tests pasaron ✅, 0 tests fallaron ✅  
+**Tests:** 214 tests pasaron ✅, 0 tests fallaron ✅ (incl. onboarding: payload schedule string, testWidgets con pump)  
 **Errores críticos:** ✅ Todos corregidos  
 **TODOs servicios MVP:** ✅ Completados (commerce, payment, delivery, chat, admin, analytics, location, notification)
