@@ -32,6 +32,9 @@ class ActivityService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         return List<Map<String, dynamic>>.from(data['data'] ?? []);
+      } else if (response.statusCode == 403) {
+        // Roles no autorizados (por ejemplo commerce) verán lista vacía en lugar de error duro
+        return [];
       } else {
         throw Exception('Error al obtener historial de actividad: ${response.statusCode}');
       }
@@ -50,7 +53,15 @@ class ActivityService {
       );
 
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        final data = json.decode(response.body);
+        // Backend devuelve { success, data: { ...stats... } }
+        if (data is Map && data['data'] is Map) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+        return {};
+      } else if (response.statusCode == 403) {
+        // Para roles no users devolvemos stats vacías
+        return {};
       } else {
         throw Exception('Error al obtener estadísticas: ${response.statusCode}');
       }

@@ -26,6 +26,7 @@ import 'package:zonix/features/screens/settings/commerce_open_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_promotions_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_zones_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_payment_methods_page.dart';
 
 
 // Configuración del logger
@@ -390,6 +391,23 @@ class _SettingsPage2State extends State<SettingsPage2> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => const CommerceZonesPage(),
+                                ),
+                              );
+                            },
+                          ),
+                          _buildListTile(
+                            context,
+                            icon: Icons.account_balance_wallet,
+                            color: AppColors.green,
+                            title: "Métodos de pago",
+                            subtitle:
+                                "Configura cómo recibes pagos (pago móvil, transferencia, efectivo)",
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      const CommercePaymentMethodsPage(),
                                 ),
                               );
                             },

@@ -1,188 +1,203 @@
-import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import '../../../features/services/commerce_promotion_service.dart';
-import 'package:flutter/services.dart';
+import 'package:zonix/features/services/commerce_promotion_service.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 class CommercePromotionFormPage extends StatefulWidget {
-  final Map<String, dynamic>? promotion;
-  const CommercePromotionFormPage({Key? key, this.promotion}) : super(key: key);
+  const CommercePromotionFormPage({Key? key, this.promotionId, this.initialData})
+      : super(key: key);
+
+  final int? promotionId;
+  final Map<String, dynamic>? initialData;
 
   @override
-  State<CommercePromotionFormPage> createState() => _CommercePromotionFormPageState();
+  State<CommercePromotionFormPage> createState() =>
+      _CommercePromotionFormPageState();
 }
 
 class _CommercePromotionFormPageState extends State<CommercePromotionFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
-  final _discountValueController = TextEditingController();
-  final _minOrderController = TextEditingController();
+  final _minOrderController = TextEditingController(text: '0');
   final _maxDiscountController = TextEditingController();
-  final _priorityController = TextEditingController();
   final _termsController = TextEditingController();
-  
+  final _discountValueController = TextEditingController(text: '0');
+
   String _discountType = 'percentage';
-  DateTime _startDate = DateTime.now();
-  DateTime _endDate = DateTime.now().add(const Duration(days: 30));
+  DateTime? _startDate;
+  DateTime? _endDate;
+  int _priority = 0;
   bool _isActive = true;
-  bool _loading = false;
+  String? _imagePath;
+  bool _saving = false;
   String? _error;
-  File? _imageFile;
-  String? _currentImageUrl;
 
   @override
   void initState() {
     super.initState();
-    if (widget.promotion != null) {
-      _loadPromotionData();
+    if (widget.initialData != null) {
+      _loadInitial();
     }
   }
 
-  void _loadPromotionData() {
-    final promotion = widget.promotion!;
-    _titleController.text = promotion['title'] ?? '';
-    _descController.text = promotion['description'] ?? '';
-    _discountValueController.text = (promotion['discount_value'] ?? 0.0).toString();
-    _minOrderController.text = (promotion['minimum_order'] ?? 0.0).toString();
-    _maxDiscountController.text = (promotion['maximum_discount'] ?? 0.0).toString();
-    _priorityController.text = (promotion['priority'] ?? 1).toString();
-    _termsController.text = promotion['terms_conditions'] ?? '';
-    _discountType = promotion['discount_type'] ?? 'percentage';
-    _startDate = DateTime.parse(promotion['start_date'] ?? DateTime.now().toIso8601String());
-    _endDate = DateTime.parse(promotion['end_date'] ?? DateTime.now().add(const Duration(days: 30)).toIso8601String());
-    _isActive = promotion['is_active'] ?? true;
-    _currentImageUrl = promotion['image_url'];
+  void _loadInitial() {
+    final d = widget.initialData!;
+    _titleController.text = (d['title'] ?? '').toString();
+    _descController.text = (d['description'] ?? '').toString();
+    _discountType = (d['discount_type'] ?? 'percentage').toString();
+    _discountValueController.text = (d['discount_value'] ?? 0).toString();
+    _minOrderController.text = (d['minimum_order'] ?? 0).toString();
+    _maxDiscountController.text = (d['maximum_discount'] ?? '').toString();
+    _termsController.text = (d['terms_conditions'] ?? '').toString();
+    _priority = (d['priority'] ?? 0) as int;
+    _isActive = d['is_active'] != false;
+    if (d['start_date'] != null) {
+      try {
+        _startDate = DateTime.parse(d['start_date'].toString());
+      } catch (_) {}
+    }
+    if (d['end_date'] != null) {
+      try {
+        _endDate = DateTime.parse(d['end_date'].toString());
+      } catch (_) {}
+    }
   }
 
   @override
   void dispose() {
     _titleController.dispose();
     _descController.dispose();
-    _discountValueController.dispose();
     _minOrderController.dispose();
     _maxDiscountController.dispose();
-    _priorityController.dispose();
     _termsController.dispose();
+    _discountValueController.dispose();
     super.dispose();
   }
 
   Future<void> _pickImage() async {
     try {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(
-        source: ImageSource.gallery,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 80,
-      );
-
-      if (pickedFile != null) {
-        setState(() {
-          _imageFile = File(pickedFile.path);
-        });
-      }
+      final x = await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (x != null && mounted) setState(() => _imagePath = x.path);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al seleccionar imagen: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.red),
+        );
+      }
     }
   }
 
-  Future<void> _selectDate(bool isStartDate) async {
-    final DateTime? picked = await showDatePicker(
+  Future<void> _pickStartDate() async {
+    final d = await showDatePicker(
       context: context,
-      initialDate: isStartDate ? _startDate : _endDate,
+      initialDate: _startDate ?? DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
     );
-    if (picked != null) {
-      setState(() {
-        if (isStartDate) {
-          _startDate = picked;
-          if (_endDate.isBefore(_startDate)) {
-            _endDate = _startDate.add(const Duration(days: 1));
-          }
-        } else {
-          _endDate = picked;
-        }
-      });
-    }
+    if (d != null) setState(() => _startDate = d);
   }
 
-  Future<void> _savePromotion() async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> _pickEndDate() async {
+    final d = await showDatePicker(
+      context: context,
+      initialDate: _endDate ?? (_startDate ?? DateTime.now()).add(const Duration(days: 7)),
+      firstDate: _startDate ?? DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 730)),
+    );
+    if (d != null) setState(() => _endDate = d);
+  }
 
-    setState(() { _loading = true; _error = null; });
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate() || _saving) return;
+    if (_startDate == null || _endDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Selecciona fechas de inicio y fin'),
+          backgroundColor: AppColors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
 
     try {
+      final discountVal = double.tryParse(_discountValueController.text) ?? 0;
       final data = {
         'title': _titleController.text.trim(),
         'description': _descController.text.trim(),
         'discount_type': _discountType,
-        'discount_value': double.parse(_discountValueController.text),
-        'minimum_order': double.parse(_minOrderController.text),
-        'maximum_discount': double.parse(_maxDiscountController.text),
-        'priority': int.parse(_priorityController.text),
-        'terms_conditions': _termsController.text.trim(),
-        'start_date': _startDate.toIso8601String(),
-        'end_date': _endDate.toIso8601String(),
+        'discount_value': discountVal,
+        'minimum_order': double.tryParse(_minOrderController.text) ?? 0,
+        'maximum_discount': double.tryParse(_maxDiscountController.text),
+        'start_date': _startDate!.toIso8601String().split('T')[0],
+        'end_date': _endDate!.toIso8601String().split('T')[0],
+        'terms_conditions': _termsController.text.trim().isEmpty ? null : _termsController.text.trim(),
+        'priority': _priority,
         'is_active': _isActive,
       };
 
-      if (widget.promotion != null) {
+      if (widget.promotionId != null) {
         await CommercePromotionService.updatePromotion(
-          widget.promotion!['id'],
+          widget.promotionId!,
           data,
-          imageFile: _imageFile,
+          imageFile: _imagePath != null ? File(_imagePath!) : null,
         );
       } else {
         await CommercePromotionService.createPromotion(
           data,
-          imageFile: _imageFile,
+          imageFile: _imagePath != null ? File(_imagePath!) : null,
         );
       }
 
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(widget.promotion != null 
-              ? 'Promoción actualizada correctamente' 
-              : 'Promoción creada correctamente'),
-          backgroundColor: Colors.green,
-        ),
-      );
-      Navigator.pop(context, true);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Promoción guardada'),
+            backgroundColor: AppColors.green,
+          ),
+        );
+        Navigator.pop(context, true);
+      }
     } catch (e) {
-      if (!mounted) return;
-      setState(() { _error = e.toString(); });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al guardar promoción: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      if (mounted) setState(() { _loading = false; });
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _error = e.toString().replaceFirst('Exception: ', '');
+        });
+      }
     }
   }
 
-  Widget _buildImageSection() {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+  @override
+  Widget build(BuildContext context) {
+    final imageUrl = widget.initialData?['image_url']?.toString();
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.promotionId == null ? 'Nueva promoción' : 'Editar promoción'),
+      ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            const Text(
-              'Imagen de la Promoción',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
+            if (_error != null) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: AppColors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(_error!, style: const TextStyle(color: AppColors.red)),
+              ),
+            ],
             Center(
               child: GestureDetector(
                 onTap: _pickImage,
@@ -192,385 +207,125 @@ class _CommercePromotionFormPageState extends State<CommercePromotionFormPage> {
                   decoration: BoxDecoration(
                     color: Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade300),
                   ),
-                  child: _imageFile != null
+                  child: _imagePath != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.file(
-                            _imageFile!,
-                            width: 120,
-                            height: 120,
-                            fit: BoxFit.cover,
-                          ),
+                          child: Image.file(File(_imagePath!), fit: BoxFit.cover),
                         )
-                      : _currentImageUrl != null
+                      : (imageUrl != null && imageUrl.isNotEmpty)
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: Image.network(
-                                _currentImageUrl!,
-                                width: 120,
-                                height: 120,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => const Icon(
-                                  Icons.add_photo_alternate,
-                                  size: 48,
-                                  color: Colors.grey,
-                                ),
-                              ),
+                              child: Image.network(imageUrl, fit: BoxFit.cover),
                             )
-                          : const Icon(
-                              Icons.add_photo_alternate,
-                              size: 48,
-                              color: Colors.grey,
+                          : const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.add_photo_alternate, size: 48, color: Colors.grey),
+                                Text('Imagen', style: TextStyle(color: Colors.grey)),
+                              ],
                             ),
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            Center(
-              child: TextButton.icon(
-                onPressed: _pickImage,
-                icon: const Icon(Icons.photo_library),
-                label: const Text('Seleccionar Imagen'),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBasicInfoSection() {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Información Básica',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Título de la promoción *',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.title),
-                counterText: '',
-              ),
-              maxLength: 100,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ.,-]')),
-              ],
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'El título es requerido';
-                }
-                if (value.trim().length < 3) {
-                  return 'El título debe tener al menos 3 caracteres';
-                }
-                if (value.trim().length > 100) {
-                  return 'El título no puede exceder 100 caracteres';
-                }
-                return null;
-              },
+              decoration: const InputDecoration(labelText: 'Título', border: OutlineInputBorder()),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             TextFormField(
               controller: _descController,
-              decoration: const InputDecoration(
-                labelText: 'Descripción',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.description),
-                counterText: '',
-              ),
-              maxLength: 500,
-              maxLines: 3,
-              validator: (value) {
-                if (value != null && value.trim().length > 500) {
-                  return 'La descripción no puede exceder 500 caracteres';
-                }
-                return null;
-              },
+              decoration: const InputDecoration(labelText: 'Descripción', border: OutlineInputBorder()),
+              maxLines: 2,
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    decoration: const InputDecoration(
-                      labelText: 'Tipo de descuento *',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.discount),
-                    ),
-                    value: _discountType,
-                    items: const [
-                      DropdownMenuItem(value: 'percentage', child: Text('Porcentaje (%)')),
-                      DropdownMenuItem(value: 'fixed', child: Text('Monto fijo (\$)')),
-                    ],
-                    onChanged: (value) {
-                      setState(() { _discountType = value!; });
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _discountValueController,
-                    decoration: InputDecoration(
-                      labelText: _discountType == 'percentage' ? 'Porcentaje (%) *' : 'Monto ( 24) *',
-                      border: const OutlineInputBorder(),
-                      prefixIcon: const Icon(Icons.attach_money),
-                      counterText: '',
-                    ),
-                    maxLength: 6,
-                    keyboardType: TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^[0-9]{0,4}(\.[0-9]{0,2})?')),
-                    ],
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'El valor es requerido';
-                      }
-                      final num = double.tryParse(value);
-                      if (num == null || num <= 0) {
-                        return 'El valor debe ser mayor a 0';
-                      }
-                      if (_discountType == 'percentage' && num > 100) {
-                        return 'El porcentaje no puede ser mayor a 100%';
-                      }
-                      if (value.contains('.') && value.split('.')[1].length > 2) {
-                        return 'Máximo 2 decimales';
-                      }
-                      if (value.split('.')[0].length > 4) {
-                        return 'Máximo 4 dígitos antes del punto';
-                      }
-                      return null;
-                    },
-                  ),
-                ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _discountType,
+              decoration: const InputDecoration(labelText: 'Tipo de descuento', border: OutlineInputBorder()),
+              items: const [
+                DropdownMenuItem(value: 'percentage', child: Text('Porcentaje')),
+                DropdownMenuItem(value: 'fixed', child: Text('Monto fijo')),
               ],
+              onChanged: (v) => setState(() => _discountType = v ?? 'percentage'),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildConditionsSection() {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Condiciones',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    controller: _minOrderController,
-                    decoration: const InputDecoration(
-                      labelText: 'Pedido mínimo (\$)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.shopping_cart),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value != null && value.isNotEmpty) {
-                        final num = double.tryParse(value);
-                        if (num == null || num < 0) {
-                          return 'El valor debe ser mayor o igual a 0';
-                        }
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    controller: _maxDiscountController,
-                    decoration: const InputDecoration(
-                      labelText: 'Descuento máximo (\$)',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.trending_up),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value != null && value.isNotEmpty) {
-                        final num = double.tryParse(value);
-                        if (num == null || num < 0) {
-                          return 'El valor debe ser mayor o igual a 0';
-                        }
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             TextFormField(
-              controller: _priorityController,
-              decoration: const InputDecoration(
-                labelText: 'Prioridad (1-10)',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.priority_high),
-                helperText: 'Las promociones con mayor prioridad se muestran primero',
-              ),
+              controller: _discountValueController,
+              decoration: const InputDecoration(labelText: 'Valor del descuento', border: OutlineInputBorder()),
               keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value != null && value.isNotEmpty) {
-                  final num = int.tryParse(value);
-                  if (num == null || num < 1 || num > 10) {
-                    return 'La prioridad debe estar entre 1 y 10';
-                  }
-                }
+              validator: (v) {
+                final n = double.tryParse(v ?? '');
+                if (n == null || n <= 0) return 'Ingresa un valor mayor a 0';
+                if (_discountType == 'percentage' && n > 100) return 'Máximo 100%';
                 return null;
               },
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDateSection() {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Fechas de Vigencia',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _minOrderController,
+              decoration: const InputDecoration(labelText: 'Pedido mínimo', border: OutlineInputBorder()),
+              keyboardType: TextInputType.number,
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: ListTile(
-                    leading: const Icon(Icons.calendar_today),
-                    title: const Text('Fecha de inicio'),
-                    subtitle: Text(_formatDate(_startDate)),
-                    onTap: () => _selectDate(true),
-                  ),
-                ),
-                Expanded(
-                  child: ListTile(
-                    leading: const Icon(Icons.calendar_today),
-                    title: const Text('Fecha de fin'),
-                    subtitle: Text(_formatDate(_endDate)),
-                    onTap: () => _selectDate(false),
-                  ),
-                ),
-              ],
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _maxDiscountController,
+              decoration: const InputDecoration(labelText: 'Descuento máximo (opcional)', border: OutlineInputBorder()),
+              keyboardType: TextInputType.number,
             ),
-            const SizedBox(height: 16),
-            SwitchListTile(
-              title: const Text('Promoción activa'),
-              subtitle: const Text('La promoción estará disponible para los clientes'),
-              value: _isActive,
-              onChanged: (value) {
-                setState(() { _isActive = value; });
-              },
+            const SizedBox(height: 12),
+            ListTile(
+              title: Text(_startDate == null ? 'Fecha inicio' : 'Inicio: ${_startDate!.toString().split(' ')[0]}'),
+              trailing: const Icon(Icons.calendar_today),
+              onTap: _pickStartDate,
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTermsSection() {
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Términos y Condiciones',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ListTile(
+              title: Text(_endDate == null ? 'Fecha fin' : 'Fin: ${_endDate!.toString().split(' ')[0]}'),
+              trailing: const Icon(Icons.calendar_today),
+              onTap: _pickEndDate,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             TextFormField(
               controller: _termsController,
-              decoration: const InputDecoration(
-                labelText: 'Términos y condiciones',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.description),
-                helperText: 'Opcional: Términos específicos de esta promoción',
-              ),
-              maxLines: 4,
+              decoration: const InputDecoration(labelText: 'Términos y condiciones', border: OutlineInputBorder()),
+              maxLines: 2,
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.promotion != null ? 'Editar Promoción' : 'Crear Promoción'),
-        actions: [
-          if (_loading)
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
-        ],
-      ),
-      body: Form(
-        key: _formKey,
-        child: Stack(
-          children: [
-            ListView(
+            const SizedBox(height: 12),
+            Row(
               children: [
-                _buildImageSection(),
-                _buildBasicInfoSection(),
-                _buildConditionsSection(),
-                _buildDateSection(),
-                _buildTermsSection(),
-                const SizedBox(height: 100), // Espacio para el botón flotante
+                const Text('Prioridad:'),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Slider(
+                    value: _priority.toDouble(),
+                    min: 0,
+                    max: 10,
+                    divisions: 10,
+                    label: '$_priority',
+                    onChanged: (v) => setState(() => _priority = v.round()),
+                  ),
+                ),
+                Text('$_priority'),
               ],
             ),
-            if (_loading)
-              Container(
-                color: Colors.black26,
-                child: const Center(child: CircularProgressIndicator()),
-              ),
+            SwitchListTile(
+              title: const Text('Activa'),
+              value: _isActive,
+              onChanged: (v) => setState(() => _isActive = v),
+            ),
+            const SizedBox(height: 24),
+            FilledButton.icon(
+              onPressed: _saving ? null : _save,
+              icon: _saving
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.save),
+              label: Text(_saving ? 'Guardando...' : 'Guardar'),
+            ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _loading ? null : _savePromotion,
-        icon: const Icon(Icons.save),
-        label: Text(widget.promotion != null ? 'Actualizar' : 'Crear'),
-        tooltip: widget.promotion != null ? 'Actualizar promoción' : 'Crear promoción',
-      ),
     );
   }
-} 
+}

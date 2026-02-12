@@ -9,30 +9,23 @@ class CommerceDataService {
   static String get baseUrl => AppConfig.apiUrl;
   static final Logger _logger = Logger();
 
-  // Obtener datos del comercio
+  // Obtener datos del comercio (usa GET /api/commerce para rol commerce)
   static Future<Map<String, dynamic>> getCommerceData() async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
       final response = await http.get(
-        Uri.parse('$baseUrl/api/buyer/profiles'),
+        Uri.parse('$baseUrl/api/commerce'),
         headers: headers,
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        // Buscar el perfil del usuario actual y su comercio asociado
-        final userProfile = data.firstWhere(
-          (profile) => profile['user_id'] != null,
-          orElse: () => throw Exception('Perfil no encontrado'),
-        );
-        
-        if (userProfile['commerce'] != null) {
-          return userProfile['commerce'];
-        } else {
-          throw Exception('No se encontró comercio asociado');
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
         }
+        throw Exception('Respuesta inválida del servidor');
       } else if (response.statusCode == 404) {
-        throw Exception('Error al obtener datos del comercio: endpoint no disponible (404)');
+        throw Exception('Comercio no encontrado');
       } else {
         throw Exception('Error al obtener datos del comercio: ${response.statusCode}');
       }
@@ -42,53 +35,36 @@ class CommerceDataService {
     }
   }
 
-  // Actualizar datos del comercio
+  // Actualizar datos del comercio (PUT /api/commerce)
   static Future<Map<String, dynamic>> updateCommerceData(Map<String, dynamic> data) async {
     final headers = await AuthHelper.getAuthHeaders();
     try {
-      // Primero obtener el perfil actual
-      final profileResponse = await http.get(
-        Uri.parse('$baseUrl/api/buyer/profiles'),
-        headers: headers,
-      );
-
-      if (profileResponse.statusCode == 404) {
-        throw Exception('Error al actualizar datos del comercio: endpoint no disponible (404)');
+      final body = <String, dynamic>{};
+      if (data['business_name'] != null) body['business_name'] = data['business_name'];
+      if (data['business_type'] != null) body['business_type'] = data['business_type'];
+      if (data['address'] != null) body['address'] = data['address'];
+      if (data['open'] != null) body['open'] = data['open'];
+      if (data['schedule'] != null) {
+        body['schedule'] = data['schedule'] is String
+            ? data['schedule']
+            : jsonEncode(data['schedule']);
       }
 
-      if (profileResponse.statusCode != 200) {
-        throw Exception('Error al obtener perfil: ${profileResponse.statusCode}');
-      }
-
-      final profiles = jsonDecode(profileResponse.body);
-      final userProfile = profiles.firstWhere(
-        (profile) => profile['user_id'] != null,
-        orElse: () => throw Exception('Perfil no encontrado'),
-      );
-
-      final profileId = userProfile['id'];
-      
-      // Actualizar el perfil con los datos del comercio
-      final response = await http.post(
-        Uri.parse('$baseUrl/api/buyer/profiles/$profileId'),
-        headers: headers,
-        body: jsonEncode({
-          'commerce': data,
-        }),
+      final response = await http.put(
+        Uri.parse('$baseUrl/api/commerce'),
+        headers: {...headers, 'Content-Type': 'application/json'},
+        body: jsonEncode(body),
       );
 
       if (response.statusCode == 200) {
         final result = jsonDecode(response.body);
-        return result;
-      } else if (response.statusCode == 404) {
-        _logger.w('Endpoint de actualización no disponible (404), simulando actualización exitosa');
-        return {'success': true, 'message': 'Datos actualizados (modo offline)'};
+        return Map<String, dynamic>.from(result);
       } else {
         throw Exception('Error al actualizar datos del comercio: ${response.statusCode}');
       }
     } catch (e) {
-      _logger.w('Error al actualizar datos del comercio, simulando actualización exitosa: $e');
-      return {'success': true, 'message': 'Datos actualizados (modo offline)'};
+      _logger.w('Error al actualizar datos del comercio: $e');
+      rethrow;
     }
   }
 

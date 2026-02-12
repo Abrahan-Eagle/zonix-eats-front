@@ -20,6 +20,9 @@ class ChatService extends ChangeNotifier {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        if (data is List) {
+          return List<Map<String, dynamic>>.from(data);
+        }
         return List<Map<String, dynamic>>.from(data['data'] ?? []);
       } else {
         throw Exception('Error fetching conversations: ${response.statusCode}');

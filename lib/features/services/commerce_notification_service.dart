@@ -42,7 +42,7 @@ class CommerceNotificationService {
       if (sortOrder != null) queryParams['sort_order'] = sortOrder;
       if (perPage != null) queryParams['per_page'] = perPage.toString();
 
-      final uri = Uri.parse('$baseUrl/api/commerce/notifications').replace(queryParameters: queryParams);
+      final uri = Uri.parse('$baseUrl/api/notifications').replace(queryParameters: queryParams);
       
       final response = await http.get(
         uri,
@@ -72,7 +72,7 @@ class CommerceNotificationService {
     try {
       final headers = await AuthHelper.getAuthHeaders();
       final response = await http.get(
-        Uri.parse('$baseUrl/api/commerce/notifications/$id'),
+        Uri.parse('$baseUrl/api/notifications/$id'),
         headers: headers,
       );
 
@@ -93,7 +93,7 @@ class CommerceNotificationService {
     try {
       final headers = await AuthHelper.getAuthHeaders();
       final response = await http.post(
-        Uri.parse('$baseUrl/api/commerce/notifications/$id/read'),
+        Uri.parse('$baseUrl/api/notifications/$id/read'),
         headers: headers,
       );
 
@@ -118,7 +118,7 @@ class CommerceNotificationService {
     try {
       final headers = await AuthHelper.getAuthHeaders();
       final response = await http.post(
-        Uri.parse('$baseUrl/api/commerce/notifications/mark-all-read'),
+        Uri.parse('$baseUrl/api/notifications/mark-all-read'),
         headers: headers,
       );
 
@@ -142,7 +142,7 @@ class CommerceNotificationService {
     try {
       final headers = await AuthHelper.getAuthHeaders();
       final response = await http.delete(
-        Uri.parse('$baseUrl/api/commerce/notifications/$id'),
+        Uri.parse('$baseUrl/api/notifications/$id'),
         headers: headers,
       );
 
@@ -164,7 +164,7 @@ class CommerceNotificationService {
     try {
       final headers = await AuthHelper.getAuthHeaders();
       final response = await http.get(
-        Uri.parse('$baseUrl/api/commerce/notifications/stats'),
+        Uri.parse('$baseUrl/api/notifications/stats'),
         headers: headers,
       );
 

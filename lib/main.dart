@@ -4,7 +4,6 @@
 
 
 import 'package:flutter/material.dart';
-import 'package:flutter_expandable_fab/flutter_expandable_fab.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -39,7 +38,6 @@ import 'package:zonix/features/screens/cart/checkout_page.dart';
 
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/order_service.dart';
-import 'package:zonix/features/screens/orders/commerce_orders_page.dart';
 import 'package:zonix/features/services/commerce_service.dart';
 import 'package:zonix/features/services/delivery_service.dart';
 import 'package:zonix/features/services/admin_service.dart';
@@ -48,9 +46,14 @@ import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/services/payment_service.dart';
 import 'package:zonix/features/services/chat_service.dart';
 import 'package:zonix/features/services/analytics_service.dart';
+import 'package:zonix/features/services/commerce_analytics_service.dart';
 import 'package:zonix/features/screens/commerce/commerce_dashboard_page.dart';
-import 'package:zonix/features/screens/commerce/commerce_inventory_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_orders_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_order_detail_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_products_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_product_form_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_reports_page.dart';
+import 'package:zonix/models/commerce_product.dart';
 import 'package:zonix/features/screens/delivery/delivery_orders_page.dart';
 import 'package:zonix/features/screens/delivery/delivery_history_page.dart';
 import 'package:zonix/features/screens/delivery/delivery_routes_page.dart';
@@ -63,6 +66,7 @@ import 'package:zonix/features/screens/admin/admin_analytics_page.dart';
 import 'package:zonix/features/screens/help/help_and_faq_page.dart';
 import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/screens/commerce/commerce_chat_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_profile_page.dart';
 import 'package:zonix/features/screens/onboarding/onboarding_provider.dart';
@@ -127,6 +131,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => PaymentService()),
         ChangeNotifierProvider(create: (_) => ChatService()),
         ChangeNotifierProvider(create: (_) => AnalyticsService()),
+        ChangeNotifierProvider(create: (_) => CommerceAnalyticsService()),
         // PusherService se maneja como singleton interno, no necesitamos Provider aquí.
       ],
       child: MyApp(isIntegrationTest: isIntegrationTest),
@@ -147,6 +152,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
+
     if (isIntegrationTest) {
       // Forzar autenticación como comercio
       userProvider.setAuthenticatedForTest(role: 'commerce');
@@ -229,10 +235,34 @@ class MyApp extends StatelessWidget {
         },
       ),
       routes: {
-        '/commerce/inventory': (context) => const CommerceInventoryPage(),
+        '/commerce/inventory': (context) => const CommerceProductsPage(),
+        '/commerce/products': (context) => const CommerceProductsPage(),
         '/commerce/orders': (context) => const CommerceOrdersPage(),
         '/commerce/profile': (context) => CommerceProfilePage(),
+        '/commerce/chat': (context) => const CommerceChatPage(),
         '/commerce/notifications': (context) => const CommerceNotificationsPage(),
+        '/commerce/reports': (context) => const CommerceReportsPage(),
+        '/commerce/products/create': (context) => const CommerceProductFormPage(),
+      },
+      onGenerateRoute: (settings) {
+        final path = settings.name ?? '';
+        final orderMatch = RegExp(r'^/commerce/order/(\d+)$').firstMatch(path);
+        if (orderMatch != null) {
+          final orderId = int.parse(orderMatch.group(1)!);
+          return MaterialPageRoute(
+            builder: (context) => CommerceOrderDetailPage(orderId: orderId),
+          );
+        }
+        final productMatch = RegExp(r'^/commerce/products/(\d+)$').firstMatch(path);
+        if (productMatch != null) {
+          final product = settings.arguments is CommerceProduct
+              ? settings.arguments as CommerceProduct
+              : null;
+          return MaterialPageRoute(
+            builder: (context) => CommerceProductFormPage(product: product),
+          );
+        }
+        return null;
       },
     );
   }
@@ -249,6 +279,8 @@ class MainRouterState extends State<MainRouter> {
   int _selectedLevel = 0;
   int _bottomNavIndex = 0;
   dynamic _profile;
+  List<int> _allowedLevels = [];
+  String? _lastRole;
 
   @override
   void initState() {
@@ -271,29 +303,142 @@ class MainRouterState extends State<MainRouter> {
   Future<void> _loadLastPosition() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
-      int savedLevel = prefs.getInt('selectedLevel') ?? 0;
-      // Validar que el nivel guardado sea válido (0-3)
-      // Si es 4 o 5 (niveles eliminados), convertir a 3 (admin)
-      if (savedLevel == 4 || savedLevel == 5) {
-        _selectedLevel = 3; // Admin
-      } else if (savedLevel > 3) {
-        _selectedLevel = 0; // Default a comprador
-      } else {
-        _selectedLevel = savedLevel;
-      }
       _bottomNavIndex = prefs.getInt('bottomNavIndex') ?? 0;
       logger.i(
-        'Loaded last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex',
+        'Loaded last position - bottomNavIndex: $_bottomNavIndex',
       );
     });
   }
 
   Future<void> _saveLastPosition() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('selectedLevel', _selectedLevel);
     await prefs.setInt('bottomNavIndex', _bottomNavIndex);
     logger.i(
-      'Saved last position - selectedLevel: $_selectedLevel, bottomNavIndex: $_bottomNavIndex',
+      'Saved last position - bottomNavIndex: $_bottomNavIndex',
+    );
+  }
+
+  int _defaultLevelForRole(String role) {
+    switch (role) {
+      case 'commerce':
+        return 1;
+      case 'delivery_agent':
+      case 'delivery':
+        return 2;
+      case 'delivery_company':
+        return 3;
+      case 'admin':
+        return 4;
+      case 'users':
+      default:
+        return 0;
+    }
+  }
+
+  List<int> _levelsForRole(String role) {
+    // Mapeo de niveles según rol:
+    // 0: Comprador
+    // 1: Comercio
+    // 2: Delivery Rider (motorizado / conductor)
+    // 3: Delivery Company
+    // 4: Admin
+    switch (role) {
+      case 'commerce':
+        // Comercio SOLO usa su propio nivel (no debe ver comprador)
+        return [1];
+      case 'delivery_agent':
+      case 'delivery':
+        // Riders: SOLO su propio nivel (2), no ven comprador
+        return [2];
+      case 'delivery_company':
+        // Empresas de delivery: solo su propio nivel (3)
+        return [3];
+      case 'admin':
+        // Admin SOLO usa su nivel (4)
+        return [4];
+      case 'users':
+      default:
+        // Comprador normal
+        return [0];
+    }
+  }
+
+  String _labelForLevel(int level) {
+    switch (level) {
+      case 0:
+        return 'Comprador';
+      case 1:
+        return 'Comercio';
+      case 2:
+        return 'Delivery Rider';
+      case 3:
+        return 'Delivery Company';
+      case 4:
+        return 'Admin';
+      default:
+        return 'Desconocido';
+    }
+  }
+
+  IconData _iconForLevel(int level) {
+    switch (level) {
+      case 0:
+        return Icons.shopping_bag;
+      case 1:
+        return Icons.storefront;
+      case 2:
+        return Icons.delivery_dining;
+      case 3:
+        return Icons.local_shipping; // Delivery Company
+      case 4:
+        return Icons.admin_panel_settings;
+      default:
+        return Icons.help_outline;
+    }
+  }
+
+  void _showLevelSelector() {
+    if (_allowedLevels.length <= 1) return;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  'Cambiar modo',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+              ..._allowedLevels.map((level) {
+                final selected = level == _selectedLevel;
+                return ListTile(
+                  leading: Icon(
+                    _iconForLevel(level),
+                    color: selected ? Colors.blueAccent : Colors.grey,
+                  ),
+                  title: Text(_labelForLevel(level)),
+                  trailing: selected
+                      ? const Icon(Icons.check, color: Colors.blueAccent)
+                      : null,
+                  onTap: () {
+                    setState(() {
+                      _selectedLevel = level;
+                      _bottomNavIndex = 0;
+                      _saveLastPosition();
+                    });
+                    Navigator.pop(context);
+                  },
+                );
+              }).toList(),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -342,7 +487,7 @@ class MainRouterState extends State<MainRouter> {
           ),
         ];
         break;
-      case 2: // Delivery
+      case 2: // Delivery Rider
         items = [
           const BottomNavigationBarItem(
             icon: Icon(Icons.delivery_dining),
@@ -362,7 +507,27 @@ class MainRouterState extends State<MainRouter> {
           ),
         ];
         break;
-      case 3: // Administrador
+      case 3: // Delivery Company
+        items = [
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.delivery_dining),
+            label: 'Entregas',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.history),
+            label: 'Historial',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.location_on),
+            label: 'Rutas',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance_wallet),
+            label: 'Ganancias',
+          ),
+        ];
+        break;
+      case 4: // Administrador
         items = [
           const BottomNavigationBarItem(
             icon: Icon(Icons.admin_panel_settings),
@@ -427,34 +592,32 @@ class MainRouterState extends State<MainRouter> {
     }
   }
 
-  // Dentro de tu widget donde tienes el BottomNavigationBar
-
-  void _onLevelSelected(int level) {
-    setState(() {
-      _selectedLevel = level;
-      _bottomNavIndex = 0;
-      _saveLastPosition();
-    });
-  }
-
-  Widget _createLevelButton(int level, IconData icon, String tooltip) {
-    return FloatingActionButton.small(
-      heroTag: 'level$level',
-      backgroundColor:
-          _selectedLevel == level
-              ? Colors.blueAccent[700]
-              : Colors.blueAccent[50],
-      child: Icon(
-        icon,
-        color: _selectedLevel == level ? Colors.white : Colors.black,
-      ),
-      onPressed: () => _onLevelSelected(level),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final userProvider = Provider.of<UserProvider>(context);
+
+    // Calcular niveles permitidos según el rol del usuario
+    var role = userProvider.userRole;
+    if (role.isEmpty) {
+      role = 'users';
+    }
+
+    // Si el rol cambió (ej. después de login), forzamos el nivel por defecto de ese rol
+    if (_lastRole != role) {
+      _lastRole = role;
+      _allowedLevels = _levelsForRole(role);
+      _selectedLevel = _defaultLevelForRole(role);
+      _bottomNavIndex = 0;
+      _saveLastPosition();
+    } else if (_allowedLevels.isEmpty) {
+      // Primera vez que se calculan los niveles permitidos
+      _allowedLevels = _levelsForRole(role);
+      if (!_allowedLevels.contains(_selectedLevel)) {
+        _selectedLevel = _defaultLevelForRole(role);
+        _bottomNavIndex = 0;
+        _saveLastPosition();
+      }
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -494,6 +657,12 @@ class MainRouterState extends State<MainRouter> {
         ),
         centerTitle: false,
         actions: [
+          if (_allowedLevels.length > 1)
+            IconButton(
+              icon: const Icon(Icons.swap_horiz),
+              tooltip: 'Cambiar modo',
+              onPressed: _showLevelSelector,
+            ),
           Consumer<UserProvider>(
             builder: (context, userProvider, child) {
               return GestureDetector(
@@ -602,6 +771,8 @@ class MainRouterState extends State<MainRouter> {
                 final role = userProvider.userRole;
                 logger.i('Role fetched: $role');
 
+                // Forzar SIEMPRE el nivel según el rol para evitar que quede en 0 por defecto
+                _selectedLevel = _defaultLevelForRole(role);
 
                 // Nivel 0: Comprador
                 if (_selectedLevel == 0) {
@@ -627,7 +798,7 @@ class MainRouterState extends State<MainRouter> {
                     case 1:
                       return const CommerceOrdersPage(); // Órdenes
                     case 2:
-                      return const CommerceInventoryPage(); // Productos
+                      return const CommerceProductsPage(); // Productos
                     case 3:
                       return const CommerceReportsPage(); // Reportes
                     default:
@@ -635,7 +806,7 @@ class MainRouterState extends State<MainRouter> {
                   }
                 }
 
-                // Nivel 2: Delivery
+                // Nivel 2: Delivery Rider (motorizado / conductor)
                 if (_selectedLevel == 2) {
                   switch (_bottomNavIndex) {
                     case 0:
@@ -651,8 +822,24 @@ class MainRouterState extends State<MainRouter> {
                   }
                 }
 
-                // Nivel 3: Administrador
+                // Nivel 3: Delivery Company
                 if (_selectedLevel == 3) {
+                  switch (_bottomNavIndex) {
+                    case 0:
+                      return DeliveryOrdersPage(); // Entregas (empresa)
+                    case 1:
+                      return const DeliveryHistoryPage(); // Historial
+                    case 2:
+                      return const DeliveryRoutesPage(); // Rutas
+                    case 3:
+                      return const DeliveryEarningsPage(); // Ganancias
+                    default:
+                      return DeliveryOrdersPage();
+                  }
+                }
+
+                // Nivel 4: Administrador
+                if (_selectedLevel == 4) {
                   switch (_bottomNavIndex) {
                     case 0:
                       return AdminDashboardPage(); // Panel Admin
@@ -676,18 +863,6 @@ class MainRouterState extends State<MainRouter> {
           );
         },
       ),
-      floatingActionButtonLocation: ExpandableFab.location,
-      floatingActionButton: ExpandableFab(
-        distance: 70,
-        type: ExpandableFabType.up,
-        children: [
-          _createLevelButton(0, Icons.shopping_bag, 'Comprador'),
-          _createLevelButton(1, Icons.storefront, 'Tiendas'),
-          _createLevelButton(2, Icons.delivery_dining, 'Delivery'),
-          _createLevelButton(3, Icons.admin_panel_settings, 'Administrador'),
-        ],
-      ),
-
       bottomNavigationBar: BottomNavigationBar(
         items: _getBottomNavItems(_selectedLevel, userProvider.userRole),
         currentIndex: _bottomNavIndex,

@@ -5,6 +5,7 @@ import '../../../features/services/commerce_order_service.dart';
 import '../../../features/services/commerce_product_service.dart';
 import 'commerce/commerce_dashboard_page.dart';
 import 'commerce/commerce_orders_page.dart';
+import 'commerce/commerce_products_page.dart';
 import 'commerce/commerce_product_form_page.dart';
 import 'commerce/commerce_profile_page.dart';
 
@@ -23,7 +24,7 @@ class _CommercePageState extends State<CommercePage> {
   final List<Widget> _pages = [
     const CommerceDashboardPage(),
     const CommerceOrdersPage(),
-    const CommerceProductFormPage(),
+    const CommerceProductsPage(),
     const CommerceProfilePage(),
   ];
 

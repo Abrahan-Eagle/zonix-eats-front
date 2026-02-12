@@ -6,8 +6,10 @@ class CommerceZonesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Zonas y Costos de Delivery')),
-      body: const Center(child: Text('Gestión de zonas y costos de delivery (próximamente)')),
+      appBar: AppBar(title: const Text('Zonas y costos de delivery')),
+      body: const Center(
+        child: Text('Gestión de zonas y costos de delivery (próximamente)'),
+      ),
     );
   }
-} 
+}

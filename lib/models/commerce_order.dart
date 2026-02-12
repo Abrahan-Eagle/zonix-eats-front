@@ -198,10 +198,12 @@ class CommerceOrder {
         return 'Pendiente de Pago';
       case 'paid':
         return 'Pagado';
+      case 'processing':
       case 'preparing':
         return 'En Preparación';
       case 'ready':
         return 'Listo';
+      case 'shipped':
       case 'on_way':
         return 'En Camino';
       case 'delivered':
