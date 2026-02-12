@@ -30,7 +30,8 @@ class _CommercePaymentMethodFormPageState
   final _documentController = TextEditingController();
   final _phoneController = TextEditingController();
   final _accountController = TextEditingController();
-  final _currencyController = TextEditingController(text: 'USD');
+  // Moneda principal: VES (Bs). El dólar se usa solo como referencia.
+  final _currencyController = TextEditingController(text: 'VES');
 
   bool _saving = false;
 
@@ -52,7 +53,7 @@ class _CommercePaymentMethodFormPageState
     _documentController.text = (m?['owner_id'] ?? '') as String;
     _phoneController.text = (m?['phone'] ?? '') as String;
     _accountController.text = (m?['account_number'] ?? '') as String;
-    _currencyController.text = (ref['currency'] ?? 'USD') as String;
+    _currencyController.text = (ref['currency'] ?? 'VES') as String;
   }
 
   @override
@@ -243,7 +244,7 @@ class _CommercePaymentMethodFormPageState
             TextFormField(
               controller: _currencyController,
               decoration: const InputDecoration(
-                labelText: 'Moneda (USD / VES)',
+                labelText: 'Moneda principal (Bs / ref. USD)',
                 border: OutlineInputBorder(),
               ),
             ),

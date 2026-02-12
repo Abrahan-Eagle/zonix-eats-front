@@ -36,6 +36,15 @@ class _CommercePaymentMethodsPageState
       if (mounted) {
         setState(() {
           _methods = list.cast<Map<String, dynamic>>();
+
+          // Ordenar: primero el método predeterminado, luego el resto
+          _methods.sort((a, b) {
+            final aDefault = a['is_default'] == true ? 1 : 0;
+            final bDefault = b['is_default'] == true ? 1 : 0;
+            // Queremos que los predeterminados (1) queden antes que los no predeterminados (0)
+            return bDefault.compareTo(aDefault);
+          });
+
           _loading = false;
         });
       }
