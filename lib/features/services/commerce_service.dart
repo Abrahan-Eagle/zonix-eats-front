@@ -12,54 +12,6 @@ import '../../helpers/auth_helper.dart';
 /// Para órdenes de comercio, usar CommerceOrderService.
 class CommerceService extends ChangeNotifier {
   static String get baseUrl => AppConfig.apiUrl;
-  
-  // Mock data for development (fallback only)
-  static final List<Commerce> _mockCommerces = [
-    Commerce(
-      id: 1,
-      name: 'Restaurante El Sabor',
-      description: 'Comida tradicional venezolana',
-      address: 'Av. Principal 123, Lima',
-      phone: '+51 123 456 789',
-      email: 'info@pizzaexpress.com',
-      logo: 'assets/default_avatar.png',
-      isActive: true,
-      category: 'Restaurante',
-      rating: 4.5,
-      reviewCount: 156,
-      openingHours: '10:00 - 22:00',
-      deliveryFee: 5.0,
-      deliveryTime: 30,
-      minimumOrder: 15.0,
-      paymentMethods: ['Efectivo', 'Tarjeta', 'Transferencia'],
-      cuisines: ['Pizza', 'Italiana', 'Pasta'],
-      location: {'lat': -12.0464, 'lng': -77.0428},
-      createdAt: DateTime.now().subtract(Duration(days: 30)),
-      updatedAt: DateTime.now(),
-    ),
-    Commerce(
-      id: 2,
-      name: 'Café Central',
-      description: 'Café y pastelería artesanal',
-      address: 'Jr. Sushi 456, Lima',
-      phone: '+51 987 654 321',
-      email: 'contact@sushimaster.com',
-      logo: 'assets/default_avatar.png',
-      isActive: true,
-      category: 'Restaurante',
-      rating: 4.8,
-      reviewCount: 89,
-      openingHours: '11:00 - 23:00',
-      deliveryFee: 7.0,
-      deliveryTime: 25,
-      minimumOrder: 20.0,
-      paymentMethods: ['Efectivo', 'Tarjeta'],
-      cuisines: ['Sushi', 'Japonesa', 'Asiática'],
-      location: {'lat': -12.0464, 'lng': -77.0428},
-      createdAt: DateTime.now().subtract(Duration(days: 45)),
-      updatedAt: DateTime.now(),
-    ),
-  ];
 
   /// Obtener todos los comercios/restaurantes
   Future<List<Commerce>> getCommerces() async {
@@ -80,14 +32,10 @@ class CommerceService extends ChangeNotifier {
         }
         return [];
       } else {
-        // Fallback to mock data if API fails
-        await Future.delayed(Duration(milliseconds: 500));
-        return _mockCommerces;
+        throw Exception('Error al obtener comercios: ${response.statusCode}');
       }
     } catch (e) {
-      // Fallback to mock data on error
-      await Future.delayed(Duration(milliseconds: 500));
-      return _mockCommerces;
+      rethrow;
     }
   }
 
@@ -109,13 +57,7 @@ class CommerceService extends ChangeNotifier {
         throw Exception('Error fetching commerce: ${response.statusCode}');
       }
     } catch (e) {
-      // Fallback to mock data on error
-      await Future.delayed(Duration(milliseconds: 300));
-      try {
-        return _mockCommerces.firstWhere((c) => c.id == id);
-      } catch (_) {
-        throw Exception('Error fetching commerce: $e');
-      }
+      rethrow;
     }
   }
 
@@ -143,31 +85,10 @@ class CommerceService extends ChangeNotifier {
           'active_products': 0,
         };
       } else {
-        // Fallback to mock data if endpoint not available
-        await Future.delayed(Duration(milliseconds: 600));
-        return {
-          'total_orders': 156,
-          'total_revenue': 23450.0,
-          'average_order_value': 150.32,
-          'total_products': 45,
-          'active_products': 38,
-          'total_customers': 89,
-          'repeat_customers': 67,
-          'average_rating': 4.6,
-          'total_reviews': 234,
-          'monthly_growth': 12.5,
-        };
+        throw Exception('Error al obtener estadísticas: ${response.statusCode}');
       }
     } catch (e) {
-      // Fallback to mock data on error
-      await Future.delayed(Duration(milliseconds: 600));
-      return {
-        'total_orders': 156,
-        'total_revenue': 23450.0,
-        'average_order_value': 150.32,
-        'total_products': 45,
-        'active_products': 38,
-      };
+      rethrow;
     }
   }
 }

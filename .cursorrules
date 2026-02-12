@@ -9,12 +9,15 @@ alwaysApply: true
 **Flutter SDK:** >=3.5.0 <4.0.0  
 **Dart:** 3.5.0+  
 **Estado:** ✅ MVP Completado - En desarrollo activo  
-**Archivos Dart:** 177 archivos (verificado)  
-**Líneas de código:** 58,987 líneas Dart en `lib/` (verificado)  
+**Archivos Dart:** 173 archivos (verificado; 2 legacy eliminados: websocket_service, order_ws_service)  
+**Líneas de código:** ~58,000 líneas Dart en `lib/` (reducido tras eliminar ~700 líneas mock data + código legacy)  
 **Tests:** 214 tests pasaron ✅, 0 tests fallaron ✅ (incl. onboarding: payload schedule string, testWidgets con pump)  
 **Errores críticos:** ✅ Todos corregidos (FlutterSecureStorage BAD_DECRYPT, AdminDashboardPage null safety, roles limpiados, dashboard optimizado)  
 **TODOs servicios MVP:** ✅ Completados (commerce, payment, delivery, chat, admin, analytics, location, notification; código comentado eliminado)  
-**Última actualización:** 11 Febrero 2025
+**Mock data eliminada (Feb 2026):** ✅ 11 servicios limpiados - errores de API ahora se propagan correctamente al UI  
+**Features corregidos (Feb 2026):** ✅ Upload imágenes commerce, navegación admin dashboard, security page con API real  
+**Código legacy eliminado (Feb 2026):** ✅ websocket_service.dart, order_ws_service.dart, ~118 líneas comentadas en google_sign_in_service  
+**Última actualización:** 12 Febrero 2026
 
 ---
 
@@ -67,7 +70,7 @@ zonix-eats-front/
 │   │   │   ├── cart_service.dart
 │   │   │   ├── order_service.dart
 │   │   │   ├── commerce_service.dart
-│   │   │   ├── pusher_service.dart    # Tiempo real (Pusher). websocket_service.dart es legacy/placeholder
+│   │   │   ├── pusher_service.dart    # Tiempo real (Pusher)
 │   │   │   └── ...
 │   │   └── DomainProfiles/           # Módulos de perfiles
 │   │       ├── Profiles/
@@ -468,44 +471,73 @@ if (_selectedLevel == 1) {
 
 ## MEJORAS CRÍTICAS PENDIENTES
 
-### 🔴 CRÍTICO - Acción Inmediata (RESUELTOS ✅)
+### 🔴 CRÍTICO - Acción Inmediata (TODOS RESUELTOS ✅)
 
 1. ~~**Implementar TODOs en Múltiples Servicios (CRÍTICO)**~~ ✅ **COMPLETADO**
-   - ~~commerce_service.dart~~ ✅ COMPLETADO
-   - ~~admin_service.dart~~ ✅ COMPLETADO
-   - ~~analytics_service.dart~~ ✅ COMPLETADO
-   - ~~payment_service.dart~~ ✅ COMPLETADO
-   - ~~delivery_service.dart~~ ✅ COMPLETADO
-   - ~~chat_service.dart~~ ✅ COMPLETADO
-   - ~~location_service.dart~~ ✅ COMPLETADO
-   - ~~notification_service.dart~~ ✅ COMPLETADO
-   - ~~`affiliate_service.dart`~~ (EXCLUIDO DEL MVP)
-   - ~~`transport_service.dart`~~ (EXCLUIDO DEL MVP)
    - Todos los servicios MVP usan llamadas reales a API
 
-2. ~~**Eliminar Código Comentado**~~ ✅ **COMPLETADO**
-   - ~330 líneas comentadas eliminadas de `main.dart`
+2. ~~**Eliminar Mock Data de 11 Servicios**~~ ✅ **COMPLETADO (Feb 2026)**
+   - ~700 líneas de datos falsos eliminadas de: chat_service, admin_service, analytics_service,
+     delivery_service, payment_service, notification_service, location_service, commerce_service,
+     commerce_data_service, commerce_notification_service, commerce_promotion_service
+   - Errores de API ahora se propagan correctamente (throw/rethrow en vez de mock silencioso)
 
-3. **Implementar Internacionalización (i18n)** (PENDIENTE)
-   - Múltiples strings hardcodeados en español
-   - **Archivos afectados:** `settings_page_2.dart` y otros
-   - **Recomendación:** Usar `flutter_localizations` o `intl`
+3. ~~**Eliminar Código Comentado/Legacy**~~ ✅ **COMPLETADO (Feb 2026)**
+   - websocket_service.dart eliminado (legacy vacío)
+   - order_ws_service.dart eliminado (legacy vacío)
+   - ~118 líneas comentadas eliminadas de google_sign_in_service.dart
+   - ~330 líneas comentadas eliminadas de main.dart (previo)
+
+4. ~~**Fix URL localhost en account_deletion_service**~~ ✅ **CORREGIDO (Feb 2026)**
+   - `localhost:8000` → `AppConfig.apiUrl`
+
+5. ~~**Fix profile ID hardcodeado en phone_service**~~ ✅ **CORREGIDO (Feb 2026)**
+   - ID `56` → parámetro `userId` dinámico
+
+6. ~~**Fix URL duplicada en cart_service**~~ ✅ **CORREGIDO (Feb 2026)**
+   - Eliminada lógica de URL duplicada, usa `AppConfig.apiUrl` exclusivamente
+
+7. ~~**Implementar Subida de Imágenes Commerce**~~ ✅ **COMPLETADO (Feb 2026)**
+   - `commerce_data_service.dart` → MultipartRequest real
+   - `commerce_data_page.dart` → ImagePicker integrado
+   - Nuevo endpoint backend: `POST /api/commerce/logo`
+
+8. ~~**Fix Navegación Admin Dashboard**~~ ✅ **CORREGIDO (Feb 2026)**
+   - 4 botones que solo mostraban SnackBar → Navigator.push a páginas reales
+
+9. ~~**Fix Admin Security Page Hardcoded**~~ ✅ **CORREGIDO (Feb 2026)**
+   - Eventos hardcodeados → API real (AdminService.getSecurityLogs)
 
 ### 🟡 ALTO - Próximas Semanas
 
-4. **Implementar Subida de Imágenes**
-   - `commerce_data_service.dart` línea 204: `TODO: Implementar subida de imagen`
-   - `commerce_data_page.dart` línea 119: `TODO: Implementar selección de imagen`
+10. **Conectar Chat Real-time con Pusher**
+    - `chat_service.dart` → `startListening()` necesita conectarse a PusherService
+    - Chat funciona por API (enviar/recibir) pero sin mensajes instantáneos
+    - Prioridad alta para UX de chat
 
-5. **Optimizar Performance**
-   - Implementar lazy loading de imágenes
-   - Cachear respuestas de API
-   - Optimizar re-renders
+11. **Optimizar Performance**
+    - Implementar `cached_network_image` para imágenes
+    - Agregar paginación en listas
+    - Optimizar re-renders con `const` constructors
 
-6. **Mejorar Manejo de Errores**
-   - Manejo global de errores
-   - Retry automático para requests fallidos
-   - Mensajes de error más descriptivos
+12. **Mejorar Manejo de Errores Global**
+    - Algunas pantallas pueden no manejar bien las excepciones tras eliminar mock data
+    - Manejo global de errores
+    - Retry automático para requests fallidos
+
+### 🟢 MEDIO - Mejoras Futuras
+
+13. **Implementar Internacionalización (i18n)** (NO prioritario - solo español)
+    - Múltiples strings hardcodeados en español
+    - **Recomendación:** Usar `flutter_localizations` si se necesita multi-idioma
+
+14. **Refactorizar God Classes**
+    - `client_onboarding_flow.dart` (2,740 líneas) → dividir en widgets
+    - `edit_profile_page.dart` (1,252 líneas) → dividir
+
+15. **Rediseño de UI/UX**
+    - Pendiente hasta que MVP esté 100% funcional y probado
+    - El usuario quiere nuevo template/diseño después de validar funcionalidad
 
 ---
 
@@ -956,7 +988,7 @@ Antes de considerar el análisis completo, verificar:
 
 ---
 
-**Última actualización:** 11 Febrero 2025 
+**Última actualización:** 12 Febrero 2026 
 **Mantener este archivo actualizado con cambios arquitectónicos importantes**
 
 ---

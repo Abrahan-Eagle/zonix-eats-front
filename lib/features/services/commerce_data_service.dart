@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import '../../helpers/auth_helper.dart';
@@ -7,21 +8,6 @@ import '../../config/app_config.dart';
 class CommerceDataService {
   static String get baseUrl => AppConfig.apiUrl;
   static final Logger _logger = Logger();
-
-  // Datos mock para cuando el backend no esté disponible
-  static Map<String, dynamic> get _mockCommerceData => {
-    'business_name': 'Mi Restaurante',
-    'business_type': 'Restaurante',
-    'tax_id': 'J-12345678-9',
-    'address': 'Av. Principal, Caracas, Venezuela',
-    'phone': '+58 412-123-4567',
-    'image': 'assets/default_avatar.png',
-    'open': true,
-    'schedule': 'Lunes a Domingo: 8:00 AM - 10:00 PM',
-    'mobile_payment_bank': 'Banco de Venezuela',
-    'mobile_payment_id': '123456789',
-    'mobile_payment_phone': '+58 412-123-4567',
-  };
 
   // Obtener datos del comercio
   static Future<Map<String, dynamic>> getCommerceData() async {
@@ -46,14 +32,13 @@ class CommerceDataService {
           throw Exception('No se encontró comercio asociado');
         }
       } else if (response.statusCode == 404) {
-        _logger.w('Endpoint de comercio no disponible (404), usando datos mock');
-        return _mockCommerceData;
+        throw Exception('Error al obtener datos del comercio: endpoint no disponible (404)');
       } else {
         throw Exception('Error al obtener datos del comercio: ${response.statusCode}');
       }
     } catch (e) {
-      _logger.w('Error al obtener datos del comercio, usando datos mock: $e');
-      return _mockCommerceData;
+      _logger.w('Error al obtener datos del comercio: $e');
+      rethrow;
     }
   }
 
@@ -68,8 +53,7 @@ class CommerceDataService {
       );
 
       if (profileResponse.statusCode == 404) {
-        _logger.w('Endpoint de perfil no disponible (404), simulando actualización exitosa');
-        return {'success': true, 'message': 'Datos actualizados (modo offline)'};
+        throw Exception('Error al actualizar datos del comercio: endpoint no disponible (404)');
       }
 
       if (profileResponse.statusCode != 200) {
@@ -226,16 +210,67 @@ class CommerceDataService {
     }
   }
 
-  // Subir imagen del comercio
+  /// Subir imagen del comercio al servidor.
+  /// Usa POST /api/commerce/logo con multipart/form-data.
+  /// Retorna la URL de la imagen subida.
   static Future<String> uploadCommerceImage(String imagePath) async {
-    try {
-      // TODO: Implementar subida de imagen usando AuthHelper.getAuthHeaders()
-      // Por ahora retornamos una imagen local
-      await Future.delayed(const Duration(seconds: 1));
-      return 'assets/default_avatar.png';
-    } catch (e) {
-      _logger.w('Error al subir imagen, usando imagen local: $e');
-      return 'assets/default_avatar.png';
+    if (imagePath.isEmpty) {
+      throw Exception('Ruta de imagen vacía');
+    }
+
+    final file = File(imagePath);
+    if (!await file.exists()) {
+      throw Exception('El archivo de imagen no existe');
+    }
+
+    final headers = await AuthHelper.getAuthHeaders();
+    // Para multipart no incluir Content-Type - el request lo establece con boundary
+    headers.remove('Content-Type');
+
+    final request = http.MultipartRequest(
+      'POST',
+      Uri.parse('$baseUrl/api/commerce/logo'),
+    );
+
+    request.headers.addAll(headers);
+    request.files.add(
+      await http.MultipartFile.fromPath('image', imagePath),
+    );
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['success'] == true && data['data'] != null) {
+        final url = data['data']['image'] ?? data['data']['url'];
+        if (url != null && url is String) return url;
+      }
+      throw Exception(data['message'] ?? 'Respuesta inválida del servidor');
+    } else if (response.statusCode == 404) {
+      throw Exception('Comercio no encontrado');
+    } else if (response.statusCode == 422) {
+      try {
+        final data = jsonDecode(response.body);
+        final errors = data['errors'];
+        if (errors != null && errors is Map) {
+          final imageErrors = errors['image'];
+          if (imageErrors != null && imageErrors is List && imageErrors.isNotEmpty) {
+            throw Exception(imageErrors.first.toString());
+          }
+        }
+      } catch (e) {
+        if (e is Exception) rethrow;
+      }
+      throw Exception('Imagen no válida. Use JPEG, PNG o JPG (máx. 2MB).');
+    } else {
+      try {
+        final data = jsonDecode(response.body);
+        throw Exception(data['message'] ?? 'Error ${response.statusCode}');
+      } catch (e) {
+        if (e is Exception && !e.toString().startsWith('Exception: ')) rethrow;
+        throw Exception('Error al subir imagen: ${response.statusCode}');
+      }
     }
   }
 } 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zonix/features/services/admin_service.dart';
 
 class AdminSecurityPage extends StatefulWidget {
   const AdminSecurityPage({super.key});
@@ -13,6 +14,47 @@ class _AdminSecurityPageState extends State<AdminSecurityPage> {
   bool _suspiciousActivityAlerts = true;
   bool _autoLockEnabled = true;
   int _sessionTimeout = 30;
+
+  List<Map<String, dynamic>> _securityEvents = [];
+  bool _loading = true;
+  String? _errorMessage;
+
+  final AdminService _adminService = AdminService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSecurityEvents();
+  }
+
+  Future<void> _loadSecurityEvents() async {
+    setState(() {
+      _loading = true;
+      _errorMessage = null;
+    });
+    try {
+      final events = await _adminService.getSecurityLogs();
+      setState(() {
+        _securityEvents = events.map(_normalizeEvent).toList();
+        _loading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _loading = false;
+      });
+    }
+  }
+
+  Map<String, dynamic> _normalizeEvent(Map<String, dynamic> raw) {
+    return {
+      'type': raw['type'] ?? raw['action'] ?? raw['event_type'] ?? 'Evento',
+      'user': raw['user'] ?? raw['user_email'] ?? raw['email'] ?? 'Desconocido',
+      'ip': raw['ip'] ?? raw['ip_address'] ?? 'N/A',
+      'time': raw['time'] ?? raw['created_at'] ?? raw['timestamp'] ?? 'N/A',
+      'status': raw['status'] ?? raw['result'] ?? 'Info',
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -257,56 +299,121 @@ class _AdminSecurityPageState extends State<AdminSecurityPage> {
   }
 
   Widget _buildSecurityEventsCard() {
+    if (_loading) {
+      return Card(
+        elevation: 2,
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircularProgressIndicator(),
+                const SizedBox(height: 16),
+                Text(
+                  'Cargando eventos de seguridad...',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Card(
+        elevation: 2,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Icon(Icons.error_outline, size: 48, color: Colors.red[700]),
+              const SizedBox(height: 16),
+              Text(
+                'Error al cargar eventos',
+                style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[800]),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _errorMessage!,
+                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: _loadSecurityEvents,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reintentar'),
+                style: OutlinedButton.styleFrom(foregroundColor: Colors.red[700]),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Card(
       elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: 6,
-              itemBuilder: (context, index) {
-                final events = [
-                  {'type': 'Login', 'user': 'admin@zonix.com', 'ip': '192.168.1.100', 'time': '2 min', 'status': 'Exitoso'},
-                  {'type': 'Acceso Denegado', 'user': 'unknown@email.com', 'ip': '203.45.67.89', 'time': '5 min', 'status': 'Fallido'},
-                  {'type': 'Cambio de Contraseña', 'user': 'juan.perez@email.com', 'ip': '192.168.1.101', 'time': '15 min', 'status': 'Exitoso'},
-                  {'type': 'Sesión Expirada', 'user': 'maria.gonzalez@email.com', 'ip': '192.168.1.102', 'time': '1 hora', 'status': 'Info'},
-                  {'type': 'Acceso Sospechoso', 'user': 'admin@zonix.com', 'ip': '45.67.89.123', 'time': '2 horas', 'status': 'Advertencia'},
-                  {'type': 'Backup Completado', 'user': 'Sistema', 'ip': 'Local', 'time': '3 horas', 'status': 'Exitoso'},
-                ];
-                
-                final event = events[index];
-                
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: _getEventColor(event['status']!),
-                    child: Icon(_getEventIcon(event['type']!), color: Colors.white, size: 16),
-                  ),
-                  title: Text('${event['type']} - ${event['user']}'),
-                  subtitle: Text('IP: ${event['ip']} • Hace ${event['time']}'),
-                  trailing: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: _getEventColor(event['status']!).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+            if (_securityEvents.isEmpty)
+              Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    Icon(Icons.security, size: 48, color: Colors.grey[400]),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No hay eventos de seguridad recientes',
+                      style: TextStyle(color: Colors.grey[600]),
                     ),
-                    child: Text(
-                      event['status']!,
-                      style: TextStyle(
-                        color: _getEventColor(event['status']!),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                  ],
+                ),
+              )
+            else
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: _securityEvents.length,
+                itemBuilder: (context, index) {
+                  final event = _securityEvents[index];
+                  final type = event['type']?.toString() ?? 'Evento';
+                  final user = event['user']?.toString() ?? 'Desconocido';
+                  final ip = event['ip']?.toString() ?? 'N/A';
+                  final time = event['time']?.toString() ?? 'N/A';
+                  final status = event['status']?.toString() ?? 'Info';
+
+                  return ListTile(
+                    leading: CircleAvatar(
+                      backgroundColor: _getEventColor(status),
+                      child: Icon(_getEventIcon(type), color: Colors.white, size: 16),
+                    ),
+                    title: Text('$type - $user'),
+                    subtitle: Text('IP: $ip • $time'),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: _getEventColor(status).withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        status,
+                        style: TextStyle(
+                          color: _getEventColor(status),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
-                  ),
-                  onTap: () {
-                    _showEventDetails(event);
-                  },
-                );
-              },
-            ),
+                    onTap: () {
+                      _showEventDetails(event);
+                    },
+                  );
+                },
+              ),
           ],
         ),
       ),
@@ -630,12 +737,17 @@ class _AdminSecurityPageState extends State<AdminSecurityPage> {
     );
   }
 
-  void _showEventDetails(Map<String, String> event) {
+  void _showEventDetails(Map<String, dynamic> event) {
+    final type = event['type']?.toString() ?? 'Evento';
+    final user = event['user']?.toString() ?? 'Desconocido';
+    final ip = event['ip']?.toString() ?? 'N/A';
+    final time = event['time']?.toString() ?? 'N/A';
+    final status = event['status']?.toString() ?? 'Info';
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Detalles del Evento: ${event['type']}'),
-        content: Text('Usuario: ${event['user']}\nIP: ${event['ip']}\nHora: ${event['time']}\nEstado: ${event['status']}'),
+        title: Text('Detalles del Evento: $type'),
+        content: Text('Usuario: $user\nIP: $ip\nHora: $time\nEstado: $status'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:zonix/features/services/commerce_data_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:flutter/services.dart'; // Added for FilteringTextInputFormatter
@@ -116,26 +117,43 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
 
   Future<void> _uploadLogo() async {
     try {
-      // TODO: Implementar selección de imagen
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (pickedFile == null || !mounted) return;
+
       setState(() {
         _loading = true;
         _error = null;
+        _success = null;
       });
 
-      // Simular subida de imagen
-      await Future.delayed(const Duration(seconds: 2));
-      final imageUrl = await CommerceDataService.uploadCommerceImage('');
-      
+      final imageUrl = await CommerceDataService.uploadCommerceImage(pickedFile.path);
+
+      if (!mounted) return;
       setState(() {
         _logoUrl = imageUrl;
         _loading = false;
         _success = 'Logo subido correctamente.';
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _loading = false;
-        _error = 'Error al subir logo: $e';
+        _error = null;
       });
+      final message = e is Exception ? e.toString().replaceFirst('Exception: ', '') : e.toString();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error al subir logo: $message'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 

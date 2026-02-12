@@ -12,100 +12,6 @@ class LocationService extends ChangeNotifier {
   static String get baseUrl => AppConfig.apiUrl;
   Timer? _locationTimer;
   StreamController<Map<String, dynamic>>? _locationController;
-  
-  // Mock data for development
-  static final Map<String, dynamic> _mockCurrentLocation = {
-    'latitude': -12.0464,
-    'longitude': -77.0428,
-    'accuracy': 10.0,
-    'altitude': 150.0,
-    'speed': 25.5,
-    'heading': 180.0,
-    'timestamp': DateTime.now().toIso8601String(),
-    'address': 'Lima, Perú',
-  };
-
-  static final List<Map<String, dynamic>> _mockNearbyPlaces = [
-    {
-      'id': 1,
-      'name': 'Restaurante El Buen Sabor',
-      'type': 'restaurant',
-      'latitude': -12.0465,
-      'longitude': -77.0429,
-      'distance': 0.1,
-      'rating': 4.5,
-      'address': 'Av. Arequipa 123, Lima',
-      'phone': '+51 123 456 789',
-      'is_open': true,
-    },
-    {
-      'id': 2,
-      'name': 'Pizzería La Italiana',
-      'type': 'restaurant',
-      'latitude': -12.0463,
-      'longitude': -77.0427,
-      'distance': 0.2,
-      'rating': 4.3,
-      'address': 'Jr. Tacna 456, Lima',
-      'phone': '+51 987 654 321',
-      'is_open': true,
-    },
-    {
-      'id': 3,
-      'name': 'Café Central',
-      'type': 'cafe',
-      'latitude': -12.0466,
-      'longitude': -77.0430,
-      'distance': 0.3,
-      'rating': 4.7,
-      'address': 'Plaza Mayor 789, Lima',
-      'phone': '+51 456 789 123',
-      'is_open': false,
-    },
-  ];
-
-  static final List<Map<String, dynamic>> _mockDeliveryRoutes = [
-    {
-      'id': 1,
-      'order_id': 123,
-      'start_location': {
-        'latitude': -12.0464,
-        'longitude': -77.0428,
-        'address': 'Restaurante El Buen Sabor',
-      },
-      'end_location': {
-        'latitude': -12.0470,
-        'longitude': -77.0435,
-        'address': 'Av. Arequipa 500, Lima',
-      },
-      'distance': 0.8,
-      'estimated_time': 15,
-      'waypoints': [
-        {'latitude': -12.0467, 'longitude': -77.0431},
-        {'latitude': -12.0469, 'longitude': -77.0433},
-      ],
-    },
-    {
-      'id': 2,
-      'order_id': 124,
-      'start_location': {
-        'latitude': -12.0464,
-        'longitude': -77.0428,
-        'address': 'Pizzería La Italiana',
-      },
-      'end_location': {
-        'latitude': -12.0450,
-        'longitude': -77.0410,
-        'address': 'Jr. Tacna 200, Lima',
-      },
-      'distance': 1.2,
-      'estimated_time': 20,
-      'waypoints': [
-        {'latitude': -12.0457, 'longitude': -77.0419},
-        {'latitude': -12.0453, 'longitude': -77.0415},
-      ],
-    },
-  ];
 
   // Get current location using geolocator
   Future<Map<String, dynamic>> getCurrentLocation() async {
@@ -151,9 +57,7 @@ class LocationService extends ChangeNotifier {
       };
     } catch (e) {
       debugPrint('Error getting current location: $e');
-      // Fallback a mock data si hay error
-      await Future.delayed(Duration(milliseconds: 500));
-      return _mockCurrentLocation;
+      rethrow;
     }
   }
 
@@ -169,7 +73,7 @@ class LocationService extends ChangeNotifier {
         // Update location on server
         await updateLocationOnServer(location);
       } catch (e) {
-        print('Error tracking location: $e');
+        debugPrint('Error tracking location: $e');
       }
     });
   }
@@ -271,9 +175,7 @@ class LocationService extends ChangeNotifier {
         throw Exception('Error al obtener delivery routes: ${response.statusCode}');
       }
     } catch (e) {
-      // Fallback to mock data on error
-      await Future.delayed(Duration(milliseconds: 600));
-      return _mockDeliveryRoutes;
+      rethrow;
     }
   }
 
@@ -384,18 +286,10 @@ class LocationService extends ChangeNotifier {
         }
       }
       
-      // Fallback: retornar coordenadas por defecto si no se encuentra
-      return {
-        'latitude': -12.0464,
-        'longitude': -77.0428,
-      };
+      throw Exception('No se encontraron coordenadas para la dirección: $address');
     } catch (e) {
       debugPrint('Error geocoding address: $e');
-      // Fallback: retornar coordenadas por defecto
-      return {
-        'latitude': -12.0464,
-        'longitude': -77.0428,
-      };
+      rethrow;
     }
   }
 

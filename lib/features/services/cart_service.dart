@@ -2,17 +2,12 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../helpers/auth_helper.dart';
 import '../../models/cart_item.dart';
 import '../../config/app_config.dart';
 
 class CartService extends ChangeNotifier {
   final List<CartItem> _cart = [];
-
-  final String _baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? (dotenv.env['API_URL_PROD'] ?? 'https://zonix.uniblockweb.com')
-      : (dotenv.env['API_URL_LOCAL'] ?? 'http://192.168.27.12:8000');
 
   UnmodifiableListView<CartItem> get items => UnmodifiableListView(_cart);
 
@@ -203,7 +198,7 @@ class CartService extends ChangeNotifier {
       await fetchRemoteCart();
     } catch (e) {
       // Si falla la sincronización, mantener el carrito local
-      print('Error sincronizando carrito: $e');
+      debugPrint('Error sincronizando carrito: $e');
     }
   }
 

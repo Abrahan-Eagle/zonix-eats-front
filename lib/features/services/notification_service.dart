@@ -8,63 +8,6 @@ import '../../helpers/auth_helper.dart';
 
 class NotificationService extends ChangeNotifier {
   static String get baseUrl => AppConfig.apiUrl;
-  
-  // Mock data for development
-  static final List<Map<String, dynamic>> _mockNotifications = [
-    {
-      'id': 1,
-      'title': 'Nueva Orden Recibida',
-      'message': 'Has recibido una nueva orden #ORD-123',
-      'type': 'order',
-      'priority': 'high',
-      'read': false,
-      'created_at': '2024-01-15T10:30:00',
-      'data': {
-        'order_id': 123,
-        'order_number': 'ORD-123',
-        'amount': 45.50,
-      },
-    },
-    {
-      'id': 2,
-      'title': 'Comisión Ganada',
-      'message': 'Has ganado \$12.50 en comisiones',
-      'type': 'commission',
-      'priority': 'medium',
-      'read': false,
-      'created_at': '2024-01-15T09:15:00',
-      'data': {
-        'commission_amount': 12.50,
-        'referral_id': 5,
-      },
-    },
-    {
-      'id': 3,
-      'title': 'Mantenimiento Programado',
-      'message': 'Tu vehículo necesita mantenimiento',
-      'type': 'maintenance',
-      'priority': 'medium',
-      'read': true,
-      'created_at': '2024-01-15T08:00:00',
-      'data': {
-        'vehicle_id': 2,
-        'maintenance_date': '2024-01-20',
-      },
-    },
-    {
-      'id': 4,
-      'title': 'Sistema Actualizado',
-      'message': 'Nuevas funciones disponibles',
-      'type': 'system',
-      'priority': 'low',
-      'read': true,
-      'created_at': '2024-01-14T16:00:00',
-      'data': {
-        'version': '1.2.0',
-        'features': ['Chat mejorado', 'Nuevos filtros'],
-      },
-    },
-  ];
 
   // Get all notifications
   Future<List<Map<String, dynamic>>> getNotifications({String? type, bool? read}) async {
@@ -134,23 +77,13 @@ class NotificationService extends ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
-        // Update local mock data as well
-        for (var notification in _mockNotifications) {
-          notification['read'] = true;
-        }
+        notifyListeners();
+        return;
       } else {
-        // Fallback to mock data
-        await Future.delayed(Duration(milliseconds: 500));
-        for (var notification in _mockNotifications) {
-          notification['read'] = true;
-        }
+        throw Exception('Error al marcar todas como leídas: ${response.statusCode}');
       }
     } catch (e) {
-      // Fallback to mock data on error
-      await Future.delayed(Duration(milliseconds: 500));
-      for (var notification in _mockNotifications) {
-        notification['read'] = true;
-      }
+      rethrow;
     }
   }
 
@@ -180,43 +113,20 @@ class NotificationService extends ChangeNotifier {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['data'] ?? {
-          'total': _mockNotifications.length,
-          'unread': _mockNotifications.where((n) => !n['read']).length,
-          'by_type': {
-            'order': _mockNotifications.where((n) => n['type'] == 'order').length,
-            'commission': _mockNotifications.where((n) => n['type'] == 'commission').length,
-            'maintenance': _mockNotifications.where((n) => n['type'] == 'maintenance').length,
-            'system': _mockNotifications.where((n) => n['type'] == 'system').length,
-          },
-        };
+        final countData = data['data'];
+        if (countData == null) {
+          return {
+            'total': 0,
+            'unread': 0,
+            'by_type': <String, int>{},
+          };
+        }
+        return Map<String, dynamic>.from(countData);
       } else {
-        // Fallback to mock data
-        await Future.delayed(Duration(milliseconds: 200));
-        return {
-          'total': _mockNotifications.length,
-          'unread': _mockNotifications.where((n) => !n['read']).length,
-          'by_type': {
-            'order': _mockNotifications.where((n) => n['type'] == 'order').length,
-            'commission': _mockNotifications.where((n) => n['type'] == 'commission').length,
-            'maintenance': _mockNotifications.where((n) => n['type'] == 'maintenance').length,
-            'system': _mockNotifications.where((n) => n['type'] == 'system').length,
-          },
-        };
+        throw Exception('Error al obtener conteo de notificaciones: ${response.statusCode}');
       }
     } catch (e) {
-      // Fallback to mock data on error
-      await Future.delayed(Duration(milliseconds: 200));
-      return {
-        'total': _mockNotifications.length,
-        'unread': _mockNotifications.where((n) => !n['read']).length,
-        'by_type': {
-          'order': _mockNotifications.where((n) => n['type'] == 'order').length,
-          'commission': _mockNotifications.where((n) => n['type'] == 'commission').length,
-          'maintenance': _mockNotifications.where((n) => n['type'] == 'maintenance').length,
-          'system': _mockNotifications.where((n) => n['type'] == 'system').length,
-        },
-      };
+      rethrow;
     }
   }
 
@@ -267,23 +177,7 @@ class NotificationService extends ChangeNotifier {
         throw Exception('Error al obtener configuración: ${response.statusCode}');
       }
     } catch (e) {
-      // Fallback to mock data on error
-      await Future.delayed(Duration(milliseconds: 300));
-      return {
-        'push_notifications': true,
-        'email_notifications': true,
-        'sms_notifications': false,
-        'order_notifications': true,
-        'commission_notifications': true,
-        'maintenance_notifications': true,
-        'system_notifications': true,
-        'chat_notifications': true,
-        'quiet_hours': {
-          'enabled': false,
-          'start': '22:00',
-          'end': '08:00',
-        },
-      };
+      rethrow;
     }
   }
 

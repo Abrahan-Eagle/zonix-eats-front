@@ -4,6 +4,29 @@
 
 Frontend de la aplicación Zonix Eats desarrollado en Flutter. Aplicación móvil multi-plataforma para sistema de delivery de comida con soporte para múltiples roles de usuario.
 
+## 📊 Estado del Proyecto (Actualizado: 12 Feb 2026)
+
+| Métrica | Valor |
+|---------|-------|
+| **Versión** | 1.0.0 |
+| **Flutter SDK** | >=3.5.0 <4.0.0 |
+| **Archivos Dart** | 173 |
+| **Pantallas** | 69 |
+| **Servicios** | 49 (2 legacy eliminados) |
+| **Tests** | 214 pasaron ✅, 0 fallaron |
+| **Roles** | 4 (users, commerce, delivery, admin) |
+
+### Cambios Recientes (Feb 2026)
+- ✅ Eliminada mock data de 11 servicios (~700 líneas) - errores de API ahora se muestran correctamente
+- ✅ Subida de imágenes para commerce implementada (ImagePicker + MultipartRequest)
+- ✅ Navegación admin dashboard corregida (4 botones funcionales)
+- ✅ Admin security page ahora consume API real
+- ✅ URL `localhost` → `AppConfig` en account_deletion_service
+- ✅ Profile ID hardcodeado `56` → parámetro dinámico en phone_service
+- ✅ URL duplicada eliminada de cart_service
+- ✅ Archivos legacy eliminados: `websocket_service.dart`, `order_ws_service.dart`
+- ✅ ~118 líneas de código comentado eliminadas de google_sign_in_service
+
 ## 🏗️ Arquitectura
 
 ```
@@ -25,7 +48,7 @@ lib/
 │   │   ├── cart_service.dart
 │   │   ├── order_service.dart
 │   │   ├── commerce_service.dart
-│   │   ├── (Pusher/FCM para tiempo real; websocket_service.dart es legacy/placeholder)
+│   │   ├── (Pusher/FCM para tiempo real)
 │   │   └── ...
 │   └── DomainProfiles/          # Módulos de perfiles
 │       ├── Profiles/

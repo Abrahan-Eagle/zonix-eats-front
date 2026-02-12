@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:zonix/features/screens/admin/admin_analytics_page.dart';
+import 'package:zonix/features/screens/admin/admin_security_page.dart';
+import 'package:zonix/features/screens/admin/admin_users_page.dart';
+import 'package:zonix/features/screens/settings/settings_page_2.dart';
 import 'package:zonix/features/services/admin_service.dart';
 
 class AdminDashboardPage extends StatefulWidget {
@@ -618,30 +622,30 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   void _navigateToUserManagement() {
-    // TODO: Navigate to user management page
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Navegando a Gestión de Usuarios')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AdminUsersPage()),
     );
   }
 
   void _navigateToSecurity() {
-    // TODO: Navigate to security page
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Navegando a Seguridad')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AdminSecurityPage()),
     );
   }
 
   void _navigateToAnalytics() {
-    // TODO: Navigate to analytics page
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Navegando a Analytics')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AdminAnalyticsPage()),
     );
   }
 
   void _navigateToSettings() {
-    // TODO: Navigate to settings page
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Navegando a Configuración')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const SettingsPage2()),
     );
   }
 } 

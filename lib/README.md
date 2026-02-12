@@ -131,7 +131,7 @@ lib/features/
 │   ├── auth_service.dart
 │   ├── product_service.dart
 │   ├── order_service.dart
-│   ├── websocket_service.dart
+│   ├── pusher_service.dart
 │   └── notification_service.dart
 └── utils/              # Utilidades
     ├── image_utils.dart

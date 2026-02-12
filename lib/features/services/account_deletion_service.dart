@@ -1,9 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../helpers/auth_helper.dart';
+import '../../config/app_config.dart';
 
 class AccountDeletionService {
-  static const String baseUrl = 'http://localhost:8000/api';
+  static String get baseUrl => '${AppConfig.apiUrl}/api';
 
   // Solicitar eliminación de cuenta
   static Future<Map<String, dynamic>> requestAccountDeletion({

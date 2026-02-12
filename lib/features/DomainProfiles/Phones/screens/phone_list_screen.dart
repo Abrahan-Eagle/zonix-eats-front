@@ -89,7 +89,7 @@ class PhoneScreenState extends State<PhoneScreen> {
         }
       });
 
-      await _phoneService.updatePrimaryStatus(phone.id, isPrimary);
+      await _phoneService.updatePrimaryStatus(phone.id, isPrimary, widget.userId);
       _showSuccessSnackBar('Estado actualizado exitosamente');
     } catch (e) {
       // Revertir cambios si hay error
@@ -106,7 +106,7 @@ class PhoneScreenState extends State<PhoneScreen> {
         }).toList();
       });
 
-      await _phoneService.updateActiveStatus(phone.id, status);
+      await _phoneService.updateActiveStatus(phone.id, status, widget.userId);
       _showSuccessSnackBar('Estado actualizado exitosamente');
     } catch (e) {
       _loadPhones();

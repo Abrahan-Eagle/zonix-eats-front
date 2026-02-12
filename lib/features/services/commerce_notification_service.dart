@@ -59,45 +59,12 @@ class CommerceNotificationService {
         }
         return [];
       } else {
-        // Si el endpoint no existe, retornar datos mock
-        _logger.w('Endpoint de notificaciones no disponible (${response.statusCode}), usando datos mock');
-        return _getMockNotifications();
+        throw Exception('Error al obtener notificaciones: ${response.statusCode}');
       }
     } catch (e) {
       _logger.e('Error en getNotifications: $e');
-      // En caso de error, retornar datos mock
-      return _getMockNotifications();
+      rethrow;
     }
-  }
-
-  // Datos mock para notificaciones
-  List<Map<String, dynamic>> _getMockNotifications() {
-    return [
-      {
-        'id': 1,
-        'type': 'order',
-        'title': 'Nuevo pedido recibido',
-        'message': 'Pedido #ORD-001 recibido por \$25.00',
-        'read_at': null,
-        'created_at': DateTime.now().subtract(Duration(minutes: 5)).toIso8601String(),
-      },
-      {
-        'id': 2,
-        'type': 'payment',
-        'title': 'Pago confirmado',
-        'message': 'Pago confirmado para pedido #ORD-002',
-        'read_at': DateTime.now().subtract(Duration(minutes: 2)).toIso8601String(),
-        'created_at': DateTime.now().subtract(Duration(minutes: 10)).toIso8601String(),
-      },
-      {
-        'id': 3,
-        'type': 'delivery',
-        'title': 'Pedido en camino',
-        'message': 'Pedido #ORD-003 está siendo entregado',
-        'read_at': null,
-        'created_at': DateTime.now().subtract(Duration(minutes: 15)).toIso8601String(),
-      },
-    ];
   }
 
   // Obtener una notificación específica
@@ -205,27 +172,12 @@ class CommerceNotificationService {
         final data = jsonDecode(response.body);
         return data['data'] ?? {};
       } else {
-        // Si el endpoint no existe, retornar datos mock
-        _logger.w('Endpoint de estadísticas no disponible (${response.statusCode}), usando datos mock');
-        return _getMockNotificationStats();
+        throw Exception('Error al obtener estadísticas de notificaciones: ${response.statusCode}');
       }
     } catch (e) {
       _logger.e('Error en getNotificationStats: $e');
-      // En caso de error, retornar datos mock
-      return _getMockNotificationStats();
+      rethrow;
     }
-  }
-
-  // Datos mock para estadísticas de notificaciones
-  Map<String, dynamic> _getMockNotificationStats() {
-    return {
-      'total': 15,
-      'unread': 3,
-      'read': 12,
-      'today': 5,
-      'this_week': 12,
-      'this_month': 45,
-    };
   }
 
   // Conectar Pusher para notificaciones en tiempo casi real (reemplaza WebSocket)
@@ -406,7 +358,7 @@ class CommerceNotificationService {
       return unreadNotifications.length;
     } catch (e) {
       _logger.e('Error obteniendo conteo de no leídas: $e');
-      return 0;
+      rethrow;
     }
   }
 

@@ -160,11 +160,11 @@ class PhoneService {
   }
 
   // Método específico para actualizar solo el estado principal
-  Future<void> updatePrimaryStatus(int id, bool isPrimary) async {
+  Future<void> updatePrimaryStatus(int id, bool isPrimary, int userId) async {
     // Si se está marcando como principal, primero desmarcar todos los demás
     if (isPrimary) {
       try {
-        final phones = await fetchPhones(56); // Obtener todos los teléfonos del usuario
+        final phones = await fetchPhones(userId);
         for (final phone in phones) {
           if (phone.id != id && phone.isPrimary) {
             await updatePhone(phone.id, {
@@ -180,7 +180,7 @@ class PhoneService {
     
     // Actualizar el teléfono actual
     try {
-      final phones = await fetchPhones(56);
+      final phones = await fetchPhones(userId);
       final currentPhone = phones.firstWhere((phone) => phone.id == id);
       
       await updatePhone(id, {
@@ -197,10 +197,10 @@ class PhoneService {
   }
 
   // Método específico para actualizar solo el estado activo/inactivo
-  Future<void> updateActiveStatus(int id, bool status) async {
+  Future<void> updateActiveStatus(int id, bool status, int userId) async {
     // Primero obtener el teléfono actual para mantener el estado is_primary
     try {
-      final phones = await fetchPhones(56); // Obtener todos los teléfonos del usuario
+      final phones = await fetchPhones(userId);
       final currentPhone = phones.firstWhere((phone) => phone.id == id);
       
       await updatePhone(id, {
