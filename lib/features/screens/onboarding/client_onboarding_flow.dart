@@ -192,6 +192,20 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     super.dispose();
   }
 
+  void _prefillStep4FromUserAddress() {
+    if (_step4PrefilledFromUser) return;
+    final provider = context.read<OnboardingProvider>();
+    if (provider.street == null && provider.houseNumber == null && provider.postalCode == null) return;
+    setState(() {
+      if (provider.street != null) _streetController.text = provider.street!;
+      if (provider.houseNumber != null) _houseNumberController.text = provider.houseNumber!;
+      if (provider.postalCode != null) _postalCodeController.text = provider.postalCode!;
+      if (provider.latitude != null) _latitude = provider.latitude;
+      if (provider.longitude != null) _longitude = provider.longitude;
+      _step4PrefilledFromUser = true;
+    });
+  }
+
   void _prefillFromProvider() {
     final provider = context.read<OnboardingProvider>();
     if (provider.firstName != null) {
@@ -342,9 +356,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
   /// Geocodificación directa: mueve el mapa a la ubicación indicada por los selects/inputs.
   Future<void> _moveMapToAddress() async {
     final parts = <String>[];
-    final street = (widget.isCommerce && _currentStep == 3)
-        ? _streetCommerceController.text.trim()
-        : _streetController.text.trim();
+    final street = _streetController.text.trim();
     if (street.isNotEmpty) parts.add(street);
     if (_selectedCity != null) parts.add(_selectedCity!.name);
     if (_selectedState != null) parts.add(_selectedState!.name);
@@ -773,8 +785,17 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         .trim();
   }
 
+  bool _step4PrefilledFromUser = false;
+
   void _goToStep(int step) {
     setState(() => _currentStep = step);
+    // Pre-llenar Step 4 (dirección establecimiento) con la dirección del usuario
+    if (widget.isCommerce && step == 3 && !_step4PrefilledFromUser) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _prefillStep4FromUserAddress();
+      });
+    }
     _pageController.animateToPage(
       step,
       duration: const Duration(milliseconds: 300),
@@ -2293,175 +2314,121 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     );
   }
 
+  /// Input estilo Stitch 8: icono a la izquierda, fondo oscuro, rounded-2xl
+  Widget _buildCommerceInput({
+    required IconData icon,
+    required TextEditingController controller,
+    required String hint,
+    String? Function(String?)? validator,
+    List<TextInputFormatter>? inputFormatters,
+    TextInputType? keyboardType,
+    void Function(String)? onChanged,
+  }) {
+    return TextFormField(
+      controller: controller,
+      onChanged: onChanged,
+      style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: GoogleFonts.plusJakartaSans(
+          color: Colors.white.withOpacity(0.5),
+          fontSize: 14,
+        ),
+        prefixIcon: Padding(
+          padding: const EdgeInsets.only(left: 16, right: 12),
+          child: Icon(
+            icon,
+            size: 22,
+            color: Colors.white.withOpacity(0.5),
+          ),
+        ),
+        prefixIconConstraints: const BoxConstraints(minWidth: 48),
+        filled: true,
+        fillColor: _kSurfaceDark,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: _kPrimary, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.red.shade400, width: 1),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      ),
+      validator: validator,
+      inputFormatters: inputFormatters,
+      keyboardType: keyboardType,
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+    );
+  }
+
   Widget _buildStep3Commerce(Size size) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    const primaryColor = Color(0xFFF18805);
     final isTablet = size.width > 600;
+    final isSmall = size.width < 360;
 
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(
-        horizontal: isTablet ? 32 : 16,
-        vertical: 16,
+        horizontal: isTablet ? 32 : (isSmall ? 16 : 24),
+        vertical: isSmall ? 12 : 16,
       ),
       child: Form(
         key: _step3FormKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: colorScheme.primary.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: primaryColor,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.store_outlined,
-                      color: colorScheme.onPrimary,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Datos del comercio',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onBackground,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Nombre del local, RIF/CI y teléfono del establecimiento.',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onBackground.withOpacity(0.7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            // Nombre del local / Razón social (inspirado en CorralX)
-            TextFormField(
+            SizedBox(height: isSmall ? 4 : 8),
+            // Sección: Basic Info (estilo Stitch 8)
+            // Nombre del local
+            _buildCommerceInput(
+              icon: Icons.storefront_outlined,
               controller: _commerceNameController,
-              decoration: InputDecoration(
-                labelText: 'Nombre del local *',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: primaryColor, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.error, width: 2),
-                ),
-                filled: true,
-                fillColor: colorScheme.surface,
-                helperText: 'Ej: Hacienda La Esperanza C.A.',
-              ),
+              hint: 'Nombre del local',
               validator: (value) {
                 final text = value?.trim() ?? '';
-                if (text.isEmpty) {
-                  return 'El nombre del local es obligatorio';
-                }
-                if (text.length < 3) {
-                  return 'Mínimo 3 caracteres';
-                }
-                if (text.length > 150) {
-                  return 'Máximo 150 caracteres';
-                }
-                // Mismo patrón que CorralX pero adaptado (letras, números, espacios, guiones y puntos)
+                if (text.isEmpty) return 'El nombre del local es obligatorio';
+                if (text.length < 3) return 'Mínimo 3 caracteres';
+                if (text.length > 150) return 'Máximo 150 caracteres';
                 if (!RegExp(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s\-.]+$').hasMatch(text)) {
                   return 'Caracteres no válidos';
                 }
                 return null;
               },
-              autovalidateMode: AutovalidateMode.onUserInteraction,
             ),
-            const SizedBox(height: 16),
-            // RIF (mismo comportamiento que en CorralX: opcional + formatter dedicado)
-            TextFormField(
+            SizedBox(height: isSmall ? 12 : 16),
+            // RIF (Opcional)
+            _buildCommerceInput(
+              icon: Icons.badge_outlined,
               controller: _commerceTaxIdController,
-              keyboardType: TextInputType.text,
-              inputFormatters: [
-                _RIFVenezuelaInputFormatter(),
-              ],
-              decoration: InputDecoration(
-                labelText: 'RIF (Opcional)',
-                hintText: 'Ej: J-12345678-9',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: primaryColor, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.error, width: 2),
-                ),
-                filled: true,
-                fillColor: colorScheme.surface,
-                helperText: 'Formato: V-12345678-9 o J-12345678-9',
-              ),
+              hint: 'RIF / NIT (Opcional) - Ej: J-12345678-9',
+              inputFormatters: [_RIFVenezuelaInputFormatter()],
               validator: (value) {
                 if (value != null && value.trim().isNotEmpty) {
                   final rif = value.trim().toUpperCase();
                   final rifRegex = RegExp(r'^(V|J)-\d{8}-\d$');
-                  if (!rifRegex.hasMatch(rif)) {
-                    return 'Formato: V-12345678-9 o J-12345678-9';
-                  }
+                  if (!rifRegex.hasMatch(rif)) return 'Formato: V-12345678-9 o J-12345678-9';
                   final digits = rif.replaceAll(RegExp(r'[^0-9]'), '');
-                  if (digits.length != 9) {
-                    return 'Debe tener 9 dígitos';
-                  }
+                  if (digits.length != 9) return 'Debe tener 9 dígitos';
                 }
                 return null;
               },
-              autovalidateMode: AutovalidateMode.onUserInteraction,
             ),
-            const SizedBox(height: 16),
-            // CI del dueño del comercio
-            TextFormField(
+            SizedBox(height: isSmall ? 12 : 16),
+            // CI *
+            _buildCommerceInput(
+              icon: Icons.person_outline,
               controller: _commerceOwnerCiController,
-              decoration: InputDecoration(
-                labelText: 'CI *',
-                hintText: 'V-12345678',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: primaryColor, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.error, width: 2),
-                ),
-                filled: true,
-                fillColor: colorScheme.surface,
-              ),
+              hint: 'CI del titular - V-12345678',
               keyboardType: TextInputType.number,
-              inputFormatters: [
-                _CIVenezuelaInputFormatter(),
-              ],
+              inputFormatters: [_CIVenezuelaInputFormatter()],
               onChanged: (value) {
-                // Asegurar prefijo V- como en CorralX
                 if (!value.startsWith('V-')) {
                   _commerceOwnerCiController.value = TextEditingValue(
                     text: 'V-',
@@ -2471,21 +2438,22 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
               },
               validator: (value) {
                 final ci = (value ?? '').trim().toUpperCase();
-                if (ci.isEmpty || ci == 'V-') {
-                  return 'La CI es obligatoria';
-                }
-                final regex = RegExp(r'^[VE]-\d{7,8}$');
-                if (!regex.hasMatch(ci)) {
+                if (ci.isEmpty || ci == 'V-') return 'La CI es obligatoria';
+                if (!RegExp(r'^[VE]-\d{7,8}$').hasMatch(ci)) {
                   return 'Formato: V-12345678 o E-12345678';
                 }
                 return null;
               },
-              autovalidateMode: AutovalidateMode.onUserInteraction,
             ),
-            const SizedBox(height: 16),
-            // Teléfono del local con mismo patrón que el teléfono del usuario
+            SizedBox(height: isSmall ? 12 : 16),
+            // Teléfono del local (Código + Número)
             if (_isLoadingOperators)
-              const Center(child: CircularProgressIndicator())
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: CircularProgressIndicator(color: _kPrimary.withOpacity(0.8)),
+                ),
+              )
             else if (_operatorCodes.isNotEmpty)
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -2495,102 +2463,242 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                     child: DropdownButtonFormField<Map<String, dynamic>>(
                       value: _selectedOperator,
                       isExpanded: true,
+                      dropdownColor: _kSurfaceDark,
+                      icon: Icon(Icons.arrow_drop_down, color: Colors.white.withOpacity(0.6)),
                       decoration: InputDecoration(
-                        labelText: 'Código operadora',
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.only(left: 16, right: 8),
+                          child: Icon(
+                            Icons.phone_outlined,
+                            size: 22,
+                            color: Colors.white.withOpacity(0.5),
+                          ),
+                        ),
+                        prefixIconConstraints: const BoxConstraints(minWidth: 44),
+                        filled: true,
+                        fillColor: _kSurfaceDark,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: primaryColor, width: 2),
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: const BorderSide(color: _kPrimary, width: 2),
                         ),
-                        filled: true,
-                        fillColor: colorScheme.surface,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                      ),
+                      hint: Text(
+                        'Código',
+                        style: GoogleFonts.plusJakartaSans(color: Colors.white.withOpacity(0.5)),
                       ),
                       items: _operatorCodes
                           .map(
                             (code) => DropdownMenuItem<Map<String, dynamic>>(
                               value: code,
-                              child: Text('0${code['code'] ?? ''}'),
+                              child: Text(
+                                '0${code['code'] ?? ''}',
+                                style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                              ),
                             ),
                           )
                           .toList(),
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Selecciona un código';
-                        }
-                        return null;
-                      },
+                      validator: (v) => v == null ? 'Código' : null,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
-                      onChanged: (value) {
-                        setState(() => _selectedOperator = value);
-                      },
+                      onChanged: (v) => setState(() => _selectedOperator = v),
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: isSmall ? 12 : 16),
                   Expanded(
                     flex: 2,
-                    child: TextFormField(
+                    child: _buildCommerceInput(
+                      icon: Icons.smartphone_outlined,
                       controller: _commercePhoneController,
+                      hint: 'Teléfono del local',
+                      keyboardType: TextInputType.phone,
                       inputFormatters: [
                         FilteringTextInputFormatter.digitsOnly,
                         LengthLimitingTextInputFormatter(7),
                       ],
-                      decoration: InputDecoration(
-                        labelText: 'Teléfono del local *',
-                        hintText: 'Ej: 4149055',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: primaryColor, width: 2),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: colorScheme.error, width: 2),
-                        ),
-                        filled: true,
-                        fillColor: colorScheme.surface,
-                      ),
-                      keyboardType: TextInputType.phone,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Ingresa un número de teléfono';
+                          return 'Ingresa el teléfono';
                         }
-                        final clean = value.trim();
-                        if (clean.length != 7) {
-                          return 'Debe tener exactamente 7 dígitos';
-                        }
+                        if (value.trim().length != 7) return '7 dígitos';
                         return null;
                       },
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
                   ),
                 ],
               )
             else
               const SizedBox.shrink(),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Icon(
-                  _commerceOpen ? Icons.check_circle : Icons.cancel,
-                  color: _commerceOpen ? Colors.green : Colors.red,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Local ${_commerceOpen ? 'abierto' : 'cerrado'}',
-                  style: theme.textTheme.titleMedium,
-                ),
-                const Spacer(),
-                Switch(
-                  value: _commerceOpen,
-                  onChanged: (v) => setState(() => _commerceOpen = v),
-                ),
-              ],
+            SizedBox(height: isSmall ? 20 : 24),
+            // Sección: Estado de la tienda (card estilo Stitch 8)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              decoration: BoxDecoration(
+                color: _kSurfaceDark,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: _kPrimary.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Icon(Icons.door_front_door_outlined, color: _kPrimary, size: 22),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Estado de la tienda',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Abierto para recibir pedidos',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            color: Colors.white.withOpacity(0.6),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Switch(
+                    value: _commerceOpen,
+                    onChanged: (v) => setState(() => _commerceOpen = v),
+                    activeColor: _kPrimary,
+                    activeTrackColor: _kPrimary.withOpacity(0.5),
+                  ),
+                ],
+              ),
             ),
+            SizedBox(height: isSmall ? 12 : 16),
+            // Sección: Horarios de atención (expandable estilo Stitch 8)
+            Theme(
+              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              child: ExpansionTile(
+                tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                backgroundColor: _kSurfaceDark,
+                collapsedBackgroundColor: _kSurfaceDark,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                leading: Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(Icons.schedule, color: Colors.white.withOpacity(0.7), size: 22),
+                ),
+                title: Text(
+                  'Horarios de atención',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+                trailing: Icon(
+                  Icons.expand_more,
+                  color: Colors.white.withOpacity(0.6),
+                ),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Edita el horario en el siguiente paso o desde tu panel de comercio.',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            color: Colors.white.withOpacity(0.6),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: TextButton(
+                            onPressed: () {},
+                            style: TextButton.styleFrom(
+                              backgroundColor: _kPrimary.withOpacity(0.15),
+                              foregroundColor: _kPrimary,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Text(
+                              'Editar Horario Semanal',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: isSmall ? 20 : 24),
+            // Sección: Información de Pago (estilo Stitch 8)
+            Text(
+              'Información de Pago',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withOpacity(0.8),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: _kPrimary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: _kPrimary.withOpacity(0.2)),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.verified_user_outlined, color: _kPrimary, size: 24),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Tus datos bancarios están protegidos. Usamos encriptación de grado bancario para todas las transacciones.',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        color: Colors.white.withOpacity(0.7),
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 80),
           ],
         ),
       ),
@@ -2598,10 +2706,9 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
   }
 
   Widget _buildStep4Address(Size size) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    const primaryColor = Color(0xFFF18805);
     final isTablet = size.width > 600;
+    final isSmall = size.width < 360;
+    final mapHeight = isSmall ? 180.0 : 220.0;
 
     if (_countries.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -2615,83 +2722,34 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
 
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(
-        horizontal: isTablet ? 32 : 16,
-        vertical: 16,
+        horizontal: isTablet ? 32 : (isSmall ? 16 : 24),
+        vertical: isSmall ? 12 : 16,
       ),
       child: Form(
         key: _step4FormKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: colorScheme.primary.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: primaryColor,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.store_mall_directory_outlined,
-                      color: colorScheme.onPrimary,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Dirección del establecimiento',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onBackground,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Misma vista que tu dirección; identificada como comercio.',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onBackground.withOpacity(0.7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            _buildMapCard(context),
+            SizedBox(height: isSmall ? 4 : 8),
+            _buildMapCard(context, mapHeight),
             const SizedBox(height: 24),
             _buildSectionHeader(
               icon: Icons.public,
               label: 'UBICACIÓN REGIONAL',
-              color: primaryColor,
+              color: _kPrimary,
+              darkStyle: true,
             ),
             const SizedBox(height: 12),
             _buildTwoColumnRow(
-              _buildCountryDropdown(colorScheme),
+              _buildCountryDropdownDark(),
               _selectedCountry != null
-                  ? _buildStateDropdown(colorScheme)
+                  ? _buildStateDropdownDark()
                   : const SizedBox.shrink(),
             ),
             const SizedBox(height: 12),
             _buildTwoColumnRow(
               _selectedState != null
-                  ? _buildCityDropdown(colorScheme)
+                  ? _buildCityDropdownDark()
                   : const SizedBox.shrink(),
               const SizedBox.shrink(),
             ),
@@ -2699,48 +2757,31 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             _buildSectionHeader(
               icon: Icons.location_on_outlined,
               label: 'DETALLES DE LA DIRECCIÓN',
-              color: primaryColor,
+              color: _kPrimary,
+              darkStyle: true,
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            _buildCommerceInput(
+              icon: Icons.signpost_outlined,
               controller: _streetController,
-              decoration: InputDecoration(
-                labelText: 'Dirección *',
-                hintText: 'Ej: Av. Principal, Local 1',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: primaryColor, width: 2),
-                ),
-                filled: true,
-                fillColor: colorScheme.surface,
-              ),
+              hint: 'Ej: Av. Principal, Local 1',
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Ingresa una dirección';
                 if (v.trim().length < 5) return 'La dirección parece muy corta';
                 return null;
               },
-              autovalidateMode: AutovalidateMode.onUserInteraction,
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            _buildCommerceInput(
+              icon: Icons.tag_outlined,
               controller: _houseNumberController,
-              decoration: InputDecoration(
-                labelText: 'Número / Local',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                filled: true,
-                fillColor: colorScheme.surface,
-              ),
+              hint: 'Número / Local',
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            _buildCommerceInput(
+              icon: Icons.markunread_mailbox_outlined,
               controller: _postalCodeController,
-              decoration: InputDecoration(
-                labelText: 'Código postal',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                filled: true,
-                fillColor: colorScheme.surface,
-              ),
+              hint: 'Código postal',
               keyboardType: TextInputType.number,
             ),
           ],
@@ -2759,7 +2800,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         .join(' ');
   }
 
-  Widget _buildMapCard(BuildContext context) {
+  Widget _buildMapCard(BuildContext context, [double mapHeight = 220]) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final borderRadius = BorderRadius.circular(20);
@@ -2771,7 +2812,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     );
 
     return Container(
-      height: 220,
+      height: mapHeight,
       decoration: BoxDecoration(
         borderRadius: borderRadius,
         border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
@@ -2923,6 +2964,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     required IconData icon,
     required String label,
     required Color color,
+    bool darkStyle = false,
   }) {
     return Row(
       children: [
@@ -2930,14 +2972,101 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         const SizedBox(width: 8),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.8,
-            color: Color(0xFF1B1B1F),
+            color: darkStyle ? Colors.white.withOpacity(0.85) : const Color(0xFF1B1B1F),
           ),
         ),
       ],
+    );
+  }
+
+  InputDecoration _commerceDropdownDecoration(String label) {
+    return InputDecoration(
+      labelText: label,
+      labelStyle: GoogleFonts.plusJakartaSans(color: Colors.white.withOpacity(0.6)),
+      filled: true,
+      fillColor: _kSurfaceDark,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: _kPrimary, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
+
+  Widget _buildCountryDropdownDark() {
+    return DropdownButtonFormField<Country>(
+      value: _selectedCountry,
+      isExpanded: true,
+      dropdownColor: _kSurfaceDark,
+      decoration: _commerceDropdownDecoration('País'),
+      icon: Icon(Icons.arrow_drop_down, color: Colors.white.withOpacity(0.6)),
+      items: _countries
+          .map(
+            (c) => DropdownMenuItem<Country>(
+              value: c,
+              child: Text(
+                c.name,
+                style: GoogleFonts.plusJakartaSans(color: Colors.white),
+              ),
+            ),
+          )
+          .toList(),
+      onChanged: (value) => _onCountryChanged(value),
+      validator: (value) => value == null ? 'Selecciona un país' : null,
+    );
+  }
+
+  Widget _buildStateDropdownDark() {
+    return DropdownButtonFormField<StateModel>(
+      value: _selectedState,
+      isExpanded: true,
+      dropdownColor: _kSurfaceDark,
+      decoration: _commerceDropdownDecoration('Estado'),
+      icon: Icon(Icons.arrow_drop_down, color: Colors.white.withOpacity(0.6)),
+      items: _states
+          .map(
+            (s) => DropdownMenuItem<StateModel>(
+              value: s,
+              child: Text(
+                s.name,
+                style: GoogleFonts.plusJakartaSans(color: Colors.white),
+              ),
+            ),
+          )
+          .toList(),
+      onChanged: (value) => _onStateChanged(value),
+      validator: (value) => value == null ? 'Selecciona un estado' : null,
+    );
+  }
+
+  Widget _buildCityDropdownDark() {
+    return DropdownButtonFormField<City>(
+      value: _selectedCity,
+      isExpanded: true,
+      dropdownColor: _kSurfaceDark,
+      decoration: _commerceDropdownDecoration('Ciudad'),
+      icon: Icon(Icons.arrow_drop_down, color: Colors.white.withOpacity(0.6)),
+      items: _cities
+          .map(
+            (c) => DropdownMenuItem<City>(
+              value: c,
+              child: Text(
+                c.name,
+                style: GoogleFonts.plusJakartaSans(color: Colors.white),
+              ),
+            ),
+          )
+          .toList(),
+      onChanged: (value) => _onCityChanged(value),
+      validator: (value) => value == null ? 'Selecciona una ciudad' : null,
     );
   }
 
@@ -2964,80 +3093,6 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     );
   }
 
-  Widget _buildCountryDropdown(ColorScheme colorScheme) {
-    return DropdownButtonFormField<Country>(
-      value: _selectedCountry,
-      isExpanded: true,
-      decoration: const InputDecoration(
-        labelText: 'País',
-      ),
-      items: _countries
-          .map(
-            (c) => DropdownMenuItem<Country>(
-              value: c,
-              child: Text(c.name),
-            ),
-          )
-          .toList(),
-      onChanged: (value) => _onCountryChanged(value),
-      validator: (value) {
-        if (value == null) {
-          return 'Selecciona un país';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildStateDropdown(ColorScheme colorScheme) {
-    return DropdownButtonFormField<StateModel>(
-      value: _selectedState,
-      isExpanded: true,
-      decoration: const InputDecoration(
-        labelText: 'Estado',
-      ),
-      items: _states
-          .map(
-            (s) => DropdownMenuItem<StateModel>(
-              value: s,
-              child: Text(s.name),
-            ),
-          )
-          .toList(),
-      onChanged: (value) => _onStateChanged(value),
-      validator: (value) {
-        if (value == null) {
-          return 'Selecciona un estado';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildCityDropdown(ColorScheme colorScheme) {
-    return DropdownButtonFormField<City>(
-      value: _selectedCity,
-      isExpanded: true,
-      decoration: const InputDecoration(
-        labelText: 'Ciudad',
-      ),
-      items: _cities
-          .map(
-            (c) => DropdownMenuItem<City>(
-              value: c,
-              child: Text(c.name),
-            ),
-          )
-          .toList(),
-      onChanged: (value) => _onCityChanged(value),
-      validator: (value) {
-        if (value == null) {
-          return 'Selecciona una ciudad';
-        }
-        return null;
-      },
-    );
-  }
 }
 
 /// Formatter para CI venezolana (V-12345678) inspirado en CorralX.
