@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:zonix/features/services/commerce_list_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/models/my_commerce.dart';
 import 'package:zonix/features/screens/settings/commerce_data_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_add_restaurant_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_detail_page.dart';
 
-/// Pantalla "Mis Restaurantes" - lista de comercios del usuario (multi-restaurante).
-/// Diseño estilo CorralX: cards con icono, stats, badge Principal, acciones Ver|Editar|Eliminar.
+/// Pantalla "Mis Comercios" - lista de comercios del usuario (multi-restaurante).
+/// Diseño Stitch: cards con icono, badge Principal, stats en pills, botones Ver|Editar|Eliminar.
 /// Si [embedded] es true, solo muestra el contenido sin Scaffold/AppBar (para Mi Perfil).
+
+// Colores del template Stitch (code.html)
+const Color _stitchPrimary = Color(0xFF3399FF);
+const Color _stitchSurfaceDark = Color(0xFF182430);
+const Color _stitchSurfaceLighter = Color(0xFF21303E);
+const Color _stitchYellow400 = Color(0xFFFACC15);   // star
+const Color _stitchGreen400 = Color(0xFF4ADE80);   // shopping_bag
+const Color _stitchPurple400 = Color(0xFFA78BFA);  // inventory_2
 class CommerceListPage extends StatefulWidget {
   const CommerceListPage({super.key, this.embedded = false});
 
@@ -124,9 +132,10 @@ class _CommerceListPageState extends State<CommerceListPage> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mis Restaurantes'),
-        backgroundColor: AppColors.purple,
-        foregroundColor: Colors.white,
+        title: Text('Mis Comercios', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 18)),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        foregroundColor: Theme.of(context).colorScheme.onSurface,
+        elevation: 0,
       ),
       body: _buildBody(),
     );
@@ -157,26 +166,35 @@ class _CommerceListPageState extends State<CommerceListPage> {
       );
     }
     if (_commerces.isEmpty) {
+      final theme = Theme.of(context);
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.store_outlined, size: 80, color: AppColors.green.withValues(alpha: 0.5)),
+              Icon(Icons.store_outlined, size: 80, color: _stitchPrimary.withValues(alpha: 0.4)),
               const SizedBox(height: 24),
-              const Text(
+              Text(
                 'No tienes restaurantes registrados',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: theme.colorScheme.onSurface,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
-              const Text(
+              Text(
                 'Agrega tu primer restaurante con el botón de abajo',
+                style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
-              _buildAddButton(),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: _buildAddButton(),
+              ),
             ],
           ),
         ),
@@ -189,7 +207,7 @@ class _CommerceListPageState extends State<CommerceListPage> {
         slivers: [
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
               child: _buildAddButton(),
             ),
           ),
@@ -198,9 +216,10 @@ class _CommerceListPageState extends State<CommerceListPage> {
               (context, index) {
                 final c = _commerces[index];
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 16), // gap-4 template
                   child: _CommerceCard(
                     commerce: c,
+                    index: index,
                     onVer: () => _onVer(c),
                     onEditar: () => _onEditar(c),
                     onEliminar: () => _onEliminar(c),
@@ -217,45 +236,108 @@ class _CommerceListPageState extends State<CommerceListPage> {
   }
 
   Widget _buildAddButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: FilledButton.icon(
-        onPressed: _addRestaurant,
-        icon: const Icon(Icons.add),
-        label: const Text('Agregar Restaurante'),
-        style: FilledButton.styleFrom(
-          backgroundColor: AppColors.green,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24), // mb-6: misma separación con las cards
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: _addRestaurant,
+          borderRadius: BorderRadius.circular(24),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            decoration: BoxDecoration(
+              color: _stitchPrimary,
+              borderRadius: BorderRadius.circular(24), // puntas bien redondeadas
+              boxShadow: [
+                BoxShadow(
+                  color: _stitchPrimary.withValues(alpha: 0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.add_circle, size: 20, color: Colors.white),
+                const SizedBox(width: 8),
+                Text(
+                  'Agregar Restaurante',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 }
 
-/// Card de restaurante estilo CorralX: icono, nombre, RIF, descripción, badge Principal, stats, acciones.
+/// Card de comercio estilo Stitch: icono 64x64, nombre, badge Principal, RIF, dirección, stats en pills, botones Ver|Editar|Eliminar.
 class _CommerceCard extends StatelessWidget {
   final MyCommerce commerce;
   final VoidCallback onVer;
   final VoidCallback onEditar;
   final VoidCallback onEliminar;
+  final int index;
 
   const _CommerceCard({
     required this.commerce,
     required this.onVer,
     required this.onEditar,
     required this.onEliminar,
+    this.index = 0,
   });
+
+  // Colores iconos template: blue-400, orange-400, pink-400
+  Color _iconColorForIndex(int i) {
+    switch (i % 3) {
+      case 0:
+        return const Color(0xFF60A5FA); // blue-400
+      case 1:
+        return const Color(0xFFFB923C); // orange-400
+      default:
+        return const Color(0xFFF472B6); // pink-400
+    }
+  }
+
+  IconData _iconForCommerce(MyCommerce c) {
+    final name = (c.businessName.toLowerCase());
+    if (name.contains('pizza')) return Icons.local_pizza;
+    if (name.contains('shake') || name.contains('helado') || name.contains('ice')) return Icons.icecream;
+    return Icons.store;
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = commerce;
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final surfaceColor = isDark ? _stitchSurfaceDark : theme.colorScheme.surface;
+    final surfaceLighter = isDark ? _stitchSurfaceLighter : theme.colorScheme.surfaceContainerLow;
+    final borderColor = isDark ? Colors.white.withValues(alpha: 0.05) : theme.colorScheme.outline.withValues(alpha: 0.2);
+    final iconColor = _iconColorForIndex(index);
+    final iconData = _iconForCommerce(c);
+
+    final rating = c.stats?.rating.toString() ?? '0.0';
+    final ventas = c.stats?.ventas.toString() ?? '0';
+    final productos = c.stats?.productos.toString() ?? '0';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: borderColor, width: 1),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -263,22 +345,22 @@ class _CommerceCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  width: 56,
-                  height: 56,
+                  width: 64,
+                  height: 64,
                   decoration: BoxDecoration(
-                    color: AppColors.green.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
+                    color: iconColor.withValues(alpha: 0.2), // bg-*-500/20
+                    borderRadius: BorderRadius.circular(16), // rounded-2xl
                   ),
                   child: c.image != null && c.image!.isNotEmpty
                       ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(16),
                           child: Image.network(
                             c.image!,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(Icons.store, color: AppColors.green, size: 28),
+                            errorBuilder: (_, __, ___) => Icon(iconData, color: iconColor, size: 32),
                           ),
                         )
-                      : const Icon(Icons.store, color: AppColors.green, size: 28),
+                      : Icon(iconData, color: iconColor, size: 32),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -286,29 +368,33 @@ class _CommerceCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
                             child: Text(
                               c.businessName,
-                              style: const TextStyle(
-                                fontSize: 16,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.onSurface,
                               ),
                             ),
                           ),
                           if (c.isPrimary)
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: AppColors.green.withValues(alpha: 0.2),
+                                color: _stitchPrimary.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: _stitchPrimary.withValues(alpha: 0.2)),
                               ),
-                              child: const Text(
+                              child: Text(
                                 'Principal',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.green,
-                                  fontWeight: FontWeight.w600,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  color: _stitchPrimary,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
                             ),
@@ -318,21 +404,15 @@ class _CommerceCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           'RIF: ${c.taxId}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade600,
-                          ),
+                          style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
                         ),
                       ],
                       if (c.address != null && c.address!.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           c.address!,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                          maxLines: 2,
+                          style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8)),
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -341,53 +421,109 @@ class _CommerceCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 16), // mb-4
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                _StatItem(
+                _StatPill(
                   icon: Icons.star,
-                  label: 'Rating',
-                  value: c.stats != null ? c.stats!.rating.toString() : '-',
+                  iconColor: _stitchYellow400,
+                  value: rating,
+                  surfaceLighter: surfaceLighter,
+                  borderColor: borderColor,
                 ),
-                _StatItem(
+                const SizedBox(width: 8),
+                _StatPill(
                   icon: Icons.shopping_bag,
-                  label: 'Ventas',
-                  value: c.stats?.ventas.toString() ?? '-',
+                  iconColor: _stitchGreen400,
+                  value: '$ventas Ventas',
+                  surfaceLighter: surfaceLighter,
+                  borderColor: borderColor,
                 ),
-                _StatItem(
+                const SizedBox(width: 8),
+                _StatPill(
                   icon: Icons.inventory_2,
-                  label: 'Productos',
-                  value: c.stats?.productos.toString() ?? '-',
+                  iconColor: _stitchPurple400,
+                  value: '$productos Prod.',
+                  surfaceLighter: surfaceLighter,
+                  borderColor: borderColor,
                 ),
               ],
             ),
-            const Divider(height: 24),
+            const SizedBox(height: 20), // mb-5
+            Container(height: 1, color: borderColor), // border-t
+            const SizedBox(height: 16), // pt-4
             Row(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                TextButton(
-                  onPressed: onVer,
-                  child: const Text('Ver'),
+                Expanded(
+                  child: Material(
+                    color: surfaceLighter,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      onTap: onVer,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Center(
+                          child: Text(
+                            'Ver',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-                Container(
-                  width: 1,
-                  height: 20,
-                  color: Colors.grey.shade300,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Material(
+                    color: surfaceLighter,
+                    borderRadius: BorderRadius.circular(12),
+                    child: InkWell(
+                      onTap: onEditar,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Center(
+                          child: Text(
+                            'Editar',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-                TextButton(
-                  onPressed: onEditar,
-                  child: const Text('Editar'),
-                ),
-                Container(
-                  width: 1,
-                  height: 20,
-                  color: Colors.grey.shade300,
-                ),
-                TextButton(
-                  onPressed: onEliminar,
-                  style: TextButton.styleFrom(foregroundColor: Colors.red.shade400),
-                  child: const Text('Eliminar'),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Material(
+                    color: Colors.red.withValues(alpha: 0.1), // bg-red-500/10
+                    borderRadius: BorderRadius.circular(12), // rounded-xl
+                    child: InkWell(
+                      onTap: onEliminar,
+                      borderRadius: BorderRadius.circular(12),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        child: Center(
+                          child: Text(
+                            'Eliminar',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.red,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -398,34 +534,46 @@ class _CommerceCard extends StatelessWidget {
   }
 }
 
-class _StatItem extends StatelessWidget {
+class _StatPill extends StatelessWidget {
   final IconData icon;
-  final String label;
+  final Color iconColor;
   final String value;
+  final Color surfaceLighter;
+  final Color borderColor;
 
-  const _StatItem({required this.icon, required this.label, required this.value});
+  const _StatPill({
+    required this.icon,
+    required this.iconColor,
+    required this.value,
+    required this.surfaceLighter,
+    required this.borderColor,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Icon(icon, size: 20, color: AppColors.green),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: surfaceLighter,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: borderColor, width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: iconColor),
+          const SizedBox(width: 6),
+          Text(
+            value,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: theme.colorScheme.onSurface,
+            ),
           ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.grey.shade600,
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

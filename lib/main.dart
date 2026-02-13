@@ -23,8 +23,6 @@ import 'package:zonix/features/screens/profile/profile_page.dart';
 import 'package:zonix/features/screens/settings/settings_page_2.dart';
 import 'package:zonix/features/screens/auth/sign_in_screen.dart';
 import 'package:zonix/features/screens/onboarding/onboarding_screen.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 
@@ -66,6 +64,7 @@ import 'package:zonix/features/screens/admin/admin_analytics_page.dart';
 import 'package:zonix/features/screens/help/help_and_faq_page.dart';
 import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:zonix/features/screens/commerce/commerce_chat_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_profile_page.dart';
@@ -145,6 +144,132 @@ void initialization() async {
   FlutterNativeSplash.remove();
 }
 
+// Paleta Stitch (template)
+const Color _stitchPrimary = Color(0xFF3399FF);
+const Color _stitchBgLight = Color(0xFFF5F7F8);
+const Color _stitchBgDark = Color(0xFF0F1923);
+const Color _stitchSurfaceDark = Color(0xFF1A2733);
+const Color _stitchCardCream = Color(0xFFF9F0E0);
+const Color _stitchNavBg = Color(0xFF1A2E46);
+const Color _stitchNavActive = Color(0xFF3299FF);
+const Color _stitchSlate400 = Color(0xFF94A3B8);
+
+ThemeData _buildStitchLightTheme() {
+  return ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.light,
+    fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
+    primaryColor: _stitchPrimary,
+    scaffoldBackgroundColor: _stitchBgLight,
+    appBarTheme: AppBarTheme(
+      backgroundColor: _stitchPrimary,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      centerTitle: false,
+      titleTextStyle: GoogleFonts.plusJakartaSans(
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+        fontSize: 22,
+      ),
+      iconTheme: const IconThemeData(color: Colors.white),
+    ),
+    colorScheme: ColorScheme.light(
+      primary: _stitchPrimary,
+      secondary: AppColors.orange,
+      error: AppColors.red,
+      surface: _stitchBgLight,
+      onPrimary: Colors.white,
+      onSurface: const Color(0xFF0F172A),
+    ),
+    cardColor: _stitchCardCream,
+    cardTheme: CardThemeData(
+      color: _stitchCardCream,
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: _stitchPrimary,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: _stitchPrimary,
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: _stitchBgLight,
+      selectedItemColor: _stitchNavActive,
+      unselectedItemColor: _stitchSlate400,
+      type: BottomNavigationBarType.fixed,
+    ),
+  );
+}
+
+ThemeData _buildStitchDarkTheme() {
+  return ThemeData(
+    useMaterial3: true,
+    brightness: Brightness.dark,
+    fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
+    primaryColor: _stitchPrimary,
+    scaffoldBackgroundColor: _stitchBgDark,
+    appBarTheme: AppBarTheme(
+      backgroundColor: _stitchBgDark,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      centerTitle: false,
+      titleTextStyle: GoogleFonts.plusJakartaSans(
+        color: Colors.white,
+        fontWeight: FontWeight.bold,
+        fontSize: 22,
+      ),
+      iconTheme: const IconThemeData(color: Colors.white),
+    ),
+    colorScheme: ColorScheme.dark(
+      primary: _stitchPrimary,
+      secondary: AppColors.orangeCoral,
+      error: AppColors.red,
+      surface: _stitchSurfaceDark,
+      onPrimary: Colors.white,
+      onSurface: Colors.white,
+    ),
+    cardColor: _stitchSurfaceDark,
+    cardTheme: CardThemeData(
+      color: _stitchSurfaceDark,
+      elevation: 2,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: _stitchPrimary,
+        foregroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    ),
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: _stitchPrimary,
+    ),
+    inputDecorationTheme: InputDecorationTheme(
+      filled: true,
+      fillColor: _stitchSurfaceDark,
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: _stitchNavBg,
+      selectedItemColor: _stitchNavActive,
+      unselectedItemColor: _stitchSlate400,
+      type: BottomNavigationBarType.fixed,
+    ),
+  );
+}
+
 class MyApp extends StatelessWidget {
   final bool isIntegrationTest;
   const MyApp({super.key, this.isIntegrationTest = false});
@@ -163,64 +288,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'ZONIX',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.light,
-        primaryColor: AppColors.blue,
-        scaffoldBackgroundColor: AppColors.white,
-        appBarTheme: AppBarTheme(
-          backgroundColor: AppColors.blue,
-          foregroundColor: AppColors.white,
-          elevation: 2,
-          titleTextStyle: TextStyle(
-            color: AppColors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-          ),
-        ),
-        colorScheme: ColorScheme.light(
-          primary: AppColors.blue,
-          secondary: AppColors.orange,
-          error: AppColors.red,
-          background: AppColors.white,
-        ),
-        cardColor: AppColors.grayLight,
-        buttonTheme: ButtonThemeData(
-          buttonColor: AppColors.orange,
-          textTheme: ButtonTextTheme.primary,
-        ),
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: AppColors.orange,
-        ),
-      ),
-      darkTheme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: AppColors.purple,
-        scaffoldBackgroundColor: AppColors.backgroundDark,
-        appBarTheme: AppBarTheme(
-          backgroundColor: AppColors.purple,
-          foregroundColor: AppColors.white,
-          elevation: 2,
-          titleTextStyle: TextStyle(
-            color: AppColors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
-          ),
-        ),
-        colorScheme: ColorScheme.dark(
-          primary: AppColors.purple,
-          secondary: AppColors.orangeCoral,
-          error: AppColors.red,
-          background: AppColors.backgroundDark,
-        ),
-        cardColor: AppColors.grayDark,
-        buttonTheme: ButtonThemeData(
-          buttonColor: AppColors.orangeCoral,
-          textTheme: ButtonTextTheme.primary,
-        ),
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: AppColors.orangeCoral,
-        ),
-      ),
+      theme: _buildStitchLightTheme(),
+      darkTheme: _buildStitchDarkTheme(),
       themeMode: ThemeMode.system,
       home: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
@@ -419,11 +488,11 @@ class MainRouterState extends State<MainRouter> {
                 return ListTile(
                   leading: Icon(
                     _iconForLevel(level),
-                    color: selected ? Colors.blueAccent : Colors.grey,
+                    color: selected ? _stitchPrimary : _stitchSlate400,
                   ),
                   title: Text(_labelForLevel(level)),
                   trailing: selected
-                      ? const Icon(Icons.check, color: Colors.blueAccent)
+                      ? const Icon(Icons.check, color: _stitchPrimary)
                       : null,
                   onTap: () {
                     setState(() {
@@ -622,33 +691,28 @@ class MainRouterState extends State<MainRouter> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        elevation: 4.0,
+        elevation: 0,
         title: RichText(
           text: TextSpan(
             children: [
               TextSpan(
                 text: 'ZONI',
-                style: TextStyle(
-                  fontFamily: 'system-ui',
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 26,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w800,
                   color:
                       Theme.of(context).brightness == Brightness.dark
                           ? Colors.white
-                          : Colors.black,
+                          : const Color(0xFF0F172A),
                   letterSpacing: 1.2,
                 ),
               ),
               TextSpan(
                 text: 'X',
-                style: TextStyle(
-                  fontFamily: 'system-ui',
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color:
-                      Theme.of(context).brightness == Brightness.dark
-                          ? Colors.blueAccent[700]
-                          : Colors.orange,
+                  fontWeight: FontWeight.w800,
+                  color: _stitchPrimary,
                   letterSpacing: 1.2,
                 ),
               ),
@@ -863,22 +927,34 @@ class MainRouterState extends State<MainRouter> {
           );
         },
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        items: _getBottomNavItems(_selectedLevel, userProvider.userRole),
-        currentIndex: _bottomNavIndex,
-        selectedItemColor: Colors.blueAccent,
-        unselectedItemColor: Colors.grey,
-        onTap: (index) {
-          // Obtener el itemCount llamando a _getBottomNavItems antes de la navegación
-          List<BottomNavigationBarItem> items = _getBottomNavItems(
-            _selectedLevel,
-            userProvider.userRole,
-          );
-          int itemCount = items.length;
-
-          // Llamar a la función _onBottomNavTapped con el index y el itemCount
-          _onBottomNavTapped(index, itemCount);
-        },
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? _stitchNavBg
+              : _stitchBgLight,
+          border: Border(
+            top: BorderSide(
+              color: Colors.white.withValues(alpha: 0.05),
+              width: 1,
+            ),
+          ),
+        ),
+        child: BottomNavigationBar(
+          items: _getBottomNavItems(_selectedLevel, userProvider.userRole),
+          currentIndex: _bottomNavIndex,
+          selectedItemColor: _stitchNavActive,
+          unselectedItemColor: _stitchSlate400,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          onTap: (index) {
+            List<BottomNavigationBarItem> items = _getBottomNavItems(
+              _selectedLevel,
+              userProvider.userRole,
+            );
+            int itemCount = items.length;
+            _onBottomNavTapped(index, itemCount);
+          },
+        ),
       ),
     );
   }
