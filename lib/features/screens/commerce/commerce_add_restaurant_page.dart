@@ -15,6 +15,7 @@ class _CommerceAddRestaurantPageState extends State<CommerceAddRestaurantPage> {
   final _businessNameController = TextEditingController();
   final _taxIdController = TextEditingController();
   final _addressController = TextEditingController();
+  final _scheduleController = TextEditingController();
 
   String _selectedBusinessType = 'restaurant';
   bool _open = false;
@@ -28,6 +29,7 @@ class _CommerceAddRestaurantPageState extends State<CommerceAddRestaurantPage> {
     _businessNameController.dispose();
     _taxIdController.dispose();
     _addressController.dispose();
+    _scheduleController.dispose();
     super.dispose();
   }
 
@@ -46,6 +48,7 @@ class _CommerceAddRestaurantPageState extends State<CommerceAddRestaurantPage> {
         taxId: _taxIdController.text.trim(),
         address: _addressController.text.trim(),
         open: _open,
+        schedule: _scheduleController.text.trim().isEmpty ? null : _scheduleController.text.trim(),
       );
       if (mounted) {
         Navigator.pop(context, true);
@@ -85,7 +88,7 @@ class _CommerceAddRestaurantPageState extends State<CommerceAddRestaurantPage> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                initialValue: _selectedBusinessType,
+                value: _selectedBusinessType,
                 decoration: const InputDecoration(
                   labelText: 'Tipo de negocio',
                   border: OutlineInputBorder(),
@@ -106,11 +109,21 @@ class _CommerceAddRestaurantPageState extends State<CommerceAddRestaurantPage> {
               TextFormField(
                 controller: _addressController,
                 decoration: const InputDecoration(
-                  labelText: 'Dirección',
+                  labelText: 'Dirección / Ubicación',
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 2,
                 validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _scheduleController,
+                decoration: const InputDecoration(
+                  labelText: 'Horario (opcional)',
+                  hintText: 'Ej: Lun-Vie 8:00-22:00',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 1,
               ),
               const SizedBox(height: 16),
               SwitchListTile(
@@ -123,11 +136,13 @@ class _CommerceAddRestaurantPageState extends State<CommerceAddRestaurantPage> {
                 Text(_error!, style: const TextStyle(color: Colors.red)),
               ],
               const SizedBox(height: 24),
-              ElevatedButton(
+              FilledButton(
                 onPressed: _loading ? null : _submit,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.purple,
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.green,
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 child: _loading
                     ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))

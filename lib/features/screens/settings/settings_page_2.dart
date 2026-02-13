@@ -25,6 +25,9 @@ import 'package:zonix/features/screens/commerce/commerce_zones_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_payment_methods_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_list_page.dart';
+import 'package:zonix/features/screens/orders/orders_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_orders_page.dart';
+import 'package:zonix/features/services/commerce_post_service.dart';
 
 final logger = Logger();
 
@@ -40,7 +43,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
   String? _email;
   bool _loading = true;
   String? _error;
-  String _activeTab = 'cuenta';
+  String _activeTab = 'persona';
 
   @override
   void initState() {
@@ -114,7 +117,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
         elevation: 0,
         scrolledUnderElevation: 1,
         title: Text(
-          'Configuración',
+          'Mi Perfil',
           style: TextStyle(
             fontSize: isTablet ? 22 : 20,
             fontWeight: FontWeight.w600,
@@ -129,17 +132,25 @@ class _SettingsPage2State extends State<SettingsPage2> {
         actions: [
           _buildTabIcon(
             icon: Icons.person_outline_rounded,
-            isActive: _activeTab == 'cuenta',
-            onTap: () => setState(() => _activeTab = 'cuenta'),
+            isActive: _activeTab == 'persona',
+            onTap: () => setState(() => _activeTab = 'persona'),
             theme: theme,
             isTablet: isTablet,
           ),
           SizedBox(width: isTablet ? 10 : 6),
           if (isCommerce) ...[
             _buildTabIcon(
+              icon: Icons.article_outlined,
+              isActive: _activeTab == 'publicaciones',
+              onTap: () => setState(() => _activeTab = 'publicaciones'),
+              theme: theme,
+              isTablet: isTablet,
+            ),
+            SizedBox(width: isTablet ? 10 : 6),
+            _buildTabIcon(
               icon: Icons.store_outlined,
-              isActive: _activeTab == 'comercio',
-              onTap: () => setState(() => _activeTab = 'comercio'),
+              isActive: _activeTab == 'comercios',
+              onTap: () => setState(() => _activeTab = 'comercios'),
               theme: theme,
               isTablet: isTablet,
             ),
@@ -155,28 +166,32 @@ class _SettingsPage2State extends State<SettingsPage2> {
           SizedBox(width: isTablet ? 16 : 12),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: _loadProfile,
-        color: theme.colorScheme.primary,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: EdgeInsets.all(isTablet ? 24 : 16),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 600),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildProfileHeader(context, theme, isTablet),
-                SizedBox(height: isTablet ? 24 : 20),
-                if (_activeTab == 'cuenta') _buildCuentaContent(context, theme, isTablet),
-                if (_activeTab == 'comercio' && isCommerce) _buildComercioContent(context, theme, isTablet),
-                if (_activeTab == 'mas') _buildMasContent(context, theme, isTablet),
-              ],
+      body: _activeTab == 'comercios' && isCommerce
+          ? const CommerceListPage(embedded: true)
+          : RefreshIndicator(
+              onRefresh: _loadProfile,
+              color: theme.colorScheme.primary,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.all(isTablet ? 24 : 16),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (_activeTab != 'publicaciones') ...[
+                        _buildProfileHeader(context, theme, isTablet),
+                        SizedBox(height: isTablet ? 24 : 20),
+                      ],
+                      if (_activeTab == 'persona') _buildPersonaContent(context, theme, isTablet, isCommerce),
+                      if (_activeTab == 'publicaciones' && isCommerce) _buildPublicacionesContent(context, theme, isTablet),
+                      if (_activeTab == 'mas') _buildMasContent(context, theme, isTablet),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -270,63 +285,45 @@ class _SettingsPage2State extends State<SettingsPage2> {
     );
   }
 
-  Widget _buildCuentaContent(BuildContext context, ThemeData theme, bool isTablet) {
+  Widget _buildPersonaContent(BuildContext context, ThemeData theme, bool isTablet, bool isCommerce) {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
-    return _buildSettingsCard(
-      theme: theme,
-      isTablet: isTablet,
-      children: [
-        _buildSettingsTile(
-          context: context,
-          theme: theme,
-          icon: Icons.person_outline_rounded,
-          iconColor: theme.colorScheme.primary,
-          title: 'Perfil',
-          onTap: () => Navigator.push(context, MaterialPageRoute(
-            builder: (_) => ProfilePagex(userId: userProvider.userId),
-          )),
-        ),
-        _buildDivider(theme),
-        _buildSettingsTile(
-          context: context,
-          theme: theme,
-          icon: Icons.folder_outlined,
-          iconColor: AppColors.purple,
-          title: 'Documentos',
-          onTap: () => Navigator.push(context, MaterialPageRoute(
-            builder: (_) => DocumentListScreen(userId: userProvider.userId),
-          )),
-        ),
-        _buildDivider(theme),
-        _buildSettingsTile(
-          context: context,
-          theme: theme,
-          icon: Icons.location_on_outlined,
-          iconColor: AppColors.orange,
-          title: 'Direcciones',
-          onTap: () => Navigator.push(context, MaterialPageRoute(
-            builder: (_) => AddressPage(userId: userProvider.userId),
-          )),
-        ),
-        _buildDivider(theme),
-        _buildSettingsTile(
-          context: context,
-          theme: theme,
-          icon: Icons.phone_outlined,
-          iconColor: AppColors.green,
-          title: 'Teléfonos',
-          onTap: () => Navigator.push(context, MaterialPageRoute(
-            builder: (_) => PhoneScreen(userId: userProvider.userId),
-          )),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildComercioContent(BuildContext context, ThemeData theme, bool isTablet) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        SizedBox(
+          width: double.infinity,
+          child: FilledButton.icon(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(
+              builder: (_) => ProfilePagex(userId: userProvider.userId),
+            )),
+            icon: const Icon(Icons.edit),
+            label: const Text('Editar Perfil'),
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.green,
+              foregroundColor: Colors.white,
+              padding: EdgeInsets.symmetric(vertical: isTablet ? 16 : 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ),
+        SizedBox(height: isTablet ? 12 : 10),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(
+              builder: (_) => isCommerce ? const CommerceOrdersPage() : const OrdersPage(),
+            )),
+            icon: const Icon(Icons.shopping_bag_outlined),
+            label: const Text('Mis Pedidos'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.green,
+              side: const BorderSide(color: AppColors.green),
+              padding: EdgeInsets.symmetric(vertical: isTablet ? 16 : 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ),
+        SizedBox(height: isTablet ? 20 : 16),
         _buildSettingsCard(
           theme: theme,
           isTablet: isTablet,
@@ -334,111 +331,277 @@ class _SettingsPage2State extends State<SettingsPage2> {
             _buildSettingsTile(
               context: context,
               theme: theme,
-              icon: Icons.restaurant_menu_rounded,
-              iconColor: theme.colorScheme.primary,
-              title: 'Mis Restaurantes',
-              subtitle: 'Gestiona y configura tus restaurantes',
+              icon: Icons.folder_outlined,
+              iconColor: AppColors.purple,
+              title: 'Documentos',
               onTap: () => Navigator.push(context, MaterialPageRoute(
-                builder: (_) => const CommerceListPage(),
+                builder: (_) => DocumentListScreen(userId: userProvider.userId),
               )),
             ),
             _buildDivider(theme),
             _buildSettingsTile(
               context: context,
               theme: theme,
-              icon: Icons.store_rounded,
-              iconColor: theme.colorScheme.primary,
-              title: 'Datos del comercio',
-              onTap: () => Navigator.push(context, MaterialPageRoute(
-                builder: (_) => const CommerceDataPage(),
-              )),
-            ),
-            _buildDivider(theme),
-            _buildSettingsTile(
-              context: context,
-              theme: theme,
-              icon: Icons.account_balance_wallet_outlined,
-              iconColor: AppColors.green,
-              title: 'Métodos de pago',
-              subtitle: 'Pago móvil, transferencia, efectivo',
-              onTap: () => Navigator.push(context, MaterialPageRoute(
-                builder: (_) => const CommercePaymentMethodsPage(),
-              )),
-            ),
-            _buildDivider(theme),
-            _buildSettingsTile(
-              context: context,
-              theme: theme,
-              icon: Icons.schedule_rounded,
+              icon: Icons.location_on_outlined,
               iconColor: AppColors.orange,
-              title: 'Horario de atención',
+              title: 'Direcciones',
               onTap: () => Navigator.push(context, MaterialPageRoute(
-                builder: (_) => const CommerceSchedulePage(),
+                builder: (_) => AddressPage(userId: userProvider.userId),
               )),
             ),
             _buildDivider(theme),
             _buildSettingsTile(
               context: context,
               theme: theme,
-              icon: Icons.toggle_on_rounded,
-              iconColor: AppColors.red,
-              title: 'Estado abierto/cerrado',
-              onTap: () => Navigator.push(context, MaterialPageRoute(
-                builder: (_) => const CommerceOpenPage(),
-              )),
-            ),
-            _buildDivider(theme),
-            _buildSettingsTile(
-              context: context,
-              theme: theme,
-              icon: Icons.local_offer_rounded,
-              iconColor: AppColors.red,
-              title: 'Promociones y cupones',
-              onTap: () => Navigator.push(context, MaterialPageRoute(
-                builder: (_) => const CommercePromotionsPage(),
-              )),
-            ),
-            _buildDivider(theme),
-            _buildSettingsTile(
-              context: context,
-              theme: theme,
-              icon: Icons.map_outlined,
-              iconColor: AppColors.brown,
-              title: 'Zonas de delivery',
-              onTap: () => Navigator.push(context, MaterialPageRoute(
-                builder: (_) => const CommerceZonesPage(),
-              )),
-            ),
-            _buildDivider(theme),
-            _buildSettingsTile(
-              context: context,
-              theme: theme,
-              icon: Icons.payment_rounded,
+              icon: Icons.phone_outlined,
               iconColor: AppColors.green,
-              title: 'Datos de pago móvil',
+              title: 'Teléfonos',
               onTap: () => Navigator.push(context, MaterialPageRoute(
-                builder: (_) => const CommercePaymentPage(),
-              )),
-            ),
-            _buildDivider(theme),
-            _buildSettingsTile(
-              context: context,
-              theme: theme,
-              icon: Icons.notifications_outlined,
-              iconColor: AppColors.amber,
-              title: 'Notificaciones',
-              onTap: () => Navigator.push(context, MaterialPageRoute(
-                builder: (_) => const CommerceNotificationsPage(),
+                builder: (_) => PhoneScreen(userId: userProvider.userId),
               )),
             ),
           ],
+        ),
+        if (isCommerce) ...[
+          SizedBox(height: isTablet ? 20 : 16),
+          _buildEstadisticasCard(context, theme, isTablet),
+        ],
+        SizedBox(height: isTablet ? 20 : 16),
+        _buildLegalCard(context, theme, isTablet),
+        SizedBox(height: isTablet ? 20 : 16),
+        SizedBox(
+          width: double.infinity,
+          child: OutlinedButton.icon(
+            onPressed: () async {
+              await userProvider.logout();
+              if (!context.mounted) return;
+              Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(builder: (_) => const SignInScreen()),
+                (_) => false,
+              );
+            },
+            icon: Icon(Icons.logout_rounded, size: isTablet ? 22 : 20),
+            label: const Text('Cerrar sesión'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: theme.colorScheme.error,
+              side: BorderSide(color: theme.colorScheme.error),
+              padding: EdgeInsets.symmetric(vertical: isTablet ? 16 : 14),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ),
+        SizedBox(height: isTablet ? 12 : 10),
+        TextButton.icon(
+          onPressed: () => Navigator.push(context, MaterialPageRoute(
+            builder: (_) => const AccountDeletionPage(),
+          )),
+          icon: Icon(Icons.delete_outline, size: 20, color: Colors.red.shade400),
+          label: Text('Eliminar cuenta', style: TextStyle(color: Colors.red.shade400, fontWeight: FontWeight.w500)),
+        ),
+        SizedBox(height: isTablet ? 24 : 20),
+      ],
+    );
+  }
+
+  Widget _buildEstadisticasCard(BuildContext context, ThemeData theme, bool isTablet) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: CommercePostService.getMyPosts(),
+      builder: (context, snapshot) {
+        final count = snapshot.hasData ? snapshot.data!.length : 0;
+        return _buildSettingsCard(
+          theme: theme,
+          isTablet: isTablet,
+          children: [
+            Padding(
+              padding: EdgeInsets.all(isTablet ? 20 : 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Estadísticas',
+                    style: TextStyle(
+                      fontSize: isTablet ? 16 : 15,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  SizedBox(height: isTablet ? 16 : 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatChip(
+                          icon: Icons.article_outlined,
+                          value: count.toString(),
+                          label: 'Publicaciones',
+                          theme: theme,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildStatChip(
+                          icon: Icons.check_circle_outline,
+                          value: count.toString(),
+                          label: 'Activas',
+                          theme: theme,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildStatChip({
+    required IconData icon,
+    required String value,
+    required String label,
+    required ThemeData theme,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 24, color: AppColors.green),
+          const SizedBox(height: 8),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+          Text(label, style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegalCard(BuildContext context, ThemeData theme, bool isTablet) {
+    return _buildSettingsCard(
+      theme: theme,
+      isTablet: isTablet,
+      children: [
+        Padding(
+          padding: EdgeInsets.all(isTablet ? 16 : 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Legal',
+                style: TextStyle(
+                  fontSize: isTablet ? 16 : 15,
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
+        ),
+        _buildSettingsTile(
+          context: context,
+          theme: theme,
+          icon: Icons.description_outlined,
+          iconColor: theme.colorScheme.onSurfaceVariant,
+          title: 'Términos y Condiciones',
+          onTap: () {},
+        ),
+        _buildDivider(theme),
+        _buildSettingsTile(
+          context: context,
+          theme: theme,
+          icon: Icons.privacy_tip_outlined,
+          iconColor: theme.colorScheme.onSurfaceVariant,
+          title: 'Política de Privacidad',
+          onTap: () => Navigator.push(context, MaterialPageRoute(
+            builder: (_) => const PrivacySettingsPage(),
+          )),
         ),
       ],
     );
   }
 
+  Widget _buildPublicacionesContent(BuildContext context, ThemeData theme, bool isTablet) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: CommercePostService.getMyPosts(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.all(48),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        final posts = snapshot.data ?? [];
+        if (posts.isEmpty) {
+          return Padding(
+            padding: EdgeInsets.all(isTablet ? 48 : 32),
+            child: Column(
+              children: [
+                Icon(Icons.article_outlined, size: 80, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.5)),
+                const SizedBox(height: 24),
+                Text(
+                  'No tienes publicaciones aún',
+                  style: TextStyle(
+                    fontSize: isTablet ? 18 : 16,
+                    fontWeight: FontWeight.w500,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Crea tu primera publicación para empezar',
+                  style: TextStyle(
+                    fontSize: isTablet ? 14 : 13,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          );
+        }
+        return _buildSettingsCard(
+          theme: theme,
+          isTablet: isTablet,
+          children: [
+            for (int i = 0; i < posts.length; i++) ...[
+              if (i > 0) _buildDivider(theme),
+              _buildPostTile(context, theme, posts[i]),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildPostTile(BuildContext context, ThemeData theme, Map<String, dynamic> post) {
+    final name = post['name']?.toString() ?? 'Sin título';
+    final desc = post['description']?.toString() ?? '';
+    return ListTile(
+      leading: post['media_url'] != null && post['media_url'].toString().isNotEmpty
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(
+                post['media_url'].toString(),
+                width: 48,
+                height: 48,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Icon(Icons.article, color: theme.colorScheme.primary),
+              ),
+            )
+          : Icon(Icons.article, color: theme.colorScheme.primary),
+      title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
+      subtitle: desc.isNotEmpty ? Text(desc, maxLines: 2, overflow: TextOverflow.ellipsis) : null,
+      trailing: const Icon(Icons.chevron_right),
+    );
+  }
+
   Widget _buildMasContent(BuildContext context, ThemeData theme, bool isTablet) {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final isCommerce = Provider.of<UserProvider>(context, listen: false).userRole == 'commerce';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -478,19 +641,104 @@ class _SettingsPage2State extends State<SettingsPage2> {
                 builder: (_) => const PrivacySettingsPage(),
               )),
             ),
-            _buildDivider(theme),
-            _buildSettingsTile(
-              context: context,
-              theme: theme,
-              icon: Icons.delete_forever_outlined,
-              iconColor: AppColors.red,
-              title: 'Eliminar cuenta',
-              onTap: () => Navigator.push(context, MaterialPageRoute(
-                builder: (_) => const AccountDeletionPage(),
-              )),
-            ),
           ],
         ),
+        if (isCommerce) ...[
+          SizedBox(height: isTablet ? 20 : 16),
+          _buildSettingsCard(
+            theme: theme,
+            isTablet: isTablet,
+            children: [
+              _buildSettingsTile(
+                context: context,
+                theme: theme,
+                icon: Icons.store_rounded,
+                iconColor: theme.colorScheme.primary,
+                title: 'Datos del comercio',
+                onTap: () => Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => const CommerceDataPage(),
+                )),
+              ),
+              _buildDivider(theme),
+              _buildSettingsTile(
+                context: context,
+                theme: theme,
+                icon: Icons.account_balance_wallet_outlined,
+                iconColor: AppColors.green,
+                title: 'Métodos de pago',
+                onTap: () => Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => const CommercePaymentMethodsPage(),
+                )),
+              ),
+              _buildDivider(theme),
+              _buildSettingsTile(
+                context: context,
+                theme: theme,
+                icon: Icons.schedule_rounded,
+                iconColor: AppColors.orange,
+                title: 'Horario de atención',
+                onTap: () => Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => const CommerceSchedulePage(),
+                )),
+              ),
+              _buildDivider(theme),
+              _buildSettingsTile(
+                context: context,
+                theme: theme,
+                icon: Icons.toggle_on_rounded,
+                iconColor: AppColors.red,
+                title: 'Estado abierto/cerrado',
+                onTap: () => Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => const CommerceOpenPage(),
+                )),
+              ),
+              _buildDivider(theme),
+              _buildSettingsTile(
+                context: context,
+                theme: theme,
+                icon: Icons.local_offer_rounded,
+                iconColor: AppColors.red,
+                title: 'Promociones y cupones',
+                onTap: () => Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => const CommercePromotionsPage(),
+                )),
+              ),
+              _buildDivider(theme),
+              _buildSettingsTile(
+                context: context,
+                theme: theme,
+                icon: Icons.map_outlined,
+                iconColor: AppColors.brown,
+                title: 'Zonas de delivery',
+                onTap: () => Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => const CommerceZonesPage(),
+                )),
+              ),
+              _buildDivider(theme),
+              _buildSettingsTile(
+                context: context,
+                theme: theme,
+                icon: Icons.payment_rounded,
+                iconColor: AppColors.green,
+                title: 'Datos de pago móvil',
+                onTap: () => Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => const CommercePaymentPage(),
+                )),
+              ),
+              _buildDivider(theme),
+              _buildSettingsTile(
+                context: context,
+                theme: theme,
+                icon: Icons.notifications_outlined,
+                iconColor: AppColors.amber,
+                title: 'Notificaciones del comercio',
+                onTap: () => Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => const CommerceNotificationsPage(),
+                )),
+              ),
+            ],
+          ),
+        ],
         SizedBox(height: isTablet ? 20 : 16),
         _buildSettingsCard(
           theme: theme,
@@ -529,31 +777,6 @@ class _SettingsPage2State extends State<SettingsPage2> {
               )),
             ),
           ],
-        ),
-        SizedBox(height: isTablet ? 28 : 24),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () async {
-              await userProvider.logout();
-              if (!context.mounted) return;
-              Navigator.of(context).pushAndRemoveUntil(
-                MaterialPageRoute(builder: (_) => const SignInScreen()),
-                (_) => false,
-              );
-            },
-            icon: Icon(Icons.logout_rounded, size: isTablet ? 22 : 20),
-            label: Text(
-              'Cerrar sesión',
-              style: TextStyle(fontSize: isTablet ? 16 : 15, fontWeight: FontWeight.w600),
-            ),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: theme.colorScheme.error,
-              side: BorderSide(color: theme.colorScheme.error),
-              padding: EdgeInsets.symmetric(vertical: isTablet ? 16 : 14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-            ),
-          ),
         ),
       ],
     );
