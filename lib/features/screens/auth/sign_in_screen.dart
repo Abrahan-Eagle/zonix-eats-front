@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
 import 'package:zonix/main.dart';
@@ -13,6 +14,10 @@ const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
 final logger = Logger();
 
+// Colores del template Stitch (basados en logo)
+const Color _kBackgroundDark = Color(0xFF1A2E46);
+const Color _kPrimary = Color(0xFF3399FF);
+
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
 
@@ -20,53 +25,16 @@ class SignInScreen extends StatefulWidget {
   SignInScreenState createState() => SignInScreenState();
 }
 
-class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixin {
+class SignInScreenState extends State<SignInScreen> {
   final GoogleSignInService googleSignInService = GoogleSignInService();
   bool isAuthenticated = false;
   GoogleSignInAccount? _currentUser;
-  late AnimationController _pulseController;
-  late AnimationController _rotateController;
-  late Animation<double> _pulseAnimation;
-  late Animation<double> _rotateAnimation;
   String? _loginError;
 
   @override
   void initState() {
     super.initState();
-    _setupAnimations();
     _checkAuthentication();
-  }
-
-  void _setupAnimations() {
-    _pulseController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat(reverse: true);
-    
-    _rotateController = AnimationController(
-      duration: const Duration(seconds: 20),
-      vsync: this,
-    )..repeat();
-    
-    _pulseAnimation = Tween<double>(
-      begin: 0.8,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _pulseController,
-      curve: Curves.easeInOut,
-    ));
-    
-    _rotateAnimation = Tween<double>(
-      begin: 0,
-      end: 1,
-    ).animate(_rotateController);
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    _rotateController.dispose();
-    super.dispose();
   }
 
   Future<void> _checkAuthentication() async {
@@ -82,7 +50,6 @@ class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixi
         }
       }
     } catch (e) {
-      // Manejar errores de autenticación sin crashear la app
       logger.w('Error al verificar autenticación: $e');
       isAuthenticated = false;
     }
@@ -99,24 +66,14 @@ class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixi
       });
 
       if (_currentUser != null) {
-        await AuthUtils.saveUserName(_currentUser!.displayName ?? 'Nombre no disponible');
-        await AuthUtils.saveUserEmail(_currentUser!.email ?? 'Email no disponible');
-        // Solo guardar photoUrl si es válida, de lo contrario guardar cadena vacía
-        final photoUrl = _currentUser!.photoUrl;
+        final user = _currentUser!;
+        await AuthUtils.saveUserName(user.displayName ?? '');
+        await AuthUtils.saveUserEmail(user.email);
+        final photoUrl = user.photoUrl;
         await AuthUtils.saveUserPhotoUrl(photoUrl?.isNotEmpty == true ? photoUrl : '');
 
-        String? savedName = await _storage.read(key: 'userName');
-        String? savedEmail = await _storage.read(key: 'userEmail');
-        String? savedPhotoUrl = await _storage.read(key: 'userPhotoUrl');
         String? savedOnboardingString = await _storage.read(key: 'userCompletedOnboarding');
-
-        logger.i('Nombre guardado: $savedName');
-        logger.i('Correo guardado: $savedEmail');
-        logger.i('Foto guardada: $savedPhotoUrl');
-        logger.i('Onboarding guardada: $savedOnboardingString');
-
         bool onboardingCompleted = savedOnboardingString == '1';
-        logger.i('Conversión de completedOnboarding: $onboardingCompleted');
 
         if (!mounted) return;
 
@@ -128,7 +85,7 @@ class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixi
         } else {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const MainRouter()),
+            MaterialPageRoute(builder: (context) => MainRouter()),
           );
         }
       } else {
@@ -149,127 +106,141 @@ class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixi
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isSmallScreen = screenWidth < 400;
-    final isLargeScreen = screenWidth > 600;
-    final isVerySmallScreen = screenHeight < 600;
-    
     return Scaffold(
-      body: Stack(
-        children: [
-          // Fondo con patrón geométrico
-          _buildGeometricBackground(),
-          
-          // Contenido principal con SingleChildScrollView para evitar overflow
-          SafeArea(
-            child: SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - 
-                           MediaQuery.of(context).padding.top - 
-                           MediaQuery.of(context).padding.bottom,
-                ),
-                child: IntrinsicHeight(
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: isSmallScreen ? 16 : 24,
-                      vertical: isVerySmallScreen ? 8 : 16,
-                    ),
-                    child: Column(
-                      children: [
-                        // Header minimalista
-                        _buildMinimalHeader(isSmallScreen),
-                        
-                        if (_loginError != null) ...[
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: Text(
-                              _loginError!,
-                              style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                        
-                        // Contenido central con Expanded
-                        Expanded(
-                          child: Column(
-                            children: [
-                              // Círculo central
-                              Expanded(
-                                flex: 3,
-                                child: _buildCentralCircle(screenWidth, isSmallScreen, isLargeScreen, isVerySmallScreen),
-                              ),
-                              
-                              // Contenido inferior
-                              Expanded(
-                                flex: 2,
-                                child: _buildBottomContent(screenWidth, isSmallScreen, isLargeScreen, isVerySmallScreen),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: Stack(
+          children: [
+            _buildBackground(),
+            SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 90),
+                    _buildLogoAndTitle(),
+                    const Spacer(flex: 2),
+                    _buildBottomContent(),
+                    const SizedBox(height: 40),
+                  ],
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildGeometricBackground() {
+  Widget _buildBackground() {
     return Container(
+      width: double.infinity,
+      height: double.infinity,
       decoration: const BoxDecoration(
-        color: Color(0xFF1A1A2E),
+        color: _kBackgroundDark,
       ),
       child: Stack(
         children: [
-          // Círculos decorativos animados
-          Positioned(
-            top: -50,
-            right: -50,
-            child: RotationTransition(
-              turns: _rotateAnimation,
-              child: Container(
-                width: 200,
-                height: 200,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFFFF6B35).withOpacity(0.1),
+          // Gradiente espacial (como space-gradient del HTML)
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.topRight,
+                  radius: 1.2,
+                  colors: [
+                    _kPrimary.withOpacity(0.15),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.5],
                 ),
               ),
             ),
           ),
-          Positioned(
-            bottom: -100,
-            left: -100,
-            child: RotationTransition(
-              turns: _rotateAnimation,
-              child: Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFFFFC93C).withOpacity(0.08),
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.bottomLeft,
+                  radius: 1.2,
+                  colors: [
+                    _kPrimary.withOpacity(0.1),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.5],
                 ),
               ),
             ),
           ),
-          // Patrón de puntos
-          ...List.generate(20, (index) {
+          // Círculo decorativo inferior izquierdo (balance visual con el planeta)
+          Positioned(
+            bottom: -60,
+            left: -60,
+            child: Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _kPrimary.withOpacity(0.08),
+                boxShadow: [
+                  BoxShadow(
+                    color: _kPrimary.withOpacity(0.1),
+                    blurRadius: 30,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          // Círculo con logo del planeta (esquina superior derecha)
+          Positioned(
+            top: -40,
+            right: -40,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: _kPrimary.withOpacity(0.2),
+                boxShadow: [
+                  BoxShadow(
+                    color: _kPrimary.withOpacity(0.2),
+                    blurRadius: 32,
+                    spreadRadius: 6,
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Image.asset(
+                  'assets/images/logo_login.png',
+                  width: 90,
+                  height: 90,
+                  fit: BoxFit.contain,
+                ),
+              ),
+            ),
+          ),
+          // Patrón de estrellas: dispersas, tamaños variables (como screen.png)
+          ...List.generate(60, (i) {
+            final positions = [
+              20.0, 35.0, 55.0, 75.0, 100.0, 130.0, 155.0, 180.0, 205.0, 230.0,
+              260.0, 290.0, 320.0, 350.0, 380.0, 15.0, 45.0, 85.0, 120.0, 165.0,
+            ];
+            final x = (positions[i % 10] + (i ~/ 10) * 180) % 420;
+            final y = (positions[(i + 5) % 10] + (i ~/ 10) * 220) % 850;
+            final size = (i % 5 == 2) ? 2.0 : 1.0;
             return Positioned(
-              top: ((index * 50.0) % 800).roundToDouble(),
-              left: ((index * 80.0) % 400).roundToDouble(), 
-              child: Container(
-                width: 4,
-                height: 4,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.white.withOpacity(0.1),
+              left: x,
+              top: y,
+              child: Opacity(
+                opacity: 0.25 + (i % 3) * 0.05,
+                child: Container(
+                  width: size,
+                  height: size,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             );
@@ -279,269 +250,105 @@ class SignInScreenState extends State<SignInScreen> with TickerProviderStateMixi
     );
   }
 
-  Widget _buildMinimalHeader(bool isSmallScreen) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    crossAxisAlignment: CrossAxisAlignment.center,
-    children: [
-      
-      
-      Transform.translate(
-  offset: const Offset(0, -25), // Ajusta este valor
-  child: Text(
-    TimeOfDay.now().format(context),
-    style: TextStyle(
-      color: Colors.white,
-      fontSize: isSmallScreen ? 14 : 16,
-      fontWeight: FontWeight.w500,
-    ),
-  ),
-),
-      
-      Transform.translate(
-        offset: const Offset(0, -25),
-        child: Image.asset(
-          'assets/images/logo_login.png',
-          width: isSmallScreen ? 90 : 90,
-          height: isSmallScreen ? 90 : 90,
-          fit: BoxFit.contain,
-        ),
-      ),
-    ],
-  );
-}
-
-  Widget _buildCentralCircle(double screenWidth, bool isSmallScreen, bool isLargeScreen, bool isVerySmallScreen) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Círculo principal animado
-        
-
-ScaleTransition(
-  scale: _pulseAnimation,
-  child: Container(
-    width: isSmallScreen 
-        ? screenWidth * (isVerySmallScreen ? 0.5 : 0.6)
-        : isLargeScreen 
-            ? screenWidth * 0.3 
-            : screenWidth * 0.5,
-    height: isSmallScreen 
-        ? screenWidth * (isVerySmallScreen ? 0.5 : 0.6)
-        : isLargeScreen 
-            ? screenWidth * 0.3 
-            : screenWidth * 0.5,
-    // decoration: BoxDecoration(
-    //   shape: BoxShape.circle,
-    //   color: const Color(0xFFFF6B35),
-    //   boxShadow: [
-    //     BoxShadow(
-    //       color: const Color(0xFFFF6B35).withOpacity(0.4),
-    //       blurRadius: 40,
-    //       spreadRadius: 10,
-    //     ),
-    //   ],
-    // ),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildLogoAndTitle() {
+    return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Logo principal (ajustado para evitar overflow)
-        Flexible(
-          child: Image.asset(
-            'assets/images/logo_login2.png',
-            width: isSmallScreen ? 400 : 500,
-            height: isSmallScreen ? 146 : 183,
-            fit: BoxFit.contain,
+        Image.asset(
+          'assets/images/dart_dark-android.png',
+          height: 92,
+          fit: BoxFit.contain,
+        ),
+        const SizedBox(height: 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            'Pide comida a velocidad de la luz.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF93C5FD).withOpacity(0.65),
+            ),
           ),
         ),
       ],
-    ),
-  ),
-),
-          
-          SizedBox(height: isVerySmallScreen ? 8 : 16),
-          
-          // Texto de bienvenida
-          Text(
-            'Tu hambre, nuestra misión',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: isSmallScreen ? 14 : 18,
-              fontWeight: FontWeight.w300,
-              letterSpacing: 1,
-            ),
-          ),
-          
-          SizedBox(height: isVerySmallScreen ? 4 : 6),
-          
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isSmallScreen ? 12 : 16, 
-              vertical: isSmallScreen ? 4 : 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFC93C).withOpacity(0.2),
-              borderRadius: BorderRadius.circular(25),
-            ),
-            child: Text(
-              '🍕 🍔 🍟 🌮 🍗 🍜',
-              style: TextStyle(fontSize: isSmallScreen ? 14 : 18),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
-  Widget _buildBottomContent(double screenWidth, bool isSmallScreen, bool isLargeScreen, bool isVerySmallScreen) {
+  Widget _buildBottomContent() {
     return Column(
       mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        // Mensaje motivacional
-        Text(
-          'Miles de restaurantes te esperan',
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.white70,
-            fontSize: isSmallScreen ? 12 : 14,
-            fontWeight: FontWeight.w400,
-            height: 1.4,
-          ),
-        ),
-        
-        SizedBox(height: isVerySmallScreen ? 8 : 16),
-        
-        // Botón de Google con diseño futurista
-        Container(
-          width: isLargeScreen ? screenWidth * 0.6 : double.infinity,
-          height: isSmallScreen ? 52 : 60,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(30),
-            border: Border.all(
-              color: const Color(0xFFFFC93C),
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFFFFC93C).withOpacity(0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
+        if (_loginError != null) ...[
+          Padding(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Text(
+              _loginError!,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                color: Colors.red.shade400,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
               ),
-            ],
+            ),
           ),
+        ],
+        // Botón Continuar con Google (pill-shaped)
+        SizedBox(
+          width: double.infinity,
+          height: 56,
           child: Material(
             color: Colors.transparent,
+            borderRadius: BorderRadius.circular(28),
             child: InkWell(
               onTap: _handleSignIn,
-              borderRadius: BorderRadius.circular(30),
+              borderRadius: BorderRadius.circular(28),
+              splashColor: _kPrimary.withOpacity(0.15),
+              highlightColor: _kPrimary.withOpacity(0.08),
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(28),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(isSmallScreen ? 6 : 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8F9FA),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Image.asset(
-                        'assets/images/google_logo.png',
-                        height: isSmallScreen ? 24 : 28,
-                        width: isSmallScreen ? 24 : 28,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Icon(
-                            Icons.login,
-                            size: isSmallScreen ? 24 : 28,
-                            color: const Color(0xFF4285F4),
-                          );
-                        },
-                      ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.08),
+                      blurRadius: 16,
+                      offset: const Offset(0, 4),
                     ),
-                    SizedBox(width: isSmallScreen ? 10 : 12),
-                    Text(
-                      'EMPEZAR CON GOOGLE',
-                      style: TextStyle(
-                        fontSize: isSmallScreen ? 11 : 13,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF1A1A2E),
-                        letterSpacing: 1,
-                      ),
+                    BoxShadow(
+                      color: Colors.white.withOpacity(0.1),
+                      blurRadius: 12,
+                      offset: const Offset(0, -2),
                     ),
                   ],
+                ),
+                child: Center(
+                  child: Text(
+                    'Continuar con Google',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: const Color(0xFF111827),
+                    ),
+                  ),
                 ),
               ),
             ),
           ),
         ),
-        
-        SizedBox(height: isVerySmallScreen ? 8 : 12),
-        
-        // Indicadores de tiempo
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildTimeIndicator('⚡', '5 min', 'Registro', isSmallScreen),
-            Container(
-              margin: EdgeInsets.symmetric(horizontal: isSmallScreen ? 6 : 10),
-              width: isSmallScreen ? 15 : 25,
-              height: 1,
-              color: Colors.white30,
-            ),
-            _buildTimeIndicator('🍕', '30 min', 'Tu comida', isSmallScreen),
-          ],
-        ),
-        
-        SizedBox(height: isVerySmallScreen ? 6 : 10),
-        
-        // Términos minimalistas
+        const SizedBox(height: 20),
         Text(
-          'Al continuar aceptas términos y condiciones',
+          'Al continuar, aceptas nuestros Términos y Condiciones y Política de Privacidad.',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.6),
-            fontSize: isSmallScreen ? 9 : 10,
-            height: 1.4,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 12,
+            color: const Color(0xFF93C5FD).withOpacity(0.55),
+            height: 1.5,
           ),
         ),
-        
-        // Pequeño padding inferior para evitar que se pegue al borde
-        SizedBox(height: isVerySmallScreen ? 4 : 8),
       ],
     );
   }
 
-  Widget _buildTimeIndicator(String emoji, String time, String label, bool isSmallScreen) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          emoji,
-          style: TextStyle(fontSize: isSmallScreen ? 16 : 18),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          time,
-          style: TextStyle(
-            color: const Color(0xFFFFC93C),
-            fontSize: isSmallScreen ? 10 : 12,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        Text(
-          label,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: isSmallScreen ? 8 : 9,
-          ),
-        ),
-      ],
-    );
-  }
 }
