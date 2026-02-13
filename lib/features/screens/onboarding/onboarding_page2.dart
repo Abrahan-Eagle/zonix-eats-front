@@ -56,11 +56,12 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                 builder: (context, constraints) {
                   final w = MediaQuery.of(context).size.width;
                   final isSmall = w < 360;
+                  final isTablet = w > 600;
                   final titleSize = isSmall ? 24.0 : (w < 400 ? 26.0 : 28.0);
                   final bodySize = isSmall ? 14.0 : 16.0;
                   return Padding(
                     padding: EdgeInsets.symmetric(
-                      horizontal: isSmall ? 24 : 32,
+                      horizontal: isSmall ? 24 : (isTablet ? 40 : 32),
                       vertical: 20,
                     ),
                     child: Column(

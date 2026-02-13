@@ -12,7 +12,9 @@ class OnboardingPage1 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.of(context).size.width;
-    final padH = w < 360 ? 20.0 : 24.0;
+    final isSmall = w < 360;
+    final isTablet = w > 600;
+    final padH = isSmall ? 20.0 : (isTablet ? 32.0 : 24.0);
     return Stack(
       children: [
         _buildBackground(context),

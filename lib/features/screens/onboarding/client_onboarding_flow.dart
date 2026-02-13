@@ -1456,19 +1456,23 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
 
   Widget _buildStep1(Size size) {
     final isTablet = size.width > 600;
+    final isSmall = size.width < 360;
     final inputPadding = EdgeInsets.symmetric(
-      horizontal: isTablet ? 20 : 16,
-      vertical: 14,
+      horizontal: isTablet ? 20 : (isSmall ? 12 : 16),
+      vertical: isSmall ? 12 : 14,
     );
 
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(horizontal: isTablet ? 32 : 24, vertical: 16),
+      padding: EdgeInsets.symmetric(
+        horizontal: isTablet ? 32 : (isSmall ? 16 : 24),
+        vertical: isSmall ? 12 : 16,
+      ),
       child: Form(
         key: _step1FormKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 16),
+            SizedBox(height: isSmall ? 8 : 16),
             // Profile photo placeholder (Stitch 6)
             Center(
               child: GestureDetector(
@@ -1477,8 +1481,8 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                   clipBehavior: Clip.none,
                   children: [
                     Container(
-                      width: 112,
-                      height: 112,
+                      width: isSmall ? 96 : 112,
+                      height: isSmall ? 96 : 112,
                       decoration: BoxDecoration(
                         color: _kSurfaceDark,
                         shape: BoxShape.circle,
@@ -1496,7 +1500,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                             )
                           : Icon(
                               Icons.person,
-                              size: 48,
+                              size: isSmall ? 40 : 48,
                               color: Colors.white.withOpacity(0.5),
                             ),
                     ),
@@ -1504,7 +1508,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                       bottom: 0,
                       right: 0,
                       child: Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: EdgeInsets.all(isSmall ? 6 : 8),
                         decoration: BoxDecoration(
                           color: _kPrimary,
                           shape: BoxShape.circle,
@@ -1513,10 +1517,10 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                             width: 4,
                           ),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.photo_camera,
                           color: Colors.white,
-                          size: 20,
+                          size: isSmall ? 18 : 20,
                         ),
                       ),
                     ),
@@ -1567,7 +1571,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                         (v == null || v.trim().isEmpty) ? 'Ingresa tu nombre' : null,
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: isSmall ? 12 : 16),
                 Expanded(
                   child: _buildDarkInput(
                     label: 'Apellido',
@@ -1858,6 +1862,8 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
 
   Widget _buildStep2(Size size) {
     final isTablet = size.width > 600;
+    final isSmall = size.width < 360;
+    final mapHeight = isSmall ? 160.0 : 192.0;
 
     if (_countries.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -1871,15 +1877,15 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
 
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(
-        horizontal: isTablet ? 32 : 24,
-        vertical: 16,
+        horizontal: isTablet ? 32 : (isSmall ? 16 : 24),
+        vertical: isSmall ? 12 : 16,
       ),
       child: Form(
         key: _step2FormKey,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 8),
+            SizedBox(height: isSmall ? 4 : 8),
             // Título y subtítulo (Stitch 7)
             Text(
               'Dirección de entrega',
@@ -1897,10 +1903,10 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                 color: Colors.white.withOpacity(0.6),
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: isSmall ? 16 : 24),
 
             // Mapa con botón "Usar mi ubicación actual"
-            _buildMapCardStep2(context),
+            _buildMapCardStep2(context, mapHeight),
             const SizedBox(height: 24),
 
             // Calle
@@ -1930,7 +1936,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                     keyboardType: TextInputType.number,
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: isSmall ? 12 : 16),
                 Expanded(
                   child: _buildAddressField(
                     label: 'Código Postal',
@@ -1961,7 +1967,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     );
   }
 
-  Widget _buildMapCardStep2(BuildContext context) {
+  Widget _buildMapCardStep2(BuildContext context, [double mapHeight = 192]) {
     final hasCoords = _latitude != null && _longitude != null;
     final centerPoint = latLng.LatLng(
       _latitude ?? 10.4806,
@@ -1969,7 +1975,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     );
 
     return Container(
-      height: 192,
+      height: mapHeight,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
         boxShadow: [

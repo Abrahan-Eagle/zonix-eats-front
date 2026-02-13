@@ -28,6 +28,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
     final w = MediaQuery.of(context).size.width;
     final h = MediaQuery.of(context).size.height;
     final isSmall = w < 360;
+    final isTablet = w > 600;
 
     return Stack(
       children: [
@@ -37,7 +38,10 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
             child: ConstrainedBox(
               constraints: BoxConstraints(minHeight: h - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom),
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: isSmall ? 20 : 24, vertical: 24),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isSmall ? 20 : (isTablet ? 32 : 24),
+                  vertical: 24,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
