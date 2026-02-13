@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'onboarding_page1.dart';
 import 'onboarding_page2.dart';
 import 'onboarding_page3.dart';
+
+// Colores del template Stitch (Onboarding)
+const Color _kBackgroundDark = Color(0xFF0F1923);
+const Color _kSpaceBlue = Color(0xFF1A2E46);
+const Color _kPrimary = Color(0xFF3399FF);
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -17,11 +23,11 @@ class OnboardingScreenState extends State<OnboardingScreen> {
   bool _isLoading = false;
 
   List<Widget> get onboardingPages {
-    return const [
-      WelcomePage(),
-      OnboardingPage1(), // Intro 1 - beneficios
-      OnboardingPage2(), // Intro 2 - pedidos fáciles
-      OnboardingPage3(), // Selección de rol (users / commerce) y punto de bifurcación por rol
+    return [
+      const WelcomePage(),
+      const OnboardingPage1(), // Intro 1 - beneficios
+      const OnboardingPage2(), // Intro 2 - pedidos fáciles
+      const OnboardingPage3(), // Selección de rol (users / commerce) y punto de bifurcación por rol
     ];
   }
 
@@ -97,11 +103,8 @@ class OnboardingScreenState extends State<OnboardingScreen> {
                         effect: ExpandingDotsEffect(
                           dotHeight: 6,
                           dotWidth: 6,
-                          // activeDotColor: theme.primaryColor,
-                          // dotColor: theme.dividerColor,
-
-                          activeDotColor: Colors.white, // Punto activo blanco
-                        dotColor: Colors.white.withOpacity(0.5), // Puntos inactivos semitransparentes
+                          activeDotColor: _kPrimary,
+                          dotColor: _kPrimary.withOpacity(0.2),
                           spacing: 8,
                           expansionFactor: 3,
                         ),
@@ -161,243 +164,251 @@ class WelcomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: RadialGradient(
-          center: Alignment.center,
-          radius: 1.2,
-          colors: [
-            Color(0xFF0F172A), // Azul muy oscuro (espacio)
-            Color(0xFF1E293B), // Azul oscuro
-            Color(0xFF334155), // Azul medio
-          ],
-          stops: [0.0, 0.6, 1.0],
-        ),
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 20.0),
+    return Stack(
+      children: [
+        // Fondo oscuro con gradiente y estrellas
+        _buildBackground(context),
+        // Contenido
+        SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Espaciado superior flexible
-              const Spacer(flex: 1),
-              
-              // Imagen de familia con efecto planetario
-              Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    colors: [
-                      const Color(0xFFF59E0B).withOpacity(0.2), // Naranja suave
-                      const Color(0xFF3B82F6).withOpacity(0.1), // Azul suave
-                      Colors.transparent,
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(100),
-                  border: Border.all(
-                    color: const Color(0xFFF59E0B).withOpacity(0.3),
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFF59E0B).withOpacity(0.4),
-                      blurRadius: 30,
-                      spreadRadius: 5,
-                    ),
-                    BoxShadow(
-                      color: const Color(0xFF3B82F6).withOpacity(0.3),
-                      blurRadius: 15,
-                      spreadRadius: -5,
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(80),
-                  child: Image.asset(
-                    'assets/onboarding/onboarding_eats_familia.png',
-                    height: size.height * 0.22,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              
-              const SizedBox(height: 40),
-              
-              // Título con temática espacial
-              Column(
-                children: [
-                  Text(
-                    '🪐 Bienvenido al',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.w400,
-                      fontSize: 22,
-                      color: Colors.white.withOpacity(0.8),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: 'Universo ',
-                          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 34,
-                            color: Colors.white,
-                            height: 1.1,
-                          ),
+              // Área central
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // Glow radial detrás del planeta
+                      Expanded(
+                        flex: 2,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            // Glow circular (blur)
+                            Positioned(
+                              top: 0,
+                              child: IgnorePointer(
+                                child: Container(
+                                  width: MediaQuery.of(context).size.width * 1.2,
+                                  height: MediaQuery.of(context).size.height * 0.4,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: RadialGradient(
+                                      colors: [
+                                        _kPrimary.withOpacity(0.25),
+                                        _kPrimary.withOpacity(0),
+                                      ],
+                                      stops: const [0.0, 0.7],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            // Contenedor planeta (escala responsive)
+                            LayoutBuilder(
+                              builder: (context, constraints) {
+                                final w = MediaQuery.of(context).size.width;
+                                final scale = (w < 360 ? 0.8 : (w / 400).clamp(0.85, 1.1)).toDouble();
+                                final outer = 288.0 * scale;
+                                final mid = 256.0 * scale;
+                                final inner = 224.0 * scale;
+                                return SizedBox(
+                                  width: outer,
+                                  height: outer,
+                                  child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  // Anillo exterior
+                                  Container(
+                                    width: outer,
+                                    height: outer,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: _kPrimary.withOpacity(0.2),
+                                        width: 1,
+                                      ),
+                                    ),
+                                  ),
+                                  // Anillo interior
+                                  Container(
+                                    width: mid,
+                                    height: mid,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      border: Border.all(
+                                        color: _kPrimary.withOpacity(0.1),
+                                        width: 1,
+                                      ),
+                                    ),
+                                  ),
+                                  // Círculo principal con imagen
+                                  Container(
+                                    width: inner,
+                                    height: inner,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: _kSpaceBlue,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: _kPrimary.withOpacity(0.25),
+                                          blurRadius: 50,
+                                          offset: const Offset(0, 20),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ClipOval(
+                                      child: Stack(
+                                        fit: StackFit.expand,
+                                        children: [
+                                          Image.asset(
+                                            'assets/onboarding/onboarding_eats.png',
+                                            fit: BoxFit.cover,
+                                          ),
+                                          // Overlay atmósfera
+                                          Container(
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(
+                                                begin: Alignment.topLeft,
+                                                end: Alignment.bottomRight,
+                                                colors: [
+                                                  _kBackgroundDark.withOpacity(0.8),
+                                                  Colors.transparent,
+                                                  _kPrimary.withOpacity(0.2),
+                                                ],
+                                                stops: const [0.0, 0.5, 1.0],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  // Estrellas flotantes (dentro del área para evitar clipping)
+                                  Positioned(top: 8, right: 48, child: _starWidget('★', 0.6)),
+                                  Positioned(bottom: 24, left: 32, child: _starWidget('✦', 0.4)),
+                                  Positioned(top: outer * 0.42, right: 16, child: _dotStar(0.5)),
+                                ],
+                              ),
+                            );
+                              },
+                            ),
+                          ],
                         ),
-                        TextSpan(
-                          text: 'ZONIX',
-                          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 34,
-                            color: const Color(0xFFF59E0B), // Naranja del logo
-                            height: 1.1,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 24),
-              
-              // Badge espacial
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFFEF4444), // Rojo
-                      Color(0xFFF59E0B), // Naranja
-                      Color(0xFFFBBF24), // Amarillo
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFF59E0B).withOpacity(0.5),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
-                ),
-                child: const Text(
-                  '🚀 ¡Comida a la velocidad de la luz!',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black26,
-                        blurRadius: 2,
                       ),
+                      SizedBox(height: MediaQuery.of(context).size.width < 360 ? 24 : 40),
+                      // Textos
+                      Text.rich(
+                        TextSpan(
+                          text: '¡Tu viaje ',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: MediaQuery.of(context).size.width < 360 ? 24.0 : (MediaQuery.of(context).size.width < 400 ? 26.0 : 28.0),
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            height: 1.25,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'gastronómico',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: MediaQuery.of(context).size.width < 360 ? 24.0 : (MediaQuery.of(context).size.width < 400 ? 26.0 : 28.0),
+                                fontWeight: FontWeight.w800,
+                                color: _kPrimary,
+                                height: 1.25,
+                              ),
+                            ),
+                            TextSpan(
+                              text: ' comienza aquí!',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: MediaQuery.of(context).size.width < 360 ? 24.0 : (MediaQuery.of(context).size.width < 400 ? 26.0 : 28.0),
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                height: 1.25,
+                              ),
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Explora sabores de toda la galaxia sin salir de casa.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: MediaQuery.of(context).size.width < 360 ? 14.0 : 16.0,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withOpacity(0.7),
+                          height: 1.5,
+                        ),
+                      ),
+                      const Spacer(flex: 1),
                     ],
                   ),
                 ),
               ),
-              
-              const SizedBox(height: 36),
-              
-              // Elementos de trust con temática espacial
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFF1E293B).withOpacity(0.8),
-                      const Color(0xFF334155).withOpacity(0.6),
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(25),
-                  border: Border.all(
-                    color: const Color(0xFFF59E0B).withOpacity(0.4),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFF59E0B).withOpacity(0.2),
-                      blurRadius: 20,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildTrustElement('🛸', 'Entrega\nUltra Rápida'),
-                    _buildTrustElement('🌟', 'Experiencia\nEstelar'),
-                    _buildTrustElement('🪐', 'Miles de\nSabores'),
-                  ],
-                ),
-              ),
-              
-              const SizedBox(height: 32),
-              
-              // Descripción espacial
-              Text(
-                'Conecta con tu familia a través de la comida 👨‍👩‍👧‍👦\n¡Sabores que unen planetas! 🌍✨',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.white.withOpacity(0.85),
-                  fontSize: 16,
-                  height: 1.5,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-              
-              // Espaciado inferior flexible
-              const Spacer(flex: 2),
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildBackground(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return Container(
+      decoration: BoxDecoration(
+        color: _kBackgroundDark,
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            _kSpaceBlue.withOpacity(0.5),
+            _kBackgroundDark,
+          ],
+        ),
+      ),
+      child: Stack(
+        children: [
+          // Estrellas distantes
+          Positioned(top: size.height * 0.1, left: size.width * 0.15, child: _starDot(0.4, 4)),
+          Positioned(top: size.height * 0.25, right: size.width * 0.1, child: _starDot(0.3, 2)),
+          Positioned(bottom: size.height * 0.3, left: size.width * 0.05, child: _starDot(0.2, 4)),
+          Positioned(top: size.height * 0.05, right: size.width * 0.35, child: _starDot(0.4, 2, color: _kPrimary)),
+        ],
       ),
     );
   }
-  
-  Widget _buildTrustElement(String emoji, String text) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        gradient: RadialGradient(
-          colors: [
-            const Color(0xFFF59E0B).withOpacity(0.2),
-            Colors.transparent,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          color: const Color(0xFFF59E0B).withOpacity(0.4),
-          width: 1,
-        ),
+
+  Widget _starWidget(String char, double opacity) {
+    return Text(
+      char,
+      style: TextStyle(
+        color: _kPrimary.withOpacity(opacity),
+        fontSize: 12,
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            emoji,
-            style: const TextStyle(fontSize: 28),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            text,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              height: 1.2,
-            ),
-          ),
-        ],
+    );
+  }
+
+  Widget _dotStar(double opacity) {
+    return Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(
+        color: _kPrimary.withOpacity(opacity),
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+
+  Widget _starDot(double opacity, double size, {Color? color}) {
+    final c = color ?? Colors.white;
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: c.withOpacity(opacity),
+        shape: BoxShape.circle,
       ),
     );
   }

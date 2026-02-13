@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -84,6 +86,8 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
   double? _longitude;
   DateTime? _lastGeocodingCall;
   bool _isLoadingLocation = false;
+  bool _skipNextReverseGeocode = false; // Evitar loop al mover mapa desde inputs
+  Timer? _streetDebounceTimer; // Debounce para geocodificar al cambiar calle
 
   // STEP 2 (commerce): dirección del dueño — se guarda en provider, no se persiste hasta el final.
 
@@ -118,6 +122,8 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     _loadCountries();
     _getCurrentLocation();
     _loadOperatorCodes();
+    _streetController.addListener(_onStreetChanged);
+    _streetCommerceController.addListener(_onStreetChanged);
     if (widget.isCommerce) {
       _commerceSchedule = {
         'lunes': {'inicio': '', 'fin': '', 'cerrado': 'false'},
@@ -164,6 +170,9 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
 
   @override
   void dispose() {
+    _streetController.removeListener(_onStreetChanged);
+    _streetCommerceController.removeListener(_onStreetChanged);
+    _streetDebounceTimer?.cancel();
     _pageController.dispose();
     _firstNameController.dispose();
     _lastNameController.dispose();
@@ -304,6 +313,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     });
     if (value != null) {
       _loadStates();
+      _moveMapToAddress();
     }
   }
 
@@ -315,6 +325,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     });
     if (value != null) {
       _loadCities();
+      _moveMapToAddress();
     }
   }
 
@@ -323,8 +334,48 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       _selectedCity = value;
       _cityId = value?.id;
     });
+    if (value != null) {
+      _moveMapToAddress();
+    }
   }
 
+  /// Geocodificación directa: mueve el mapa a la ubicación indicada por los selects/inputs.
+  Future<void> _moveMapToAddress() async {
+    final parts = <String>[];
+    final street = (widget.isCommerce && _currentStep == 3)
+        ? _streetCommerceController.text.trim()
+        : _streetController.text.trim();
+    if (street.isNotEmpty) parts.add(street);
+    if (_selectedCity != null) parts.add(_selectedCity!.name);
+    if (_selectedState != null) parts.add(_selectedState!.name);
+    if (_selectedCountry != null) parts.add(_selectedCountry!.name);
+    if (parts.isEmpty) return;
+
+    final address = parts.join(', ');
+    try {
+      final locations = await locationFromAddress(address);
+      if (locations.isEmpty || !mounted) return;
+
+      final loc = locations.first;
+      _skipNextReverseGeocode = true;
+      setState(() {
+        _latitude = loc.latitude;
+        _longitude = loc.longitude;
+      });
+      _mapController.move(latLng.LatLng(loc.latitude, loc.longitude), 15);
+    } catch (_) {
+      // Geocoding falló (red, límite, etc.) – ignorar silenciosamente
+    }
+  }
+
+  void _onStreetChanged() {
+    _streetDebounceTimer?.cancel();
+    _streetDebounceTimer = Timer(const Duration(milliseconds: 800), () {
+      if (_selectedCity != null || _selectedState != null || _selectedCountry != null) {
+        _moveMapToAddress();
+      }
+    });
+  }
 
   static List<Map<String, dynamic>> _fallbackOperatorCodes() {
     return [
@@ -753,7 +804,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             ? null
             : _secondLastNameController.text.trim(),
         dateOfBirth: _birthDate!,
-        sex: _selectedSex!,
+        sex: (_selectedSex == 'F' || _selectedSex == 'M') ? _selectedSex! : 'M',
       );
       provider.setRawPhone(_phoneController.text.trim());
 
@@ -1241,62 +1292,148 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     }
   }
 
+  // Colores Stitch (6) - Datos Personales
+  static const Color _kBackgroundDark = Color(0xFF101922);
+  static const Color _kSurfaceDark = Color(0xFF1A2633);
+  static const Color _kPrimary = Color(0xFF3399FF);
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final progress = (_currentStep + 1) / _totalSteps;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tu cuenta Zonix Eats'),
-        automaticallyImplyLeading: true,
+      backgroundColor: _kBackgroundDark,
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Header: back + título
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  IconButton(
+                    onPressed: () => Navigator.maybePop(context),
+                    icon: const Icon(Icons.chevron_left, color: Colors.white),
+                    style: IconButton.styleFrom(
+                      backgroundColor: _kSurfaceDark,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                  Expanded(
+                    child: Center(
+                      child: Text(
+                        _currentStep == 0 ? 'Datos Personales' : _stepTitle(_currentStep),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 48),
+                ],
+              ),
+            ),
+            // Progress
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Paso ${_currentStep + 1} de $_totalSteps',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          color: Colors.white.withOpacity(0.6),
+                        ),
+                      ),
+                      Text(
+                        '${(progress * 100).round()}%',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: _kPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 8,
+                      backgroundColor: _kSurfaceDark,
+                      valueColor: const AlwaysStoppedAnimation<Color>(_kPrimary),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: PageView(
+                controller: _pageController,
+                physics: const NeverScrollableScrollPhysics(),
+                children: widget.isCommerce
+                    ? [
+                        _buildStep1(size),
+                        _buildStep2(size),
+                        _buildStep3Commerce(size),
+                        _buildStep4Address(size),
+                      ]
+                    : [
+                        _buildStep1(size),
+                        _buildStep2(size),
+                      ],
+              ),
+            ),
+          ],
+        ),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.fromLTRB(24, 16, 24, 16 + MediaQuery.of(context).padding.bottom),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              _kBackgroundDark.withOpacity(0),
+              _kBackgroundDark,
+            ],
+          ),
+        ),
+        child: SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton(
+            onPressed: _isSubmitting ? null : _handleNext,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _kPrimary,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: _kPrimary.withOpacity(0.5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Expanded(
-                  child: LinearProgressIndicator(
-                    value: (_currentStep + 1) / _totalSteps,
+                Text(
+                  _currentStep < _totalSteps - 1 ? 'Siguiente' : 'Finalizar',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Text('Paso ${_currentStep + 1} de $_totalSteps'),
+                const SizedBox(width: 8),
+                const Icon(Icons.arrow_forward, size: 20),
               ],
-            ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: PageView(
-              controller: _pageController,
-              physics: const NeverScrollableScrollPhysics(),
-              children: widget.isCommerce
-                  ? [
-                      _buildStep1(size),
-                      _buildStep2(size),
-                      _buildStep3Commerce(size),
-                      _buildStep4Address(size),
-                    ]
-                  : [
-                      _buildStep1(size),
-                      _buildStep2(size),
-                    ],
-            ),
-          ),
-        ],
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: ElevatedButton(
-              onPressed: _isSubmitting ? null : _handleNext,
-              child: Text(
-                _currentStep < _totalSteps - 1 ? 'Continuar' : 'Finalizar',
-              ),
             ),
           ),
         ),
@@ -1304,395 +1441,424 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     );
   }
 
+  String _stepTitle(int step) {
+    if (widget.isCommerce) {
+      switch (step) {
+        case 1: return 'Dirección';
+        case 2: return 'Datos del Comercio';
+        case 3: return 'Dirección del Establecimiento';
+      }
+    } else {
+      if (step == 1) return 'Dirección';
+    }
+    return 'Datos Personales';
+  }
+
   Widget _buildStep1(Size size) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    const primaryColor = Color(0xFFF18805);
     final isTablet = size.width > 600;
+    final inputPadding = EdgeInsets.symmetric(
+      horizontal: isTablet ? 20 : 16,
+      vertical: 14,
+    );
 
     return SingleChildScrollView(
-      padding: EdgeInsets.symmetric(
-        horizontal: isTablet ? 32 : 16,
-        vertical: 16,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: isTablet ? 32 : 24, vertical: 16),
       child: Form(
         key: _step1FormKey,
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SizedBox(height: 8),
-            // Cabecera tipo CorralX: icono + título + subtítulo
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: colorScheme.primary.withOpacity(0.3),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: primaryColor,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.person_outline,
-                      color: colorScheme.onPrimary,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Cuéntanos más de ti',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onBackground,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Completa tus datos para terminar de crear tu cuenta. Los campos con * son obligatorios.',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onBackground.withOpacity(0.7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              '¿Cómo te llamas?',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onBackground,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextFormField(
-              controller: _firstNameController,
-              onChanged: (value) {
-                final normalized = _normalizeName(value);
-                if (normalized != value) {
-                  _firstNameController.value = TextEditingValue(
-                    text: normalized,
-                    selection: TextSelection.collapsed(offset: normalized.length),
-                  );
-                }
-              },
-              decoration: InputDecoration(
-                labelText: 'Nombre(s) *',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: primaryColor, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.error, width: 2),
-                ),
-                filled: true,
-                fillColor: colorScheme.surface,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: isTablet ? 20 : 16,
-                  vertical: isTablet ? 20 : 16,
-                ),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Ingresa tu nombre';
-                }
-                return null;
-              },
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _lastNameController,
-              onChanged: (value) {
-                final normalized = _normalizeName(value);
-                if (normalized != value) {
-                  _lastNameController.value = TextEditingValue(
-                    text: normalized,
-                    selection: TextSelection.collapsed(offset: normalized.length),
-                  );
-                }
-              },
-              decoration: InputDecoration(
-                labelText: 'Apellido(s) *',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: primaryColor, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.error, width: 2),
-                ),
-                filled: true,
-                fillColor: colorScheme.surface,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: isTablet ? 20 : 16,
-                  vertical: isTablet ? 20 : 16,
-                ),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Ingresa tu apellido';
-                }
-                return null;
-              },
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              '¿Cuándo naciste?',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onBackground,
-              ),
-            ),
-            const SizedBox(height: 8),
-            InkWell(
-              onTap: _pickBirthDate,
-              child: InputDecorator(
-                decoration: InputDecoration(
-                  hintText: 'DD/MM/AAAA',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: primaryColor, width: 2),
-                  ),
-                  filled: true,
-                  fillColor: colorScheme.surface,
-                  contentPadding: EdgeInsets.symmetric(
-                    horizontal: isTablet ? 20 : 16,
-                    vertical: isTablet ? 20 : 16,
-                  ),
-                ),
-                child: Text(
-                  _birthDate == null
-                      ? 'Selecciona tu fecha de nacimiento'
-                      : '${_birthDate!.day.toString().padLeft(2, '0')}/${_birthDate!.month.toString().padLeft(2, '0')}/${_birthDate!.year}',
-                  style: TextStyle(
-                    color: _birthDate == null
-                        ? colorScheme.onSurfaceVariant
-                        : colorScheme.onSurface,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              '¿Con qué género te identificas?',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onBackground,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              children: [
-                _buildGenderChip('F', 'Femenino'),
-                _buildGenderChip('M', 'Masculino'),
-              ],
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Datos de contacto',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onBackground,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'Te contactaremos solo si necesitamos comunicarte algo importante sobre tus pedidos.',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onBackground.withOpacity(0.7),
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (_isLoadingOperators)
-              const Center(child: CircularProgressIndicator())
-            else if (_operatorCodes.isNotEmpty)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    flex: 1,
-                    child: DropdownButtonFormField<Map<String, dynamic>>(
-                      value: _selectedOperator,
-                      isExpanded: true,
-                      decoration: InputDecoration(
-                        labelText: 'Código de país',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: primaryColor, width: 2),
-                        ),
-                        filled: true,
-                        fillColor: colorScheme.surface,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: isTablet ? 20 : 16,
-                          vertical: isTablet ? 20 : 16,
+            const SizedBox(height: 16),
+            // Profile photo placeholder (Stitch 6)
+            Center(
+              child: GestureDetector(
+                onTap: _pickProfilePhoto,
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: 112,
+                      height: 112,
+                      decoration: BoxDecoration(
+                        color: _kSurfaceDark,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 2,
                         ),
                       ),
-                      items: _operatorCodes
-                          .map(
-                            (code) => DropdownMenuItem<Map<String, dynamic>>(
-                              value: code,
-                              child: Text(
-                                '0${code['code'] ?? ''}',
+                      child: _selectedPhoto != null
+                          ? ClipOval(
+                              child: Image.file(
+                                File(_selectedPhoto!.path),
+                                fit: BoxFit.cover,
                               ),
+                            )
+                          : Icon(
+                              Icons.person,
+                              size: 48,
+                              color: Colors.white.withOpacity(0.5),
                             ),
-                          )
-                          .toList(),
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Selecciona un código';
-                        }
-                        return null;
-                      },
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
-                      onChanged: (value) {
-                        setState(() => _selectedOperator = value);
-                      },
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    flex: 2,
-                    child: TextFormField(
-                      controller: _phoneController,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(7),
-                      ],
-                      decoration: InputDecoration(
-                        labelText: 'Número de celular *',
-                        hintText: 'Ej: 4149055',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: _kPrimary,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: _kBackgroundDark,
+                            width: 4,
+                          ),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: primaryColor, width: 2),
-                        ),
-                        errorBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: colorScheme.error, width: 2),
-                        ),
-                        filled: true,
-                        fillColor: colorScheme.surface,
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: isTablet ? 20 : 16,
-                          vertical: isTablet ? 20 : 16,
+                        child: const Icon(
+                          Icons.photo_camera,
+                          color: Colors.white,
+                          size: 20,
                         ),
                       ),
-                      keyboardType: TextInputType.phone,
-                      validator: (value) {
-                        if (value == null || value.trim().isEmpty) {
-                          return 'Ingresa un número de teléfono';
-                        }
-                        final clean = value.trim();
-                        if (clean.length != 7) {
-                          return 'Debe tener exactamente 7 dígitos';
-                        }
-                        // El input formatter ya restringe a dígitos, así que no
-                        // es necesario validar caracteres no numéricos aquí.
-                        return null;
-                      },
-                      autovalidateMode: AutovalidateMode.onUserInteraction,
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+            ),
             const SizedBox(height: 24),
-            // Foto de perfil (similar a create_profile_page pero simplificada)
+            // ¡Hola! Empecemos.
             Text(
-              'Tu foto de perfil',
-              style: TextStyle(
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onBackground,
+              '¡Hola! Empecemos.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
             const SizedBox(height: 8),
+            Text(
+              'Completa tus datos para crear tu experiencia única en Zonix Eats.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                color: Colors.white.withOpacity(0.6),
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Nombre + Apellido (grid 2 cols)
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundColor: colorScheme.surfaceVariant,
-                  backgroundImage: _selectedPhoto != null
-                      ? FileImage(File(_selectedPhoto!.path))
-                      : null,
-                  child: _selectedPhoto == null
-                      ? const Icon(Icons.person_outline, size: 32)
-                      : null,
+                Expanded(
+                  child: _buildDarkInput(
+                    label: 'Nombre',
+                    controller: _firstNameController,
+                    hint: 'Juan',
+                    onChanged: (v) {
+                      final n = _normalizeName(v);
+                      if (n != v) {
+                        _firstNameController.value = TextEditingValue(
+                          text: n,
+                          selection: TextSelection.collapsed(offset: n.length),
+                        );
+                      }
+                    },
+                    validator: (v) =>
+                        (v == null || v.trim().isEmpty) ? 'Ingresa tu nombre' : null,
+                  ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Toma una foto clara de tu rostro.'),
-                      const SizedBox(height: 8),
-                      OutlinedButton.icon(
-                        onPressed: _pickProfilePhoto,
-                        icon: const Icon(Icons.camera_alt_outlined),
-                        label: const Text('Tomar foto'),
-                      ),
-                    ],
+                  child: _buildDarkInput(
+                    label: 'Apellido',
+                    controller: _lastNameController,
+                    hint: 'Pérez',
+                    onChanged: (v) {
+                      final n = _normalizeName(v);
+                      if (n != v) {
+                        _lastNameController.value = TextEditingValue(
+                          text: n,
+                          selection: TextSelection.collapsed(offset: n.length),
+                        );
+                      }
+                    },
+                    validator: (v) =>
+                        (v == null || v.trim().isEmpty) ? 'Ingresa tu apellido' : null,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 24),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
+            // Fecha de Nacimiento
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 4, bottom: 6),
+                  child: Text(
+                    'Fecha de Nacimiento',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(0.9),
+                    ),
+                  ),
+                ),
+                InkWell(
+                  onTap: _pickBirthDate,
+                  borderRadius: BorderRadius.circular(12),
+                  child: InputDecorator(
+                    decoration: InputDecoration(
+                      hintText: 'mm/dd/yyyy',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: _kPrimary, width: 1.5),
+                      ),
+                      contentPadding: inputPadding,
+                      suffixIcon: Icon(
+                        Icons.calendar_today,
+                        size: 20,
+                        color: Colors.white.withOpacity(0.5),
+                      ),
+                    ),
+                    child: Text(
+                      _birthDate == null
+                          ? ''
+                          : '${_birthDate!.month.toString().padLeft(2, '0')}/${_birthDate!.day.toString().padLeft(2, '0')}/${_birthDate!.year}',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: _birthDate == null
+                            ? Colors.white.withOpacity(0.5)
+                            : Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // Sexo dropdown
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 4, bottom: 6),
+                  child: Text(
+                    'Sexo',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(0.9),
+                    ),
+                  ),
+                ),
+                DropdownButtonFormField<String>(
+                  value: _selectedSex,
+                  isExpanded: true,
+                  dropdownColor: _kSurfaceDark,
+                  icon: Icon(Icons.expand_more, color: Colors.white.withOpacity(0.6)),
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: _kPrimary, width: 1.5),
+                    ),
+                    contentPadding: inputPadding,
+                  ),
+                  hint: Text(
+                    'Selecciona tu sexo',
+                    style: GoogleFonts.plusJakartaSans(color: Colors.white.withOpacity(0.5)),
+                  ),
+                  items: [
+                    const DropdownMenuItem(value: 'M', child: Text('Masculino', style: TextStyle(color: Colors.white))),
+                    const DropdownMenuItem(value: 'F', child: Text('Femenino', style: TextStyle(color: Colors.white))),
+                    const DropdownMenuItem(value: 'O', child: Text('Otro', style: TextStyle(color: Colors.white))),
+                    const DropdownMenuItem(value: 'X', child: Text('Prefiero no decir', style: TextStyle(color: Colors.white))),
+                  ],
+                  onChanged: (v) => setState(() => _selectedSex = v),
+                  validator: (v) =>
+                      v == null ? 'Selecciona tu sexo' : null,
+                  autovalidateMode: AutovalidateMode.onUserInteraction,
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            // Teléfono (operator + number)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(left: 4, bottom: 6),
+                  child: Text(
+                    'Teléfono',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withOpacity(0.9),
+                    ),
+                  ),
+                ),
+                if (_isLoadingOperators)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: CircularProgressIndicator(color: _kPrimary),
+                    ),
+                  )
+                else if (_operatorCodes.isNotEmpty)
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 100,
+                        child: DropdownButtonFormField<Map<String, dynamic>>(
+                          value: _selectedOperator,
+                          isExpanded: true,
+                          dropdownColor: _kSurfaceDark,
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 14,
+                            ),
+                          ),
+                          items: _operatorCodes
+                              .map(
+                                (c) => DropdownMenuItem<Map<String, dynamic>>(
+                                  value: c,
+                                  child: Text(
+                                    '0${c['code'] ?? ''}',
+                                    style: const TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                              )
+                              .toList(),
+                          validator: (v) => v == null ? 'Código' : null,
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                          onChanged: (v) => setState(() => _selectedOperator = v),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _phoneController,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(7),
+                          ],
+                          style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText: '600 000 000',
+                            hintStyle: GoogleFonts.plusJakartaSans(
+                              color: Colors.white.withOpacity(0.5),
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: const BorderSide(color: _kPrimary, width: 1.5),
+                            ),
+                            contentPadding: inputPadding,
+                          ),
+                          keyboardType: TextInputType.phone,
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'Ingresa el número';
+                            if (v.trim().length != 7) return '7 dígitos';
+                            return null;
+                          },
+                          autovalidateMode: AutovalidateMode.onUserInteraction,
+                        ),
+                      ),
+                    ],
+                  ),
+              ],
+            ),
+            const SizedBox(height: 80),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildGenderChip(String value, String label) {
-    final isSelected = _selectedSex == value;
-    return ChoiceChip(
-      label: Text(label),
-      selected: isSelected,
-      onSelected: (_) {
-        setState(() => _selectedSex = value);
-      },
+  Widget _buildDarkInput({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    void Function(String)? onChanged,
+    String? Function(String?)? validator,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 6),
+          child: Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withOpacity(0.9),
+            ),
+          ),
+        ),
+        TextFormField(
+          controller: controller,
+          onChanged: onChanged,
+          style: GoogleFonts.plusJakartaSans(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white.withOpacity(0.5)),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.3)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: _kPrimary, width: 1.5),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+          validator: validator,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+        ),
+      ],
     );
   }
 
+  // Colores Stitch (7) - Dirección
+  static const Color _kAddressPrimary = Color(0xFFFFC105);
+  static const Color _kAddressSurface = Color(0xFF252B3B);
+
   Widget _buildStep2(Size size) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    const primaryColor = Color(0xFFF18805);
     final isTablet = size.width > 600;
 
-    // Si llegamos al paso de dirección y aún no hay países: mostrar fallback de inmediato y recargar desde API
     if (_countries.isEmpty) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
@@ -1705,7 +1871,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
 
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(
-        horizontal: isTablet ? 32 : 16,
+        horizontal: isTablet ? 32 : 24,
         vertical: 16,
       ),
       child: Form(
@@ -1714,169 +1880,410 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 8),
-            // Cabecera tipo CorralX para paso dirección
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: colorScheme.primaryContainer.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: colorScheme.primary.withOpacity(0.3),
-                  width: 1,
-                ),
+            // Título y subtítulo (Stitch 7)
+            Text(
+              'Dirección de entrega',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: primaryColor,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      Icons.location_on_outlined,
-                      color: colorScheme.onPrimary,
-                      size: 28,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Dirección de entrega',
-                          style: theme.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.onBackground,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Confirma en el mapa y completa tu dirección principal para tus pedidos.',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: colorScheme.onBackground.withOpacity(0.7),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '¿Dónde debemos llevar tu comida?',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 14,
+                color: Colors.white.withOpacity(0.6),
               ),
+            ),
+            const SizedBox(height: 24),
+
+            // Mapa con botón "Usar mi ubicación actual"
+            _buildMapCardStep2(context),
+            const SizedBox(height: 24),
+
+            // Calle
+            _buildAddressField(
+              label: 'Calle',
+              controller: _streetController,
+              hint: 'Ej. Avenida Reforma',
+              icon: Icons.signpost,
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Ingresa una dirección';
+                if (v.trim().length < 5) return 'La dirección parece muy corta';
+                return null;
+              },
             ),
             const SizedBox(height: 16),
 
-            // Mapa interactivo con pin centrado
-            _buildMapCard(context),
-            const SizedBox(height: 24),
+            // Número + Código Postal (grid)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: _buildAddressField(
+                    label: 'Número',
+                    controller: _houseNumberController,
+                    hint: '123',
+                    icon: Icons.tag,
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildAddressField(
+                    label: 'Código Postal',
+                    controller: _postalCodeController,
+                    hint: '00000',
+                    icon: Icons.markunread_mailbox,
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
 
-            // Sección: UBICACIÓN REGIONAL
-            _buildSectionHeader(
-              icon: Icons.public,
-              label: 'UBICACIÓN REGIONAL',
-              color: primaryColor,
-            ),
-            const SizedBox(height: 12),
-            _buildTwoColumnRow(
-              _buildCountryDropdown(theme.colorScheme),
-              _selectedCountry != null
-                  ? _buildStateDropdown(theme.colorScheme)
-                  : const SizedBox.shrink(),
-            ),
-            const SizedBox(height: 12),
-            _buildTwoColumnRow(
-              _selectedState != null
-                  ? _buildCityDropdown(theme.colorScheme)
-                  : const SizedBox.shrink(),
-              const SizedBox.shrink(),
-            ),
-            const SizedBox(height: 24),
-
-            // Sección: DETALLES DE LA DIRECCIÓN
-            _buildSectionHeader(
-              icon: Icons.location_on_outlined,
-              label: 'DETALLES DE LA DIRECCIÓN',
-              color: primaryColor,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _streetController,
-              decoration: InputDecoration(
-                labelText: 'Dirección *',
-                hintText: 'Ej: C. las Torres, Urb. Centro',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: primaryColor, width: 2),
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: colorScheme.error, width: 2),
-                ),
-                filled: true,
-                fillColor: colorScheme.surface,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: isTablet ? 20 : 16,
-                  vertical: isTablet ? 20 : 16,
-                ),
-              ),
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Ingresa una dirección';
-                }
-                if (value.trim().length < 5) {
-                  return 'La dirección parece muy corta';
-                }
-                return null;
-              },
-              autovalidateMode: AutovalidateMode.onUserInteraction,
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _houseNumberController,
-              decoration: InputDecoration(
-                labelText: 'Número de piso / Apartamento / Casa',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: primaryColor, width: 2),
-                ),
-                filled: true,
-                fillColor: colorScheme.surface,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: isTablet ? 20 : 16,
-                  vertical: isTablet ? 20 : 16,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _postalCodeController,
-              decoration: InputDecoration(
-                labelText: 'Código postal',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: primaryColor, width: 2),
-                ),
-                filled: true,
-                fillColor: colorScheme.surface,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: isTablet ? 20 : 16,
-                  vertical: isTablet ? 20 : 16,
-                ),
-              ),
-              keyboardType: TextInputType.number,
-            ),
+            // País
+            _buildAddressDropdownCountry(),
+            if (_selectedCountry != null) ...[
+              const SizedBox(height: 16),
+              _buildAddressDropdownState(),
+            ],
+            if (_selectedState != null) ...[
+              const SizedBox(height: 16),
+              _buildAddressDropdownCity(),
+            ],
+            const SizedBox(height: 80),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildMapCardStep2(BuildContext context) {
+    final hasCoords = _latitude != null && _longitude != null;
+    final centerPoint = latLng.LatLng(
+      _latitude ?? 10.4806,
+      _longitude ?? -66.9036,
+    );
+
+    return Container(
+      height: 192,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            if (hasCoords)
+              FlutterMap(
+                mapController: _mapController,
+                options: MapOptions(
+                  initialCenter: centerPoint,
+                  initialZoom: 15,
+                  interactionOptions: const InteractionOptions(
+                    flags: InteractiveFlag.drag |
+                        InteractiveFlag.pinchZoom |
+                        InteractiveFlag.doubleTapZoom,
+                  ),
+                  onMapEvent: (event) {
+                    if (event is MapEventMove) {
+                      if (_skipNextReverseGeocode) {
+                        _skipNextReverseGeocode = false;
+                        return;
+                      }
+                      final newCenter = _mapController.camera.center;
+                      setState(() {
+                        _latitude = newCenter.latitude;
+                        _longitude = newCenter.longitude;
+                      });
+                      final now = DateTime.now();
+                      if (_lastGeocodingCall == null ||
+                          now.difference(_lastGeocodingCall!).inMilliseconds > 500) {
+                        _lastGeocodingCall = now;
+                        _autoFillFromLocation(
+                          newCenter.latitude,
+                          newCenter.longitude,
+                        );
+                      }
+                    }
+                  },
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    userAgentPackageName: 'com.zonix.eats',
+                  ),
+                ],
+              )
+            else
+              Container(
+                color: _kAddressSurface,
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const CircularProgressIndicator(color: _kAddressPrimary),
+                    const SizedBox(height: 12),
+                    Text(
+                      _isLoadingLocation ? 'Obteniendo ubicación...' : 'Esperando ubicación',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 13,
+                        color: Colors.white.withOpacity(0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            // Overlay gradiente (IgnorePointer para no bloquear arrastre del mapa)
+            if (hasCoords)
+              Positioned.fill(
+                child: IgnorePointer(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          _kBackgroundDark.withOpacity(0.9),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            // Pin amarillo central (IgnorePointer para no bloquear arrastre del mapa)
+            if (hasCoords)
+              IgnorePointer(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: _kAddressPrimary,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: _kAddressPrimary.withOpacity(0.4),
+                              blurRadius: 12,
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.location_on,
+                          color: Color(0xFF1A1F2B),
+                          size: 28,
+                        ),
+                      ),
+                      Container(
+                        width: 12,
+                        height: 6,
+                        margin: const EdgeInsets.only(top: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.4),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddressField({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    String? Function(String?)? validator,
+    TextInputType? keyboardType,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 6),
+          child: Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Colors.white.withOpacity(0.7),
+            ),
+          ),
+        ),
+        TextFormField(
+          controller: controller,
+          style: GoogleFonts.plusJakartaSans(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white.withOpacity(0.4)),
+            prefixIcon: Icon(
+              icon,
+              size: 20,
+              color: Colors.white.withOpacity(0.5),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: _kAddressPrimary, width: 2),
+            ),
+            filled: true,
+            fillColor: _kAddressSurface,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
+          validator: validator,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          keyboardType: keyboardType,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAddressDropdownCountry() {
+    return _buildAddressDropdownWrapper(
+      label: 'País',
+      icon: Icons.public,
+      child: DropdownButtonFormField<Country>(
+        value: _selectedCountry,
+        isExpanded: true,
+        dropdownColor: _kAddressSurface,
+        icon: Icon(Icons.expand_more, color: Colors.white.withOpacity(0.6)),
+        decoration: _addressInputDecoration(prefixIcon: Icons.public),
+        items: _countries
+            .map(
+              (c) => DropdownMenuItem<Country>(
+                value: c,
+                child: Text(c.name, style: const TextStyle(color: Colors.white)),
+              ),
+            )
+            .toList(),
+        onChanged: (v) => _onCountryChanged(v),
+        validator: (v) => v == null ? 'Selecciona un país' : null,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+      ),
+    );
+  }
+
+  Widget _buildAddressDropdownState() {
+    return _buildAddressDropdownWrapper(
+      label: 'Estado',
+      icon: Icons.map_outlined,
+      child: DropdownButtonFormField<StateModel>(
+        value: _selectedState,
+        isExpanded: true,
+        dropdownColor: _kAddressSurface,
+        icon: Icon(Icons.expand_more, color: Colors.white.withOpacity(0.6)),
+        decoration: _addressInputDecoration(prefixIcon: Icons.map_outlined),
+        items: _states
+            .map(
+              (s) => DropdownMenuItem<StateModel>(
+                value: s,
+                child: Text(s.name, style: const TextStyle(color: Colors.white)),
+              ),
+            )
+            .toList(),
+        onChanged: (v) => _onStateChanged(v),
+        validator: (v) => v == null ? 'Selecciona un estado' : null,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+      ),
+    );
+  }
+
+  Widget _buildAddressDropdownCity() {
+    return _buildAddressDropdownWrapper(
+      label: 'Ciudad',
+      icon: Icons.apartment,
+      child: DropdownButtonFormField<City>(
+        value: _selectedCity,
+        isExpanded: true,
+        dropdownColor: _kAddressSurface,
+        icon: Icon(Icons.expand_more, color: Colors.white.withOpacity(0.6)),
+        decoration: _addressInputDecoration(prefixIcon: Icons.apartment),
+        items: _cities
+            .map(
+              (c) => DropdownMenuItem<City>(
+                value: c,
+                child: Text(c.name, style: const TextStyle(color: Colors.white)),
+              ),
+            )
+            .toList(),
+        onChanged: (v) => _onCityChanged(v),
+        validator: (v) => v == null ? 'Selecciona una ciudad' : null,
+        autovalidateMode: AutovalidateMode.onUserInteraction,
+      ),
+    );
+  }
+
+  Widget _buildAddressDropdownWrapper({
+    required String label,
+    required IconData icon,
+    required Widget child,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 6),
+          child: Text(
+            label,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: Colors.white.withOpacity(0.7),
+            ),
+          ),
+        ),
+        child,
+      ],
+    );
+  }
+
+  InputDecoration _addressInputDecoration({required IconData prefixIcon}) {
+    return InputDecoration(
+      prefixIcon: Icon(
+        prefixIcon,
+        size: 20,
+        color: Colors.white.withOpacity(0.5),
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.white.withOpacity(0.2)),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: _kAddressPrimary, width: 2),
+      ),
+      filled: true,
+      fillColor: _kAddressSurface,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     );
   }
 
@@ -2387,18 +2794,18 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                   ),
                   onMapEvent: (event) {
                     if (event is MapEventMove) {
+                      if (_skipNextReverseGeocode) {
+                        _skipNextReverseGeocode = false;
+                        return;
+                      }
                       final newCenter = _mapController.camera.center;
                       setState(() {
                         _latitude = newCenter.latitude;
                         _longitude = newCenter.longitude;
                       });
-
                       final now = DateTime.now();
                       if (_lastGeocodingCall == null ||
-                          now
-                                  .difference(_lastGeocodingCall!)
-                                  .inMilliseconds >
-                              500) {
+                          now.difference(_lastGeocodingCall!).inMilliseconds > 500) {
                         _lastGeocodingCall = now;
                         _autoFillFromLocation(
                           newCenter.latitude,

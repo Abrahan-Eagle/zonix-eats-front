@@ -1,360 +1,199 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-class OnboardingPage1 extends StatefulWidget {
+// Colores del template Stitch (Onboarding beneficios)
+const Color _kBackgroundDark = Color(0xFF0F1923);
+const Color _kCardDark = Color(0xFF1A2633);
+const Color _kPrimary = Color(0xFF3399FF);
+
+class OnboardingPage1 extends StatelessWidget {
   const OnboardingPage1({super.key});
 
   @override
-  State<OnboardingPage1> createState() => _OnboardingPage1State();
-}
-
-class _OnboardingPage1State extends State<OnboardingPage1>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _animationController;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _slideAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 1200),
-      vsync: this,
-    );
-    
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-    );
-    
-    _slideAnimation = Tween<double>(begin: 50.0, end: 0.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
-    );
-    
-    _animationController.forward();
-  }
-
-  @override
-  void dispose() {
-    _animationController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isTablet = size.width > 600;
-    final isSmallPhone = size.width < 360;
-    
-    return Scaffold(
-      backgroundColor: const Color(0xFFFF6B35),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: constraints.maxHeight,
-                ),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: isTablet ? 64.0 : (isSmallPhone ? 16.0 : 20.0),
-                    vertical: isTablet ? 32.0 : 16.0,
-                  ),
-                  child: AnimatedBuilder(
-                    animation: _animationController,
-                    builder: (context, child) {
-                      return Transform.translate(
-                        offset: Offset(0, _slideAnimation.value),
-                        child: Opacity(
-                          opacity: _fadeAnimation.value,
-                          child: IntrinsicHeight(
-                            child: Column(
-                              children: [
-                                // Header con logo
-                                // _buildHeader(isTablet, isSmallPhone),
-                                
-                                // Espaciador flexible
-                                // const Flexible(flex: 1, child: SizedBox()),
-                                
-                                // Ilustración principal
-                                _buildMainIllustration(size, isTablet, isSmallPhone),
-                                
-                                // Espaciador
-                                SizedBox(height: isTablet ? 32 : (isSmallPhone ? 16 : 24)),
-                                
-                                // Contenido principal
-                                _buildMainContent(isTablet, isSmallPhone),
-                                
-                                // Espaciador
-                                SizedBox(height: isTablet ? 32 : (isSmallPhone ? 20 : 24)),
-                                
-                                // Características destacadas
-                                _buildFeatures(isTablet, isSmallPhone),
-                                
-                                // Espaciador flexible
-                                const Flexible(flex: 1, child: SizedBox()),
-                                
-                                // Espacio para la navegación flotante
-                                const SizedBox(height: 80),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-            );
-          },
+    final w = MediaQuery.of(context).size.width;
+    final padH = w < 360 ? 20.0 : 24.0;
+    return Stack(
+      children: [
+        _buildBackground(context),
+        SafeArea(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: padH, vertical: 20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildHeader(context),
+                const SizedBox(height: 32),
+                _buildBenefitCards(context),
+                // Espacio para la barra de navegación inferior del padre
+                const SizedBox(height: 100),
+              ],
+            ),
+          ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildBackground(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return Container(
+      decoration: BoxDecoration(
+        gradient: RadialGradient(
+          center: Alignment.topRight,
+          radius: 1.2,
+          colors: [
+            const Color(0xFF1E3A5F).withOpacity(0.6),
+            _kBackgroundDark,
+          ],
+          stops: const [0.0, 0.6],
+        ),
+      ),
+      child: Stack(
+        children: [
+          Positioned(top: size.height * 0.1, left: size.width * 0.2, child: _starDot(0.4, 2)),
+          Positioned(top: size.height * 0.3, right: size.width * 0.15, child: _starDot(0.6, 3)),
+          Positioned(bottom: size.height * 0.2, left: size.width * 0.1, child: _starDot(0.8, 1)),
+          Positioned(top: size.height * 0.15, right: size.width * 0.35, child: _starDot(0.5, 2)),
+          Positioned(bottom: size.height * 0.4, right: size.width * 0.05, child: _starDot(0.7, 1)),
+        ],
       ),
     );
   }
 
-  // Widget _buildHeader(bool isTablet, bool isSmallPhone) {
-  //   return Container(
-  //     width: double.infinity,
-  //     padding: EdgeInsets.symmetric(vertical: isTablet ? 20 : (isSmallPhone ? 12 : 16)),
-  //     child: Text(
-  //       'FoodZone',
-  //       textAlign: TextAlign.center,
-  //       style: TextStyle(
-  //         fontSize: isTablet ? 32 : (isSmallPhone ? 22 : 26),
-  //         fontWeight: FontWeight.bold,
-  //         color: const Color(0xFFE74C3C),
-  //         letterSpacing: 1.2,
-  //       ),
-  //     ),
-  //   );
-  // }
+  Widget _starDot(double opacity, double size) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(opacity),
+        shape: BoxShape.circle,
+        boxShadow: size >= 2 ? [BoxShadow(color: Colors.white.withOpacity(0.3), blurRadius: 4)] : null,
+      ),
+    );
+  }
 
-  // Widget _buildMainIllustration(Size size, bool isTablet, bool isSmallPhone) {
-  //   final illustrationSize = isTablet 
-  //       ? size.width * 0.35 
-  //       : isSmallPhone 
-  //           ? size.width * 0.6 
-  //           : size.width * 0.65;
-    
-  //   return Container(
-  //     width: illustrationSize,
-  //     height: illustrationSize,
-  //     decoration: BoxDecoration(
-  //       color: const Color(0xFFE74C3C),
-  //       borderRadius: BorderRadius.circular(illustrationSize * 0.5),
-  //       boxShadow: [
-  //         BoxShadow(
-  //           color: const Color(0xFFE74C3C).withOpacity(0.25),
-  //           blurRadius: 30,
-  //           offset: const Offset(0, 15),
-  //           spreadRadius: 5,
-  //         ),
-  //       ],
-  //     ),
-  //     child: Stack(
-  //       alignment: Alignment.center,
-  //       children: [
-  //         // Elementos decorativos
-  //         Positioned(
-  //           top: illustrationSize * 0.15,
-  //           right: illustrationSize * 0.15,
-  //           child: Container(
-  //             width: isSmallPhone ? 8 : 12,
-  //             height: isSmallPhone ? 8 : 12,
-  //             decoration: const BoxDecoration(
-  //               color: Colors.white,
-  //               shape: BoxShape.circle,
-  //             ),
-  //           ),
-  //         ),
-  //         Positioned(
-  //           bottom: illustrationSize * 0.25,
-  //           left: illustrationSize * 0.12,
-  //           child: Container(
-  //             width: isSmallPhone ? 6 : 8,
-  //             height: isSmallPhone ? 6 : 8,
-  //             decoration: const BoxDecoration(
-  //               color: Colors.white,
-  //               shape: BoxShape.circle,
-  //             ),
-  //           ),
-  //         ),
-          
-  //         // Icono principal
-  //         Container(
-  //           padding: EdgeInsets.all(isTablet ? 40 : (isSmallPhone ? 25 : 30)),
-  //           decoration: BoxDecoration(
-  //             color: Colors.white.withOpacity(0.2),
-  //             borderRadius: BorderRadius.circular(illustrationSize * 0.25),
-  //           ),
-  //           child: Icon(
-  //             Icons.restaurant_menu,
-  //             size: isTablet ? 100 : (isSmallPhone ? 60 : 75),
-  //             color: Colors.white,
-  //           ),
-  //         ),
-  //       ],
-  //     ),
-  //   );
-  // }
-
-
-  Widget _buildMainIllustration(Size size, bool isTablet, bool isSmallPhone) {
-  final imageSize = isTablet
-      ? size.width * 0.35
-      : isSmallPhone
-          ? size.width * 0.6
-          : size.width * 0.65;
-
-  return Image.asset(
-    'assets/onboarding/onboarding_eats.png',
-    width: imageSize,
-    height: imageSize,
-    fit: BoxFit.contain, // Ajusta la imagen sin deformarla
-  );
-}
-
-  Widget _buildMainContent(bool isTablet, bool isSmallPhone) {
+  Widget _buildHeader(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
+    final isSmall = w < 360;
+    final iconSize = isSmall ? 56.0 : 64.0;
+    final titleSize = isSmall ? 24.0 : (w < 400 ? 26.0 : 28.0);
+    final bodySize = isSmall ? 13.0 : 14.0;
     return Column(
       children: [
+        Container(
+          width: iconSize,
+          height: iconSize,
+          decoration: BoxDecoration(
+            color: _kPrimary.withOpacity(0.2),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: _kPrimary.withOpacity(0.3)),
+          ),
+          child: Icon(Icons.rocket_launch, size: iconSize * 0.56, color: _kPrimary),
+        ),
+        const SizedBox(height: 16),
         Text(
-          '¡Bienvenido a Zonix Eats!',
+          '¿Por qué elegir Zonix?',
           textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: isTablet ? 36 : (isSmallPhone ? 24 : 28),
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: titleSize,
             fontWeight: FontWeight.bold,
-            color: Colors.white, 
+            color: Colors.white,
             height: 1.2,
           ),
         ),
-        
-        SizedBox(height: isTablet ? 20 : (isSmallPhone ? 12 : 16)),
-        
-            Container(
-          padding: EdgeInsets.all(isTablet ? 24 : (isSmallPhone ? 16 : 20)),
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15), // Fondo semitransparente
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.3),
-              width: 1,
-            ),
-          ),
-          child: Text(
-            'Tu comida favorita a un toque de distancia. Descubre sabores increíbles, entrega rápida y la mejor experiencia culinaria.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white, // Texto blanco
-              fontSize: isTablet ? 18 : (isSmallPhone ? 13 : 15),
-              height: 1.5,
-              fontWeight: FontWeight.w400,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // Widget _buildFeatures(bool isTablet, bool isSmallPhone) {
-  //   return Row(
-  //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //     children: [
-  //       Flexible(
-  //         child: _buildFeatureIcon(
-  //           Icons.flash_on,
-  //           'Rápido',
-  //           const Color(0xFFF39C12),
-  //           isTablet,
-  //           isSmallPhone,
-  //         ),
-  //       ),
-  //       SizedBox(width: isSmallPhone ? 8 : 16),
-  //       Flexible(
-  //         child: _buildFeatureIcon(
-  //           Icons.favorite,
-  //           'Delicioso',
-  //           const Color(0xFFE74C3C),
-  //           isTablet,
-  //           isSmallPhone,
-  //         ),
-  //       ),
-  //       SizedBox(width: isSmallPhone ? 8 : 16),
-  //       Flexible(
-  //         child: _buildFeatureIcon(
-  //           Icons.shield_outlined,
-  //           'Seguro',
-  //           const Color(0xFF27AE60),
-  //           isTablet,
-  //           isSmallPhone,
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
-
-Widget _buildFeatures(bool isTablet, bool isSmallPhone) {
-    return Wrap(
-      spacing: isTablet ? 32 : (isSmallPhone ? 24 : 28), // Aumenté el espacio horizontal
-      runSpacing: isTablet ? 24 : (isSmallPhone ? 16 : 20), // Aumenté el espacio vertical
-      alignment: WrapAlignment.center,
-      children: [
-        _buildFeatureIcon(
-          Icons.flash_on,
-          'Rápido',
-          Colors.white,
-          isTablet,
-          isSmallPhone,
-        ),
-        _buildFeatureIcon(
-          Icons.favorite,
-          'Delicioso',
-          Colors.white,
-          isTablet,
-          isSmallPhone,
-        ),
-        _buildFeatureIcon(
-          Icons.shield_outlined,
-          'Seguro',
-          Colors.white,
-          isTablet,
-          isSmallPhone,
-        ),
-      ],
-    );
-  }
-
-
-
-  Widget _buildFeatureIcon(IconData icon, String label, Color color, bool isTablet, bool isSmallPhone) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          padding: EdgeInsets.all(isTablet ? 16 : (isSmallPhone ? 10 : 12)),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: color.withOpacity(0.2),
-              width: 1,
-            ),
-          ),
-          child: Icon(
-            icon,
-            color: color,
-            size: isTablet ? 28 : (isSmallPhone ? 20 : 24),
-          ),
-        ),
-        SizedBox(height: isTablet ? 12 : (isSmallPhone ? 6 : 8)),
+        const SizedBox(height: 12),
         Text(
-          label,
-          style: TextStyle(
-            color: Colors.white, 
-            fontSize: isTablet ? 14 : (isSmallPhone ? 10 : 12),
-            fontWeight: FontWeight.w600,
-          ),
+          'Descubre un universo de sabor entregado directamente en tu puerta espacial.',
           textAlign: TextAlign.center,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: bodySize,
+            fontWeight: FontWeight.w500,
+            color: Colors.white.withOpacity(0.7),
+            height: 1.5,
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildBenefitCards(BuildContext context) {
+    return Column(
+      children: [
+        _buildBenefitCard(context, icon: Icons.bolt, title: 'Velocidad Luz', description: 'Entregas más rápidas que un cometa cruzando la galaxia.'),
+        const SizedBox(height: 16),
+        _buildBenefitCard(context, icon: Icons.restaurant, title: 'Sabor Estelar', description: 'Los mejores restaurantes seleccionados de todo el sistema solar.'),
+        const SizedBox(height: 16),
+        _buildBenefitCard(context, icon: Icons.savings_outlined, title: 'Ahorro Galáctico', description: 'Ofertas y promociones que literalmente no son de este mundo.'),
+      ],
+    );
+  }
+
+  Widget _buildBenefitCard(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    final w = MediaQuery.of(context).size.width;
+    final isSmall = w < 360;
+    final pad = isSmall ? 16.0 : 20.0;
+    final titleSize = isSmall ? 16.0 : 18.0;
+    final bodySize = isSmall ? 13.0 : 14.0;
+    return Container(
+      padding: EdgeInsets.all(pad),
+      decoration: BoxDecoration(
+        color: _kCardDark,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFF334155)),
+        boxShadow: [
+          BoxShadow(
+            color: _kPrimary.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: _kPrimary.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: _kPrimary, size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: titleSize,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: bodySize,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.white.withOpacity(0.7),
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
