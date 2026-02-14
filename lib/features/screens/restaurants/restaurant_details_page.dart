@@ -832,7 +832,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         GestureDetector(
                           onTap: () {
                             final cartService = Provider.of<CartService>(context, listen: false);
-                            cartService.addToCart(CartItem(
+                            final replaced = cartService.addToCart(CartItem(
                               id: product.id,
                               nombre: product.name,
                               precio: product.price,
@@ -842,7 +842,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             ));
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Producto agregado al carrito'),
+                                content: Text(replaced ? 'Carrito actualizado. Solo puedes tener productos de un comercio a la vez.' : 'Producto agregado al carrito'),
                                 backgroundColor: Colors.green,
                                 duration: const Duration(seconds: 1),
                               ),
@@ -961,7 +961,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           onPressed: () {
                             Navigator.pop(context);
                             final cartService = Provider.of<CartService>(context, listen: false);
-                            cartService.addToCart(CartItem(
+                            final replaced = cartService.addToCart(CartItem(
                               id: product.id,
                               nombre: product.name,
                               precio: product.price,
@@ -971,7 +971,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             ));
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
-                                content: Text('Producto agregado al carrito'),
+                                content: Text(replaced ? 'Carrito actualizado. Solo puedes tener productos de un comercio a la vez.' : 'Producto agregado al carrito'),
                                 backgroundColor: Colors.green,
                                 duration: const Duration(seconds: 1),
                               ),

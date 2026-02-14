@@ -680,7 +680,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 child: InkWell(
                   onTap: () {
                     final notes = _buildNotes();
-                    cartService.addToCart(CartItem(
+                    final replaced = cartService.addToCart(CartItem(
                       id: widget.product.id,
                       nombre: widget.product.name,
                       precio: _unitTotal,
@@ -690,7 +690,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       commerceId: widget.product.commerceId,
                     ));
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Producto añadido al carrito')),
+                      SnackBar(
+                        content: Text(replaced ? 'Carrito actualizado. Solo puedes tener productos de un comercio a la vez.' : 'Producto añadido al carrito'),
+                      ),
                     );
                   },
                   borderRadius: BorderRadius.circular(12),

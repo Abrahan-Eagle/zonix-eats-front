@@ -414,8 +414,10 @@ class _ProductsPageState extends State<ProductsPage> {
                   Text('\$${product.price.toStringAsFixed(2)}', style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w800, color: _accentYellow)),
                   GestureDetector(
                     onTap: () {
-                      cartService.addToCart(CartItem(id: product.id, nombre: product.name, precio: product.price, quantity: 1, image: product.image, commerceId: product.commerceId));
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Producto agregado al carrito')));
+                      final replaced = cartService.addToCart(CartItem(id: product.id, nombre: product.name, precio: product.price, quantity: 1, image: product.image, commerceId: product.commerceId));
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text(replaced ? 'Carrito actualizado. Solo puedes tener productos de un comercio a la vez.' : 'Producto agregado al carrito'),
+                      ));
                     },
                     child: Container(
                       width: 32,

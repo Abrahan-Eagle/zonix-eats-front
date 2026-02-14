@@ -12,9 +12,23 @@ class CartService extends ChangeNotifier {
   UnmodifiableListView<CartItem> get items => UnmodifiableListView(_cart);
 
   // Métodos locales del carrito
-  void addToCart(CartItem product) {
+  /// Agrega un producto al carrito. Si el carrito tiene productos de otro comercio,
+  /// los reemplaza automáticamente (regla: solo un comercio por carrito).
+  /// Devuelve true si se reemplazó el carrito, false si solo se agregó.
+  bool addToCart(CartItem product) {
+    final newCommerceId = product.commerceId;
+    if (_cart.isNotEmpty) {
+      final existingCommerceId = _cart.first.commerceId;
+      if (existingCommerceId != newCommerceId) {
+        _cart.clear();
+        _cart.add(product);
+        notifyListeners();
+        return true;
+      }
+    }
     _cart.add(product);
     notifyListeners();
+    return false;
   }
 
   void removeFromCart(CartItem product) {
