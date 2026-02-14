@@ -104,9 +104,18 @@ class Restaurant {
   String get name => businessName;
   bool get isOpen => open;
   String get cuisine => profile?['cuisine']?.toString() ?? '';
-  String get cuisineDisplay => (businessType ?? cuisine).trim().isNotEmpty
-      ? (businessType ?? cuisine)
-      : (description ?? 'Restaurante');
+  /// Formato template: "Italiana • Pizza • Pasta" - capitaliza y separa con •
+  String get cuisineDisplay {
+    final raw = (businessType ?? cuisine).trim().isNotEmpty
+        ? (businessType ?? cuisine)
+        : (description ?? 'Restaurante');
+    if (raw.isEmpty) return 'Restaurante';
+    final parts = raw.split(RegExp(r'[,;_]')).map((s) {
+      final t = s.trim().replaceAll('_', ' ');
+      return t.isEmpty ? '' : '${t[0].toUpperCase()}${t.length > 1 ? t.substring(1).toLowerCase() : ''}';
+    }).where((s) => s.isNotEmpty).toList();
+    return parts.isEmpty ? raw : parts.join(' • ');
+  }
   double get rating => (profile?['rating'] as num?)?.toDouble() ?? 0.0;
   int get reviewCount => profile?['review_count'] as int? ?? 0;
   double get distance => 0.0; // Placeholder - calcular desde ubicación

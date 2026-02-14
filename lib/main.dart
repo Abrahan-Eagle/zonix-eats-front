@@ -516,18 +516,24 @@ class MainRouterState extends State<MainRouter> {
   }
 
   // Función para obtener los items del BottomNavigationBar
-  List<BottomNavigationBarItem> _getBottomNavItems(int level, String role) {
+  List<BottomNavigationBarItem> _getBottomNavItems(int level, String role, [int cartItemCount = 0]) {
     List<BottomNavigationBarItem> items = [];
 
     switch (level) {
-      case 0: // Comprador
+      case 0: // Comprador (template: badge en Carrito)
+        final cartIcon = cartItemCount > 0
+            ? Badge(
+                label: Text('${cartItemCount > 99 ? '99+' : cartItemCount}'),
+                child: const Icon(Icons.shopping_cart),
+              )
+            : const Icon(Icons.shopping_cart);
         items = [
           const BottomNavigationBarItem(
             icon: Icon(Icons.storefront),
             label: 'Productos',
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.shopping_cart),
+          BottomNavigationBarItem(
+            icon: cartIcon,
             label: 'Carrito',
           ),
           const BottomNavigationBarItem(
@@ -865,8 +871,13 @@ class MainRouterState extends State<MainRouter> {
             ),
           ),
         ),
-        child: BottomNavigationBar(
-          items: _getBottomNavItems(_selectedLevel, userProvider.userRole),
+        child: Consumer<CartService>(
+          builder: (context, cartService, _) {
+            final cartCount = _selectedLevel == 0
+                ? cartService.items.fold<int>(0, (s, i) => s + i.quantity)
+                : 0;
+            return BottomNavigationBar(
+              items: _getBottomNavItems(_selectedLevel, userProvider.userRole, cartCount),
           currentIndex: _bottomNavIndex,
           selectedItemColor: _stitchNavActive,
           unselectedItemColor: _stitchSlate400,
@@ -875,12 +886,16 @@ class MainRouterState extends State<MainRouter> {
           showSelectedLabels: false,
           showUnselectedLabels: false,
           onTap: (index) {
+            final cartCount = context.read<CartService>().items.fold<int>(0, (s, i) => s + i.quantity);
             List<BottomNavigationBarItem> items = _getBottomNavItems(
               _selectedLevel,
               userProvider.userRole,
+              _selectedLevel == 0 ? cartCount : 0,
             );
             int itemCount = items.length;
             _onBottomNavTapped(index, itemCount);
+          },
+        );
           },
         ),
       ),

@@ -82,7 +82,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
       baseColor: isDark ? _TemplateColors.cardDark : Colors.grey[300]!,
       highlightColor: isDark ? _TemplateColors.bgDark : Colors.grey[100]!,
       child: ListView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
         itemCount: 5,
         itemBuilder: (_, __) => Padding(
           padding: const EdgeInsets.only(bottom: 24),
@@ -311,7 +311,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                             Icon(Icons.star, size: 14, color: _TemplateColors.ratingYellow),
                             const SizedBox(width: 2),
                             Text(
-                              rating > 0 ? rating.toStringAsFixed(1) : '-',
+                              rating > 0 ? rating.toStringAsFixed(1) : 'Nuevo',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -374,17 +374,13 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
 
     return Scaffold(
       backgroundColor: isDark ? _TemplateColors.bgDark : const Color(0xFFF5F7F8),
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Search Bar + Filters (sin AppBar; header viene de BuyerShell)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Search Bar (misma separación que ProductsPage)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+            child: TextField(
                     controller: _searchController,
                     style: GoogleFonts.plusJakartaSans(color: isDark ? Colors.white : Colors.black87),
                     decoration: InputDecoration(
@@ -399,15 +395,17 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                       ),
                       contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                     ),
-                    onChanged: (value) {
-                      _debouncer.run(() {
-                        setState(() => _searchQuery = value);
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  // Filter chips
-                  SizedBox(
+              onChanged: (value) {
+                _debouncer.run(() {
+                  setState(() => _searchQuery = value);
+                });
+              },
+            ),
+          ),
+          // Filter chips (misma separación que ProductsPage: 16 top, 8 bottom)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+            child: SizedBox(
                     height: 36,
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
@@ -446,13 +444,10 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                       },
                     ),
                   ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Título + Lista
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+          ),
+          // Título + Lista
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
               child: Text(
                 'Restaurantes destacados',
                 style: GoogleFonts.plusJakartaSans(
@@ -461,9 +456,9 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                   color: isDark ? Colors.white : const Color(0xFF0F1923),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
+          ),
+          const SizedBox(height: 8),
+          Expanded(
               child: FutureBuilder<List<Restaurant>>(
                 future: _restaurantsFuture,
                 builder: (context, snapshot) {
@@ -478,7 +473,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                     if (filtered.isEmpty) return _buildEmptyState();
                     return ListView.builder(
                       controller: _scrollController,
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
                       itemCount: filtered.length,
                       itemBuilder: (context, index) {
                         return _buildRestaurantCard(filtered[index], index);
@@ -490,7 +485,6 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
             ),
           ],
         ),
-      ),
     );
   }
 }
