@@ -108,6 +108,19 @@ class CartPage extends StatelessWidget {
                                             'Cantidad: ${item.quantity}', // TODO: internacionalizar
                                             style: TextStyle(fontSize: 15, color: AppColors.secondaryText(context)),
                                           ),
+                                          if (item.notes != null && item.notes!.isNotEmpty) ...[
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              item.notes!,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: AppColors.secondaryText(context).withOpacity(0.9),
+                                                fontStyle: FontStyle.italic,
+                                              ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ],
                                           const SizedBox(height: 5),
                                           Text(
                                             '\u20a1${item.precio?.toStringAsFixed(2) ?? '-'}',
@@ -151,6 +164,7 @@ class CartPage extends StatelessWidget {
                                                     quantity: item.quantity + 1,
                                                     imagen: item.imagen,
                                                     image: item.image,
+                                                    notes: item.notes,
                                                   ));
                                                 },
                                                 borderRadius: BorderRadius.circular(15),

@@ -18,11 +18,16 @@ class OrderService extends ChangeNotifier {
   Future<Order> createOrder(List<CartItem> items) async {
     final headers = await AuthHelper.getAuthHeaders();
     final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders');
+    final orderNotes = items
+        .where((i) => i.notes != null && i.notes!.isNotEmpty)
+        .map((i) => '${i.nombre}: ${i.notes}')
+        .join('; ');
     final body = jsonEncode({
       'items': items.map((e) => {
         'product_id': e.id,
         'quantity': e.quantity,
       }).toList(),
+      if (orderNotes.isNotEmpty) 'notes': orderNotes,
     });
     
     final response = await http.post(

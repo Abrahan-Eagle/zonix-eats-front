@@ -7,6 +7,8 @@ class CartItem {
   final int? stock; // Stock disponible
   final String? category; // Categoría del producto
   final String? image; // URL de la imagen (alias para imagen)
+  /// Notas de personalización: extras, preferencias e instrucciones especiales
+  final String? notes;
 
   CartItem({
     required this.id,
@@ -17,6 +19,7 @@ class CartItem {
     this.stock,
     this.category,
     this.image,
+    this.notes,
   });
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
@@ -35,6 +38,7 @@ class CartItem {
       stock: json['stock'],
       category: json['category'],
       image: json['image'] ?? json['imagen'],
+      notes: json['notes'],
     );
   }
 
@@ -49,7 +53,8 @@ class CartItem {
         other.imagen == imagen &&
         other.stock == stock &&
         other.category == category &&
-        other.image == image;
+        other.image == image &&
+        other.notes == notes;
   }
 
   @override
@@ -61,11 +66,12 @@ class CartItem {
         imagen.hashCode ^
         stock.hashCode ^
         category.hashCode ^
-        image.hashCode;
+        image.hashCode ^
+        notes.hashCode;
   }
 
   @override
   String toString() {
-    return 'CartItem(id: $id, nombre: $nombre, precio: $precio, quantity: $quantity, imagen: $imagen, stock: $stock, category: $category, image: $image)';
+    return 'CartItem(id: $id, nombre: $nombre, precio: $precio, quantity: $quantity, imagen: $imagen, stock: $stock, category: $category, image: $image, notes: $notes)';
   }
 }

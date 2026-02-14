@@ -1,3 +1,39 @@
+class ProductExtra {
+  final int id;
+  final String name;
+  final double price;
+
+  ProductExtra({required this.id, required this.name, required this.price});
+
+  factory ProductExtra.fromJson(Map<String, dynamic> json) {
+    double parseDouble(dynamic v) {
+      if (v == null) return 0.0;
+      if (v is num) return v.toDouble();
+      if (v is String) return double.tryParse(v) ?? 0.0;
+      return 0.0;
+    }
+    return ProductExtra(
+      id: json['id'] ?? 0,
+      name: json['name'] ?? '',
+      price: parseDouble(json['price']),
+    );
+  }
+}
+
+class ProductPreference {
+  final int id;
+  final String name;
+
+  ProductPreference({required this.id, required this.name});
+
+  factory ProductPreference.fromJson(Map<String, dynamic> json) {
+    return ProductPreference(
+      id: json['id'] ?? 0,
+      name: json['name'] ?? '',
+    );
+  }
+}
+
 class Product {
   final int id;
   final int commerceId;
@@ -20,6 +56,8 @@ class Product {
   final int reviewCount;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final List<ProductExtra> extras;
+  final List<ProductPreference> preferences;
 
   Product({
     required this.id,
@@ -43,6 +81,8 @@ class Product {
     required this.reviewCount,
     required this.createdAt,
     required this.updatedAt,
+    this.extras = const [],
+    this.preferences = const [],
   });
 
   factory Product.fromJson(Map<String, dynamic> json) {
@@ -83,6 +123,14 @@ class Product {
       reviewCount: json['review_count'] ?? 0,
       createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
       updatedAt: DateTime.parse(json['updated_at'] ?? DateTime.now().toIso8601String()),
+      extras: (json['extras'] as List?)
+              ?.map((e) => ProductExtra.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
+      preferences: (json['preferences'] as List?)
+              ?.map((e) => ProductPreference.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          [],
     );
   }
 
@@ -134,6 +182,8 @@ class Product {
     int? reviewCount,
     DateTime? createdAt,
     DateTime? updatedAt,
+    List<ProductExtra>? extras,
+    List<ProductPreference>? preferences,
   }) {
     return Product(
       id: id ?? this.id,
@@ -157,6 +207,8 @@ class Product {
       reviewCount: reviewCount ?? this.reviewCount,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      extras: extras ?? this.extras,
+      preferences: preferences ?? this.preferences,
     );
   }
 

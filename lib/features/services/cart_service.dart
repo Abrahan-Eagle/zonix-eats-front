@@ -37,6 +37,9 @@ class CartService extends ChangeNotifier {
           nombre: current.nombre,
           precio: current.precio,
           quantity: current.quantity - 1,
+          imagen: current.imagen,
+          image: current.image,
+          notes: current.notes,
         );
       } else {
         _cart.removeAt(index);
@@ -125,11 +128,15 @@ class CartService extends ChangeNotifier {
         final index = _cart.indexWhere((item) => item.id == productId);
         if (index != -1) {
           if (quantity > 0) {
+            final current = _cart[index];
             _cart[index] = CartItem(
-              id: _cart[index].id,
-              nombre: _cart[index].nombre,
-              precio: _cart[index].precio,
+              id: current.id,
+              nombre: current.nombre,
+              precio: current.precio,
               quantity: quantity,
+              imagen: current.imagen,
+              image: current.image,
+              notes: current.notes,
             );
           } else {
             _cart.removeAt(index);
