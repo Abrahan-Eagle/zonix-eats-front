@@ -113,16 +113,18 @@ class SignInScreenState extends State<SignInScreen> {
           children: [
             _buildBackground(),
             SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 90),
-                    _buildLogoAndTitle(),
-                    const Spacer(flex: 2),
-                    _buildBottomContent(),
-                    const SizedBox(height: 40),
-                  ],
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    children: [
+                      const SizedBox(height: 60),
+                      _buildLogoAndTitle(),
+                      const SizedBox(height: 32),
+                      _buildBottomContent(),
+                      const SizedBox(height: 40),
+                    ],
+                  ),
                 ),
               ),
             ),

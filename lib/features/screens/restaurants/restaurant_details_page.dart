@@ -31,6 +31,7 @@ import 'package:zonix/models/cart_item.dart';
 import 'package:zonix/models/restaurant.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zonix/features/screens/cart/cart_page.dart';
+import 'package:zonix/features/utils/network_image_with_fallback.dart';
 
 class RestaurantDetailsPage extends StatefulWidget {
   final int commerceId;
@@ -643,11 +644,26 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text('Promociones activas', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ...promotions.map((promo) => ListTile(
-                        leading: promo['image_url'] != null ? Image.network(promo['image_url'], width: 40, height: 40) : null,
-                        title: Text(promo['title'] ?? ''),
-                        subtitle: Text(promo['description'] ?? ''),
-                      )),
+                      ...promotions.map((promo) {
+                        final imgUrl = promo['image_url']?.toString() ?? '';
+                        final skipPlaceholder = imgUrl.contains('via.placeholder') || imgUrl.contains('placeholder.com');
+                        return ListTile(
+                          leading: SizedBox(
+                            width: 40,
+                            height: 40,
+                            child: (imgUrl.isNotEmpty && !skipPlaceholder)
+                                ? NetworkImageWithFallback(
+                                    imageUrl: imgUrl,
+                                    width: 40,
+                                    height: 40,
+                                    fallbackIcon: Icons.local_offer,
+                                  )
+                                : Icon(Icons.local_offer, color: Colors.amber.shade700, size: 24),
+                          ),
+                          title: Text(promo['title'] ?? ''),
+                          subtitle: Text(promo['description'] ?? ''),
+                        );
+                      }),
                     ],
                   ),
                 );
@@ -681,7 +697,11 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     children: [
                       const Text('Reseñas recientes', style: TextStyle(fontWeight: FontWeight.bold)),
                       ...reviews.take(2).map((review) => ListTile(
-                        leading: const Icon(Icons.person, color: Colors.blue),
+                        leading: SizedBox(
+                          width: 40,
+                          height: 40,
+                          child: Icon(Icons.person, color: Colors.blue),
+                        ),
                         title: Text(review['customer_name'] ?? 'Cliente'),
                         subtitle: Text(review['comment'] ?? ''),
                         trailing: Row(

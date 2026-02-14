@@ -80,13 +80,13 @@ class _SettingsPage2State extends State<SettingsPage2> {
     });
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final userDetails = await userProvider.getUserDetails();
-      final id = userDetails['userId'];
-      if (id == null) throw Exception('No se pudo obtener el ID del usuario');
-      final userId = id is int ? id : int.tryParse(id.toString());
-      if (userId == null) throw Exception('El ID del usuario no es válido: $id');
-      _email = userDetails['users']['email'];
-      _profile = await ProfileService().getProfileById(userId);
+      _email = userProvider.userEmail;
+      // Usar getMyProfile (GET /api/profile) en lugar de getProfileById:
+      // /api/profiles/{id} espera profile ID, no user ID
+      _profile = await ProfileService().getMyProfile();
+      if (_profile == null) {
+        throw Exception('No se encontró el perfil');
+      }
       logger.i('Perfil cargado correctamente: $_profile');
     } catch (e) {
       setState(() => _error = 'Error al cargar el perfil');

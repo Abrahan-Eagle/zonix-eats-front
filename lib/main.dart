@@ -13,6 +13,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix/features/utils/search_radius_provider.dart';
 import 'package:flutter/services.dart';
 
 // import 'dart:io';
@@ -69,6 +70,7 @@ import 'package:zonix/features/screens/commerce/commerce_chat_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_profile_page.dart';
 import 'package:zonix/features/screens/onboarding/onboarding_provider.dart';
+import 'package:zonix/features/screens/location/location_search_page.dart';
 
 /*
  * ZONIX EATS - Aplicación Multi-Rol
@@ -120,6 +122,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
         ChangeNotifierProvider(create: (_) => OnboardingProvider()),
+        ChangeNotifierProvider(create: (_) => SearchRadiusProvider()),
         ChangeNotifierProvider(create: (_) => CartService()),
         ChangeNotifierProvider(create: (_) => OrderService()),
         ChangeNotifierProvider(create: (_) => CommerceService()),
@@ -727,94 +730,18 @@ class MainRouterState extends State<MainRouter> {
               tooltip: 'Cambiar modo',
               onPressed: _showLevelSelector,
             ),
-          Consumer<UserProvider>(
-            builder: (context, userProvider, child) {
-              return GestureDetector(
-                onTap: () {
-                  showMenu(
-                    context: context,
-                    position: const RelativeRect.fromLTRB(200, 80, 0, 0),
-                    items: [
-                      PopupMenuItem(
-                        child: const Text('Mi QR'),
-                        onTap:
-                            () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const ProfilePage1(),
-                              ),
-                            ),
-                      ),
-                      PopupMenuItem(
-                        child: const Text('Configuración'),
-                        onTap:
-                            () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => const SettingsPage2(),
-                              ),
-                            ),
-                      ),
-                      PopupMenuItem(
-                        child: const Text('Cerrar sesión'),
-                        onTap: () async {
-                          await userProvider.logout();
-                          // await _storage.deleteAll();
-                          if (!mounted) return;
-                        
-                          Navigator.of(context).pushAndRemoveUntil(
-                            MaterialPageRoute(builder: (context) => const SignInScreen()), // Redirige al login
-                            (Route<dynamic> route) => false, // Elimina todas las rutas previas
-                          );
-
-                       },
-                      ),
-                    ],
-                  );
-                },
-
-                child: FutureBuilder<String?>(
-                  future: _storage.read(key: 'userPhotoUrl'),
-                  builder: (
-                    BuildContext context,
-                    AsyncSnapshot<String?> snapshot,
-                  ) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircleAvatar(radius: 20);
-                    } else if (snapshot.hasError ||
-                        snapshot.data == null ||
-                        snapshot.data!.isEmpty) {
-                      return const CircleAvatar(
-                        radius: 20,
-                        child: Icon(Icons.person),
-                      );
-                    } else {
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 16.0),
-                        // child: CircleAvatar(
-                        //   radius: 20,
-                        //   child: ClipOval(
-                        //     child: Image.network(
-                        //       snapshot.data!,
-                        //       fit: BoxFit.cover,
-                        //     ),
-                        //   ),
-                        // ),
-                        child: CircleAvatar(
-                            radius: 20,
-                            backgroundImage: _getProfileImage(
-                                    _profile?.photo, // Foto del perfil del usuario (desde el backend)
-                                     snapshot.data!, // Foto de Google (si está disponible)
-                                  ),
-                            child: (_profile?.photo == null &&  snapshot.data == null)
-                                ? const Icon(Icons.person, color: Colors.white) // Ícono predeterminado si no hay foto
-                                : null,
-                          ),
-
-                     );
-                    }
-                  },
-                ),
+          IconButton(
+            icon: Icon(
+              Icons.gps_fixed,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white70
+                  : const Color(0xFF0F172A),
+            ),
+            tooltip: 'Ubicación / GPS',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LocationSearchPage()),
               );
             },
           ),

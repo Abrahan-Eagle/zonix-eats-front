@@ -3205,4 +3205,3 @@ class _RIFVenezuelaInputFormatter extends TextInputFormatter {
     );
   }
 }
-
