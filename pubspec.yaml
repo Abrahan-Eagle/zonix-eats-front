@@ -78,14 +78,10 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/icon1.png"
-  image_path_android: "assets/icon/icon1.png"
-  # adaptive_icon_background: "#FFFFFF"
-  # adaptive_icon_foreground: "assets/icon/foreground_icon.png"
-
-  adaptive_icon_background: "assets/icon/christmas-background.png" # only available for Android 8.0 devices and above
-  adaptive_icon_foreground: "assets/icon/icon-foreground-432x432.png" # only available for Android 8.0 devices and above
-  adaptive_icon_monochrome: "assets/icon/icon-monochrome-432x432.png" # onl
+  image_path: "assets/images/logo_login.png"
+  image_path_android: "assets/images/logo_login.png"
+  adaptive_icon_background: "#000000"
+  adaptive_icon_foreground: "assets/images/splash_logo_dark.png"
 
   remove_alpha_ios: true
   min_sdk_android: 21
