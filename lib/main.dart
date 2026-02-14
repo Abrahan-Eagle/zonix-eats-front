@@ -71,6 +71,7 @@ import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart
 import 'package:zonix/features/screens/commerce/commerce_profile_page.dart';
 import 'package:zonix/features/screens/onboarding/onboarding_provider.dart';
 import 'package:zonix/features/screens/location/location_search_page.dart';
+import 'package:zonix/features/widgets/buyer_shell.dart';
 
 /*
  * ZONIX EATS - Aplicación Multi-Rol
@@ -691,8 +692,10 @@ class MainRouterState extends State<MainRouter> {
       }
     }
 
+    final isBuyerLevel = _selectedLevel == 0;
+
     return Scaffold(
-      appBar: AppBar(
+      appBar: isBuyerLevel ? null : AppBar(
         automaticallyImplyLeading: false,
         elevation: 0,
         title: RichText(
@@ -765,20 +768,16 @@ class MainRouterState extends State<MainRouter> {
                 // Forzar SIEMPRE el nivel según el rol para evitar que quede en 0 por defecto
                 _selectedLevel = _defaultLevelForRole(role);
 
-                // Nivel 0: Comprador
+                // Nivel 0: Comprador - BuyerShell (header Delivering to + search) + nav original
                 if (_selectedLevel == 0) {
-                  switch (_bottomNavIndex) {
-                    case 0:
-                      return const ProductsPage();
-                    case 1:
-                      return const CartPage();
-                    case 2:
-                      return const OrdersPage();
-                    case 3:
-                      return const RestaurantsPage();
-                    default:
-                      return const ProductsPage();
-                  }
+                  final page = switch (_bottomNavIndex) {
+                    0 => const ProductsPage(),
+                    1 => const CartPage(),
+                    2 => const OrdersPage(),
+                    3 => const RestaurantsPage(),
+                    _ => const ProductsPage(),
+                  };
+                  return BuyerShell(child: page);
                 }
 
                 // Nivel 1: Tiendas/Comercio

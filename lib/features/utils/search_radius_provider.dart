@@ -14,8 +14,10 @@ class SearchRadiusProvider extends ChangeNotifier {
   double _radiusKm = _defaultRadius;
   bool _useSuggestedRadius = false;
   String? _deliveryAddressLabel;
+  String _searchQuery = '';
 
   double get radiusKm => _radiusKm;
+  String get searchQuery => _searchQuery;
   bool get useSuggestedRadius => _useSuggestedRadius;
   /// Dirección de entrega (geocodificación inversa desde GPS). Para header "Entregando a".
   String? get deliveryAddressLabel => _deliveryAddressLabel;
@@ -50,6 +52,11 @@ class SearchRadiusProvider extends ChangeNotifier {
     _radiusKm = km.clamp(_minRadius, _maxRadius);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble(_keyRadiusKm, _radiusKm);
+    notifyListeners();
+  }
+
+  void setSearchQuery(String value) {
+    _searchQuery = value;
     notifyListeners();
   }
 

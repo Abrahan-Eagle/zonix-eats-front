@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -82,10 +83,10 @@ class _ProductsPageState extends State<ProductsPage> {
     }
   }
 
-  List<Product> _filterProducts(List<Product> list) {
+  List<Product> _filterProducts(List<Product> list, String searchQuery) {
     var out = list;
-    if (_searchQuery.isNotEmpty) {
-      final q = _searchQuery.toLowerCase();
+    if (searchQuery.isNotEmpty) {
+      final q = searchQuery.toLowerCase();
       out = out.where((p) => p.name.toLowerCase().contains(q)).toList();
     }
     if (_selectedCategory != 'Popular') {
@@ -113,7 +114,6 @@ class _ProductsPageState extends State<ProductsPage> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     final cartService = Provider.of<CartService>(context);
@@ -121,7 +121,9 @@ class _ProductsPageState extends State<ProductsPage> {
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: CustomScrollView(
+      body: ScrollConfiguration(
+        behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
+        child: CustomScrollView(
         slivers: [
           // Barra de búsqueda
           SliverToBoxAdapter(
@@ -179,7 +181,7 @@ class _ProductsPageState extends State<ProductsPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Lo más pedido',
+                    'Cosmic Cravings',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -188,7 +190,7 @@ class _ProductsPageState extends State<ProductsPage> {
                   ),
                   TextButton(
                     onPressed: () {},
-                    child: Text('Ver todo', style: TextStyle(color: _primary, fontWeight: FontWeight.w600)),
+                    child: Text('See all', style: TextStyle(color: _primary, fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
@@ -220,7 +222,7 @@ class _ProductsPageState extends State<ProductsPage> {
                   );
                 }
                 final all = snapshot.data ?? [];
-                final products = _filterProducts(all);
+                final products = _filterProducts(all, _searchQuery);
                 if (products.isEmpty) {
                   return SliverFillRemaining(
                     child: Center(child: Text('No hay productos', style: TextStyle(color: isDark ? Colors.white54 : Colors.black54))),
@@ -231,7 +233,7 @@ class _ProductsPageState extends State<ProductsPage> {
                     crossAxisCount: 2,
                     mainAxisSpacing: 16,
                     crossAxisSpacing: 16,
-                    childAspectRatio: 0.72,
+                    childAspectRatio: 0.68,
                   ),
                   delegate: SliverChildBuilderDelegate(
                     (context, index) => _buildProductCard(context, products[index], cartService, isDark),
@@ -242,6 +244,7 @@ class _ProductsPageState extends State<ProductsPage> {
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -256,7 +259,7 @@ class _ProductsPageState extends State<ProductsPage> {
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
-          hintText: 'Buscar productos...',
+          hintText: 'Search for space burgers...',
           hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black45),
           prefixIcon: Icon(Icons.search, color: isDark ? Colors.white54 : Colors.black54, size: 22),
           suffixIcon: Icon(Icons.tune, color: isDark ? Colors.white54 : Colors.black54, size: 20),
@@ -278,7 +281,7 @@ class _ProductsPageState extends State<ProductsPage> {
         final desc = promo?['description'] ?? 'Descuentos en tu primer pedido';
         final imgUrl = promo?['image_url'] ?? promo?['banner_url'];
         return Container(
-          height: 210,
+          height: 160,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 12, offset: const Offset(0, 4))],
@@ -291,7 +294,7 @@ class _ProductsPageState extends State<ProductsPage> {
                 if (imgUrl != null && imgUrl.toString().isNotEmpty && !imgUrl.toString().contains('placeholder'))
                   Image.network(imgUrl.toString(), fit: BoxFit.cover)
                 else
-                  Container(color: const Color(0xFF1A2733)),
+                  Image.asset('assets/onboarding/onboarding_eats.png', fit: BoxFit.cover),
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -302,42 +305,43 @@ class _ProductsPageState extends State<ProductsPage> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(color: _accentYellow, borderRadius: BorderRadius.circular(6)),
-                        child: Text('PROMO', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87)),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        title,
-                        style: GoogleFonts.plusJakartaSans(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        desc,
-                        style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha: 0.9)),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 8),
-                      TextButton(
-                        onPressed: () {},
-                        style: TextButton.styleFrom(
-                          backgroundColor: _primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.all(16),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(color: _accentYellow, borderRadius: BorderRadius.circular(6)),
+                          child: Text('PROMO', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87)),
                         ),
-                        child: const Text('Ver oferta'),
-                      ),
-                    ],
+                        const SizedBox(height: 4),
+                        Text(
+                          title,
+                          style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          desc,
+                          style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.9)),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 6),
+                        TextButton(
+                          onPressed: () {},
+                          style: TextButton.styleFrom(
+                            backgroundColor: _primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          ),
+                          child: const Text('Claim Offer'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -349,16 +353,26 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   Widget _buildProductCard(BuildContext context, Product product, CartService cartService, bool isDark) {
-    return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailPage(product: product))),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.7) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade100),
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05), blurRadius: 8, offset: const Offset(0, 2))],
-        ),
-        child: Padding(
+    final cardChild = Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.5) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.shade100),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+            blurRadius: isDark ? 6 : 8,
+            offset: const Offset(0, 2),
+          ),
+          if (isDark)
+            const BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+        ],
+      ),
+      child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -416,7 +430,18 @@ class _ProductsPageState extends State<ProductsPage> {
             ],
           ),
         ),
-      ),
+    );
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailPage(product: product))),
+      child: isDark
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                child: cardChild,
+              ),
+            )
+          : cardChild,
     );
   }
 }

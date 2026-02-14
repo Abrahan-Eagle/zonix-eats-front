@@ -10,14 +10,17 @@ import 'package:zonix/features/utils/search_radius_provider.dart';
 /// Soporta tema light y dark.
 class BuyerShell extends StatefulWidget {
   final Widget child;
+  /// Si false, no muestra el bottom nav (usa el de main.dart)
+  final bool showBottomNav;
   final int currentIndex;
-  final ValueChanged<int> onNavTap;
+  final ValueChanged<int>? onNavTap;
 
   const BuyerShell({
     super.key,
     required this.child,
-    required this.currentIndex,
-    required this.onNavTap,
+    this.showBottomNav = false,
+    this.currentIndex = 0,
+    this.onNavTap,
   });
 
   @override
@@ -81,7 +84,7 @@ class _BuyerShellState extends State<BuyerShell> {
             child: widget.child,
           ),
         ),
-        _buildBottomNav(context, isDark),
+        if (widget.showBottomNav) _buildBottomNav(context, isDark),
       ],
     );
   }
@@ -131,7 +134,7 @@ class _BuyerShellState extends State<BuyerShell> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Entregando a',
+                              'Delivering to',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isDark ? Colors.white54 : Colors.black54,
@@ -206,7 +209,7 @@ class _BuyerShellState extends State<BuyerShell> {
                   if (isConfig) {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage2()));
                   } else {
-                    widget.onNavTap(i);
+                    widget.onNavTap?.call(i);
                   }
                 },
                 borderRadius: BorderRadius.circular(12),
