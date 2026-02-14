@@ -41,7 +41,10 @@ void main() {
     });
 
     test('createOrder throws if cart is empty', () async {
-      expect(() => orderService.createOrder([]), throwsException);
+      expect(
+        () => orderService.createOrder([], deliveryType: 'pickup'),
+        throwsException,
+      );
     });
 
     // Puedes agregar más tests según la lógica de OrderService

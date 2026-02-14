@@ -39,11 +39,34 @@ class CartService extends ChangeNotifier {
           quantity: current.quantity - 1,
           imagen: current.imagen,
           image: current.image,
+          stock: current.stock,
+          category: current.category,
           notes: current.notes,
+          commerceId: current.commerceId,
         );
       } else {
         _cart.removeAt(index);
       }
+      notifyListeners();
+    }
+  }
+
+  void incrementQuantity(CartItem product) {
+    final index = _cart.indexWhere((item) => item.id == product.id);
+    if (index != -1) {
+      final current = _cart[index];
+      _cart[index] = CartItem(
+        id: current.id,
+        nombre: current.nombre,
+        precio: current.precio,
+        quantity: current.quantity + 1,
+        imagen: current.imagen,
+        image: current.image,
+        stock: current.stock,
+        category: current.category,
+        notes: current.notes,
+        commerceId: current.commerceId,
+      );
       notifyListeners();
     }
   }
@@ -137,6 +160,7 @@ class CartService extends ChangeNotifier {
               imagen: current.imagen,
               image: current.image,
               notes: current.notes,
+              commerceId: current.commerceId,
             );
           } else {
             _cart.removeAt(index);

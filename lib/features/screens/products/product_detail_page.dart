@@ -687,6 +687,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       quantity: _quantity,
                       image: widget.product.image,
                       notes: notes.isEmpty ? null : notes,
+                      commerceId: widget.product.commerceId,
                     ));
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Producto añadido al carrito')),

@@ -414,7 +414,7 @@ class _ProductsPageState extends State<ProductsPage> {
                   Text('\$${product.price.toStringAsFixed(2)}', style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w800, color: _accentYellow)),
                   GestureDetector(
                     onTap: () {
-                      cartService.addToCart(CartItem(id: product.id, nombre: product.name, precio: product.price, quantity: 1));
+                      cartService.addToCart(CartItem(id: product.id, nombre: product.name, precio: product.price, quantity: 1, commerceId: product.commerceId));
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Producto agregado al carrito')));
                     },
                     child: Container(

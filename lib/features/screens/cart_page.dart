@@ -135,7 +135,10 @@ class _CartPageState extends State<CartPage> {
     });
 
     try {
-      final order = await _orderService.createOrder(_cartItems);
+      final order = await _orderService.createOrder(
+        _cartItems,
+        deliveryType: 'pickup',
+      );
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/order-confirmation', arguments: order);
       }

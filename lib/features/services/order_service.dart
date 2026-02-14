@@ -15,19 +15,37 @@ class OrderService extends ChangeNotifier {
       : dotenv.env['API_URL_LOCAL']!;
 
   // POST /api/buyer/orders - Crear orden
-  Future<Order> createOrder(List<CartItem> items) async {
-    final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders');
+  /// [deliveryType] 'pickup' o 'delivery'
+  /// [deliveryAddress] requerido cuando deliveryType es 'delivery'
+  Future<Order> createOrder(
+    List<CartItem> items, {
+    required String deliveryType,
+    String? deliveryAddress,
+  }) async {
+    if (items.isEmpty) {
+      throw Exception('El carrito está vacío');
+    }
+    final commerceId = items.first.commerceId;
+    if (commerceId == null) {
+      throw Exception('No se pudo identificar el comercio. Agrega productos desde el detalle del restaurante.');
+    }
+    if (deliveryType == 'delivery' && (deliveryAddress == null || deliveryAddress.trim().isEmpty)) {
+      throw Exception('La dirección de entrega es requerida para envío a domicilio.');
+    }
+    final total = items.fold<double>(0, (sum, i) => sum + (i.precio ?? 0) * i.quantity);
     final orderNotes = items
         .where((i) => i.notes != null && i.notes!.isNotEmpty)
         .map((i) => '${i.nombre}: ${i.notes}')
         .join('; ');
+    final headers = await AuthHelper.getAuthHeaders();
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders');
     final body = jsonEncode({
-      'items': items.map((e) => {
-        'product_id': e.id,
-        'quantity': e.quantity,
-      }).toList(),
+      'commerce_id': commerceId,
+      'products': items.map((e) => {'id': e.id, 'quantity': e.quantity}).toList(),
+      'delivery_type': deliveryType,
+      'total': total,
       if (orderNotes.isNotEmpty) 'notes': orderNotes,
+      if (deliveryType == 'delivery') 'delivery_address': deliveryAddress?.trim() ?? '',
     });
     
     final response = await http.post(

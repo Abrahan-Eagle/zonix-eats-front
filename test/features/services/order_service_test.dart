@@ -10,7 +10,11 @@ import 'dart:convert';
 
 class MockOrderService extends OrderService {
   @override
-  Future<Order> createOrder(List<CartItem> items) async {
+  Future<Order> createOrder(
+    List<CartItem> items, {
+    required String deliveryType,
+    String? deliveryAddress,
+  }) async {
     // Simula una respuesta exitosa
     return Order(
       id: 1,
@@ -117,7 +121,7 @@ void main() {
           imagen: 'https://example.com/pizza.jpg',
         ),
       ];
-      final order = await orderService.createOrder(items);
+      final order = await orderService.createOrder(items, deliveryType: 'pickup');
       expect(order, isA<Order>());
       expect(order.id, 1);
     });

@@ -838,6 +838,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               precio: product.price,
                               quantity: 1,
                               imagen: product.image,
+                              commerceId: product.commerceId,
                             ));
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
@@ -966,6 +967,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               precio: product.price,
                               quantity: 1,
                               imagen: product.image,
+                              commerceId: product.commerceId,
                             ));
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
