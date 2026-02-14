@@ -8,6 +8,7 @@ import 'package:zonix/helpers/auth_helper.dart';
 import 'dart:async'; // Added for StreamSubscription
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/services/pusher_service.dart';
+import 'package:zonix/features/screens/orders/order_detail_page.dart';
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -250,9 +251,17 @@ class _OrdersPageState extends State<OrdersPage> {
               leading: Icon(Icons.receipt_long, color: AppColors.accentButton(context)),
               title: Text('Orden #${order.id}', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryText(context))),
               subtitle: Text('Estado: ${order.status}', style: TextStyle(color: AppColors.secondaryText(context))),
-              trailing: Text('${order.total}\$', style: TextStyle(color: AppColors.success(context), fontWeight: FontWeight.bold)),
+              trailing: Text('\$${order.total.toStringAsFixed(2)}', style: TextStyle(color: AppColors.success(context), fontWeight: FontWeight.bold)),
               onTap: () {
-                // Acción para ver detalles de la orden
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => OrderDetailPage(
+                      orderId: order.id,
+                      order: order,
+                    ),
+                  ),
+                ).then((_) => _loadOrders());
               },
             ),
           );

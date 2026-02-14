@@ -76,10 +76,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
           return;
         }
       }
+      final deliveryFee = _deliveryType == 'delivery' ? 2.50 : 0.0;
       await orderService.createOrder(
         cartService.items.toList(),
         deliveryType: _deliveryType,
         deliveryAddress: deliveryAddress,
+        deliveryFee: deliveryFee,
       );
       cartService.clearCart();
       setState(() {
@@ -102,8 +104,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final cartItems = cartService.items;
     final totalItems = cartItems.fold<int>(0, (sum, item) => sum + item.quantity);
     final subtotal = cartItems.fold<double>(0, (sum, item) => sum + (item.precio ?? 0) * item.quantity);
-    final tax = subtotal * 0.05;
-    final delivery = 0.0;
+    final tax = 0.0;
+    final delivery = _deliveryType == 'delivery' ? 2.50 : 0.0;
     final totalPayment = subtotal + tax + delivery;
     return Scaffold(
       appBar: AppBar(title: const Text('Checkout')),
@@ -200,11 +202,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
               child: Column(
                 children: [
                   _buildSummaryRow('Total de productos:', '$totalItems'),
-                  _buildSummaryRow('Subtotal', subtotal.toStringAsFixed(2)),
-                  _buildSummaryRow('Impuesto', tax.toStringAsFixed(2)),
-                  _buildSummaryRow('Envío', delivery.toStringAsFixed(2)),
+                  _buildSummaryRow('Subtotal', '\$${subtotal.toStringAsFixed(2)}'),
+                  if (tax > 0) _buildSummaryRow('Impuesto', '\$${tax.toStringAsFixed(2)}'),
+                  _buildSummaryRow('Envío', '\$${delivery.toStringAsFixed(2)}'),
                   const Divider(height: 24, thickness: 1),
-                  _buildSummaryRow('Total a pagar:', totalPayment.toStringAsFixed(2), isTotal: true),
+                  _buildSummaryRow('Total a pagar:', '\$${totalPayment.toStringAsFixed(2)}', isTotal: true),
                 ],
               ),
             ),

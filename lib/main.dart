@@ -31,6 +31,7 @@ import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart'
 import 'package:zonix/features/screens/products/products_page.dart';
 import 'package:zonix/features/screens/cart/cart_page.dart';
 import 'package:zonix/features/screens/orders/orders_page.dart';
+import 'package:zonix/features/screens/orders/order_detail_page.dart';
 import 'package:zonix/features/screens/restaurants/restaurants_page.dart';
 
 import 'package:zonix/features/screens/cart/checkout_page.dart';
@@ -53,6 +54,7 @@ import 'package:zonix/features/screens/commerce/commerce_products_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_product_form_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_reports_page.dart';
 import 'package:zonix/models/commerce_product.dart';
+import 'package:zonix/models/order.dart';
 import 'package:zonix/features/screens/delivery/delivery_orders_page.dart';
 import 'package:zonix/features/screens/delivery/delivery_history_page.dart';
 import 'package:zonix/features/screens/delivery/delivery_routes_page.dart';
@@ -319,6 +321,14 @@ class MyApp extends StatelessWidget {
       },
       onGenerateRoute: (settings) {
         final path = settings.name ?? '';
+        if (path == '/order-details') {
+          final order = settings.arguments is Order ? settings.arguments as Order : null;
+          if (order != null) {
+            return MaterialPageRoute(
+              builder: (context) => OrderDetailPage(orderId: order.id, order: order),
+            );
+          }
+        }
         final orderMatch = RegExp(r'^/commerce/order/(\d+)$').firstMatch(path);
         if (orderMatch != null) {
           final orderId = int.parse(orderMatch.group(1)!);

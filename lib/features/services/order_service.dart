@@ -17,10 +17,12 @@ class OrderService extends ChangeNotifier {
   // POST /api/buyer/orders - Crear orden
   /// [deliveryType] 'pickup' o 'delivery'
   /// [deliveryAddress] requerido cuando deliveryType es 'delivery'
+  /// [deliveryFee] opcional, costo de envío (ej. 2.50). 0 si pickup.
   Future<Order> createOrder(
     List<CartItem> items, {
     required String deliveryType,
     String? deliveryAddress,
+    double deliveryFee = 0.0,
   }) async {
     if (items.isEmpty) {
       throw Exception('El carrito está vacío');
@@ -32,7 +34,8 @@ class OrderService extends ChangeNotifier {
     if (deliveryType == 'delivery' && (deliveryAddress == null || deliveryAddress.trim().isEmpty)) {
       throw Exception('La dirección de entrega es requerida para envío a domicilio.');
     }
-    final total = items.fold<double>(0, (sum, i) => sum + (i.precio ?? 0) * i.quantity);
+    final subtotal = items.fold<double>(0, (sum, i) => sum + (i.precio ?? 0) * i.quantity);
+    final total = subtotal + (deliveryFee > 0 ? deliveryFee : 0.0);
     final orderNotes = items
         .where((i) => i.notes != null && i.notes!.isNotEmpty)
         .map((i) => '${i.nombre}: ${i.notes}')
@@ -44,6 +47,7 @@ class OrderService extends ChangeNotifier {
       'products': items.map((e) => {'id': e.id, 'quantity': e.quantity}).toList(),
       'delivery_type': deliveryType,
       'total': total,
+      'delivery_fee': deliveryFee,
       if (orderNotes.isNotEmpty) 'notes': orderNotes,
       if (deliveryType == 'delivery') 'delivery_address': deliveryAddress?.trim() ?? '',
     });
@@ -156,18 +160,30 @@ class OrderService extends ChangeNotifier {
     
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      if (data['success'] == true && data['data'] != null) {
-        return Order.fromJson(data['data']);
-      } else {
-        throw Exception(data['message'] ?? 'Error al obtener la orden');
+      if (data['error'] != null) {
+        throw Exception(data['error']);
       }
+      // Backend puede devolver { success, data } o la orden directamente
+      final orderMap = (data['success'] == true && data['data'] != null)
+          ? data['data'] as Map<String, dynamic>
+          : data as Map<String, dynamic>;
+      return Order.fromJson(orderMap);
     } else {
-      throw Exception('Error al obtener la orden: ${response.statusCode}');
+      final data = response.body.isNotEmpty ? jsonDecode(response.body) : null;
+      throw Exception(data?['error'] ?? data?['message'] ?? 'Error al obtener la orden: ${response.statusCode}');
     }
   }
 
   // POST /api/buyer/orders/{id}/payment-proof - Subir comprobante de pago
-  Future<void> uploadPaymentProof(int orderId, String filePath, String fileType) async {
+  /// [paymentMethod] requerido por backend (ej. efectivo, transferencia, tarjeta)
+  /// [referenceNumber] número de referencia/transacción
+  Future<void> uploadPaymentProof(
+    int orderId,
+    String filePath,
+    String fileType, {
+    required String paymentMethod,
+    required String referenceNumber,
+  }) async {
     final headers = await AuthHelper.getAuthHeaders();
     final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/payment-proof');
     var request = http.MultipartRequest('POST', url);
@@ -178,6 +194,8 @@ class OrderService extends ChangeNotifier {
       filePath, 
       contentType: fileType == 'pdf' ? MediaType('application', 'pdf') : MediaType('image', fileType)
     ));
+    request.fields['payment_method'] = paymentMethod;
+    request.fields['reference_number'] = referenceNumber;
     
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
@@ -227,32 +245,21 @@ class OrderService extends ChangeNotifier {
     }
   }
 
-  // POST /api/buyer/orders/{id}/comprobante - Subir comprobante (método alternativo)
-  Future<void> uploadComprobante(int orderId, String filePath, String fileType) async {
-    final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/comprobante');
-    var request = http.MultipartRequest('POST', url);
-    request.headers.addAll(headers);
-    
-    request.files.add(await http.MultipartFile.fromPath(
-      'comprobante', 
-      filePath, 
-      contentType: fileType == 'pdf' ? MediaType('application', 'pdf') : MediaType('image', fileType)
-    ));
-    
-    final streamedResponse = await request.send();
-    final response = await http.Response.fromStream(streamedResponse);
-    
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['success'] == true) {
-        return;
-      } else {
-        throw Exception(data['message'] ?? 'Error al subir comprobante');
-      }
-    } else {
-      throw Exception('Error al subir comprobante: ${response.statusCode}');
-    }
+  // POST /api/buyer/orders/{id}/comprobante - Subir comprobante (alias de uploadPaymentProof)
+  Future<void> uploadComprobante(
+    int orderId,
+    String filePath,
+    String fileType, {
+    String paymentMethod = 'otro',
+    String referenceNumber = '',
+  }) async {
+    return uploadPaymentProof(
+      orderId,
+      filePath,
+      fileType,
+      paymentMethod: paymentMethod,
+      referenceNumber: referenceNumber.isEmpty ? 'N/A' : referenceNumber,
+    );
   }
 
   // GET /api/buyer/orders/{orderId}/tracking - Obtener tracking de la orden

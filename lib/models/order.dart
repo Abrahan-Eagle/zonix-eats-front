@@ -54,27 +54,48 @@ class Order {
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
+    // items: puede venir como items, order_items o products (con pivot)
+    List<OrderItem> parsedItems = [];
+    final rawItems = json['items'] ?? json['order_items'] ?? json['orderItems'];
+    final products = json['products'] as List<dynamic>?;
+    if (rawItems != null && rawItems is List) {
+      parsedItems = rawItems.map((item) => OrderItem.fromJson(item is Map ? Map<String, dynamic>.from(item) : <String, dynamic>{})).toList();
+    } else if (products != null) {
+      for (final p in products) {
+        if (p is Map) {
+          parsedItems.add(OrderItem.fromProductPivot(Map<String, dynamic>.from(p)));
+        }
+      }
+    }
+    final createdAtRaw = json['created_at'];
+    final updatedAtRaw = json['updated_at'];
     return Order(
       id: json['id'] ?? 0,
-      userId: json['user_id'] ?? 0,
+      userId: json['user_id'] ?? json['profile_id'] ?? 0,
       commerceId: json['commerce_id'] ?? 0,
       deliveryAgentId: json['delivery_agent_id'],
-      orderNumber: json['order_number'] ?? '',
-      status: json['status'] ?? 'pending',
-      subtotal: _parseDouble(json['subtotal']),
+      orderNumber: json['order_number'] ?? '${json['id'] ?? ''}',
+      status: (json['status'] ?? 'pending').toString(),
+      subtotal: _parseDouble(json['subtotal']) > 0
+          ? _parseDouble(json['subtotal'])
+          : (parsedItems.isNotEmpty
+              ? parsedItems.fold<double>(0, (s, i) => s + i.total)
+              : _parseDouble(json['total']) - _parseDouble(json['delivery_fee'])),
       deliveryFee: _parseDouble(json['delivery_fee']),
       tax: _parseDouble(json['tax']),
       total: _parseDouble(json['total']),
       paymentMethod: json['payment_method'] ?? '',
       paymentStatus: json['payment_status'] ?? 'pending',
-      deliveryAddress: json['delivery_address'] ?? '',
+      deliveryAddress: json['delivery_address']?.toString() ?? '',
       deliveryLocation: json['delivery_location'],
-      specialInstructions: json['special_instructions'],
-      estimatedDeliveryTime: DateTime.parse(json['estimated_delivery_time'] ?? DateTime.now().add(Duration(minutes: 30)).toIso8601String()),
-      actualDeliveryTime: json['actual_delivery_time'] != null ? DateTime.parse(json['actual_delivery_time']) : null,
-      createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
-      updatedAt: DateTime.parse(json['updated_at'] ?? DateTime.now().toIso8601String()),
-      items: (json['items'] as List<dynamic>? ?? []).map((item) => OrderItem.fromJson(item)).toList(),
+      specialInstructions: json['special_instructions'] ?? json['notes'],
+      estimatedDeliveryTime: createdAtRaw != null
+          ? (DateTime.tryParse(createdAtRaw.toString()) ?? DateTime.now()).add(const Duration(minutes: 30))
+          : DateTime.now().add(const Duration(minutes: 30)),
+      actualDeliveryTime: json['actual_delivery_time'] != null ? DateTime.tryParse(json['actual_delivery_time'].toString()) : null,
+      createdAt: createdAtRaw != null ? (DateTime.tryParse(createdAtRaw.toString()) ?? DateTime.now()) : DateTime.now(),
+      updatedAt: updatedAtRaw != null ? (DateTime.tryParse(updatedAtRaw.toString()) ?? DateTime.now()) : DateTime.now(),
+      items: parsedItems,
       commerce: json['commerce'],
     );
   }
@@ -153,7 +174,7 @@ class Order {
     );
   }
 
-  bool get isPending => status == 'pending';
+  bool get isPending => status == 'pending' || status == 'pending_payment';
   bool get isConfirmed => status == 'confirmed';
   bool get isPreparing => status == 'preparing';
   bool get isReady => status == 'ready';
@@ -164,13 +185,19 @@ class Order {
   String get statusText {
     switch (status) {
       case 'pending':
-        return 'Pendiente';
+      case 'pending_payment':
+        return 'Pendiente de pago';
+      case 'paid':
+        return 'Pagado';
       case 'confirmed':
         return 'Confirmado';
       case 'preparing':
         return 'Preparando';
       case 'ready':
-        return 'Listo';
+      case 'processing':
+        return status == 'processing' ? 'En preparación' : 'Listo';
+      case 'shipped':
+        return 'En camino';
       case 'out_for_delivery':
         return 'En Camino';
       case 'delivered':
@@ -191,6 +218,9 @@ class Order {
       case 'preparing':
         return '#FF9800';
       case 'ready':
+      case 'paid':
+      case 'processing':
+      case 'shipped':
         return '#4CAF50';
       case 'out_for_delivery':
         return '#9C27B0';
@@ -228,16 +258,41 @@ class OrderItem {
   });
 
   factory OrderItem.fromJson(Map<String, dynamic> json) {
+    final qty = json['quantity'] ?? 0;
+    final price = _parseDouble(json['price']) > 0 ? _parseDouble(json['price']) : _parseDouble(json['unit_price']);
+    final tot = _parseDouble(json['total']) > 0 ? _parseDouble(json['total']) : (qty * price);
     return OrderItem(
       id: json['id'] ?? 0,
       orderId: json['order_id'] ?? 0,
       productId: json['product_id'] ?? 0,
-      productName: json['product_name'] ?? '',
-      productImage: json['product_image'] ?? '',
-      price: _parseDouble(json['price']),
-      quantity: json['quantity'] ?? 0,
-      total: _parseDouble(json['total']),
+      productName: json['product_name'] ?? json['name'] ?? '',
+      productImage: json['product_image'] ?? json['image'] ?? '',
+      price: price,
+      quantity: qty,
+      total: tot,
       specialInstructions: json['special_instructions'],
+    );
+  }
+
+  /// Desde products con pivot (respuesta backend)
+  factory OrderItem.fromProductPivot(Map<String, dynamic> json) {
+    final rawPivot = json['pivot'];
+    final pivot = rawPivot is Map
+        ? Map<String, dynamic>.from(rawPivot)
+        : <String, dynamic>{};
+    final qty = pivot['quantity'] ?? json['quantity'] ?? 0;
+    final unitPrice = _parseDouble(pivot['unit_price']) > 0 ? _parseDouble(pivot['unit_price']) : _parseDouble(json['price']);
+    final tot = qty * unitPrice;
+    return OrderItem(
+      id: json['id'] ?? 0,
+      orderId: 0,
+      productId: json['id'] ?? 0,
+      productName: json['name'] ?? json['product_name'] ?? '',
+      productImage: json['image'] ?? json['product_image'] ?? '',
+      price: unitPrice,
+      quantity: qty,
+      total: tot,
+      specialInstructions: null,
     );
   }
 
