@@ -7,9 +7,6 @@ import 'package:shimmer/shimmer.dart';
 import 'package:zonix/features/services/restaurant_service.dart';
 import 'package:zonix/models/restaurant.dart';
 import 'restaurant_details_page.dart';
-import 'package:zonix/features/services/product_service.dart';
-import 'package:zonix/models/product.dart';
-import '../../services/test_auth_service.dart';
 import 'package:zonix/features/utils/debouncer.dart';
 import 'package:zonix/features/utils/network_image_with_fallback.dart';
 import 'package:zonix/features/utils/app_colors.dart';
@@ -19,21 +16,6 @@ class RestaurantsPage extends StatefulWidget {
 
   @override
   State<RestaurantsPage> createState() => _RestaurantsPageState();
-}
-
-class Debouncer {
-  final int milliseconds;
-  VoidCallback? action;
-  Timer? _timer;
-
-  Debouncer({required this.milliseconds});
-
-  void run(VoidCallback action) {
-    if (_timer != null) {
-      _timer!.cancel();
-    }
-    _timer = Timer(Duration(milliseconds: milliseconds), action);
-  }
 }
 
 class _RestaurantsPageState extends State<RestaurantsPage> {
@@ -48,7 +30,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   @override
   void initState() {
     super.initState();
-    _loadRestaurants();
+    _restaurantsFuture = RestaurantService().fetchRestaurants();
     _scrollController.addListener(_onScroll);
   }
 
@@ -56,7 +38,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   void dispose() {
     _scrollController.dispose();
     _searchController.dispose();
-    _debouncer._timer?.cancel();
+    _debouncer.dispose();
     super.dispose();
   }
 
@@ -68,37 +50,10 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   }
 
   Future<void> _loadRestaurants() async {
-    try {
-      _logger.i('🔄 Iniciando carga de restaurantes...');
-      setState(() => _isRefreshing = true);
-      
-      // Primero probar la autenticación
-      _logger.i('🔍 Probando autenticación...');
-      final authResult = await TestAuthService.testAuth();
-      
-      if (authResult.containsKey('error')) {
-        _logger.e('❌ Error de autenticación: $authResult');
-        setState(() => _isRefreshing = false);
-        return;
-      }
-      
-      _logger.i('✅ Autenticación exitosa, cargando restaurantes...');
-      
-      setState(() {
-        _restaurantsFuture = RestaurantService().fetchRestaurants();
-      });
-      
-      _restaurantsFuture?.then((restaurants) {
-        _logger.d('✅ Datos recibidos de fetchRestaurants()');
-        _logger.d('📌 Cantidad de restaurantes: ${restaurants.length}');
-      }).catchError((error) {
-        _logger.e('❌ Error al cargar restaurantes: $error');
-      }).whenComplete(() => setState(() => _isRefreshing = false));
-      
-    } catch (e) {
-      _logger.e('❌ Error en initState al cargar restaurantes: $e');
-      setState(() => _isRefreshing = false);
-    }
+    _logger.i('🔄 Cargando restaurantes...');
+    setState(() => _isRefreshing = true);
+    setState(() => _restaurantsFuture = RestaurantService().fetchRestaurants());
+    _restaurantsFuture?.then((r) => _logger.d('✅ ${r.length} restaurantes')).catchError((e) => _logger.e('❌ $e')).whenComplete(() => setState(() => _isRefreshing = false));
   }
 
   List<Restaurant> _filterRestaurants(List<Restaurant> restaurants) {
@@ -371,7 +326,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
               child: FutureBuilder<List<Restaurant>>(
                 future: _restaurantsFuture,
                 builder: (context, snapshot) {
-                  if (_isRefreshing) {
+                  if (_isRefreshing || snapshot.connectionState == ConnectionState.waiting) {
                     return _buildShimmerLoading();
                   } else if (snapshot.hasError) {
                     return _buildErrorWidget(snapshot.error!);

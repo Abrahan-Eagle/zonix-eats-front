@@ -38,13 +38,18 @@ class RestaurantService {
         logger.d('Processing successful response');
         final data = jsonDecode(response.body);
         
-        // El backend devuelve un array directo, no envuelto en success/data
+        // Backend Laravel: paginador { data: [...], current_page, ... } o array directo
         List<dynamic> restaurantsData;
         if (data is List) {
           restaurantsData = data;
-        } else if (data is Map && data['success'] == true && data['data'] != null) {
-          // Fallback por si acaso el backend cambia
-          restaurantsData = data['data'];
+        } else if (data is Map) {
+          if (data['data'] != null && data['data'] is List) {
+            restaurantsData = data['data'] as List;
+          } else if (data['success'] == true && data['data'] != null && data['data'] is List) {
+            restaurantsData = data['data'] as List;
+          } else {
+            restaurantsData = [];
+          }
         } else {
           restaurantsData = [];
         }
