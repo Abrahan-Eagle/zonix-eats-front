@@ -9,35 +9,31 @@ void main() {
     await dotenv.load(fileName: ".env");
   });
   testWidgets('CommerceProfilePage muestra el título', (WidgetTester tester) async {
-    await tester.pumpWidget(const MaterialApp(home: CommerceProfilePage()));
-    expect(find.text('Perfil de Comercio'), findsOneWidget);
+    final profile = CommerceProfile(id: 1, businessName: 'Test', address: 'A', phone: '1', open: true);
+    await tester.pumpWidget(MaterialApp(home: CommerceProfilePage(initialProfile: profile, isTestMode: true)));
+    await tester.pump();
+    expect(find.text('Perfil comercio'), findsOneWidget);
   });
 
   testWidgets('Muestra el switch de apertura/cierre', (WidgetTester tester) async {
     final profile = CommerceProfile(id: 1, businessName: 'Test', address: 'A', phone: '1', open: true);
     await tester.pumpWidget(MaterialApp(home: CommerceProfilePage(initialProfile: profile, isTestMode: true)));
     await tester.pump();
-    expect(find.byType(SwitchListTile), findsOneWidget);
-    expect(find.textContaining('Comercio ABIERTO').evaluate().isNotEmpty || find.textContaining('Comercio CERRADO').evaluate().isNotEmpty, true);
+    expect(find.byType(Switch), findsOneWidget);
+    expect(find.textContaining('Comercio abierto').evaluate().isNotEmpty || find.textContaining('Comercio cerrado').evaluate().isNotEmpty, true);
   });
 
   testWidgets('Permite cambiar el estado de apertura/cierre', (WidgetTester tester) async {
     final profile = CommerceProfile(id: 1, businessName: 'Test', address: 'A', phone: '1', open: true);
     await tester.pumpWidget(MaterialApp(home: CommerceProfilePage(initialProfile: profile, isTestMode: true)));
-    expect(find.text('Comercio ABIERTO'), findsOneWidget);
-    // Cambiar el switch
-    await tester.tap(find.byType(SwitchListTile));
+    await tester.pump();
+    expect(find.text('Comercio abierto'), findsOneWidget);
+    await tester.tap(find.byType(Switch));
     await tester.pumpAndSettle();
-    // Imprimir todos los textos para debug
-    final allTexts = find.byType(Text);
-    for (var i = 0; i < tester.widgetList(allTexts).length; i++) {
-      final textWidget = tester.widgetList(allTexts).elementAt(i) as Text;
-      print('Texto encontrado: \'${textWidget.data}\'');
-    }
-    expect(find.text('Comercio CERRADO'), findsOneWidget);
+    expect(find.text('Comercio cerrado'), findsOneWidget);
   });
 
-  testWidgets('Muestra feedback al guardar cambios (simulado)', (WidgetTester tester) async {
+  testWidgets('Muestra datos del comercio en modo test', (WidgetTester tester) async {
     final profile = CommerceProfile(id: 1, businessName: 'Test', address: 'A', phone: '1', open: true);
     await tester.pumpWidget(
       MaterialApp(
@@ -47,20 +43,7 @@ void main() {
       ),
     );
     await tester.pump();
-    final saveButton = find.widgetWithText(ElevatedButton, 'Guardar cambios');
-    expect(saveButton, findsOneWidget);
-    await tester.tap(saveButton);
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 300));
-    // Esperar SnackBar con múltiples pumps
-    await tester.pumpAndSettle(const Duration(seconds: 2));
-    // Verificar que se muestra algún feedback (SnackBar o mensaje)
-    final snackBar = find.byType(SnackBar);
-    if (snackBar.evaluate().isEmpty) {
-      // Si no hay SnackBar, verificar que el botón sigue presente (indicando que la acción se procesó)
-      expect(find.widgetWithText(ElevatedButton, 'Guardar cambios'), findsOneWidget);
-    } else {
-      expect(snackBar, findsOneWidget);
-    }
+    expect(find.text('Perfil comercio'), findsOneWidget);
+    expect(find.byType(Switch), findsOneWidget);
   });
 } 

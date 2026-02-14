@@ -34,6 +34,25 @@ class _CommerceProfilePageState extends State<CommerceProfilePage> {
       _loading = true;
       _error = null;
     });
+    if (widget.isTestMode && widget.initialProfile != null) {
+      final p = widget.initialProfile;
+      final data = p is Map
+          ? Map<String, dynamic>.from(p)
+          : {
+              'business_name': p.businessName,
+              'address': p.address,
+              'phone': p.phone,
+              'open': p.open,
+            };
+      if (mounted) {
+        setState(() {
+          _commerce = data;
+          _commerceOpen = data['open'] == true;
+          _loading = false;
+        });
+      }
+      return;
+    }
     try {
       final data = await CommerceDataService.getCommerceData();
       if (mounted) {
@@ -54,6 +73,10 @@ class _CommerceProfilePageState extends State<CommerceProfilePage> {
   }
 
   Future<void> _toggleOpen(bool value) async {
+    if (widget.isTestMode) {
+      if (mounted) setState(() => _commerceOpen = value);
+      return;
+    }
     try {
       await CommerceDataService.updateCommerceData({'open': value});
       if (mounted) {

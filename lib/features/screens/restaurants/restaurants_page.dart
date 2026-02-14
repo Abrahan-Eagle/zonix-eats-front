@@ -1,4 +1,4 @@
-import 'dart:async'; 
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,7 +9,14 @@ import 'package:zonix/models/restaurant.dart';
 import 'restaurant_details_page.dart';
 import 'package:zonix/features/utils/debouncer.dart';
 import 'package:zonix/features/utils/network_image_with_fallback.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+
+/// Colores del template Stitch Zonix Eats - Restaurantes
+class _TemplateColors {
+  static const Color primary = Color(0xFF3399FF);
+  static const Color bgDark = Color(0xFF0F1923);
+  static const Color cardDark = Color(0xFF1E293B);
+  static const Color ratingYellow = Color(0xFFEAB308);
+}
 
 class RestaurantsPage extends StatefulWidget {
   const RestaurantsPage({Key? key}) : super(key: key);
@@ -25,7 +32,10 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   final _scrollController = ScrollController();
   String _searchQuery = '';
   bool _isRefreshing = false;
+  int _selectedFilterIndex = 0; // 0: Filtros, 1: Cerca de mí, 2: Envío gratis, 3: Mejor puntuados
   final _debouncer = Debouncer(milliseconds: 500);
+
+  static const _filterLabels = ['Filtros', 'Cerca de mí', 'Envío gratis', 'Mejor puntuados'];
 
   @override
   void initState() {
@@ -45,7 +55,6 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   void _onScroll() {
     if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
       _logger.d('🔄 Llegamos al final de la lista');
-      // Aquí podrías cargar más datos si implementas paginación
     }
   }
 
@@ -53,30 +62,34 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
     _logger.i('🔄 Cargando restaurantes...');
     setState(() => _isRefreshing = true);
     setState(() => _restaurantsFuture = RestaurantService().fetchRestaurants());
-    _restaurantsFuture?.then((r) => _logger.d('✅ ${r.length} restaurantes')).catchError((e) => _logger.e('❌ $e')).whenComplete(() => setState(() => _isRefreshing = false));
+    _restaurantsFuture!.then((r) => _logger.d('✅ ${r.length} restaurantes'))
+        .catchError((e) => _logger.e('❌ $e'))
+        .whenComplete(() => setState(() => _isRefreshing = false));
   }
 
   List<Restaurant> _filterRestaurants(List<Restaurant> restaurants) {
     if (_searchQuery.isEmpty) return restaurants;
-    return restaurants.where((restaurant) => 
-      restaurant.nombreLocal.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-      (restaurant.direccion?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? false)
-    ).toList();
+    return restaurants
+        .where((r) =>
+            r.nombreLocal.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+            r.direccion.toLowerCase().contains(_searchQuery.toLowerCase()))
+        .toList();
   }
 
   Widget _buildShimmerLoading() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: AppColors.cardBg(context),
-      highlightColor: AppColors.scaffoldBg(context),
+      baseColor: isDark ? _TemplateColors.cardDark : Colors.grey[300]!,
+      highlightColor: isDark ? _TemplateColors.bgDark : Colors.grey[100]!,
       child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
         itemCount: 5,
         itemBuilder: (_, __) => Padding(
-          padding: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.only(bottom: 24),
           child: Container(
-            height: 180,
+            height: 260,
             decoration: BoxDecoration(
-              color: AppColors.cardBg(context),
+              color: isDark ? _TemplateColors.cardDark : Colors.white,
               borderRadius: BorderRadius.circular(16),
             ),
           ),
@@ -94,7 +107,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
           const SizedBox(height: 16),
           Text(
             'Ocurrió un error',
-            style: GoogleFonts.manrope(
+            style: GoogleFonts.plusJakartaSans(
               fontSize: 18,
               fontWeight: FontWeight.w600,
               color: Colors.white,
@@ -105,12 +118,12 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
             child: Text(
               error.toString(),
               textAlign: TextAlign.center,
-              style: GoogleFonts.manrope(color: Colors.white70),
+              style: GoogleFonts.plusJakartaSans(color: Colors.white70),
             ),
           ),
           FilledButton(
             onPressed: _loadRestaurants,
-            style: FilledButton.styleFrom(backgroundColor: Colors.blueAccent),
+            style: FilledButton.styleFrom(backgroundColor: _TemplateColors.primary),
             child: const Text('Reintentar', style: TextStyle(color: Colors.white)),
           ),
         ],
@@ -126,13 +139,8 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
           Icon(Icons.search_off, size: 48, color: Colors.grey[600]),
           const SizedBox(height: 16),
           Text(
-            _searchQuery.isEmpty 
-              ? 'No hay restaurantes disponibles' 
-              : 'No encontramos resultados',
-            style: GoogleFonts.manrope(
-              fontSize: 18,
-              color: Colors.white70,
-            ),
+            _searchQuery.isEmpty ? 'No hay restaurantes disponibles' : 'No encontramos resultados',
+            style: GoogleFonts.plusJakartaSans(fontSize: 18, color: Colors.white70),
           ),
           if (_searchQuery.isNotEmpty) ...[
             const SizedBox(height: 8),
@@ -155,28 +163,43 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
     );
   }
 
-  Widget _buildRestaurantCard(Restaurant restaurant) {
-    return Card(
-      color: AppColors.cardBg(context),
-      shadowColor: AppColors.orange.withOpacity(0.10),
-      elevation: 6,
-      clipBehavior: Clip.antiAliasWithSaveLayer,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+  Widget _buildRestaurantCard(Restaurant restaurant, int index) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final rating = restaurant.rating;
+    final deliveryTime = restaurant.deliveryTime;
+    final deliveryFee = restaurant.deliveryFee;
+    final showPromoBadge = index == 0; // Template: primera tarjeta con badge Promoción
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: isDark ? _TemplateColors.cardDark.withOpacity(0.6) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.grey.shade200,
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDark ? 0.2 : 0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: InkWell(
         onTap: () async {
           await HapticFeedback.lightImpact();
-          _logger.d('🚀 Navegando a detalles de  {restaurant.nombreLocal}');
+          _logger.d('🚀 Navegando a detalles de ${restaurant.nombreLocal}');
           Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => RestaurantDetailsPage(
                 commerceId: restaurant.id,
                 nombreLocal: restaurant.nombreLocal,
-                direccion: restaurant.direccion ?? '',
-                telefono: restaurant.telefono ?? '',
-                abierto: restaurant.abierto ?? false,
+                direccion: restaurant.direccion,
+                telefono: restaurant.telefono,
+                abierto: restaurant.abierto,
                 horario: restaurant.horario,
                 logoUrl: restaurant.logoUrl,
                 rating: null,
@@ -187,72 +210,151 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
             ),
           );
         },
-        borderRadius: BorderRadius.circular(20),
-        splashColor: AppColors.orange.withOpacity(0.15),
-        highlightColor: AppColors.orange.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Imagen del restaurante
-            AspectRatio(
-              aspectRatio: 16/9,
-              child: RestaurantImage(
-                imageUrl: restaurant.logoUrl ?? '',
-                restaurantName: restaurant.nombreLocal,
-                width: double.infinity,
-                height: double.infinity,
-                borderRadius: BorderRadius.zero,
+            // Imagen h-44 (176px)
+            SizedBox(
+              height: 176,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    child: RestaurantImage(
+                      imageUrl: restaurant.logoUrl,
+                      restaurantName: restaurant.nombreLocal,
+                      width: double.infinity,
+                      height: double.infinity,
+                      borderRadius: BorderRadius.zero,
+                    ),
+                  ),
+                  // Icono favoritos (top right)
+                  Positioned(
+                    top: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: (isDark ? Colors.black54 : Colors.white).withOpacity(0.9),
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 8,
+                          ),
+                        ],
+                      ),
+                      child: Icon(
+                        Icons.favorite_border,
+                        size: 20,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                  ),
+                  // Badge Promoción (bottom left)
+                  if (showPromoBadge)
+                    Positioned(
+                      bottom: 12,
+                      left: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: _TemplateColors.primary,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'PROMOCIÓN',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
-            // Información del restaurante
+            // Info del restaurante
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Nombre
-                  Text(
-                    restaurant.nombreLocal,
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.primaryText(context),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  // Dirección
-                  if (restaurant.direccion != null)
-                    Row(
-                      children: [
-                        Icon(Icons.location_on, color: AppColors.accentButton(context), size: 18),
-                        const SizedBox(width: 4),
-                        Expanded(
-                          child: Text(
-                            restaurant.direccion!,
-                            style: TextStyle(
-                              color: AppColors.secondaryText(context),
-                              fontSize: 14,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                  // Nombre + Rating
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          restaurant.nombreLocal,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isDark ? Colors.white : const Color(0xFF0F1923),
                           ),
                         ),
-                      ],
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: _TemplateColors.ratingYellow.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.star, size: 14, color: _TemplateColors.ratingYellow),
+                            const SizedBox(width: 2),
+                            Text(
+                              rating > 0 ? rating.toStringAsFixed(1) : '-',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: _TemplateColors.ratingYellow,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  // Tipo de cocina
+                  Text(
+                    restaurant.cuisineDisplay,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      color: isDark ? Colors.white60 : Colors.grey[600],
                     ),
-                  // Estado abierto/cerrado
+                  ),
+                  const SizedBox(height: 12),
+                  // Tiempo + Costo envío
                   Row(
                     children: [
-                      Icon(
-                        restaurant.abierto == true ? Icons.check_circle : Icons.cancel,
-                        color: restaurant.abierto == true ? AppColors.success(context) : AppColors.error(context),
-                        size: 18,
-                      ),
+                      Icon(Icons.schedule, size: 16, color: _TemplateColors.primary),
                       const SizedBox(width: 4),
                       Text(
-                        restaurant.abierto == true ? 'Abierto' : 'Cerrado', // TODO: internacionalizar
-                        style: TextStyle(
-                          color: restaurant.abierto == true ? AppColors.success(context) : AppColors.error(context),
-                          fontSize: 14,
+                        '${deliveryTime}-${deliveryTime + 10} min',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.white70 : Colors.grey[700],
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Icon(Icons.delivery_dining, size: 16, color: _TemplateColors.primary),
+                      const SizedBox(width: 4),
+                      Text(
+                        deliveryFee > 0 ? 'Envío \$${deliveryFee.toStringAsFixed(2)}' : 'Envío Gratis',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.white70 : Colors.grey[700],
                         ),
                       ),
                     ],
@@ -269,59 +371,98 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBg(context),
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(100),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppColors.headerGradientStart(context),
-                AppColors.headerGradientMid(context),
-                AppColors.headerGradientEnd(context),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            title: Text('Restaurantes', style: TextStyle(color: AppColors.white, fontWeight: FontWeight.bold, fontSize: 24)),
-            iconTheme: IconThemeData(color: AppColors.white),
-          ),
-        ),
-      ),
+      backgroundColor: isDark ? _TemplateColors.bgDark : const Color(0xFFF5F7F8),
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            // Search Bar + Filters (sin AppBar; header viene de BuyerShell)
             Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                controller: _searchController,
-                style: TextStyle(color: AppColors.primaryText(context)),
-                decoration: InputDecoration(
-                  hintText: 'Buscar restaurante...', // TODO: internacionalizar
-                  hintStyle: TextStyle(color: AppColors.secondaryText(context)),
-                  filled: true,
-                  fillColor: AppColors.cardBg(context),
-                  prefixIcon: Icon(Icons.search, color: AppColors.secondaryText(context)),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: _searchController,
+                    style: GoogleFonts.plusJakartaSans(color: isDark ? Colors.white : Colors.black87),
+                    decoration: InputDecoration(
+                      hintText: 'Buscar comida o restaurantes',
+                      hintStyle: GoogleFonts.plusJakartaSans(color: Colors.grey[500]),
+                      filled: true,
+                      fillColor: isDark ? _TemplateColors.cardDark : Colors.white,
+                      prefixIcon: Icon(Icons.search, color: Colors.grey[500]),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                    ),
+                    onChanged: (value) {
+                      _debouncer.run(() {
+                        setState(() => _searchQuery = value);
+                      });
+                    },
                   ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                ),
-                onChanged: (value) {
-                  _debouncer.run(() {
-                    setState(() {
-                      _searchQuery = value;
-                    });
-                  });
-                },
+                  const SizedBox(height: 16),
+                  // Filter chips
+                  SizedBox(
+                    height: 36,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: _filterLabels.length,
+                      separatorBuilder: (_, __) => const SizedBox(width: 8),
+                      itemBuilder: (context, i) {
+                        final selected = _selectedFilterIndex == i;
+                        return GestureDetector(
+                          onTap: () => setState(() => _selectedFilterIndex = i),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: selected ? _TemplateColors.primary : (isDark ? _TemplateColors.cardDark : Colors.white),
+                              border: selected ? null : Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300),
+                              borderRadius: BorderRadius.circular(999),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (i == 0) ...[
+                                  Icon(Icons.tune, size: 14, color: selected ? Colors.white : (isDark ? Colors.white70 : Colors.grey[600])),
+                                  const SizedBox(width: 4),
+                                ],
+                                Text(
+                                  _filterLabels[i],
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                                    color: selected ? Colors.white : (isDark ? Colors.white70 : Colors.grey[700]),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
+            const SizedBox(height: 16),
+            // Título + Lista
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Restaurantes destacados',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : const Color(0xFF0F1923),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
             Expanded(
               child: FutureBuilder<List<Restaurant>>(
                 future: _restaurantsFuture,
@@ -337,14 +478,10 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                     if (filtered.isEmpty) return _buildEmptyState();
                     return ListView.builder(
                       controller: _scrollController,
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                       itemCount: filtered.length,
                       itemBuilder: (context, index) {
-                        return AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeInOut,
-                          child: _buildRestaurantCard(filtered[index]),
-                        );
+                        return _buildRestaurantCard(filtered[index], index);
                       },
                     );
                   }

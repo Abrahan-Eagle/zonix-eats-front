@@ -55,9 +55,9 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    // Debe mostrar el primer paso (datos personales): al menos un campo de nombre o botón de continuar
+    // Debe mostrar el primer paso (datos personales): Form y botón Siguiente
     expect(find.byType(Form), findsWidgets);
-    expect(find.text('Continuar'), findsOneWidget);
+    expect(find.text('Siguiente'), findsOneWidget);
   });
 
   testWidgets('OnboardingProvider y UserProvider permiten construir ClientOnboardingFlow', (WidgetTester tester) async {
@@ -77,7 +77,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 
-    // Debe existir el botón de continuar del paso 0
-    expect(find.text('Continuar'), findsOneWidget);
+    // Debe existir el botón Siguiente del paso 0
+    expect(find.text('Siguiente'), findsOneWidget);
   });
 }

@@ -12,6 +12,7 @@ class Restaurant {
   final String? mobilePaymentId;
   final String? mobilePaymentPhone;
   final bool open;
+  final String? businessType;
   final Map<String, dynamic>? schedule;
   final Map<String, dynamic>? profile;
 
@@ -27,6 +28,7 @@ class Restaurant {
     required this.mobilePaymentId,
     required this.mobilePaymentPhone,
     required this.open,
+    this.businessType,
     this.schedule,
     this.profile,
   });
@@ -61,6 +63,7 @@ class Restaurant {
       mobilePaymentId: json['mobile_payment_id']?.toString() ?? '',
       mobilePaymentPhone: json['mobile_payment_phone']?.toString() ?? '',
       open: json['open'] == 1 || json['open'] == true || json['open'] == '1',
+      businessType: json['business_type']?.toString(),
       schedule: parsedSchedule,
       profile: json['profile'] is Map ? Map<String, dynamic>.from(json['profile'] as Map) : null,
     );
@@ -79,6 +82,7 @@ class Restaurant {
       'mobile_payment_id': mobilePaymentId,
       'mobile_payment_phone': mobilePaymentPhone,
       'open': open,
+      'business_type': businessType,
       'schedule': schedule,
       'profile': profile,
     };
@@ -100,6 +104,9 @@ class Restaurant {
   String get name => businessName;
   bool get isOpen => open;
   String get cuisine => profile?['cuisine']?.toString() ?? '';
+  String get cuisineDisplay => (businessType ?? cuisine).trim().isNotEmpty
+      ? (businessType ?? cuisine)
+      : (description ?? 'Restaurante');
   double get rating => (profile?['rating'] as num?)?.toDouble() ?? 0.0;
   int get reviewCount => profile?['review_count'] as int? ?? 0;
   double get distance => 0.0; // Placeholder - calcular desde ubicación
