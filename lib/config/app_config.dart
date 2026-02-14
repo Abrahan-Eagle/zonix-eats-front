@@ -33,7 +33,7 @@ class AppConfig {
   static const String firebaseAppId = 'your_app_id';
 
   // Configuración de la aplicación
-  static const String appName = 'ZONIX-EATS';
+  static const String appName = 'Zonix Eats';
   static const String appVersion = '1.0.0';
   static const String appBuildNumber = '1';
 

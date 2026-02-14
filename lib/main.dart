@@ -290,7 +290,7 @@ class MyApp extends StatelessWidget {
     }
 
     return MaterialApp(
-      title: 'ZONIX',
+      title: 'Zonix Eats',
       debugShowCheckedModeBanner: false,
       theme: _buildStitchLightTheme(),
       darkTheme: _buildStitchDarkTheme(),
