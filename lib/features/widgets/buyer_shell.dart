@@ -97,7 +97,7 @@ class _BuyerShellState extends State<BuyerShell> {
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 8,
         left: 20,
-        right: 20,
+        right: 12,
         bottom: 16,
       ),
       decoration: BoxDecoration(
@@ -134,7 +134,7 @@ class _BuyerShellState extends State<BuyerShell> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Delivering to',
+                              'Entregando a',
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isDark ? Colors.white54 : Colors.black54,
@@ -161,9 +161,12 @@ class _BuyerShellState extends State<BuyerShell> {
               ),
               IconButton(
                 onPressed: _onNotificationTap,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
                 icon: Icon(
                   Icons.notifications_none,
                   color: isDark ? Colors.white70 : Colors.black54,
+                  size: 26,
                 ),
               ),
             ],

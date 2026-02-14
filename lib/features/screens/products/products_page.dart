@@ -181,7 +181,7 @@ class _ProductsPageState extends State<ProductsPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Cosmic Cravings',
+                    'Lo más pedido',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -190,7 +190,7 @@ class _ProductsPageState extends State<ProductsPage> {
                   ),
                   TextButton(
                     onPressed: () {},
-                    child: Text('See all', style: TextStyle(color: _primary, fontWeight: FontWeight.w600)),
+                    child: Text('Ver todo', style: TextStyle(color: _primary, fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
@@ -259,7 +259,7 @@ class _ProductsPageState extends State<ProductsPage> {
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
-          hintText: 'Search for space burgers...',
+          hintText: 'Buscar hamburguesas, pizza...',
           hintStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black45),
           prefixIcon: Icon(Icons.search, color: isDark ? Colors.white54 : Colors.black54, size: 22),
           suffixIcon: Icon(Icons.tune, color: isDark ? Colors.white54 : Colors.black54, size: 20),
@@ -278,7 +278,7 @@ class _ProductsPageState extends State<ProductsPage> {
         final promos = snap.data ?? [];
         final promo = promos.isNotEmpty ? promos.first : null;
         final title = promo?['title'] ?? 'Oferta especial';
-        final desc = promo?['description'] ?? 'Descuentos en tu primer pedido';
+        final desc = promo?['description'] ?? '50% en tu primer pedido';
         final imgUrl = promo?['image_url'] ?? promo?['banner_url'];
         return Container(
           height: 160,
@@ -295,53 +295,56 @@ class _ProductsPageState extends State<ProductsPage> {
                   Image.network(imgUrl.toString(), fit: BoxFit.cover)
                 else
                   Image.asset('assets/onboarding/onboarding_eats.png', fit: BoxFit.cover),
+                // Gradiente como template: from-background-dark to-transparent
                 Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
-                      colors: [Colors.black54, Colors.transparent],
+                      colors: [const Color(0xFF0F1923), Colors.transparent],
                     ),
                   ),
                 ),
+                // Contenido igual que template: flex flex-col justify-center px-6
                 Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(color: _accentYellow, borderRadius: BorderRadius.circular(6)),
-                          child: Text('PROMO', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87)),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(color: _accentYellow, borderRadius: BorderRadius.circular(6)),
+                        child: Text('PROMO', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87)),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        title,
+                        style: GoogleFonts.plusJakartaSans(fontSize: 22, fontWeight: FontWeight.w900, color: Colors.white),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        desc,
+                        style: TextStyle(fontSize: 14, color: Colors.white.withValues(alpha: 0.85)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 16),
+                      TextButton(
+                        onPressed: () {},
+                        style: TextButton.styleFrom(
+                          backgroundColor: _primary,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          title,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.w800, color: Colors.white),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          desc,
-                          style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.9)),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 6),
-                        TextButton(
-                          onPressed: () {},
-                          style: TextButton.styleFrom(
-                            backgroundColor: _primary,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                          ),
-                          child: const Text('Claim Offer'),
-                        ),
-                      ],
-                    ),
+                        child: const Text('Reclamar oferta'),
+                      ),
+                    ],
                   ),
                 ),
               ],

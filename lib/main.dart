@@ -872,6 +872,8 @@ class MainRouterState extends State<MainRouter> {
           unselectedItemColor: _stitchSlate400,
           backgroundColor: Colors.transparent,
           elevation: 0,
+          showSelectedLabels: false,
+          showUnselectedLabels: false,
           onTap: (index) {
             List<BottomNavigationBarItem> items = _getBottomNavItems(
               _selectedLevel,
