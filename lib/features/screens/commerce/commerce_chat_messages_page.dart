@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/features/services/chat_service.dart';
+import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
+/// Chat comercio-cliente. Usa Pusher para mensajes en tiempo real.
 class CommerceChatMessagesPage extends StatefulWidget {
   const CommerceChatMessagesPage({
     Key? key,
@@ -31,13 +33,26 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
   void initState() {
     super.initState();
     _loadMessages();
+    _subscribeToPusher();
   }
 
   @override
   void dispose() {
+    PusherService.instance.unsubscribeFromChannel('private-order.${widget.orderId}');
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
+  }
+
+  void _subscribeToPusher() {
+    PusherService.instance.subscribeToOrderChat(
+      widget.orderId,
+      onNewMessage: (eventName, data) {
+        if (eventName == 'NewMessage' && mounted) {
+          _loadMessages();
+        }
+      },
+    );
   }
 
   Future<void> _loadMessages() async {

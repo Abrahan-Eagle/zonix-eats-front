@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zonix/models/order.dart';
 import 'package:zonix/features/services/order_service.dart';
+import 'package:zonix/features/screens/orders/buyer_order_chat_page.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
 
@@ -218,6 +219,23 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         title: Text('Orden #${order.id}'),
         backgroundColor: AppColors.headerGradientStart(context),
         foregroundColor: Colors.white,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline),
+            tooltip: 'Chat con el comercio',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => BuyerOrderChatPage(
+                    orderId: order.id,
+                    commerceName: order.commerce?['business_name']?.toString() ?? 'Comercio',
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: _updating
           ? const Center(child: CircularProgressIndicator())

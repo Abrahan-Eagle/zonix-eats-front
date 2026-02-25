@@ -93,6 +93,31 @@ class CommerceOrderService {
     }
   }
 
+  // Rechazar orden en pending_payment (cuando no hay acuerdo tras chat)
+  static Future<void> rejectOrder(int orderId, {String? reason}) async {
+    try {
+      final headers = await AuthHelper.getAuthHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/commerce/orders/$orderId/reject'),
+        headers: {...headers, 'Content-Type': 'application/json'},
+        body: jsonEncode({
+          if (reason != null && reason.isNotEmpty) 'reason': reason,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) return;
+        throw Exception(data['message'] ?? 'Error al rechazar orden');
+      } else {
+        final data = response.body.isNotEmpty ? jsonDecode(response.body) : null;
+        throw Exception(data?['message'] ?? 'Error al rechazar orden: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error al rechazar orden: $e');
+    }
+  }
+
   // Validar comprobante de pago
   static Future<Map<String, dynamic>> validatePayment(int orderId, bool isValid, {String? reason}) async {
     try {

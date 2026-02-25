@@ -309,6 +309,7 @@ class OrderService extends ChangeNotifier {
   }
 
   // GET /api/buyer/orders/{orderId}/messages - Obtener mensajes de la orden
+  /// Compatible con Chat\ChatController (array directo) y formato { success, data }
   Future<List<Map<String, dynamic>>> getOrderMessages(int orderId) async {
     final headers = await AuthHelper.getAuthHeaders();
     final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/messages');
@@ -319,26 +320,36 @@ class OrderService extends ChangeNotifier {
     
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      if (data['success'] == true && data['data'] != null) {
-        return List<Map<String, dynamic>>.from(data['data']);
-      } else {
-        throw Exception(data['message'] ?? 'Error al obtener mensajes');
+      if (data is List) {
+        return List<Map<String, dynamic>>.from(data);
       }
+      if (data is Map && data['success'] == true) {
+        final list = data['data'] ?? data['messages'];
+        if (list != null && list is List) {
+          return List<Map<String, dynamic>>.from(list);
+        }
+        return [];
+      }
+      throw Exception(data['message'] ?? 'Error al obtener mensajes');
     } else {
       throw Exception('Error al obtener mensajes: ${response.statusCode}');
     }
   }
 
   // POST /api/buyer/orders/{orderId}/messages - Enviar mensaje a la orden
+  /// Envía 'content' para compatibilidad con Chat\ChatController
   Future<void> sendOrderMessage(int orderId, String message) async {
     final headers = await AuthHelper.getAuthHeaders();
     final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/messages');
     final response = await http.post(
       url,
       body: jsonEncode({
-        'message': message,
+        'content': message,
       }),
-      headers: headers,
+      headers: {
+        ...headers,
+        'Content-Type': 'application/json',
+      },
     );
     
     if (response.statusCode == 200) {

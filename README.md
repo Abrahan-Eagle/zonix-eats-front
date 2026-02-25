@@ -6,17 +6,27 @@ Frontend de la aplicación Zonix Eats desarrollado en Flutter. Aplicación móvi
 
 ## 📊 Estado del Proyecto (Actualizado: 12 Feb 2026)
 
-| Métrica | Valor |
-|---------|-------|
-| **Versión** | 1.0.0 |
-| **Flutter SDK** | >=3.5.0 <4.0.0 |
-| **Archivos Dart** | 173 |
-| **Pantallas** | 69 |
-| **Servicios** | 49 (2 legacy eliminados) |
-| **Tests** | 214 pasaron ✅, 0 fallaron |
-| **Roles** | 4 (users, commerce, delivery, admin) |
+| Métrica           | Valor                                          |
+| ----------------- | ---------------------------------------------- |
+| **Versión**       | 1.0.0                                          |
+| **Flutter SDK**   | >=3.5.0 <4.0.0                                 |
+| **Archivos Dart** | 173                                            |
+| **Pantallas**     | 69                                             |
+| **Servicios**     | 49 (2 legacy eliminados)                       |
+| **Tests**         | 214 pasaron ✅, 0 fallaron                     |
+| **Roles**         | 4 (Standard: Buyer, Commerce, Delivery, Admin) |
+
+### Terminología Estándar de Roles
+
+| Nivel | Código en BD | Nombre Estándar | Alias aceptados            |
+| ----- | ------------ | --------------- | -------------------------- |
+| 0     | `users`      | **Buyer**       | Comprador, Cliente         |
+| 1     | `commerce`   | **Commerce**    | Comercio, Restaurante      |
+| 2     | `delivery`   | **Delivery**    | Delivery Agent, Repartidor |
+| 3     | `admin`      | **Admin**       | Administrador              |
 
 ### Cambios Recientes (Feb 2026)
+
 - ✅ Eliminada mock data de 11 servicios (~700 líneas) - errores de API ahora se muestran correctamente
 - ✅ Subida de imágenes para commerce implementada (ImagePicker + MultipartRequest)
 - ✅ Navegación admin dashboard corregida (4 botones funcionales)
@@ -68,33 +78,40 @@ lib/
 ## 🛠️ Stack Tecnológico
 
 ### Framework y Lenguaje
+
 - **Flutter SDK:** >=3.5.0 <4.0.0
 - **Dart:** 3.5.0+
 
 ### Dependencias Principales
 
 **State Management:**
+
 - `provider: ^6.1.2` - Gestión de estado
 
 **Networking:**
+
 - `http: ^1.2.2` - Cliente HTTP para API REST
 - `pusher_channels_flutter` - Broadcasting en tiempo real (Pusher). No se usan WebSockets directos.
 
 **Storage:**
+
 - `flutter_secure_storage: ^9.2.2` - Almacenamiento seguro (tokens)
 - `shared_preferences: ^2.3.2` - Preferencias locales
 
 **Autenticación:**
+
 - `google_sign_in: ^6.2.1` - Autenticación con Google
 - `flutter_web_auth_2: ^3.1.2` - Autenticación web
 
 **UI/UX:**
+
 - `flutter_svg: ^2.0.10+1` - Soporte SVG
 - `google_fonts: ^6.2.1` - Fuentes de Google
 - `shimmer: ^2.0.0` - Efectos de carga
 - `smooth_page_indicator: ^1.2.0+3` - Indicadores de página
 
 **Utilidades:**
+
 - `geolocator: ^13.0.1` - Geolocalización
 - `image_picker: ^1.1.2` - Selección de imágenes
 - `logger: ^2.4.0` - Sistema de logging
@@ -150,7 +167,7 @@ class AppConfig {
   // API URLs
   static const String apiUrlLocal = 'http://192.168.27.12:8000';
   static const String apiUrlProd = 'https://zonix.uniblockweb.com';
-  
+
   // Pusher configuration (si se usa directamente)
   // Nota: La mayoría de notificaciones en tiempo real usan Firebase + Pusher
   // a través de los eventos del backend, no conexiones WebSocket directas
@@ -162,6 +179,7 @@ class AppConfig {
 ## 📱 Funcionalidades Implementadas
 
 ### Autenticación
+
 - ✅ Login con email/password
 - ✅ Registro de usuarios
 - ✅ Autenticación con Google OAuth
@@ -169,6 +187,7 @@ class AppConfig {
 - ✅ Logout y refresh de tokens
 
 ### Productos y Restaurantes
+
 - ✅ Catálogo de productos
 - ✅ Búsqueda y filtros
 - ✅ Detalles de producto
@@ -177,6 +196,7 @@ class AppConfig {
 - ✅ Productos por restaurante
 
 ### Carrito de Compras
+
 - ✅ Agregar productos al carrito
 - ✅ Actualizar cantidades
 - ✅ Remover productos
@@ -184,6 +204,7 @@ class AppConfig {
 - ✅ Notas especiales
 
 **REGLAS DE NEGOCIO:**
+
 - **NO puede haber productos de diferentes comercios en el mismo carrito**
 - Si el usuario intenta agregar un producto de otro comercio, el sistema limpia el carrito automáticamente
 - Validación de cantidad: min:1, max:100
@@ -191,6 +212,7 @@ class AppConfig {
 - Validación de stock: Si tiene `stock_quantity`, verificar que haya suficiente
 
 ### Órdenes
+
 - ✅ Crear órdenes
 - ✅ Listar órdenes del usuario
 - ✅ Detalles de orden
@@ -199,13 +221,16 @@ class AppConfig {
 - ✅ Subir comprobante de pago
 
 ### Chat y notificaciones en tiempo real
+
 - ✅ Firebase Cloud Messaging (FCM) + Pusher (no WebSocket directo)
 - ✅ Mensajería por orden vía canales Pusher
 - ✅ Notificaciones en tiempo real
 - ✅ Reconexión automática (Pusher)
 
 ### Sistema Multi-Rol
+
 **Roles implementados y funcionales (MVP):**
+
 - ✅ **Level 0 (users):** Cliente/Comprador
   - Ver productos y restaurantes
   - Carrito y órdenes
@@ -230,6 +255,7 @@ class AppConfig {
 ### 📋 LÓGICA DE NEGOCIO Y DATOS REQUERIDOS POR ROL - MVP
 
 **Decisiones Clave del MVP:**
+
 1. **Carrito:** NO puede haber productos de diferentes comercios (uni-commerce)
 2. **Validación de Precio:** Recalcular y validar contra total enviado
 3. **Stock:** AMBAS opciones (`available` Y `stock_quantity`) - Validar siempre available, si tiene stock_quantity validar cantidad
@@ -245,6 +271,7 @@ class AppConfig {
 ### 💰 MODELO DE NEGOCIO - RESUMEN
 
 **Costos y Precios:**
+
 - **Costo Delivery:** Híbrido (Base fija $2.00 + $0.50/km después de 2 km) - Configurable por admin
 - **Quién paga delivery:** Cliente (se agrega al total de la orden)
 - **Membresía/Comisión:** Membresía mensual obligatoria (base) + Comisión % sobre ventas del mes (extra)
@@ -254,16 +281,19 @@ class AppConfig {
 - **Propinas:** No permitidas
 
 **Pagos:**
+
 - **Métodos:** Todos (efectivo, transferencia, tarjeta, pago móvil, digitales)
 - **Quién recibe:** Comercio directamente (con sus datos bancarios)
 - **Manejo:** Tiempo real (validación manual de comprobante)
 - **Pago a delivery:** Del comercio (después de recibir pago del cliente) → **Delivery recibe 100% del delivery_fee** (Opción A confirmada)
 
 **Límites:**
+
 - **Distancia máxima:** 60 minutos de tiempo estimado de viaje
 - **Quejas/Disputas:** Sistema de tickets con admin (tabla `disputes`)
 
 **Horarios:**
+
 - **Comercios:** Definen horarios + campo `open` manual
 - **Delivery:** 24/7 según disponibilidad (campo `working`)
 
@@ -272,30 +302,37 @@ class AppConfig {
 ### Penalizaciones y Tiempos Límite
 
 **Cancelaciones:**
+
 - **Comercio:** Puede cancelar con justificación. Penalización si excede límite
 - **Cliente:** Límite 5 minutos. Penalización si crea múltiples órdenes sin pagar
 - **Comisión en cancelación:** Penalización adicional si comercio cancela después de `paid`
 
 **Delivery rechaza:**
+
 - Debe justificar. Penalización si rechaza 3-5 órdenes seguidas
 - Ideal: Bajar switch `working = false` si no está disponible
 
 **Tiempos límite:**
+
 - Cliente sube comprobante: 5 minutos (cancelación automática)
 - Comercio valida pago: 5 minutos (cancelación automática)
 
 **Rating/Reviews:**
+
 - Obligatorio después de orden entregada
 - Comercio y delivery separados, no editables
 
 **Promociones:**
+
 - Manual (comercio y admin)
 - Código promocional O automático
 
 **Métodos de pago:**
+
 - Solo UN método de pago por orden (no se puede pagar mitad y mitad)
 
 **Delivery no encontrado:**
+
 - Continúa buscando hasta encontrar delivery disponible
 - NO cancela la orden, espera hasta que haya delivery disponible
 - Notificaciones al cliente y comercio del estado de búsqueda
@@ -303,12 +340,14 @@ class AppConfig {
 #### 👤 ROL: USERS (Comprador/Cliente)
 
 **Datos Mínimos para Crear Orden:**
+
 - **firstName** (required)
 - **lastName** (required)
 - **phone** (required)
 - **photo_users** (required) - Necesaria para que delivery pueda hacer la entrega
 
 **Direcciones - Sistema de 2 Direcciones:**
+
 1. **Dirección Predeterminada (Casa):** `is_default = true` en tabla `addresses`
    - **Uso:** Base para búsqueda de comercios por geolocalización
    - **Ubicación:** GPS + inputs y selects para mayor precisión
@@ -316,6 +355,7 @@ class AppConfig {
    - **Ubicación:** GPS + inputs y selects para mayor precisión
 
 **Búsqueda de Comercios por Geolocalización:**
+
 - **Ubicación base:** Dirección predeterminada del usuario (casa) con `is_default = true`
 - **Rango inicial:** 1-1.5 km desde la ubicación del usuario
 - **Expansión automática:** Si no hay comercios abiertos, expande automáticamente a 4-5 km
@@ -339,21 +379,25 @@ class AppConfig {
 #### 🚚 ROL: DELIVERY
 
 **Delivery Company:**
+
 - **Requeridos:** 9 campos + photo_users (required)
 - **Opcionales:** image (logo), phone, address, open, schedule (igual estructura que COMMERCE)
 
 **Delivery Agent:**
+
 - **Requeridos:** firstName, lastName, phone, address, photo_users (required), vehicle_type, license_number
 - **Puede ser independiente:** `company_id = null`
 
 **Ver backend README.md sección completa para detalles detallados.**
 
 ### Onboarding comercio (paso 4)
+
 - ✅ Crear comercio con perfil existente: `POST /api/profiles/add-commerce` (createCommerceForExistingProfile)
 - ✅ Envío de `schedule` como **string** (jsonEncode del Map) para cumplir validación del backend
 - ✅ Dirección del establecimiento con `commerce_id` (AddressService.createAddress con commerceId, sin profile_id en body)
 
 ### Otras Funcionalidades
+
 - ✅ Sistema de reseñas/calificaciones
 - ✅ Favoritos
 - ✅ Notificaciones push
@@ -373,14 +417,14 @@ Los servicios se organizan por dominio y siguen el patrón Provider:
 class OrderService extends ChangeNotifier {
   List<Order> _orders = [];
   bool _isLoading = false;
-  
+
   List<Order> get orders => _orders;
   bool get isLoading => _isLoading;
-  
+
   Future<void> loadOrders() async {
     _isLoading = true;
     notifyListeners();
-    
+
     try {
       // Llamada a API
       final orders = await _fetchOrders();
@@ -413,7 +457,7 @@ final response = await http.get(url, headers: headers);
 ```dart
 try {
   final response = await http.get(url, headers: headers);
-  
+
   if (response.statusCode == 200) {
     final data = jsonDecode(response.body);
     if (data['success'] == true) {
@@ -434,6 +478,7 @@ try {
 **✅ IMPLEMENTADO:** Firebase Cloud Messaging (FCM) + Pusher para notificaciones en tiempo real
 
 **Eventos disponibles:**
+
 - `OrderCreated` - Nueva orden creada
 - `OrderStatusChanged` - Estado de orden cambiado
 - `PaymentValidated` - Pago validado
@@ -442,6 +487,7 @@ try {
 - `NotificationCreated` - Nueva notificación
 
 **Canales (Pusher):**
+
 - `private-user.{userId}` - Notificaciones de usuario
 - `private-order.{orderId}` - Actualizaciones de orden
 - `private-chat.{orderId}` - Chat de orden
@@ -573,30 +619,36 @@ test/
 ### Endpoints Principales
 
 **Autenticación:**
+
 - `POST /api/auth/login`
 - `POST /api/auth/register`
 - `POST /api/auth/google`
 - `POST /api/auth/logout`
 
 **Productos:**
+
 - `GET /api/buyer/products`
 - `GET /api/buyer/products/{id}`
 
 **Carrito:**
+
 - `GET /api/buyer/cart`
 - `POST /api/buyer/cart/add`
 - `PUT /api/buyer/cart/update-quantity`
 - `DELETE /api/buyer/cart/{productId}`
 
 **Órdenes:**
+
 - `GET /api/buyer/orders`
 - `POST /api/buyer/orders`
 - `GET /api/buyer/orders/{id}`
 
 **Onboarding comercio:**
+
 - `POST /api/profiles/add-commerce` — Añadir comercio a perfil existente (body: profile_id, business_name, business_type, tax_id, address, open, **schedule** como string, owner_ci)
 
 **Firebase + Pusher:**
+
 - Firebase Cloud Messaging (FCM) - Push notifications a dispositivos móviles
 - Pusher - Broadcasting en tiempo real (web)
 - Autenticación: Token Sanctum
@@ -696,12 +748,14 @@ Este documento contiene un análisis exhaustivo completo del proyecto realizado 
 Cuando se solicite un análisis exhaustivo del proyecto, usar los **prompts completos v2.0** disponibles. El análisis debe seguir esta metodología:
 
 **FASE 1: EXPLORACIÓN INICIAL**
+
 - Mapear estructura completa de directorios y archivos
 - Identificar archivos de configuración clave
 - Leer archivos de documentación principales
 - Identificar stack tecnológico completo y versiones
 
 **FASE 2: ANÁLISIS PROFUNDO POR ÁREA**
+
 - Explorar TODA la estructura del proyecto sin dejar áreas sin revisar
 - Leer y analizar los archivos más importantes de cada módulo
 - Identificar patrones, anti-patrones y code smells
@@ -710,6 +764,7 @@ Cuando se solicite un análisis exhaustivo del proyecto, usar los **prompts comp
 - Sugerir mejoras específicas con impacto/esfuerzo/prioridad
 
 **FASE 3: VERIFICACIÓN DE COHERENCIA** ⭐ **CRÍTICO**
+
 - Comparar métricas mencionadas en diferentes documentos
 - Verificar que números y estadísticas coincidan entre README y .cursorrules
 - Identificar discrepancias y corregirlas o documentar razones
@@ -720,12 +775,14 @@ Cuando se solicite un análisis exhaustivo del proyecto, usar los **prompts comp
 ### Actualizar Análisis
 
 **Cuándo actualizar:**
+
 - Después de cambios arquitectónicos importantes
 - Después de implementar mejoras críticas identificadas
 - Cada 3-6 meses o cuando se solicite
 - Antes de releases mayores
 
 **Cómo actualizar:**
+
 1. Revisar cambios desde último análisis
 2. Ejecutar análisis exhaustivo siguiendo los prompts completos
 3. Actualizar `ANALISIS_EXHAUSTIVO.md` con nuevos hallazgos
@@ -785,6 +842,7 @@ Cuando se solicite un análisis exhaustivo del proyecto, usar los **prompts comp
 ## ✅ Correcciones Recientes (Enero 2025)
 
 ### Errores Críticos Corregidos:
+
 - ✅ **FlutterSecureStorage:** Manejo de errores BAD_DECRYPT implementado con limpieza automática de almacenamiento corrupto
 - ✅ **AdminDashboardPage:** Manejo de valores null en métricas de sistema (cpu_usage, memory_usage, disk_usage)
 - ✅ **Roles:** Limpieza completa - solo 4 roles válidos (users, commerce, delivery, admin)
@@ -795,14 +853,17 @@ Cuando se solicite un análisis exhaustivo del proyecto, usar los **prompts comp
 - ✅ **Tests:** Todos los tests actualizados para usar solo los 4 roles válidos
 
 ### Completado 27 Enero 2025 (MVP listo):
+
 - ✅ **TODOs servicios MVP:** commerce, payment, delivery, chat, admin, analytics, location, notification con llamadas reales a API
 - ✅ **Código comentado:** ~330 líneas eliminadas de `main.dart`
 - ✅ **Analytics commerce:** CommerceReportsPage + CommerceAnalyticsService con API real
 
 ### Roles del Sistema:
+
 Solo existen **4 roles válidos**:
+
 - **users** (Level 0): Cliente/Comprador
-- **commerce** (Level 1): Comercio/Restaurante  
+- **commerce** (Level 1): Comercio/Restaurante
 - **delivery** (Level 2): Repartidor/Delivery
 - **admin** (Level 3): Administrador
 

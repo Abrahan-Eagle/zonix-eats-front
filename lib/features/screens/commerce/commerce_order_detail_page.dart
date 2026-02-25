@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/models/commerce_order.dart';
 import 'package:zonix/features/services/commerce_order_service.dart';
+import 'package:zonix/features/screens/commerce/commerce_chat_messages_page.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
 
@@ -85,6 +86,42 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
     }
   }
 
+  Future<void> _rejectOrder() async {
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (ctx) => const _RejectOrderDialog(),
+    );
+    if (reason == null || !mounted) return;
+
+    setState(() => _updating = true);
+    try {
+      await CommerceOrderService.rejectOrder(
+        widget.orderId,
+        reason: reason.isEmpty ? null : reason,
+      );
+      if (mounted) {
+        Navigator.pop(context, true);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Orden rechazada'),
+            backgroundColor: AppColors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString().replaceFirst('Exception: ', '')}'),
+            backgroundColor: AppColors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _updating = false);
+    }
+  }
+
   Future<void> _validatePayment(bool isValid) async {
     setState(() => _updating = true);
     try {
@@ -152,6 +189,23 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Orden #${order.id}'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline),
+            tooltip: 'Chat con el cliente',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => CommerceChatMessagesPage(
+                    orderId: order.id,
+                    customerName: order.customerName,
+                  ),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: _updating
           ? const Center(child: CircularProgressIndicator())
@@ -217,6 +271,26 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                         ),
                       ),
                     ),
+                    if (order.status == 'pending_payment') ...[
+                      const SizedBox(height: 16),
+                      Text('Acciones',
+                          style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: () => _rejectOrder(),
+                            icon: const Icon(Icons.cancel_outlined),
+                            label: const Text('Rechazar orden'),
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.red,
+                              side: const BorderSide(color: AppColors.red),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                     if (order.hasPaymentProof && !order.isPaymentValidated) ...[
                       const SizedBox(height: 16),
                       Text('Comprobante de pago',
@@ -335,6 +409,62 @@ class _TotalRow extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [Text(label), Text(value, style: const TextStyle(fontWeight: FontWeight.bold))],
       ),
+    );
+  }
+}
+
+class _RejectOrderDialog extends StatefulWidget {
+  const _RejectOrderDialog();
+
+  @override
+  State<_RejectOrderDialog> createState() => _RejectOrderDialogState();
+}
+
+class _RejectOrderDialogState extends State<_RejectOrderDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Rechazar orden'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '¿Estás seguro? Esta orden se cancelará. '
+            'Usa el chat para acordar con el cliente antes de rechazar.',
+            style: TextStyle(fontSize: 14),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _controller,
+            decoration: const InputDecoration(
+              labelText: 'Motivo (opcional)',
+              hintText: 'Ej: Falta de ingredientes, no hay acuerdo',
+              border: OutlineInputBorder(),
+            ),
+            maxLines: 3,
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, _controller.text.trim()),
+          child: const Text('Rechazar orden'),
+          style: TextButton.styleFrom(foregroundColor: AppColors.red),
+        ),
+      ],
     );
   }
 }

@@ -1,0 +1,65 @@
+{
+  "version": 1,
+  "skills": {
+    "clean-architecture": {
+      "source": "pproenca/dot-skills",
+      "sourceType": "github",
+      "computedHash": "613e3421174049dfb4a528c072cafb5e805322a6d9e1522ec9b74077e07947d7"
+    },
+    "code-review-playbook": {
+      "source": "yonatangross/orchestkit",
+      "sourceType": "github",
+      "computedHash": "bcd4d4c1acaf428c8377e17d86e00f53595a40522d649d907a758c061387a0a0"
+    },
+    "flutter-expert": {
+      "source": "jeffallan/claude-skills",
+      "sourceType": "github",
+      "computedHash": "df37f35010c3a373afb7b5dcd0d650d1c2dd69b06dc484b3414935408000054f"
+    },
+    "github-code-review": {
+      "source": "ruvnet/claude-flow",
+      "sourceType": "github",
+      "computedHash": "04b070e047726378eeb1c728246559907788b3b1aaef83d8b046715a4c311279"
+    },
+    "javascript-testing-patterns": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "34219092e71607f9257720b3b43ecd37c8af0d3dbf695e3263f4c68ab0b019e2"
+    },
+    "mobile-developer": {
+      "source": "daffy0208/ai-dev-standards",
+      "sourceType": "github",
+      "computedHash": "d0920fc7a5d128c964827498d86a28094ff99acbf61a3f8d99ef464d6e1805da"
+    },
+    "responsive-design": {
+      "source": "wshobson/agents",
+      "sourceType": "github",
+      "computedHash": "9df1908623814c4c93cc1fde25caa211b2d28c8ffcdc2b5a12c6b7ae456f0f89"
+    },
+    "skill-creator": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "computedHash": "a096b9af85c9d954374ebe3f7a23b5b7737ed3f35fe2a8f5893742c4e00dba1c"
+    },
+    "systematic-debugging": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "72e9ab72627e4fd8ed26a582e82309a98ecdc4f6e1c99418430ac05682c9e91d"
+    },
+    "test-driven-development": {
+      "source": "obra/superpowers",
+      "sourceType": "github",
+      "computedHash": "126f1ebf6ccd414f42544f6e83d8cc5adb089e1108eaffb7c400701e37eecd9f"
+    },
+    "ui-ux-pro-max": {
+      "source": "nextlevelbuilder/ui-ux-pro-max-skill",
+      "sourceType": "github",
+      "computedHash": "e688fcd4c5693e14ebd00d48e982dbd2be060fbea89f5f60531e79c704a1bc28"
+    },
+    "webapp-testing": {
+      "source": "anthropics/skills",
+      "sourceType": "github",
+      "computedHash": "cf8e5916d474886bd67b09691247f43f331523008b7d366064bc607ab42d6302"
+    }
+  }
+}

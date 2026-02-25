@@ -1,12 +1,15 @@
 import 'dart:convert';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
 
-/// Servicio de Pusher Channels para eventos en tiempo casi real (Orders, etc.)
+import '../../config/app_config.dart';
+import '../../helpers/auth_helper.dart';
+
+/// Servicio de Pusher Channels para eventos en tiempo casi real (Orders, chat, etc.)
 ///
-/// Implementación inspirada en `CorralX-Frontend/lib/chat/services/pusher_service.dart`,
-/// pero simplificada para Zonix y enfocada a eventos de negocio (pedidos).
+/// Usa https://pusher.com para notificaciones, mensajes y chat.
 class PusherService {
   // Singleton
   static PusherService? _instance;
@@ -56,9 +59,12 @@ class PusherService {
 
       _pusher = PusherChannelsFlutter.getInstance();
 
+      final authUrl = '${AppConfig.apiUrl}/api/broadcasting/auth';
       await _pusher!.init(
         apiKey: pusherKey,
         cluster: pusherCluster,
+        authEndpoint: authUrl,
+        onAuthorizer: _onAuthorizer,
         onConnectionStateChange: _handleConnectionStateChange,
         onError: _handleError,
         onEvent: _handleEvent,
@@ -80,6 +86,69 @@ class PusherService {
       print('❌ Error inicializando Pusher (Zonix): $e');
       _isInitialized = false;
       _isConnected = false;
+      return false;
+    }
+  }
+
+  /// Authorizer para canales privados (envía Bearer token a /api/broadcasting/auth)
+  Future<Map<String, dynamic>?> _onAuthorizer(String channelName, String socketId, dynamic options) async {
+    try {
+      final authHeaders = await AuthHelper.getAuthHeaders();
+      final headers = {
+        ...authHeaders,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      };
+      final response = await http.post(
+        Uri.parse('${AppConfig.apiUrl}/api/broadcasting/auth'),
+        headers: headers,
+        body: 'channel_name=${Uri.encodeComponent(channelName)}&socket_id=${Uri.encodeComponent(socketId)}',
+      );
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      }
+      return null;
+    } catch (e) {
+      // ignore: avoid_print
+      print('❌ Pusher authorizer error: $e');
+      return null;
+    }
+  }
+
+  /// Suscribirse al canal de chat de una orden (private-order.{orderId})
+  /// Para recibir mensajes en tiempo real vía Pusher.
+  Future<bool> subscribeToOrderChat(
+    int orderId, {
+    required Function(String eventName, Map<String, dynamic> data) onNewMessage,
+  }) async {
+    final channelName = 'private-order.$orderId';
+    return subscribeToChannel(channelName, onDomainEvent: onNewMessage);
+  }
+
+  /// Suscribirse a un canal genérico
+  Future<bool> subscribeToChannel(
+    String channelName, {
+    required Function(String eventName, Map<String, dynamic> data) onDomainEvent,
+  }) async {
+    try {
+      if (_pusher == null || !_isInitialized) {
+        final ok = await initialize();
+        if (!ok) return false;
+      }
+
+      _onDomainEvent = onDomainEvent;
+
+      if (_subscribedChannels.contains(channelName)) {
+        return true;
+      }
+
+      await _pusher!.subscribe(channelName: channelName);
+      _subscribedChannels.add(channelName);
+      // ignore: avoid_print
+      print('✅ Suscrito a canal Pusher: $channelName');
+      return true;
+    } catch (e) {
+      // ignore: avoid_print
+      print('❌ Error suscribiendo a canal Pusher ($channelName): $e');
       return false;
     }
   }

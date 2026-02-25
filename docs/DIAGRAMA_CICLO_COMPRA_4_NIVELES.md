@@ -142,9 +142,9 @@ flowchart LR
 | 3 | **CartPage** | Revisar carrito, ajustar cantidades | Tap "Ir a pagar" |
 | 4 | **CheckoutPage** | Tipo entrega (pickup/delivery), dirección, confirmar | Tap "Confirmar compra" |
 | 5 | **OrdersPage** | Lista de órdenes (Pusher actualiza estados) | Tap orden |
-| 6 | **OrderDetailPage** | Ver estado, productos, total, subir comprobante (si pending_payment), cancelar (dentro 5 min) | - |
+| 6 | **OrderDetailPage** | Ver estado, productos, total, **chat con comercio** (Pusher), subir comprobante (si pending_payment), cancelar (dentro 5 min) | - |
 
-✅ **MVP:** `OrdersPage` navega a `OrderDetailPage` al hacer tap. El comprador puede subir comprobante (método de pago + referencia) y cancelar dentro del tiempo límite.
+✅ **MVP:** `OrdersPage` navega a `OrderDetailPage` al hacer tap. El comprador puede subir comprobante (método de pago + referencia) y cancelar dentro del tiempo límite. **Chat:** Botón de chat abre `BuyerOrderChatPage`; mensajes en tiempo real vía **Pusher** (https://pusher.com).
 
 ProductsPage y RestaurantsPage son vías alternativas; ambas alimentan el mismo carrito.
 
@@ -179,8 +179,9 @@ flowchart LR
 |------|-------|--------|-----------|
 | 1 | **CommerceDashboardPage** | Resumen órdenes (paid, processing) | Tap orden o "Ver órdenes" |
 | 2 | **CommerceOrdersPage** | Tabs: Todas, Pendientes, En Proceso, Enviadas, Entregadas, Canceladas | Tap orden |
-| 3 | **CommerceOrderDetailPage** | Ver cliente, productos, total | - |
+| 3 | **CommerceOrderDetailPage** | Ver cliente, productos, total, **chat con cliente** (Pusher) | - |
 | 3a | Si `pending_payment` + comprobante | Botones "Validar" / "Rechazar" | → paid o cancelled |
+| 3a' | Si `pending_payment` (sin acuerdo tras chat) | Botón "Rechazar orden" (motivo opcional) | → cancelled |
 | 3b | Si `paid` | "En preparación" / "Cancelar" | → processing |
 | 3c | Si `processing` | "Enviar" / "Cancelar" | → shipped |
 
@@ -325,6 +326,7 @@ sequenceDiagram
 | Backend delivery_fee | ✅ | Acepta y guarda delivery_fee; valida total = subtotal + delivery_fee |
 | Sincronización | ⚠️ | Carrito local; verificar addToRemoteCart vs restricción uni-commerce si se usa |
 | Pusher | ⚠️ | OrdersPage suscrito a profile.{userId}; confirmar eventos de orden |
+| **Pusher (chat)** | ✅ | BuyerOrderChatPage y CommerceChatMessagesPage suscritos a `private-order.{orderId}`; evento `NewMessage` para mensajes en tiempo real (https://pusher.com) |
 
 ---
 
