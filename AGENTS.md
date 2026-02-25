@@ -67,30 +67,30 @@ flutter clean && flutter pub get     # Reset completo
 
 ## Available Skills
 
-| Skill                     | Descripción                                 | Ruta                                                |
-| ------------------------- | ------------------------------------------- | --------------------------------------------------- |
-| `flutter-expert`          | Patrones Flutter, widgets, state management | [SKILL.md](skills/flutter-expert/SKILL.md)          |
-| `clean-architecture`      | Arquitectura limpia, capas, SOLID           | [SKILL.md](skills/clean-architecture/SKILL.md)      |
-| `mobile-developer`        | Desarrollo móvil, UX nativa                 | [SKILL.md](skills/mobile-developer/SKILL.md)        |
-| `ui-ux-pro-max`           | Diseño UI/UX avanzado                       | [SKILL.md](skills/ui-ux-pro-max/SKILL.md)           |
-| `responsive-design`       | Diseño responsivo, adaptable                | [SKILL.md](skills/responsive-design/SKILL.md)       |
-| `systematic-debugging`    | Debugging metódico                          | [SKILL.md](skills/systematic-debugging/SKILL.md)    |
-| `test-driven-development` | TDD workflow                                | [SKILL.md](skills/test-driven-development/SKILL.md) |
-| `webapp-testing`          | Testing de aplicaciones                     | [SKILL.md](skills/webapp-testing/SKILL.md)          |
-| `code-review-playbook`    | Playbook de code review                     | [SKILL.md](skills/code-review-playbook/SKILL.md)    |
-| `github-code-review`      | Code review en GitHub                       | [SKILL.md](skills/github-code-review/SKILL.md)      |
-| `flutter-animations`      | Animaciones Flutter (Hero, Implicit, etc)   | [SKILL.md](skills/flutter-animations/SKILL.md)      |
-| `git-commit`              | Conventional commits, git workflow          | [SKILL.md](skills/git-commit/SKILL.md)              |
-| `skill-creator`           | Crear nuevas skills                         | [SKILL.md](skills/skill-creator/SKILL.md)           |
+| Skill                     | Descripción                                 | Ruta                                                                                               |
+| ------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `flutter-expert`          | Patrones Flutter, widgets, state management | [.agents/skills/flutter-expert/SKILL.md](.agents/skills/flutter-expert/SKILL.md)                   |
+| `clean-architecture`      | Arquitectura limpia, capas, SOLID           | [.agents/skills/clean-architecture/SKILL.md](.agents/skills/clean-architecture/SKILL.md)           |
+| `mobile-developer`        | Desarrollo móvil, UX nativa                 | [.agents/skills/mobile-developer/SKILL.md](.agents/skills/mobile-developer/SKILL.md)               |
+| `ui-ux-pro-max`           | Diseño UI/UX avanzado                       | [.agents/skills/ui-ux-pro-max/SKILL.md](.agents/skills/ui-ux-pro-max/SKILL.md)                     |
+| `responsive-design`       | Diseño responsivo, adaptable                | [.agents/skills/responsive-design/SKILL.md](.agents/skills/responsive-design/SKILL.md)             |
+| `systematic-debugging`    | Debugging metódico                          | [.agents/skills/systematic-debugging/SKILL.md](.agents/skills/systematic-debugging/SKILL.md)       |
+| `test-driven-development` | TDD workflow                                | [.agents/skills/test-driven-development/SKILL.md](.agents/skills/test-driven-development/SKILL.md) |
+| `webapp-testing`          | Testing de aplicaciones                     | [.agents/skills/webapp-testing/SKILL.md](.agents/skills/webapp-testing/SKILL.md)                   |
+| `code-review-playbook`    | Playbook de code review                     | [.agents/skills/code-review-playbook/SKILL.md](.agents/skills/code-review-playbook/SKILL.md)       |
+| `github-code-review`      | Code review en GitHub                       | [.agents/skills/github-code-review/SKILL.md](.agents/skills/github-code-review/SKILL.md)           |
+| `flutter-animations`      | Animaciones Flutter (Hero, Implicit, etc)   | [.agents/skills/flutter-animations/SKILL.md](.agents/skills/flutter-animations/SKILL.md)           |
+| `git-commit`              | Conventional commits, git workflow          | [.agents/skills/git-commit/SKILL.md](.agents/skills/git-commit/SKILL.md)                           |
+| `skill-creator`           | Crear nuevas skills                         | [.agents/skills/skill-creator/SKILL.md](.agents/skills/skill-creator/SKILL.md)                     |
 
 ### Custom Skills
 
-| Skill                   | Descripción                         | Ruta                                              |
-| ----------------------- | ----------------------------------- | ------------------------------------------------- |
-| `zonix-onboarding`      | Flujo de registro por rol, pasos    | [SKILL.md](skills/zonix-onboarding/SKILL.md)      |
-| `zonix-order-lifecycle` | Estados de orden, transiciones      | [SKILL.md](skills/zonix-order-lifecycle/SKILL.md) |
-| `zonix-realtime-events` | Pusher, FCM, notificaciones push    | [SKILL.md](skills/zonix-realtime-events/SKILL.md) |
-| `zonix-ui-design`       | Paleta, cards, layouts, componentes | [SKILL.md](skills/zonix-ui-design/SKILL.md)       |
+| Skill                   | Descripción                         | Ruta                                                                                           |
+| ----------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `zonix-onboarding`      | Flujo de registro por rol, pasos    | [.agents/skills/zonix-onboarding/SKILL.md](.agents/skills/zonix-onboarding/SKILL.md)           |
+| `zonix-order-lifecycle` | Estados de orden, transiciones      | [.agents/skills/zonix-order-lifecycle/SKILL.md](.agents/skills/zonix-order-lifecycle/SKILL.md) |
+| `zonix-realtime-events` | Pusher, FCM, notificaciones push    | [.agents/skills/zonix-realtime-events/SKILL.md](.agents/skills/zonix-realtime-events/SKILL.md) |
+| `zonix-ui-design`       | Paleta, cards, layouts, componentes | [.agents/skills/zonix-ui-design/SKILL.md](.agents/skills/zonix-ui-design/SKILL.md)             |
 
 ---
 
