@@ -127,6 +127,10 @@ flutter clean && flutter pub get     # Reset completo
 4. **NUNCA hacer push/merge a git** sin orden explícita del usuario
 5. **Solo hacer commits locales** cuando se realicen cambios
 6. **El usuario prueba primero** y da la orden cuando está seguro
+7. **Skills personalizadas (`zonix-*`)**: Los agentes pueden proponer crear o actualizar skills nuevas SOLO cuando detecten patrones repetitivos o reglas de negocio importantes que aún no estén cubiertas. Siempre deben:
+   - Explicar por qué la skill es necesaria.
+   - Describir brevemente el contenido propuesto.
+   - Pedir tu aprobación antes de crear/editar la skill.
 
 ---
 

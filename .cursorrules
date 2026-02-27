@@ -73,6 +73,13 @@ class XxxService extends ChangeNotifier {
 - UN solo comercio por carrito
 - Pusher SOLAMENTE (NO WebSocket)
 
+### Skills de dominio recomendadas
+
+- **zonix-ui-design**: para construir o ajustar pantallas, widgets, cards, botones y layouts de la app.
+- **zonix-onboarding**: para cualquier flujo de registro / onboarding por rol, perfiles, teléfonos, direcciones y documentos.
+- **zonix-order-lifecycle**: para UI y servicios relacionados con estados de orden, cancelaciones y tracking de pedidos.
+- **zonix-realtime-events**: para integración de Pusher y FCM en Flutter (suscripciones, manejo de eventos y notificaciones).
+
 ### Tests
 ```bash
 flutter test                         # Todos (214)
