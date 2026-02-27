@@ -63,6 +63,7 @@ dependencies:
   web_socket_channel: ^2.4.0
   # Integración con Pusher Channels (similar a CorralX-Frontend)
   pusher_channels_flutter: ^2.2.1
+  share_plus: ^12.0.1
 
 dev_dependencies:
   flutter_test:

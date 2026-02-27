@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zonix/features/services/restaurant_service.dart';
 import 'package:zonix/models/restaurant.dart';
 import 'restaurant_details_page.dart';
@@ -32,16 +33,61 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   final _scrollController = ScrollController();
   String _searchQuery = '';
   bool _isRefreshing = false;
-  int _selectedFilterIndex = 0; // 0: Filtros, 1: Cerca de mí, 2: Envío gratis, 3: Mejor puntuados
+  String _selectedCategory = 'Todos';
+  List<String> _businessCategories = ['Todos'];
+  Set<String> _favoriteIds = {};
   final _debouncer = Debouncer(milliseconds: 500);
 
-  static const _filterLabels = ['Filtros', 'Cerca de mí', 'Envío gratis', 'Mejor puntuados'];
+  static const _favKey = 'favorite_restaurants';
 
   @override
   void initState() {
     super.initState();
-    _restaurantsFuture = RestaurantService().fetchRestaurants();
+    _restaurantsFuture = RestaurantService().fetchRestaurants().then((list) {
+      _extractCategories(list);
+      return list;
+    });
     _scrollController.addListener(_onScroll);
+    _loadFavorites();
+  }
+
+  void _extractCategories(List<Restaurant> restaurants) {
+    final types = restaurants
+        .map((r) => (r.businessType ?? '').trim())
+        .where((t) => t.isNotEmpty)
+        .map(_capitalizeCategory)
+        .toSet()
+        .toList()
+      ..sort();
+    if (mounted) {
+      setState(() => _businessCategories = ['Todos', ...types]);
+    }
+  }
+
+  String _capitalizeCategory(String raw) {
+    final cleaned = raw.replaceAll('_', ' ').trim().toLowerCase();
+    if (cleaned.isEmpty) return raw;
+    return '${cleaned[0].toUpperCase()}${cleaned.substring(1)}';
+  }
+
+  Future<void> _loadFavorites() async {
+    final prefs = await SharedPreferences.getInstance();
+    final ids = prefs.getStringList(_favKey) ?? [];
+    if (mounted) setState(() => _favoriteIds = ids.toSet());
+  }
+
+  Future<void> _toggleFavorite(int commerceId) async {
+    await HapticFeedback.lightImpact();
+    final prefs = await SharedPreferences.getInstance();
+    final ids = prefs.getStringList(_favKey) ?? [];
+    final idStr = commerceId.toString();
+    if (ids.contains(idStr)) {
+      ids.remove(idStr);
+    } else {
+      ids.add(idStr);
+    }
+    await prefs.setStringList(_favKey, ids);
+    if (mounted) setState(() => _favoriteIds = ids.toSet());
   }
 
   @override
@@ -61,19 +107,28 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   Future<void> _loadRestaurants() async {
     _logger.i('🔄 Cargando restaurantes...');
     setState(() => _isRefreshing = true);
-    setState(() => _restaurantsFuture = RestaurantService().fetchRestaurants());
+    setState(() {
+      _restaurantsFuture = RestaurantService().fetchRestaurants().then((list) {
+        _extractCategories(list);
+        return list;
+      });
+    });
     _restaurantsFuture!.then((r) => _logger.d('✅ ${r.length} restaurantes'))
         .catchError((e) => _logger.e('❌ $e'))
         .whenComplete(() => setState(() => _isRefreshing = false));
+    await _loadFavorites();
   }
 
   List<Restaurant> _filterRestaurants(List<Restaurant> restaurants) {
-    if (_searchQuery.isEmpty) return restaurants;
-    return restaurants
-        .where((r) =>
-            r.nombreLocal.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-            r.direccion.toLowerCase().contains(_searchQuery.toLowerCase()))
-        .toList();
+    return restaurants.where((r) {
+      final matchSearch = _searchQuery.isEmpty ||
+          r.nombreLocal.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          r.direccion.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+          (r.businessType ?? '').toLowerCase().contains(_searchQuery.toLowerCase());
+      final matchCategory = _selectedCategory == 'Todos' ||
+          _capitalizeCategory(r.businessType ?? '') == _selectedCategory;
+      return matchSearch && matchCategory;
+    }).toList();
   }
 
   Widget _buildShimmerLoading() {
@@ -191,7 +246,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
         onTap: () async {
           await HapticFeedback.lightImpact();
           _logger.d('🚀 Navegando a detalles de ${restaurant.nombreLocal}');
-          Navigator.push(
+          await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => RestaurantDetailsPage(
@@ -206,9 +261,13 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                 tiempoEntrega: null,
                 banco: restaurant.pagoMovilBanco,
                 cedula: restaurant.pagoMovilCedula,
+                businessType: restaurant.businessType,
+                latitude: restaurant.latitude,
+                longitude: restaurant.longitude,
               ),
             ),
           );
+          _loadFavorites();
         },
         borderRadius: BorderRadius.circular(16),
         child: Column(
@@ -221,35 +280,43 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                 fit: StackFit.expand,
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(16)),
                     child: RestaurantImage(
                       imageUrl: restaurant.logoUrl,
                       restaurantName: restaurant.nombreLocal,
                       width: double.infinity,
-                      height: double.infinity,
+                      height: 176,
                       borderRadius: BorderRadius.zero,
                     ),
                   ),
-                  // Icono favoritos (top right)
+                  // Icono favoritos (top right) - funcional
                   Positioned(
                     top: 12,
                     right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.all(6),
-                      decoration: BoxDecoration(
-                        color: (isDark ? Colors.black54 : Colors.white).withOpacity(0.9),
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
-                            blurRadius: 8,
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.favorite_border,
-                        size: 20,
-                        color: Colors.grey[500],
+                    child: GestureDetector(
+                      onTap: () => _toggleFavorite(restaurant.id),
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: (isDark ? Colors.black54 : Colors.white).withOpacity(0.9),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.15),
+                              blurRadius: 8,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          _favoriteIds.contains(restaurant.id.toString())
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          size: 20,
+                          color: _favoriteIds.contains(restaurant.id.toString())
+                              ? Colors.redAccent
+                              : Colors.grey[500],
+                        ),
                       ),
                     ),
                   ),
@@ -402,48 +469,49 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
               },
             ),
           ),
-          // Filter chips (misma separación que ProductsPage: 16 top, 8 bottom)
+          // Categorías de establecimientos
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
             child: SizedBox(
-                    height: 36,
-                    child: ListView.separated(
-                      scrollDirection: Axis.horizontal,
-                      itemCount: _filterLabels.length,
-                      separatorBuilder: (_, __) => const SizedBox(width: 8),
-                      itemBuilder: (context, i) {
-                        final selected = _selectedFilterIndex == i;
-                        return GestureDetector(
-                          onTap: () => setState(() => _selectedFilterIndex = i),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: selected ? _TemplateColors.primary : (isDark ? _TemplateColors.cardDark : Colors.white),
-                              border: selected ? null : Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300),
-                              borderRadius: BorderRadius.circular(999),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (i == 0) ...[
-                                  Icon(Icons.tune, size: 14, color: selected ? Colors.white : (isDark ? Colors.white70 : Colors.grey[600])),
-                                  const SizedBox(width: 4),
-                                ],
-                                Text(
-                                  _filterLabels[i],
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 12,
-                                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                                    color: selected ? Colors.white : (isDark ? Colors.white70 : Colors.grey[700]),
-                                  ),
-                                ),
-                              ],
+              height: 36,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _businessCategories.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, i) {
+                  final cat = _businessCategories[i];
+                  final selected = _selectedCategory == cat;
+                  return GestureDetector(
+                    onTap: () => setState(() => _selectedCategory = cat),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: selected ? _TemplateColors.primary : (isDark ? _TemplateColors.cardDark : Colors.white),
+                        border: selected ? null : Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (i == 0) ...[
+                            Icon(Icons.restaurant_menu, size: 14, color: selected ? Colors.white : (isDark ? Colors.white70 : Colors.grey[600])),
+                            const SizedBox(width: 4),
+                          ],
+                          Text(
+                            cat,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                              color: selected ? Colors.white : (isDark ? Colors.white70 : Colors.grey[700]),
                             ),
                           ),
-                        );
-                      },
+                        ],
+                      ),
                     ),
-                  ),
+                  );
+                },
+              ),
+            ),
           ),
           // Título + Lista
           Padding(

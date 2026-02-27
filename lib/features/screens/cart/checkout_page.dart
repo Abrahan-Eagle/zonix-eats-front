@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:zonix/features/services/address_service.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/order_service.dart';
+import 'package:zonix/features/services/promotion_service.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({Key? key}) : super(key: key);
@@ -18,6 +19,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
   String _deliveryType = 'pickup';
   String? _selectedAddress;
   List<Map<String, dynamic>> _addresses = [];
+  final _couponController = TextEditingController();
+  Map<String, dynamic>? _appliedCoupon;
+  double _couponDiscount = 0.0;
+  bool _validatingCoupon = false;
+  final _promotionService = PromotionService();
 
   @override
   void initState() {
@@ -106,7 +112,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final subtotal = cartItems.fold<double>(0, (sum, item) => sum + (item.precio ?? 0) * item.quantity);
     final tax = 0.0;
     final delivery = _deliveryType == 'delivery' ? 2.50 : 0.0;
-    final totalPayment = subtotal + tax + delivery;
+    final totalPayment = (subtotal + tax + delivery - _couponDiscount).clamp(0.0, double.infinity);
     return Scaffold(
       appBar: AppBar(title: const Text('Checkout')),
       body: Padding(
@@ -170,6 +176,67 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            const Text('Cupón de descuento', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _couponController,
+                    decoration: InputDecoration(
+                      hintText: 'Código de cupón',
+                      isDense: true,
+                      suffixIcon: _appliedCoupon != null
+                          ? IconButton(
+                              icon: const Icon(Icons.close, size: 18),
+                              onPressed: () {
+                                setState(() {
+                                  _appliedCoupon = null;
+                                  _couponDiscount = 0.0;
+                                  _couponController.clear();
+                                });
+                              },
+                            )
+                          : null,
+                    ),
+                    enabled: _appliedCoupon == null,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: _appliedCoupon != null || _validatingCoupon
+                      ? null
+                      : () => _validateCoupon(subtotal),
+                  child: _validatingCoupon
+                      ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      : Text(_appliedCoupon != null ? 'Aplicado' : 'Aplicar'),
+                ),
+              ],
+            ),
+            if (_appliedCoupon != null) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Cupón aplicado: -\$${_couponDiscount.toStringAsFixed(2)}',
+                        style: const TextStyle(color: Colors.green, fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
             if (_deliveryType == 'delivery') ...[
               const SizedBox(height: 8),
               const Text('Dirección de entrega', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
@@ -205,6 +272,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   _buildSummaryRow('Subtotal', '\$${subtotal.toStringAsFixed(2)}'),
                   if (tax > 0) _buildSummaryRow('Impuesto', '\$${tax.toStringAsFixed(2)}'),
                   _buildSummaryRow('Envío', '\$${delivery.toStringAsFixed(2)}'),
+                  if (_couponDiscount > 0)
+                    _buildSummaryRow('Descuento cupón', '-\$${_couponDiscount.toStringAsFixed(2)}', isDiscount: true),
                   const Divider(height: 24, thickness: 1),
                   _buildSummaryRow('Total a pagar:', '\$${totalPayment.toStringAsFixed(2)}', isTotal: true),
                 ],
@@ -232,15 +301,45 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  Widget _buildSummaryRow(String label, String value, {bool isTotal = false}) {
+  Future<void> _validateCoupon(double subtotal) async {
+    final code = _couponController.text.trim();
+    if (code.isEmpty) return;
+
+    setState(() => _validatingCoupon = true);
+    try {
+      final cartService = Provider.of<CartService>(context, listen: false);
+      final commerceId = cartService.items.isNotEmpty ? cartService.items.first.commerceId : null;
+      final result = await _promotionService.validateCoupon(
+        couponCode: code,
+        orderAmount: subtotal,
+        commerceId: commerceId,
+      );
+      final discount = (result['discount'] as num?)?.toDouble() ?? 0.0;
+      setState(() {
+        _appliedCoupon = result;
+        _couponDiscount = discount;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _validatingCoupon = false);
+    }
+  }
+
+  Widget _buildSummaryRow(String label, String value, {bool isTotal = false, bool isDiscount = false}) {
+    final color = isTotal ? Colors.green : (isDiscount ? Colors.orange : null);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           Expanded(
-            child: Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: isTotal ? Colors.green : null)),
+            child: Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: color)),
           ),
-          Text(value, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: isTotal ? Colors.green : null)),
+          Text(value, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: color)),
         ],
       ),
     );

@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/services/product_service.dart';
@@ -29,6 +31,8 @@ class _ProductsPageState extends State<ProductsPage> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   String _selectedCategory = 'Popular';
+  Set<String> _favProductIds = {};
+  static const _favProdKey = 'favorite_products';
 
   static const List<({String id, String label, String emoji})> _categories = [
     (id: 'Popular', label: 'Popular', emoji: '🔥'),
@@ -106,6 +110,28 @@ class _ProductsPageState extends State<ProductsPage> {
     _productsFuture = _fetchProductsFilteredByLocation();
     _promosFuture = PromotionService().getActivePromotions().catchError((_) => <Map<String, dynamic>>[]);
     _searchController.addListener(() => setState(() => _searchQuery = _searchController.text));
+    _loadFavProducts();
+  }
+
+  Future<void> _loadFavProducts() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (mounted) setState(() => _favProductIds = (prefs.getStringList(_favProdKey) ?? []).toSet());
+  }
+
+  Future<void> _toggleProductFav(int productId) async {
+    await HapticFeedback.lightImpact();
+    final prefs = await SharedPreferences.getInstance();
+    final ids = prefs.getStringList(_favProdKey) ?? [];
+    final idStr = productId.toString();
+    if (ids.contains(idStr)) {
+      ids.remove(idStr);
+      _favProductIds.remove(idStr);
+    } else {
+      ids.add(idStr);
+      _favProductIds.add(idStr);
+    }
+    await prefs.setStringList(_favProdKey, ids);
+    if (mounted) setState(() {});
   }
 
   @override
@@ -389,12 +415,37 @@ class _ProductsPageState extends State<ProductsPage> {
                   Positioned(
                     top: 6,
                     right: 6,
-                    child: Icon(Icons.favorite_border, color: Colors.white.withValues(alpha: 0.9), size: 20),
+                    child: GestureDetector(
+                      onTap: () => _toggleProductFav(product.id),
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.3),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _favProductIds.contains(product.id.toString()) ? Icons.favorite : Icons.favorite_border,
+                          color: _favProductIds.contains(product.id.toString()) ? Colors.redAccent : Colors.white.withValues(alpha: 0.9),
+                          size: 18,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
               Text(product.name, style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.bold, color: isDark ? Colors.white : Colors.black87), maxLines: 1, overflow: TextOverflow.ellipsis),
+              if (product.category.isNotEmpty) ...[
+                const SizedBox(height: 4),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: _accentYellow.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(product.category, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _accentYellow)),
+                ),
+              ],
               const SizedBox(height: 4),
               Row(
                 children: [
@@ -437,7 +488,10 @@ class _ProductsPageState extends State<ProductsPage> {
         ),
     );
     return GestureDetector(
-      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailPage(product: product))),
+      onTap: () async {
+        await Navigator.push(context, MaterialPageRoute(builder: (_) => ProductDetailPage(product: product)));
+        _loadFavProducts();
+      },
       child: isDark
           ? ClipRRect(
               borderRadius: BorderRadius.circular(16),

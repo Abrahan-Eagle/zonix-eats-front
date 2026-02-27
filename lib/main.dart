@@ -16,8 +16,6 @@ import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/utils/search_radius_provider.dart';
 import 'package:flutter/services.dart';
 
-// import 'dart:io';
-// import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 import 'package:zonix/features/screens/profile/profile_page.dart';
@@ -96,15 +94,6 @@ final String baseUrl =
 // Configuración del logger
 final logger = Logger();
 
-//  class MyHttpOverrides extends HttpOverrides{
-//   @override
-//   HttpClient createHttpClient(SecurityContext? context){
-//     return super.createHttpClient(context)
-//       ..badCertificateCallback = (X509Certificate cert, String host, int port)=> true;
-//   }
-// }
-
-// void main() {
 Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
