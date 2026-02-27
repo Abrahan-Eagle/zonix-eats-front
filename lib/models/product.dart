@@ -109,7 +109,9 @@ class Product {
       price: parseDouble(json['price']),
       originalPrice: json['original_price'] != null ? parseDouble(json['original_price']) : null,
       image: json['image'] ?? '',
-      category: json['category'] ?? '',
+      category: json['category'] is Map
+          ? (json['category']['name'] ?? '')
+          : (json['category']?.toString() ?? ''),
       isAvailable: json['available'] ?? json['is_available'] ?? false,
       stock: json['stock'] ?? 0,
       tags: List<String>.from(json['tags'] ?? []),

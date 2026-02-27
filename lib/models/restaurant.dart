@@ -15,6 +15,8 @@ class Restaurant {
   final String? businessType;
   final Map<String, dynamic>? schedule;
   final Map<String, dynamic>? profile;
+  final double? latitude;
+  final double? longitude;
 
   Restaurant({
     required this.id,
@@ -31,6 +33,8 @@ class Restaurant {
     this.businessType,
     this.schedule,
     this.profile,
+    this.latitude,
+    this.longitude,
   });
 
   factory Restaurant.fromJson(Map<String, dynamic> json) {
@@ -51,6 +55,27 @@ class Restaurant {
       }
     }
 
+    // Coordenadas: primero intentar campos directos, luego addresses[0]
+    double? lat;
+    double? lng;
+    if (json['latitude'] != null) {
+      lat = double.tryParse(json['latitude'].toString());
+    }
+    if (json['longitude'] != null) {
+      lng = double.tryParse(json['longitude'].toString());
+    }
+    if ((lat == null || lng == null) && json['addresses'] is List && (json['addresses'] as List).isNotEmpty) {
+      final first = (json['addresses'] as List).first;
+      if (first is Map) {
+        if (first['latitude'] != null) {
+          lat = double.tryParse(first['latitude'].toString());
+        }
+        if (first['longitude'] != null) {
+          lng = double.tryParse(first['longitude'].toString());
+        }
+      }
+    }
+
     return Restaurant(
       id: json['id'] is int ? json['id'] : int.tryParse(json['id'].toString()) ?? 0,
       profileId: json['profile_id'] is int ? json['profile_id'] : int.tryParse(json['profile_id'].toString()) ?? 0,
@@ -63,9 +88,13 @@ class Restaurant {
       mobilePaymentId: json['mobile_payment_id']?.toString() ?? '',
       mobilePaymentPhone: json['mobile_payment_phone']?.toString() ?? '',
       open: json['open'] == 1 || json['open'] == true || json['open'] == '1',
-      businessType: json['business_type']?.toString(),
+      businessType: json['business_type_relation'] is Map
+          ? (json['business_type_relation']['name']?.toString())
+          : json['business_type']?.toString(),
       schedule: parsedSchedule,
       profile: json['profile'] is Map ? Map<String, dynamic>.from(json['profile'] as Map) : null,
+      latitude: lat,
+      longitude: lng,
     );
   }
 
@@ -85,6 +114,8 @@ class Restaurant {
       'business_type': businessType,
       'schedule': schedule,
       'profile': profile,
+      'latitude': latitude,
+      'longitude': longitude,
     };
   }
 

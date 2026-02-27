@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/models/product.dart';
 import 'package:zonix/models/cart_item.dart';
@@ -34,6 +35,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Restaurant? _restaurant;
   final Set<int> _selectedExtraIds = {};
   final Set<int> _selectedPreferenceIds = {};
+  bool _isFavProduct = false;
+  static const _favProdKey = 'favorite_products';
 
   bool _isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
@@ -57,6 +60,29 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   void initState() {
     super.initState();
     _restaurantFuture = _loadRestaurant();
+    _loadFav();
+  }
+
+  Future<void> _loadFav() async {
+    final prefs = await SharedPreferences.getInstance();
+    final ids = prefs.getStringList(_favProdKey) ?? [];
+    if (mounted) setState(() => _isFavProduct = ids.contains(widget.product.id.toString()));
+  }
+
+  Future<void> _toggleFav() async {
+    await HapticFeedback.lightImpact();
+    final prefs = await SharedPreferences.getInstance();
+    final ids = prefs.getStringList(_favProdKey) ?? [];
+    final idStr = widget.product.id.toString();
+    if (ids.contains(idStr)) {
+      ids.remove(idStr);
+      _isFavProduct = false;
+    } else {
+      ids.add(idStr);
+      _isFavProduct = true;
+    }
+    await prefs.setStringList(_favProdKey, ids);
+    if (mounted) setState(() {});
   }
 
   @override
@@ -256,8 +282,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ),
             _circleButton(
               context: context,
-              icon: Icons.favorite_border,
-              onTap: () {},
+              icon: _isFavProduct ? Icons.favorite : Icons.favorite_border,
+              onTap: _toggleFav,
+              iconColor: _isFavProduct ? Colors.redAccent : null,
             ),
           ],
         ),
@@ -269,6 +296,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     required BuildContext context,
     required IconData icon,
     required VoidCallback onTap,
+    Color? iconColor,
   }) {
     return Material(
       color: Colors.black.withValues(alpha: 0.4),
@@ -280,7 +308,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           width: 40,
           height: 40,
           alignment: Alignment.center,
-          child: Icon(icon, color: Colors.white, size: 22),
+          child: Icon(icon, color: iconColor ?? Colors.white, size: 22),
         ),
       ),
     );
