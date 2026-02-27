@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/models/product.dart';
 import 'package:zonix/models/cart_item.dart';
@@ -11,11 +12,11 @@ import 'package:zonix/features/services/restaurant_service.dart';
 import 'package:zonix/features/screens/restaurants/restaurant_details_page.dart';
 import 'package:zonix/features/utils/network_image_with_fallback.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/config/app_config.dart';
 import 'package:logger/logger.dart';
 
-// Colores base (primary y accent se mantienen en ambos modos)
 const Color _kPrimary = Color(0xFF3399FF);
-const Color _kAccentYellow = Color(0xFFFFB800);
+const Color _kAccent = Color(0xFFFFC107);
 
 class ProductDetailPage extends StatefulWidget {
   final Product product;
@@ -85,6 +86,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     if (mounted) setState(() {});
   }
 
+  void _shareProduct() {
+    final link = '${AppConfig.apiUrl}/product/${widget.product.id}';
+    final restName = _restaurant?.nombreLocal ?? '';
+    final text = '🛒 *${widget.product.name}* - \$${widget.product.price.toStringAsFixed(2)}\n'
+        '${widget.product.description.isNotEmpty ? '${widget.product.description}\n' : ''}'
+        '${restName.isNotEmpty ? '🍽️ En *$restName* - Zonix Eats\n' : ''}'
+        '\n👉 $link';
+    SharePlus.instance.share(ShareParams(text: text));
+  }
+
   @override
   void dispose() {
     _instructionsController.dispose();
@@ -152,6 +163,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             abierto: r.abierto,
             horario: r.horario,
             logoUrl: r.logoUrl,
+            businessType: r.businessType,
+            latitude: r.latitude,
+            longitude: r.longitude,
           ),
         ),
       );
@@ -280,11 +294,21 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               icon: Icons.arrow_back,
               onTap: () => Navigator.of(context).pop(),
             ),
-            _circleButton(
-              context: context,
-              icon: _isFavProduct ? Icons.favorite : Icons.favorite_border,
-              onTap: _toggleFav,
-              iconColor: _isFavProduct ? Colors.redAccent : null,
+            Row(
+              children: [
+                _circleButton(
+                  context: context,
+                  icon: _isFavProduct ? Icons.favorite : Icons.favorite_border,
+                  onTap: _toggleFav,
+                  iconColor: _isFavProduct ? Colors.redAccent : null,
+                ),
+                const SizedBox(width: 8),
+                _circleButton(
+                  context: context,
+                  icon: Icons.share,
+                  onTap: _shareProduct,
+                ),
+              ],
             ),
           ],
         ),
@@ -328,51 +352,70 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget _buildProductHeader(BuildContext context, double total) {
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Text(
-            widget.product.name,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: _textPrimary(context),
-              height: 1.2,
-            ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '\$${total.toStringAsFixed(2)}',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: _kAccentYellow,
+            Expanded(
+              child: Text(
+                widget.product.name,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: _textPrimary(context),
+                  height: 1.2,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisSize: MainAxisSize.min,
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Icon(Icons.star, size: 16, color: _kAccentYellow),
-                const SizedBox(width: 4),
                 Text(
-                  '${widget.product.rating > 0 ? widget.product.rating.toStringAsFixed(1) : '-'} (${widget.product.reviewCount > 0 ? _formatCount(widget.product.reviewCount) : '0'})',
+                  '\$${total.toStringAsFixed(2)}',
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    color: _textSecondary(context),
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: _kAccent,
                   ),
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.star, size: 16, color: _kAccent),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${widget.product.rating > 0 ? widget.product.rating.toStringAsFixed(1) : '-'} (${widget.product.reviewCount > 0 ? _formatCount(widget.product.reviewCount) : '0'})',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        color: _textSecondary(context),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ],
         ),
+        if (widget.product.category.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: _kAccent.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              widget.product.category,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _kAccent),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -441,13 +484,43 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         _restaurant = snapshot.data;
         return GestureDetector(
           onTap: _isLoading ? null : _navigateToRestaurant,
-          child: Text(
-            'Ver restaurante: ${_restaurant?.nombreLocal ?? ''}',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: _kPrimary,
-              decoration: TextDecoration.underline,
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: _kPrimary.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: _kPrimary.withOpacity(0.15)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 40, height: 40,
+                  decoration: BoxDecoration(
+                    color: _kPrimary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.storefront, color: _kPrimary, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _restaurant?.nombreLocal ?? '',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: _textPrimary(context)),
+                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        _restaurant?.abierto == true ? 'Abierto · Ver menú completo' : 'Cerrado · Ver menú completo',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12, color: _textSecondary(context)),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(Icons.chevron_right, color: _kPrimary, size: 22),
+              ],
             ),
           ),
         );
