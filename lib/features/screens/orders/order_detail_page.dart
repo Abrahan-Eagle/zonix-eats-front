@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zonix/models/order.dart';
 import 'package:zonix/features/services/order_service.dart';
+import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/screens/orders/buyer_order_chat_page.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
+import 'package:zonix/widgets/osm_map_widget.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class OrderDetailPage extends StatefulWidget {
   const OrderDetailPage({
@@ -25,6 +29,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   bool _loading = true;
   String? _error;
   bool _updating = false;
+  double? _deliveryLat;
+  double? _deliveryLng;
+  bool _trackingSubscribed = false;
 
   @override
   void initState() {
@@ -34,6 +41,41 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       _loadOrder();
     } else {
       _loading = false;
+      _subscribeToTracking();
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_trackingSubscribed) {
+      PusherService.instance.unsubscribeFromChannel('private-order.${widget.orderId}');
+    }
+    super.dispose();
+  }
+
+  void _subscribeToTracking() {
+    if (_order == null || _trackingSubscribed) return;
+    final s = _order!.status;
+    if (s == 'shipped' || s == 'out_for_delivery' || s == 'processing') {
+      PusherService.instance.subscribeToOrderChat(
+        widget.orderId,
+        onNewMessage: (eventName, data) {
+          if (eventName.contains('DeliveryLocationUpdated')) {
+            final lat = double.tryParse(data['latitude']?.toString() ?? '');
+            final lng = double.tryParse(data['longitude']?.toString() ?? '');
+            if (lat != null && lng != null && mounted) {
+              setState(() {
+                _deliveryLat = lat;
+                _deliveryLng = lng;
+              });
+            }
+          }
+          if (eventName.contains('OrderStatusChanged')) {
+            _loadOrder();
+          }
+        },
+      );
+      _trackingSubscribed = true;
     }
   }
 
@@ -49,6 +91,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           _order = order;
           _loading = false;
         });
+        _subscribeToTracking();
       }
     } catch (e) {
       if (mounted) {
@@ -255,6 +298,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     if (order.deliveryAddress.isNotEmpty) ...[
                       const SizedBox(height: 16),
                       _buildAddressCard(order),
+                    ],
+                    if (_isTrackableStatus(order.status)) ...[
+                      const SizedBox(height: 16),
+                      _buildTrackingCard(order),
                     ],
                     if (order.status == 'pending_payment') ...[
                       const SizedBox(height: 24),
@@ -470,6 +517,88 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           ),
         ],
       ],
+    );
+  }
+
+  bool _isTrackableStatus(String status) {
+    return status == 'shipped' || status == 'out_for_delivery' || status == 'processing' || status == 'paid';
+  }
+
+  Widget _buildTrackingCard(Order order) {
+    final hasLocation = _deliveryLat != null && _deliveryLng != null;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.delivery_dining, color: AppColors.green, size: 22),
+                const SizedBox(width: 8),
+                Text(
+                  'Seguimiento de entrega',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.primaryText(context),
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (hasLocation)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  height: 200,
+                  width: double.infinity,
+                  child: OsmMapWidget(
+                    center: LatLng(_deliveryLat!, _deliveryLng!),
+                    zoom: 15.0,
+                  ),
+                ),
+              )
+            else
+              Container(
+                height: 120,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.location_searching, size: 36, color: Colors.grey[400]),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Esperando ubicación del repartidor...',
+                      style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                    ),
+                  ],
+                ),
+              ),
+            if (hasLocation) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.navigation, size: 18),
+                  label: const Text('Ver en Google Maps'),
+                  onPressed: () async {
+                    final url = Uri.parse(
+                      'https://www.google.com/maps?q=$_deliveryLat,$_deliveryLng',
+                    );
+                    if (await canLaunchUrl(url)) {
+                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                    }
+                  },
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 
