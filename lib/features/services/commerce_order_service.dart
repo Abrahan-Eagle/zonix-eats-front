@@ -118,6 +118,28 @@ class CommerceOrderService {
     }
   }
 
+  // Aprobar orden para que el comprador pueda proceder al pago
+  static Future<void> approveForPayment(int orderId) async {
+    try {
+      final headers = await AuthHelper.getAuthHeaders();
+      final response = await http.post(
+        Uri.parse('$baseUrl/api/commerce/orders/$orderId/approve-for-payment'),
+        headers: headers,
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) return;
+        throw Exception(data['message'] ?? 'Error al aprobar orden para pago');
+      } else {
+        final data = response.body.isNotEmpty ? jsonDecode(response.body) : null;
+        throw Exception(data?['message'] ?? 'Error al aprobar orden para pago: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error al aprobar orden para pago: $e');
+    }
+  }
+
   // Validar comprobante de pago
   static Future<Map<String, dynamic>> validatePayment(int orderId, bool isValid, {String? reason}) async {
     try {

@@ -279,6 +279,46 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                       Wrap(
                         spacing: 8,
                         children: [
+                          ElevatedButton.icon(
+                            onPressed: _updating
+                                ? null
+                                : () async {
+                                    setState(() => _updating = true);
+                                    try {
+                                      await CommerceOrderService
+                                          .approveForPayment(widget.orderId);
+                                      await _loadOrder();
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                'Orden aprobada para pago'),
+                                            backgroundColor: AppColors.green,
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Error: ${e.toString().replaceFirst('Exception: ', '')}',
+                                            ),
+                                            backgroundColor: AppColors.red,
+                                          ),
+                                        );
+                                      }
+                                    } finally {
+                                      if (mounted) {
+                                        setState(() => _updating = false);
+                                      }
+                                    }
+                                  },
+                            icon: const Icon(Icons.check_circle_outline),
+                            label: const Text('Aprobar para pago'),
+                          ),
                           OutlinedButton.icon(
                             onPressed: () => _rejectOrder(),
                             icon: const Icon(Icons.cancel_outlined),

@@ -14,6 +14,7 @@ class MockOrderService extends OrderService {
     List<CartItem> items, {
     required String deliveryType,
     String? deliveryAddress,
+    double deliveryFee = 0.0,
   }) async {
     // Simula una respuesta exitosa
     return Order(
@@ -60,7 +61,13 @@ class MockOrderService extends OrderService {
   }
 
   @override
-  Future<void> uploadComprobante(int orderId, String filePath, String fileType) async {
+  Future<void> uploadComprobante(
+    int orderId,
+    String filePath,
+    String fileType, {
+    String paymentMethod = 'otro',
+    String referenceNumber = '',
+  }) async {
     // Simula una subida exitosa
     return;
   }
