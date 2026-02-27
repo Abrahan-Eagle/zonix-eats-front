@@ -12,6 +12,7 @@ import 'package:zonix/models/product.dart';
 import 'package:zonix/models/cart_item.dart';
 import 'package:zonix/models/restaurant.dart';
 import 'package:zonix/features/screens/cart/cart_page.dart';
+import 'package:zonix/features/screens/products/product_detail_page.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:zonix/widgets/osm_map_widget.dart';
@@ -895,22 +896,39 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
 
               // Mini mapa + GPS
               const SizedBox(height: 16),
-              if (widget.latitude != null && widget.longitude != null)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: OsmMapWidget(
-                    center: LatLng(widget.latitude!, widget.longitude!),
-                    zoom: 15,
-                    height: 140,
-                    markers: [
-                      MapMarker.create(
-                        point: LatLng(widget.latitude!, widget.longitude!),
-                        color: _primary,
-                        size: 28,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: widget.latitude != null && widget.longitude != null
+                    ? OsmMapWidget(
+                        center: LatLng(widget.latitude!, widget.longitude!),
+                        zoom: 15,
+                        height: 140,
+                        markers: [
+                          MapMarker.create(
+                            point: LatLng(widget.latitude!, widget.longitude!),
+                            color: _primary,
+                            size: 28,
+                          ),
+                        ],
+                      )
+                    : Container(
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: _primary.withOpacity(0.06),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.map_outlined, size: 32, color: _primary.withOpacity(0.4)),
+                              const SizedBox(height: 6),
+                              Text('Toca "Cómo llegar" para ver la ubicación', style: TextStyle(fontSize: 12, color: _primary.withOpacity(0.6))),
+                            ],
+                          ),
+                        ),
                       ),
-                    ],
-                  ),
-                ),
+              ),
               const SizedBox(height: 8),
               GestureDetector(
                 onTap: () {
@@ -1334,111 +1352,12 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     );
   }
 
-  // ── MODAL DETALLE DE PRODUCTO ──
-  void _showProductDetails(Product product) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? _bgDark : _bgLight;
-    final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => DraggableScrollableSheet(
-        initialChildSize: 0.6,
-        maxChildSize: 0.9,
-        minChildSize: 0.3,
-        expand: false,
-        builder: (context, sc) => Container(
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            children: [
-              Container(
-                width: 40, height: 4,
-                margin: const EdgeInsets.symmetric(vertical: 12),
-                decoration: BoxDecoration(color: Colors.grey.shade400, borderRadius: BorderRadius.circular(2)),
-              ),
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: sc,
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (product.image.isNotEmpty)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(20),
-                          child: SizedBox(
-                            width: double.infinity, height: 220,
-                            child: Image.network(product.image, fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Icon(Icons.fastfood, size: 80, color: Colors.grey)),
-                          ),
-                        ),
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(product.name, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: textPrimary)),
-                          ),
-                          _productFavBtn(product.id, Colors.grey),
-                          IconButton(
-                            onPressed: () => _shareProduct(product),
-                            icon: const Icon(Icons.share, color: _primary),
-                            tooltip: 'Compartir',
-                          ),
-                        ],
-                      ),
-                      if (product.category.isNotEmpty) ...[
-                        const SizedBox(height: 6),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: _accent.withOpacity(0.12),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(product.category, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _accent)),
-                        ),
-                      ],
-                      const SizedBox(height: 8),
-                      Text('\$${product.price.toStringAsFixed(2)}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: _accent)),
-                      if (product.description.isNotEmpty) ...[
-                        const SizedBox(height: 16),
-                        Text(product.description, style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5)),
-                      ],
-                      const SizedBox(height: 30),
-                      SizedBox(
-                        width: double.infinity, height: 56,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            final cs = Provider.of<CartService>(context, listen: false);
-                            cs.addToCart(CartItem(
-                              id: product.id, nombre: product.name, precio: product.price,
-                              quantity: 1, imagen: product.image, commerceId: product.commerceId,
-                            ));
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Producto agregado al carrito'), backgroundColor: Colors.green, duration: Duration(seconds: 1)),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _primary, foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          ),
-                          child: const Text('Agregar al Carrito', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+  void _showProductDetails(Product product) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => ProductDetailPage(product: product)),
     );
+    _loadFavorite();
   }
 
   @override
