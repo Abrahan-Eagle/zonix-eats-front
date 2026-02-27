@@ -3,9 +3,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:zonix/features/utils/auth_utils.dart';
+import 'package:zonix/features/services/pusher_service.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../config/app_config.dart';
 import 'package:http/http.dart' as http;
 
 final logger = Logger();
@@ -115,11 +115,44 @@ class UserProvider with ChangeNotifier {
         await getUserDetails();
         await _loadUserData();
         logger.i('Final userId: $_userId');
+        _initRealtimeServices();
       }
     } catch (e) {
       debugPrint('Error al verificar autenticación: $e');
     } finally {
       notifyListeners();
+    }
+  }
+
+  void _initRealtimeServices() {
+    if (_userId > 0) {
+      PusherService.instance.subscribeToUserChannel(
+        _userId,
+        onEvent: (eventName, data) {
+          logger.i('Pusher event: $eventName');
+        },
+      );
+      _registerFcmToken();
+    }
+  }
+
+  Future<void> _registerFcmToken() async {
+    try {
+      final token = await _storage.read(key: 'token');
+      final fcmToken = await _storage.read(key: 'fcm_token');
+      if (token == null || fcmToken == null || fcmToken.isEmpty) return;
+
+      await http.post(
+        Uri.parse('$baseUrl/api/chat/fcm/register'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'fcm_token': fcmToken}),
+      );
+      logger.i('FCM token registered');
+    } catch (e) {
+      logger.w('FCM token registration failed: $e');
     }
   }
 
@@ -273,6 +306,7 @@ class UserProvider with ChangeNotifier {
 
   Future<void> logout() async {
     try {
+      PusherService.instance.disconnect();
       await AuthUtils.logout();
       await GoogleSignIn().signOut();
       await _clearUserData();

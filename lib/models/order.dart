@@ -28,6 +28,18 @@ class Order {
   final DateTime updatedAt;
   final List<OrderItem> items;
   final Map<String, dynamic>? commerce;
+  final String? deliveryType;
+  final bool approvedForPayment;
+  final double deliveryPaymentAmount;
+  final double commissionAmount;
+  final double cancellationPenalty;
+  final String? cancelledBy;
+  final String? cancellationReason;
+  final String? receiptUrl;
+  final String? paymentProof;
+  final String? referenceNumber;
+  final DateTime? paymentValidatedAt;
+  final DateTime? paymentProofUploadedAt;
 
   Order({
     required this.id,
@@ -51,6 +63,18 @@ class Order {
     required this.updatedAt,
     required this.items,
     this.commerce,
+    this.deliveryType,
+    this.approvedForPayment = false,
+    this.deliveryPaymentAmount = 0.0,
+    this.commissionAmount = 0.0,
+    this.cancellationPenalty = 0.0,
+    this.cancelledBy,
+    this.cancellationReason,
+    this.receiptUrl,
+    this.paymentProof,
+    this.referenceNumber,
+    this.paymentValidatedAt,
+    this.paymentProofUploadedAt,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
@@ -97,6 +121,18 @@ class Order {
       updatedAt: updatedAtRaw != null ? (DateTime.tryParse(updatedAtRaw.toString()) ?? DateTime.now()) : DateTime.now(),
       items: parsedItems,
       commerce: json['commerce'],
+      deliveryType: json['delivery_type']?.toString(),
+      approvedForPayment: json['approved_for_payment'] == true || json['approved_for_payment'] == 1,
+      deliveryPaymentAmount: _parseDouble(json['delivery_payment_amount']),
+      commissionAmount: _parseDouble(json['commission_amount']),
+      cancellationPenalty: _parseDouble(json['cancellation_penalty']),
+      cancelledBy: json['cancelled_by']?.toString(),
+      cancellationReason: json['cancellation_reason']?.toString(),
+      receiptUrl: json['receipt_url']?.toString(),
+      paymentProof: json['payment_proof']?.toString(),
+      referenceNumber: json['reference_number']?.toString(),
+      paymentValidatedAt: json['payment_validated_at'] != null ? DateTime.tryParse(json['payment_validated_at'].toString()) : null,
+      paymentProofUploadedAt: json['payment_proof_uploaded_at'] != null ? DateTime.tryParse(json['payment_proof_uploaded_at'].toString()) : null,
     );
   }
 
@@ -123,6 +159,18 @@ class Order {
       'updated_at': updatedAt.toIso8601String(),
       'items': items.map((item) => item.toJson()).toList(),
       'commerce': commerce,
+      'delivery_type': deliveryType,
+      'approved_for_payment': approvedForPayment,
+      'delivery_payment_amount': deliveryPaymentAmount,
+      'commission_amount': commissionAmount,
+      'cancellation_penalty': cancellationPenalty,
+      'cancelled_by': cancelledBy,
+      'cancellation_reason': cancellationReason,
+      'receipt_url': receiptUrl,
+      'payment_proof': paymentProof,
+      'reference_number': referenceNumber,
+      'payment_validated_at': paymentValidatedAt?.toIso8601String(),
+      'payment_proof_uploaded_at': paymentProofUploadedAt?.toIso8601String(),
     };
   }
 
@@ -148,6 +196,18 @@ class Order {
     DateTime? updatedAt,
     List<OrderItem>? items,
     Map<String, dynamic>? commerce,
+    String? deliveryType,
+    bool? approvedForPayment,
+    double? deliveryPaymentAmount,
+    double? commissionAmount,
+    double? cancellationPenalty,
+    String? cancelledBy,
+    String? cancellationReason,
+    String? receiptUrl,
+    String? paymentProof,
+    String? referenceNumber,
+    DateTime? paymentValidatedAt,
+    DateTime? paymentProofUploadedAt,
   }) {
     return Order(
       id: id ?? this.id,
@@ -171,6 +231,18 @@ class Order {
       updatedAt: updatedAt ?? this.updatedAt,
       items: items ?? this.items,
       commerce: commerce ?? this.commerce,
+      deliveryType: deliveryType ?? this.deliveryType,
+      approvedForPayment: approvedForPayment ?? this.approvedForPayment,
+      deliveryPaymentAmount: deliveryPaymentAmount ?? this.deliveryPaymentAmount,
+      commissionAmount: commissionAmount ?? this.commissionAmount,
+      cancellationPenalty: cancellationPenalty ?? this.cancellationPenalty,
+      cancelledBy: cancelledBy ?? this.cancelledBy,
+      cancellationReason: cancellationReason ?? this.cancellationReason,
+      receiptUrl: receiptUrl ?? this.receiptUrl,
+      paymentProof: paymentProof ?? this.paymentProof,
+      referenceNumber: referenceNumber ?? this.referenceNumber,
+      paymentValidatedAt: paymentValidatedAt ?? this.paymentValidatedAt,
+      paymentProofUploadedAt: paymentProofUploadedAt ?? this.paymentProofUploadedAt,
     );
   }
 

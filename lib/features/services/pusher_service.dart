@@ -115,13 +115,41 @@ class PusherService {
   }
 
   /// Suscribirse al canal de chat de una orden (private-order.{orderId})
-  /// Para recibir mensajes en tiempo real vía Pusher.
   Future<bool> subscribeToOrderChat(
     int orderId, {
     required Function(String eventName, Map<String, dynamic> data) onNewMessage,
   }) async {
     final channelName = 'private-order.$orderId';
     return subscribeToChannel(channelName, onDomainEvent: onNewMessage);
+  }
+
+  /// Suscribirse al canal de usuario para recibir OrderCreated, OrderStatusChanged,
+  /// PaymentValidated y NotificationCreated.
+  Future<bool> subscribeToUserChannel(
+    int userId, {
+    required Function(String eventName, Map<String, dynamic> data) onEvent,
+  }) async {
+    final channelName = 'private-user.$userId';
+    return subscribeToChannel(channelName, onDomainEvent: onEvent);
+  }
+
+  /// Suscribirse al canal de comercio para recibir OrderCreated del comercio.
+  Future<bool> subscribeToCommerceChannel(
+    int commerceId, {
+    required Function(String eventName, Map<String, dynamic> data) onEvent,
+  }) async {
+    final channelName = 'private-commerce.$commerceId';
+    return subscribeToChannel(channelName, onDomainEvent: onEvent);
+  }
+
+  /// Suscribirse al canal de una orden específica para tracking de delivery
+  /// y actualizaciones de estado de pago.
+  Future<bool> subscribeToOrderUpdates(
+    int orderId, {
+    required Function(String eventName, Map<String, dynamic> data) onEvent,
+  }) async {
+    final channelName = 'private-order.$orderId';
+    return subscribeToChannel(channelName, onDomainEvent: onEvent);
   }
 
   /// Suscribirse a un canal genérico
