@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Zonix Eats - Detalle Restaurante</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3399ff",
+                        "accent": "#FFC107",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1923",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-icon {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen pb-24">
+<header class="relative w-full h-64 md:h-72">
+<img class="w-full h-full object-cover" data-alt="Cover del restaurante The Burger House" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4sOCmnbJeS2fhfkDPmzIJK_wCY5fynSFwAwTZSBxQOZDP9Mnwhwv9VXe9EL8RrqgHGzTYS7sKR_7tTeMFJTcqMh9geDMEnouLssqf9qn0shNx4vhxXtxZU91z3OzzUXqLN1as92IFtGQDYcxjPXkYf2VMaF2DofarV2QgcO2ZXzVetTJ5R7XEcQJ7ZbZYAoHyM_6bJ4PBG-vKvwK12Vlo9th_NGn8O_Q8mD5OTWdAemwxHjkpl-5_fU8mHlmA62HRhD96pGocWSI"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+<div class="absolute top-0 left-0 right-0 p-4 flex justify-between items-start pt-12">
+<button class="bg-white/90 dark:bg-slate-900/50 backdrop-blur-md p-2.5 rounded-full shadow-sm text-slate-900 dark:text-white hover:bg-white transition-colors">
+<span class="material-symbols-outlined block">arrow_back</span>
+</button>
+<div class="flex gap-2">
+<button class="bg-white/90 dark:bg-slate-900/50 backdrop-blur-md p-2.5 rounded-full shadow-sm text-slate-900 dark:text-white hover:bg-white transition-colors">
+<span class="material-symbols-outlined block">search</span>
+</button>
+<button class="bg-white/90 dark:bg-slate-900/50 backdrop-blur-md p-2.5 rounded-full shadow-sm text-red-500 hover:bg-white transition-colors">
+<span class="material-symbols-outlined active-icon block">favorite</span>
+</button>
+</div>
+</div>
+</header>
+<main class="-mt-6 relative z-10 bg-background-light dark:bg-background-dark rounded-t-3xl px-4 pt-6">
+<div class="flex flex-col gap-2 mb-6">
+<div class="flex justify-between items-start">
+<h1 class="text-2xl font-bold text-slate-900 dark:text-white">The Burger House</h1>
+<button class="text-primary bg-primary/10 p-1 rounded-full">
+<span class="material-symbols-outlined text-lg block">info</span>
+</button>
+</div>
+<div class="flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-accent active-icon text-lg">star</span>
+<span class="font-bold text-slate-900 dark:text-white">4.8</span>
+<span class="text-xs">(1k+)</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-lg">schedule</span>
+<span>15-25 min</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+<span>Americana</span>
+<span class="w-1 h-1 bg-slate-300 rounded-full"></span>
+<span>Grill</span>
+</div>
+</div>
+</div>
+<div class="bg-accent/10 border border-accent/20 rounded-xl p-3 flex items-center justify-between mb-6">
+<div class="flex items-center gap-3">
+<div class="bg-accent text-white p-1.5 rounded-lg">
+<span class="material-symbols-outlined block text-lg">local_offer</span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-800 dark:text-slate-100 uppercase tracking-wide">Promo Activa</p>
+<p class="text-sm font-semibold text-amber-600 dark:text-amber-400">Envío GRATIS en pedidos &gt; $15</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-amber-500/50">chevron_right</span>
+</div>
+<div class="sticky top-0 bg-background-light dark:bg-background-dark py-2 z-20 mb-4 overflow-hidden">
+<div class="flex gap-3 overflow-x-auto no-scrollbar pb-2">
+<button class="px-5 py-2 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full text-sm font-semibold whitespace-nowrap shadow-md">
+                    Popular
+                </button>
+<button class="px-5 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-full text-sm font-medium whitespace-nowrap">
+                    Burgers
+                </button>
+<button class="px-5 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-full text-sm font-medium whitespace-nowrap">
+                    Acompañantes
+                </button>
+<button class="px-5 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-full text-sm font-medium whitespace-nowrap">
+                    Bebidas
+                </button>
+<button class="px-5 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-full text-sm font-medium whitespace-nowrap">
+                    Postres
+                </button>
+</div>
+</div>
+<section class="space-y-6">
+<h2 class="text-lg font-bold text-slate-900 dark:text-white px-1">Lo más vendido</h2>
+<div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex gap-4">
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white mb-1">Doble Bacon Cheese</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">Doble carne 100% vacuno, queso cheddar fundido, bacon crujiente y salsa especial.</p>
+</div>
+<div class="flex items-center justify-between mt-3">
+<span class="text-accent font-bold text-base">$12.50</span>
+<button class="bg-primary/10 hover:bg-primary/20 text-primary w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-lg">add</span>
+</button>
+</div>
+</div>
+<div class="w-28 h-28 shrink-0 rounded-xl overflow-hidden bg-slate-100">
+<img class="w-full h-full object-cover" data-alt="Hamburguesa doble con queso y bacon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAhsg0s00pHBOqQ71lMpf4kGsAhfq6f3ebSHuAQnPmm8BabncbJBfa225CV14OkNbaa9xpfgOc-bsSakcW8IGAX1k2Qld6qZTBHhT_QJbAzmgOHDdKd6PlwHrT4Ts3JvfQCakncKorLGuNS29jeJVgm9P5yShDDay3LykoYfSYZU1c8e-y30-eYSsCsdxv3iSCGGRiAJHa6GQ46MsqactfDmdERPb7AXUUcIvJgA2X5C6zSCfV9xefveSBO3BAclvQ3y3zNd37WLAg"/>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex gap-4">
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white mb-1">Classic Smash</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">Carne smash con costra perfecta, queso americano, pepinillos y cebolla picada.</p>
+</div>
+<div class="flex items-center justify-between mt-3">
+<span class="text-accent font-bold text-base">$9.90</span>
+<button class="bg-primary/10 hover:bg-primary/20 text-primary w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-lg">add</span>
+</button>
+</div>
+</div>
+<div class="w-28 h-28 shrink-0 rounded-xl overflow-hidden bg-slate-100">
+<img class="w-full h-full object-cover" data-alt="Hamburguesa smash clásica" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4sOCmnbJeS2fhfkDPmzIJK_wCY5fynSFwAwTZSBxQOZDP9Mnwhwv9VXe9EL8RrqgHGzTYS7sKR_7tTeMFJTcqMh9geDMEnouLssqf9qn0shNx4vhxXtxZU91z3OzzUXqLN1as92IFtGQDYcxjPXkYf2VMaF2DofarV2QgcO2ZXzVetTJ5R7XEcQJ7ZbZYAoHyM_6bJ4PBG-vKvwK12Vlo9th_NGn8O_Q8mD5OTWdAemwxHjkpl-5_fU8mHlmA62HRhD96pGocWSI"/>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex gap-4">
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white mb-1">Papas Trufadas</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">Papas fritas corte grueso con aceite de trufa, parmesano rallado y perejil.</p>
+</div>
+<div class="flex items-center justify-between mt-3">
+<span class="text-accent font-bold text-base">$5.50</span>
+<button class="bg-primary/10 hover:bg-primary/20 text-primary w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-lg">add</span>
+</button>
+</div>
+</div>
+<div class="w-28 h-28 shrink-0 rounded-xl overflow-hidden bg-slate-100">
+<img class="w-full h-full object-cover" data-alt="Papas fritas con trufa" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMZAvoWHBQpNncblkvmAf2HJBTpQWaxlKCzJvdGoT-uXxpLwXkOq414e677Pe8i7xXYN75Nijn8eoi2humwyJlDeUP_YqE8AbQ-QjITPJWm1TbqoOh8prGQxnZL7S_DkmVKWHu_FbfgYzXmD38WwBAtzg-QEwyIcXLnefDRdOpx45f-JtNpHvgsBcRTdJiQ3ELEDkFTUGmH0i-3uf30pfeyACfrRKBQyeWaYrCfGc9RXmzQBwYv9ZMz6P0CdQhzhM4limAz7qb6LM"/>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex gap-4">
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white mb-1">Milkshake Vainilla</h3>
+<p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">Batido cremoso de helado de vainilla natural con chantilly.</p>
+</div>
+<div class="flex items-center justify-between mt-3">
+<span class="text-accent font-bold text-base">$4.50</span>
+<button class="bg-primary/10 hover:bg-primary/20 text-primary w-8 h-8 rounded-full flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-lg">add</span>
+</button>
+</div>
+</div>
+<div class="w-28 h-28 shrink-0 rounded-xl overflow-hidden bg-slate-100">
+<img class="w-full h-full object-cover" data-alt="Batido de vainilla" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAr8RTSshx3wLSqGDUYMwjVb_SIuMIGewwaPajVk3MYUin-igD5jehcyVTz-c-98F6crCv_m6drbDYw3aUKEhwmgEUwDhn3-a1pbSEzp-3z93Uqxa1fW_Fr5lqF9KTXBF7txvJpxPbtT-U9m3MZV_iIXuGwpo-K5zO3B_efCAp_x-cRuosJHtToOWWoJhNP3XURtQKRK6rkW37DeTHi6D1vgd-Mj7PayMAUOVjsrrSzTLPOmu-qIRUDFdfL1Mwt2H-EW-2jbp9CPkg"/>
+</div>
+</div>
+</section>
+<div class="h-24"></div>
+</main>
+<div class="fixed bottom-6 left-4 right-4 z-50">
+<button class="w-full bg-primary hover:bg-blue-600 text-white p-4 rounded-2xl shadow-xl shadow-primary/30 flex items-center justify-between transition-colors">
+<div class="flex items-center gap-3">
+<span class="bg-white/20 px-2.5 py-1 rounded-lg text-sm font-bold">2</span>
+<span class="font-semibold">Ver Carrito</span>
+</div>
+<span class="font-bold text-lg">$22.40</span>
+</button>
+</div>
+
+</body></html>
