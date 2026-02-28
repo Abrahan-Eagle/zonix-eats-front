@@ -101,6 +101,40 @@ void main() {
       final order = Order.fromJson(json);
       expect(order.total, 25.50);
     });
+
+    test('Parsea campos extra del backend (delivery_type, payment_validated_at, cancellation)', () {
+      final json = {
+        'id': 2,
+        'user_id': 1,
+        'commerce_id': 1,
+        'order_number': 'ORD-002',
+        'status': 'delivered',
+        'subtotal': 15.0,
+        'delivery_fee': 2.0,
+        'tax': 0,
+        'total': 17.0,
+        'payment_method': 'transfer',
+        'payment_status': 'paid',
+        'delivery_address': 'Av. 456',
+        'created_at': '2024-06-01T12:00:00.000Z',
+        'updated_at': '2024-06-01T14:00:00.000Z',
+        'items': [],
+        'delivery_type': 'delivery',
+        'approved_for_payment': true,
+        'payment_validated_at': '2024-06-01T12:05:00.000Z',
+        'cancellation_reason': null,
+        'cancelled_by': null,
+        'receipt_url': 'https://example.com/receipt.pdf',
+        'reference_number': 'REF-123',
+      };
+      final order = Order.fromJson(json);
+      expect(order.deliveryType, 'delivery');
+      expect(order.approvedForPayment, true);
+      expect(order.paymentValidatedAt, DateTime.utc(2024, 6, 1, 12, 5, 0));
+      expect(order.cancellationReason, isNull);
+      expect(order.receiptUrl, 'https://example.com/receipt.pdf');
+      expect(order.referenceNumber, 'REF-123');
+    });
   });
 
   group('OrderItem', () {

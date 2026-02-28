@@ -234,15 +234,21 @@ class _ProductsPageState extends State<ProductsPage> {
                 if (snapshot.hasError) {
                   return SliverFillRemaining(
                     child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(Icons.error, color: Colors.red, size: 48),
-                          const SizedBox(height: 8),
-                          Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.red)),
-                          const SizedBox(height: 8),
-                          ElevatedButton(onPressed: _loadProducts, child: const Text('Reintentar')),
-                        ],
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.error, color: Colors.red, size: 48),
+                            const SizedBox(height: 8),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 24),
+                              child: Text('Error: ${snapshot.error}', style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
+                            ),
+                            const SizedBox(height: 8),
+                            ElevatedButton(onPressed: _loadProducts, child: const Text('Reintentar')),
+                          ],
+                        ),
                       ),
                     ),
                   );

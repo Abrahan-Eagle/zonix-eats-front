@@ -53,6 +53,7 @@ class MockOrderService extends _i1.Mock implements _i3.OrderService {
     List<_i5.CartItem>? items, {
     required String? deliveryType,
     String? deliveryAddress,
+    double? deliveryFee = 0.0,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -61,6 +62,7 @@ class MockOrderService extends _i1.Mock implements _i3.OrderService {
           {
             #deliveryType: deliveryType,
             #deliveryAddress: deliveryAddress,
+            #deliveryFee: deliveryFee,
           },
         ),
         returnValue: _i4.Future<_i2.Order>.value(_FakeOrder_0(
@@ -71,6 +73,7 @@ class MockOrderService extends _i1.Mock implements _i3.OrderService {
             {
               #deliveryType: deliveryType,
               #deliveryAddress: deliveryAddress,
+              #deliveryFee: deliveryFee,
             },
           ),
         )),
@@ -104,8 +107,10 @@ class MockOrderService extends _i1.Mock implements _i3.OrderService {
   _i4.Future<void> uploadPaymentProof(
     int? orderId,
     String? filePath,
-    String? fileType,
-  ) =>
+    String? fileType, {
+    required String? paymentMethod,
+    required String? referenceNumber,
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #uploadPaymentProof,
@@ -114,6 +119,10 @@ class MockOrderService extends _i1.Mock implements _i3.OrderService {
             filePath,
             fileType,
           ],
+          {
+            #paymentMethod: paymentMethod,
+            #referenceNumber: referenceNumber,
+          },
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),
@@ -138,8 +147,10 @@ class MockOrderService extends _i1.Mock implements _i3.OrderService {
   _i4.Future<void> uploadComprobante(
     int? orderId,
     String? filePath,
-    String? fileType,
-  ) =>
+    String? fileType, {
+    String? paymentMethod = r'otro',
+    String? referenceNumber = r'',
+  }) =>
       (super.noSuchMethod(
         Invocation.method(
           #uploadComprobante,
@@ -148,6 +159,10 @@ class MockOrderService extends _i1.Mock implements _i3.OrderService {
             filePath,
             fileType,
           ],
+          {
+            #paymentMethod: paymentMethod,
+            #referenceNumber: referenceNumber,
+          },
         ),
         returnValue: _i4.Future<void>.value(),
         returnValueForMissingStub: _i4.Future<void>.value(),

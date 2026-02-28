@@ -5,7 +5,27 @@ import 'package:zonix/features/screens/products/products_page.dart';
 import 'package:zonix/models/product.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/product_service.dart';
+import 'package:zonix/features/services/location_service.dart';
+import 'package:zonix/features/utils/search_radius_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+class MockLocationService extends LocationService {
+  @override
+  Future<Map<String, dynamic>> getCurrentLocation() async => {
+        'latitude': -12.0,
+        'longitude': -77.0,
+        'address': 'Test',
+      };
+  @override
+  Future<List<Map<String, dynamic>>> getNearbyPlaces({
+    required double latitude,
+    required double longitude,
+    double radius = 5.0,
+    String? type,
+  }) async => [
+        {'id': 1, 'name': 'Test Commerce', 'distance': 1.0},
+      ];
+}
 
 class MockProductService implements ProductService {
   @override
@@ -125,13 +145,15 @@ void main() {
       MultiProvider(
         providers: [
           ChangeNotifierProvider<CartService>(create: (_) => CartService()),
+          ChangeNotifierProvider<LocationService>(create: (_) => MockLocationService()),
+          ChangeNotifierProvider<SearchRadiusProvider>(create: (_) => SearchRadiusProvider()),
         ],
         child: MaterialApp(
           home: ProductsPage(productService: MockProductService()),
         ),
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(seconds: 5));
     expect(find.text('Hamburguesa'), findsAtLeastNWidgets(1));
     expect(find.text('Pizza'), findsAtLeastNWidgets(1));
     // No debe haber botones de gestión de productos (solo para comercio)
