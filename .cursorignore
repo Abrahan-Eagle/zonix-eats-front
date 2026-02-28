@@ -1,0 +1,17 @@
+# Excluye de la indexación de Cursor (Flutter)
+# Ver docs/cursorignore.example para plantilla
+
+.dart_tool/
+.pub-cache/
+.pub/
+/build/
+**/build/
+
+# Entorno y secretos
+!.env.example
+.env.*
+!.env.example
+
+# IDE (opcional)
+.idea/
+*.iml

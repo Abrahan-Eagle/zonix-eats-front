@@ -1,0 +1,14 @@
+# Copiar a la raíz del proyecto como .cursorignore
+# cp docs/cursorignore.example .cursorignore
+#
+# Excluye de la indexación de Cursor - Flutter (mínimo).
+
+.dart_tool/
+.pub-cache/
+.pub/
+/build/
+**/build/
+
+# IDE (opcional)
+.idea/
+*.iml
