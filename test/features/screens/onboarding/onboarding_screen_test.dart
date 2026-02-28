@@ -23,8 +23,8 @@ void main() {
       ),
     );
 
-    // Tocar la tarjeta de "Cliente"
-    final clienteTextFinder = find.text('Cliente');
+    // Tocar la tarjeta de "Soy Cliente"
+    final clienteTextFinder = find.text('Soy Cliente');
     expect(clienteTextFinder, findsOneWidget);
     await tester.tap(clienteTextFinder);
     await tester.pump();
