@@ -2,12 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/adresse.dart';
 import '../models/models.dart';
 import '../api/adresse_service.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'location_module.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:zonix/features/utils/user_provider.dart';
 import 'package:logger/logger.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter/services.dart';
 
 final logger = Logger();
@@ -294,7 +291,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
           width: 120,
           height: 120,
           decoration: BoxDecoration(
-            color: const Color(0xFF1976D2).withOpacity(0.1),
+            color: const Color(0xFF1976D2).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(60),
           ),
           child: const Icon(
@@ -331,13 +328,13 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: latitude != null && longitude != null
-            ? Colors.green.withOpacity(0.1)
-            : Colors.orange.withOpacity(0.1),
+            ? Colors.green.withValues(alpha: 0.1)
+            : Colors.orange.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: latitude != null && longitude != null
-              ? Colors.green.withOpacity(0.3)
-              : Colors.orange.withOpacity(0.3),
+              ? Colors.green.withValues(alpha: 0.3)
+              : Colors.orange.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -362,7 +359,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
                     fontSize: 12,
                     color: (latitude != null && longitude != null
                         ? Colors.green
-                        : Colors.orange).withOpacity(0.8),
+                        : Colors.orange).withValues(alpha: 0.8),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -527,10 +524,10 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -573,10 +570,10 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -610,10 +607,10 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -652,7 +649,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1976D2).withOpacity(0.3),
+            color: const Color(0xFF1976D2).withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),

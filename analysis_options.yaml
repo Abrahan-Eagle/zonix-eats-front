@@ -9,6 +9,12 @@
 # packages, and plugins designed to encourage good coding practices.
 include: package:flutter_lints/flutter.yaml
 
+# Excluir plantillas/skills que no son parte del código de la app (evita 1K+ problemas)
+analyzer:
+  exclude:
+    - .agents/**
+    - "**/skills/**"
+
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`

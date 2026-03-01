@@ -158,7 +158,7 @@ class AddressPage extends StatelessWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: const Color(0xFF1976D2).withOpacity(0.1),
+                color: const Color(0xFF1976D2).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(60),
               ),
               child: const Icon(
@@ -225,7 +225,7 @@ class AddressPage extends StatelessWidget {
   Widget _buildAddressCard(Address address, bool isSmallScreen) {
     return Card(
       elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.1),
+      shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: EdgeInsets.all(isSmallScreen ? 12.0 : 20.0),
       child: Padding(
@@ -238,7 +238,7 @@ class AddressPage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1976D2).withOpacity(0.1),
+                    color: const Color(0xFF1976D2).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Icon(
