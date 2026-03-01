@@ -204,9 +204,8 @@ class LocationService extends ChangeNotifier {
   // Get address from coordinates using Nominatim (OpenStreetMap)
   Future<String?> getAddressFromCoordinates(double latitude, double longitude) async {
     try {
-      final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/reverse?format=json&lat=$latitude&lon=$longitude&zoom=18&addressdetails=1',
-      );
+      final base = AppConfig.nominatimReverseUrl;
+      final url = Uri.parse('$base?format=json&lat=$latitude&lon=$longitude&zoom=18&addressdetails=1');
       
       final response = await http.get(
         url,
@@ -263,9 +262,8 @@ class LocationService extends ChangeNotifier {
   // Get coordinates from address using Nominatim (OpenStreetMap)
   Future<Map<String, double>> getCoordinatesFromAddress(String address) async {
     try {
-      final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(address)}&format=json&limit=1&addressdetails=1',
-      );
+      final base = AppConfig.nominatimSearchUrl;
+      final url = Uri.parse('$base?q=${Uri.encodeComponent(address)}&format=json&limit=1&addressdetails=1');
       
       final response = await http.get(
         url,

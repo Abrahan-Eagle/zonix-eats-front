@@ -5,6 +5,7 @@ import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_create_s
 import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_edit_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zonix/config/app_config.dart';
 import 'package:zonix/widgets/osm_map_widget.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -331,7 +332,7 @@ class AddressPage extends StatelessWidget {
           // Botón para abrir en navegador externo
           GestureDetector(
             onTap: () async {
-              final url = 'https://www.openstreetmap.org/?mlat=${address.latitude}&mlon=${address.longitude}&zoom=15';
+              final url = '${AppConfig.openStreetMapViewUrl}/?mlat=${address.latitude}&mlon=${address.longitude}&zoom=15';
               try {
                 if (await canLaunchUrl(Uri.parse(url))) {
                   await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);

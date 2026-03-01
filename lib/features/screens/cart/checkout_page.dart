@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/services/address_service.dart';
 import 'package:zonix/features/services/cart_service.dart';
+import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/features/services/promotion_service.dart';
 
@@ -18,6 +20,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
   String? _success;
   String _deliveryType = 'pickup';
   String? _selectedAddress;
+  double? _selectedDeliveryLat;
+  double? _selectedDeliveryLng;
+  bool _isUsingCurrentLocation = false;
+  bool _loadingCurrentLocation = false;
   List<Map<String, dynamic>> _addresses = [];
   final _couponController = TextEditingController();
   Map<String, dynamic>? _appliedCoupon;
@@ -34,19 +40,63 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Future<void> _loadAddresses() async {
     try {
       final list = await AddressService().getUserAddresses();
+      if (!mounted) return;
       setState(() {
         _addresses = list;
-        if (_addresses.isNotEmpty && _selectedAddress == null) {
+        if (_addresses.isNotEmpty && _selectedAddress == null && !_isUsingCurrentLocation) {
           final defaultAddr = _addresses.firstWhere(
             (a) => a['is_default'] == true,
             orElse: () => _addresses.first,
           );
           _selectedAddress = (defaultAddr['formatted_address'] as String?) ?? _formatAddressFromMap(defaultAddr);
+          _selectedDeliveryLat = _latFromMap(defaultAddr);
+          _selectedDeliveryLng = _lngFromMap(defaultAddr);
         }
       });
     } catch (_) {
       // Sin direcciones guardadas
     }
+  }
+
+  /// Obtiene la ubicación actual del dispositivo y la usa como dirección de entrega.
+  Future<void> _useCurrentDeviceLocation() async {
+    setState(() => _loadingCurrentLocation = true);
+    try {
+      final location = await LocationService().getCurrentLocation();
+      if (!mounted) return;
+      final address = location['address'] as String?;
+      final lat = location['latitude'] as num?;
+      final lng = location['longitude'] as num?;
+      final addressText = address?.trim().isNotEmpty == true
+          ? address!
+          : (lat != null && lng != null ? '${lat.toStringAsFixed(6)}, ${lng.toStringAsFixed(6)}' : null);
+      setState(() {
+        _loadingCurrentLocation = false;
+        _isUsingCurrentLocation = true;
+        _selectedAddress = addressText;
+        _selectedDeliveryLat = lat?.toDouble();
+        _selectedDeliveryLng = lng?.toDouble();
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loadingCurrentLocation = false;
+        _error = 'No se pudo obtener la ubicación. Revisa permisos o usa una dirección guardada.';
+      });
+    }
+  }
+
+  double? _latFromMap(Map<String, dynamic> m) {
+    final v = m['latitude'];
+    if (v == null) return null;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString());
+  }
+  double? _lngFromMap(Map<String, dynamic> m) {
+    final v = m['longitude'];
+    if (v == null) return null;
+    if (v is num) return v.toDouble();
+    return double.tryParse(v.toString());
   }
 
   String _formatAddressFromMap(Map<String, dynamic> addr) {
@@ -82,11 +132,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
           return;
         }
       }
-      final deliveryFee = _deliveryType == 'delivery' ? 2.50 : 0.0;
+      final deliveryFee = _deliveryType == 'delivery' ? AppConfig.defaultDeliveryFee : 0.0;
       final order = await orderService.createOrder(
         cartService.items.toList(),
         deliveryType: _deliveryType,
         deliveryAddress: deliveryAddress,
+        deliveryLatitude: _deliveryType == 'delivery' ? _selectedDeliveryLat : null,
+        deliveryLongitude: _deliveryType == 'delivery' ? _selectedDeliveryLng : null,
         deliveryFee: deliveryFee,
       );
       if (_appliedCoupon != null) {
@@ -120,7 +172,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final totalItems = cartItems.fold<int>(0, (sum, item) => sum + item.quantity);
     final subtotal = cartItems.fold<double>(0, (sum, item) => sum + (item.precio ?? 0) * item.quantity);
     const tax = 0.0;
-    final delivery = _deliveryType == 'delivery' ? 2.50 : 0.0;
+    final delivery = _deliveryType == 'delivery' ? AppConfig.defaultDeliveryFee : 0.0;
     final totalPayment = (subtotal + tax + delivery - _couponDiscount).clamp(0.0, double.infinity);
     return Scaffold(
       appBar: AppBar(title: const Text('Checkout')),
@@ -249,25 +301,53 @@ class _CheckoutPageState extends State<CheckoutPage> {
             if (_deliveryType == 'delivery') ...[
               const SizedBox(height: 8),
               const Text('Dirección de entrega', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              const SizedBox(height: 6),
+              const Text('Elige una opción: GPS del dispositivo, tu casa o otra ubicación.', style: TextStyle(fontSize: 12, color: Colors.grey)),
               const SizedBox(height: 8),
+              // Opción 1: Ubicación GPS del dispositivo
+              Card(
+                color: _isUsingCurrentLocation ? Theme.of(context).colorScheme.primaryContainer : null,
+                child: ListTile(
+                  leading: _loadingCurrentLocation
+                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.my_location),
+                  title: const Text('Ubicación GPS del dispositivo'),
+                  subtitle: Text(
+                    _isUsingCurrentLocation && _selectedAddress != null
+                        ? _selectedAddress!
+                        : 'Usar mi ubicación actual ahora',
+                  ),
+                  trailing: _isUsingCurrentLocation ? const Icon(Icons.check_circle) : null,
+                  onTap: _loadingCurrentLocation ? null : _useCurrentDeviceLocation,
+                ),
+              ),
+              const SizedBox(height: 6),
+              // Opción 2: Mi casa — Opción 3: Otra ubicación (direcciones guardadas)
               if (_addresses.isEmpty)
                 const Card(
                   child: Padding(
                     padding: EdgeInsets.all(16),
-                    child: Text('No tienes direcciones. Agrega una en tu perfil.'),
+                    child: Text('No tienes direcciones guardadas. Usa "Ubicación GPS del dispositivo" o agrega una en tu perfil.'),
                   ),
                 )
               else
                 ..._addresses.map((addr) {
                   final formatted = addr['formatted_address'] as String? ?? _formatAddressFromMap(addr);
-                  final isSelected = _selectedAddress == formatted;
+                  final isDefault = addr['is_default'] == true;
+                  final isSelected = !_isUsingCurrentLocation && _selectedAddress == formatted;
                   return Card(
                     color: isSelected ? Theme.of(context).colorScheme.primaryContainer : null,
                     child: ListTile(
-                      title: Text(addr['name']?.toString() ?? 'Dirección'),
+                      leading: Icon(isDefault ? Icons.home : Icons.location_on),
+                      title: Text(isDefault ? 'Mi casa' : (addr['name']?.toString() ?? 'Otra ubicación')),
                       subtitle: Text(formatted),
                       trailing: isSelected ? const Icon(Icons.check_circle) : null,
-                      onTap: () => setState(() => _selectedAddress = formatted),
+                      onTap: () => setState(() {
+                        _selectedAddress = formatted;
+                        _isUsingCurrentLocation = false;
+                        _selectedDeliveryLat = _latFromMap(addr);
+                        _selectedDeliveryLng = _lngFromMap(addr);
+                      }),
                     ),
                   );
                 }),

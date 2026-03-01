@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:zonix/config/app_config.dart';
 
-/// Widget de mapa usando OpenStreetMap tiles (como en CorralX)
+/// Widget de mapa usando OpenStreetMap tiles (como en CorralX).
+/// [polylinePoints]: puntos para dibujar una ruta (ej. moto → cliente).
 class OsmMapWidget extends StatelessWidget {
   final LatLng center;
   final double zoom;
   final List<Marker>? markers;
+  final List<LatLng>? polylinePoints;
+  final Color? polylineColor;
+  final double? polylineStrokeWidth;
   final Function(LatLng)? onTap;
   final double? height;
   final double? width;
@@ -16,6 +21,9 @@ class OsmMapWidget extends StatelessWidget {
     required this.center,
     this.zoom = 13.0,
     this.markers,
+    this.polylinePoints,
+    this.polylineColor,
+    this.polylineStrokeWidth = 4.0,
     this.onTap,
     this.height,
     this.width,
@@ -37,10 +45,20 @@ class OsmMapWidget extends StatelessWidget {
         ),
         children: [
           TileLayer(
-            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            urlTemplate: AppConfig.osmTileUrl,
             userAgentPackageName: 'com.zonix.app',
             maxZoom: 19,
           ),
+          if (polylinePoints != null && polylinePoints!.length >= 2)
+            PolylineLayer(
+              polylines: [
+                Polyline(
+                  points: polylinePoints!,
+                  color: polylineColor ?? const Color(0xFF3399FF),
+                  strokeWidth: polylineStrokeWidth ?? 4.0,
+                ),
+              ],
+            ),
           if (markers != null && markers!.isNotEmpty)
             MarkerLayer(
               markers: markers!,

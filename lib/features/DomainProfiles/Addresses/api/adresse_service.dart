@@ -118,7 +118,7 @@ Future<List<City>> fetchCitiesByState(int stateId) async {
 
 
   /// Crea una dirección. [userId] es el user_id del usuario (el backend lo espera en profile_id).
-  /// [role] opcional: 'users', 'commerce', 'delivery', 'admin'.
+  /// [role] opcional: 'users', 'commerce', 'delivery_company', 'delivery_agent', 'delivery', 'admin'.
   /// [commerceId] opcional: cuando la dirección es del establecimiento (role commerce), vincula a este comercio.
   Future<void> createAddress(Address address, int userId, {String? role, int? commerceId}) async {
     final token = await _getToken();

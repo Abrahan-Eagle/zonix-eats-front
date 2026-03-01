@@ -117,6 +117,7 @@ class _BuyerOrderChatPageState extends State<BuyerOrderChatPage> {
     } catch (e) {
       if (mounted) {
         setState(() => _sending = false);
+        _textController.text = text; // Restaurar texto para que el usuario no lo pierda
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al enviar: ${e.toString().replaceFirst('Exception: ', '')}'),

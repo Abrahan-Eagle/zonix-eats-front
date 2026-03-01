@@ -879,7 +879,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   label: const Text(AppStrings.openInGoogleMaps),
                   onPressed: () async {
                     final url = Uri.parse(
-                      'https://www.google.com/maps?q=$_deliveryLat,$_deliveryLng',
+                      '${AppConfig.googleMapsPointUrl}=$_deliveryLat,$_deliveryLng',
                     );
                     if (await canLaunchUrl(url)) {
                       await launchUrl(url, mode: LaunchMode.externalApplication);
