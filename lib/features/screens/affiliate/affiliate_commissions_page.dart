@@ -92,6 +92,7 @@ class _AffiliateCommissionsPageState extends State<AffiliateCommissionsPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'affiliate_commissions_withdrawal',
         onPressed: () {
           _showWithdrawalDialog();
         },

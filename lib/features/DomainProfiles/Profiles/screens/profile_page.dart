@@ -184,11 +184,7 @@ class ProfilePagex extends StatelessWidget {
               child: CircleAvatar(
                 radius: 60,
                 backgroundColor: isDark ? const Color(0xFF23262B) : Colors.white,
-                child: CircleAvatar(
-                  radius: 55,
-                  backgroundImage: _buildProfileImage(context),
-                  backgroundColor: isDark ? Colors.grey[800] : Colors.grey[200],
-                ),
+                child: _buildProfileAvatar(context, isDark),
               ),
             ),
             const SizedBox(height: 16),
@@ -616,11 +612,28 @@ class ProfilePagex extends StatelessWidget {
     });
   }
 
-  ImageProvider<Object>? _buildProfileImage(BuildContext context) {
+  Widget _buildProfileAvatar(BuildContext context, bool isDark) {
     final profile = context.read<ProfileModel>().profile;
-    if (profile?.photo != null) {
-      return NetworkImage(profile!.photo!);
+    if (profile?.photo == null || profile!.photo!.isEmpty) {
+      return CircleAvatar(
+        radius: 55,
+        backgroundColor: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+        child: const Icon(Icons.person, size: 55),
+      );
     }
-    return const AssetImage('assets/default_avatar.png');
+    return ClipOval(
+      child: Image.network(
+        profile.photo!,
+        width: 110,
+        height: 110,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => Image.asset(
+          'assets/default_avatar.png',
+          width: 110,
+          height: 110,
+          fit: BoxFit.cover,
+        ),
+      ),
+    );
   }
 }

@@ -42,6 +42,10 @@ void main() {
       expect(AppConfig.enableWebsockets, isA<bool>());
     });
 
+    test('should return correct enable Pusher flag', () {
+      expect(AppConfig.enablePusher, isA<bool>());
+    });
+
     test('should return correct Google Maps API Key', () {
       expect(AppConfig.googleMapsApiKey, isNotEmpty);
     });

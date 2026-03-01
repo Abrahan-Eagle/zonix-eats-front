@@ -136,6 +136,7 @@ class _CommerceProductsPageState extends State<CommerceProductsPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'settings_commerce_products_add',
         onPressed: () {
           // TODO: Navegar a formulario de crear producto
         },

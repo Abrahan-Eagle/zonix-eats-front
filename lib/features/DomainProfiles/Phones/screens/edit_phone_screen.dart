@@ -294,6 +294,7 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
           SizedBox(
             width: MediaQuery.of(context).size.width * 0.8,
             child: FloatingActionButton.extended(
+              heroTag: 'edit_phone_save',
               onPressed: _isLoading ? null : _updatePhone,
               tooltip: 'Actualizar Teléfono',
               icon: _isLoading 

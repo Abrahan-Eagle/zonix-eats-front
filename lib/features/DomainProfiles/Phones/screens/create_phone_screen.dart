@@ -352,6 +352,7 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
         SizedBox(
           width: MediaQuery.of(context).size.width * 0.8,
           child: FloatingActionButton.extended(
+            heroTag: 'create_phone_save',
             onPressed: _isLoading ? null : _createPhone,
             tooltip: 'Registrar Teléfono',
             icon: _isLoading 

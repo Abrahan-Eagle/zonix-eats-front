@@ -291,6 +291,7 @@ class MyApp extends StatelessWidget {
         },
       ),
       routes: {
+        '/restaurants': (context) => const RestaurantsPage(),
         '/commerce/inventory': (context) => const CommerceProductsPage(),
         '/commerce/products': (context) => const CommerceProductsPage(),
         '/commerce/orders': (context) => const CommerceOrdersPage(),

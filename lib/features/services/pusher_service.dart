@@ -43,8 +43,15 @@ class PusherService {
     }
 
     try {
-      final pusherKey = dotenv.env['PUSHER_APP_KEY'] ?? '';
-      final pusherCluster = dotenv.env['PUSHER_APP_CLUSTER'] ?? 'mt1';
+      String pusherKey = dotenv.env['PUSHER_APP_KEY'] ?? '';
+      String pusherCluster = dotenv.env['PUSHER_APP_CLUSTER'] ?? 'mt1';
+
+      // Respaldo: si .env no se cargó antes (p. ej. en algunos builds), intentar cargar aquí
+      if (pusherKey.isEmpty && !dotenv.isInitialized) {
+        await dotenv.load(fileName: '.env');
+        pusherKey = dotenv.env['PUSHER_APP_KEY'] ?? '';
+        pusherCluster = dotenv.env['PUSHER_APP_CLUSTER'] ?? 'mt1';
+      }
 
       if (pusherKey.isEmpty) {
         // No rompemos la app si no está configurado: simplemente no conectamos

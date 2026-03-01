@@ -798,6 +798,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
           right: 0,
           bottom: 80,
           child: FloatingActionButton.extended(
+            heroTag: 'document_create_scan',
             onPressed: _scanDocument,
             backgroundColor: colorScheme.primary,
             foregroundColor: colorScheme.onPrimary,
@@ -810,6 +811,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
           right: 0,
           bottom: 0,
           child: FloatingActionButton.extended(
+            heroTag: 'document_create_save',
             onPressed: _saveDocument,
             backgroundColor: Colors.green,
             foregroundColor: Colors.white,

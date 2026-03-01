@@ -11,7 +11,7 @@ class PrivacyService {
     final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/user/privacy-settings'),
+        Uri.parse('$baseUrl/api/user/privacy-settings'),
         headers: headers,
       );
 
@@ -47,7 +47,7 @@ class PrivacyService {
       if (dataAnalytics != null) settings['data_analytics'] = dataAnalytics;
 
       final response = await http.put(
-        Uri.parse('$baseUrl/user/privacy-settings'),
+        Uri.parse('$baseUrl/api/user/privacy-settings'),
         headers: headers,
         body: json.encode(settings),
       );
@@ -67,7 +67,7 @@ class PrivacyService {
     final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/privacy-policy'),
+        Uri.parse('$baseUrl/api/user/privacy-policy'),
         headers: headers,
       );
 
@@ -86,7 +86,7 @@ class PrivacyService {
     final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/terms-of-service'),
+        Uri.parse('$baseUrl/api/user/terms-of-service'),
         headers: headers,
       );
 

@@ -125,6 +125,7 @@ class _CommerceDeliveryZonesPageState extends State<CommerceDeliveryZonesPage> {
               ),
             ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'commerce_delivery_zones_add',
         onPressed: () {
           Navigator.push(
             context,

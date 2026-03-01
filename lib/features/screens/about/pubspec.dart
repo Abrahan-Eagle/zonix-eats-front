@@ -20,7 +20,7 @@ Zonix es una aplicación innovadora para la gestión y el agendamiento de pedido
 - **Frontend**: Flutter para aplicaciones móviles multiplataforma
 - **Backend**: Laravel con API REST
 - **Base de Datos**: MySQL
-- **WebSockets**: Laravel Echo Server para notificaciones en tiempo real
+- **Tiempo real**: Pusher Channels para notificaciones y chat
 - **Autenticación**: Laravel Sanctum
 
 Esta aplicación es una solución completa para la gestión eficiente y organizada de pedidos de comida, diseñada para ahorrar tiempo y esfuerzo tanto para los usuarios como para los restaurantes.

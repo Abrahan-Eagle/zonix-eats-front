@@ -329,13 +329,14 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
             // Razón de eliminación
             DropdownButtonFormField<String>(
               initialValue: selectedReason,
+              isExpanded: true,
               decoration: const InputDecoration(
                 labelText: 'Razón de eliminación *',
                 border: OutlineInputBorder(),
               ),
               items: deletionReasons.map((reason) => DropdownMenuItem(
                 value: reason,
-                child: Text(reason),
+                child: Text(reason, overflow: TextOverflow.ellipsis),
               )).toList(),
               onChanged: (String? value) {
                 setState(() {

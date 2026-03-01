@@ -15,6 +15,11 @@ final String baseUrl = const bool.fromEnvironment('dart.vm.product')
     ? dotenv.env['API_URL_PROD']!
     : dotenv.env['API_URL_LOCAL']!;
 
+/// Estado del usuario autenticado.
+///
+/// En backend: [users] es la cuenta (auth, email, rol). [profiles] es la extensión 1:1
+/// del usuario (el perfil de la persona). Phones, documents y addresses pertenecen
+/// al perfil (profile_id), no directamente a users.
 class UserProvider with ChangeNotifier {
   bool _isAuthenticated = false;
   bool _profileCreated = false;
@@ -28,6 +33,7 @@ class UserProvider with ChangeNotifier {
   String _userEmail = '';
   String _userPhotoUrl = '';
   int _userId = 0;
+  int _profileId = 0;
   String _userGoogleId = '';
   String _role = '';
   bool _completedOnboarding = false;
@@ -50,6 +56,9 @@ class UserProvider with ChangeNotifier {
   String get userEmail => _userEmail;
   String get userPhotoUrl => _userPhotoUrl;
   int get userId => _userId;
+  /// ID del perfil (tabla profiles). Relación 1:1 con users: el perfil es la extensión de la persona.
+  /// Phones, documents y addresses están ligados al perfil. Las APIs usan user_id en la URL y el backend resuelve el perfil.
+  int get profileId => _profileId;
   String get userGoogleId => _userGoogleId;
   String get userRole => _role;
   bool get completedOnboarding => _completedOnboarding;
@@ -57,6 +66,7 @@ class UserProvider with ChangeNotifier {
   // Getter para obtener el usuario completo
   Map<String, dynamic> get user => {
     'id': _userId,
+    'profile_id': _profileId,
     'name': _userName,
     'email': _userEmail,
     'photo_url': _userPhotoUrl,
@@ -163,6 +173,7 @@ class UserProvider with ChangeNotifier {
       _userPhotoUrl = await AuthUtils.getUserPhotoUrl() ?? '';
       _role = await AuthUtils.getUserRole() ?? '';
       _userId = await AuthUtils.getUserId() ?? 0;
+      _profileId = await AuthUtils.getProfileId() ?? 0;
       _userGoogleId = await AuthUtils.getUserGoogleId() ?? '';
       _completedOnboarding = (await _storage.read(key: 'userCompletedOnboarding')) == '1';
       _profileCreated = (await _storage.read(key: 'profileCreated')) == 'true';
@@ -238,18 +249,25 @@ class UserProvider with ChangeNotifier {
         
         _userGoogleId = userDetails['google_id'] ?? '';
         _userId = userDetails['id'] ?? 0;
+        _profileId = userDetails['profile_id'] ?? 0;
         _role = userDetails['role'] ?? '';
         _completedOnboarding = userDetails['completed_onboarding'] == 1 ||
             userDetails['completed_onboarding'] == true ||
             userDetails['completed_onboarding']?.toString() == '1';
 
+        // Persistir para que _loadUserData no sobrescriba con 0
+        await AuthUtils.saveUserId(_userId);
+        await AuthUtils.saveProfileId(_profileId);
+        await AuthUtils.saveUserRole(_role);
+
         logger.i('User details: $userDetails');
         logger.i('User role: $_role');
         return {
-          'users': userDetails, 
-          'role': _role, 
-          'userId': _userId, 
-          'userGoogleId': _userGoogleId
+          'users': userDetails,
+          'role': _role,
+          'userId': _userId,
+          'profileId': _profileId,
+          'userGoogleId': _userGoogleId,
         };
       } else if (response.statusCode == 429) {
         // Rate limiting: esperar un poco y usar caché si está disponible
@@ -330,6 +348,7 @@ class UserProvider with ChangeNotifier {
     _userEmail = '';
     _userPhotoUrl = '';
     _userId = 0;
+    _profileId = 0;
     _userGoogleId = '';
     _role = '';
     

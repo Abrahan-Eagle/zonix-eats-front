@@ -262,6 +262,7 @@ class _CommercePaymentMethodsPageState
               ),
             ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'commerce_payment_methods_add',
         onPressed: () async {
           final result = await Navigator.push<bool>(
             context,
