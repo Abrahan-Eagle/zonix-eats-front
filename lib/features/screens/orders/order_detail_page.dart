@@ -676,6 +676,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     if (!mounted) return;
     setState(() => _updating = true);
     try {
+      Uint8List? logoBytes;
+      try {
+        final data = await rootBundle.load('assets/images/logo_login.png');
+        logoBytes = data.buffer.asUint8List(data.offsetInBytes, data.offsetInBytes + data.lengthInBytes);
+      } catch (_) {}
+
       if (order.receiptUrl != null && order.receiptUrl!.isNotEmpty) {
         try {
           final url = order.receiptUrl!.startsWith('http')
@@ -693,7 +699,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               const SnackBar(content: Text('No se pudo abrir el enlace. Generando PDF...'), backgroundColor: Colors.orange),
             );
           }
-          final bytes = await ReceiptPdfBuilder.build(order);
+          final bytes = await ReceiptPdfBuilder.build(order, logoImageBytes: logoBytes);
           if (bytes != null && mounted) {
             await Printing.sharePdf(bytes: bytes, filename: 'recibo-${order.id}.pdf');
             if (!mounted) return;
@@ -708,7 +714,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         }
         return;
       }
-      final bytes = await ReceiptPdfBuilder.build(order);
+      final bytes = await ReceiptPdfBuilder.build(order, logoImageBytes: logoBytes);
       if (bytes == null || !mounted) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
