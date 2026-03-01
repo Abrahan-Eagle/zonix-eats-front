@@ -53,7 +53,7 @@ class Profile {
       middleName: json['middleName'],
       lastName: json['lastName'],
       secondLastName: json['secondLastName'],
-      photo: json['photo_users'],
+      photo: json['photo_users'] ?? json['photo'],
       dateOfBirth: json['date_of_birth'],
       maritalStatus: json['maritalStatus'],
       sex: json['sex'],
