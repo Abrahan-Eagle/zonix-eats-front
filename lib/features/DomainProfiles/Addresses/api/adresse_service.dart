@@ -138,7 +138,7 @@ Future<List<City>> fetchCitiesByState(int stateId) async {
         'status': address.status,
       };
       if (isCommerceAddress) {
-        body['commerce_id'] = commerceId!;
+        body['commerce_id'] = commerceId;
         body['role'] = role ?? 'commerce';
       } else {
         body['profile_id'] = userId;

@@ -1,5 +1,3 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 class AppConfig {
   // API URLs
   static const String apiUrlLocal = 'http://192.168.27.12:8000';

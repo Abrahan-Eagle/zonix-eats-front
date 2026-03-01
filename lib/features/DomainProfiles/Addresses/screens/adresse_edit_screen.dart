@@ -2,13 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/adresse.dart';
 import '../models/models.dart';
 import '../api/adresse_service.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'location_module.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:zonix/features/utils/user_provider.dart';
 import 'package:logger/logger.dart';
-import 'package:provider/provider.dart';
-import 'package:flutter/services.dart';
 
 final logger = Logger();
 
@@ -193,7 +188,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
       }
 
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
 
       setState(() {
@@ -351,7 +346,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF1976D2).withOpacity(0.3),
+            color: const Color(0xFF1976D2).withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -362,7 +357,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
@@ -407,10 +402,10 @@ class EditAddressScreenState extends State<EditAddressScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -422,8 +417,8 @@ class EditAddressScreenState extends State<EditAddressScreen> {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: _isLocationLoading
-                  ? Colors.orange.withOpacity(0.1)
-                  : Colors.green.withOpacity(0.1),
+                  ? Colors.orange.withValues(alpha: 0.1)
+                  : Colors.green.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
@@ -578,10 +573,10 @@ class EditAddressScreenState extends State<EditAddressScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -612,10 +607,10 @@ class EditAddressScreenState extends State<EditAddressScreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withOpacity(0.3)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
