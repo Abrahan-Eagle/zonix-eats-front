@@ -113,13 +113,13 @@ class OrderService extends ChangeNotifier {
         // Check if it's wrapped in success/data structure
         if (data['success'] == true && data['data'] != null) {
           ordersData = data['data'];
+        } else if (data.containsKey('data') && data['data'] is List) {
+          // Laravel paginator: { data: [...], current_page, total, ... }
+          ordersData = data['data'] as List<dynamic>;
+        } else if (data.containsKey('orders')) {
+          ordersData = data['orders'];
         } else {
-          // If it's a map but not wrapped, check if it contains orders
-          if (data.containsKey('orders')) {
-            ordersData = data['orders'];
-          } else {
-            return [];
-          }
+          return [];
         }
       } else if (data is List) {
         // If backend returns an array directly
@@ -150,18 +150,18 @@ class OrderService extends ChangeNotifier {
     );
     
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['error'] != null) {
-        throw Exception(data['error']);
-      }
-      // Backend puede devolver { success, data } o la orden directamente
+      final data = jsonDecode(response.body) as Map<String, dynamic>?;
+      if (data == null) throw Exception('Respuesta inválida');
+      if (data['error'] != null) throw Exception(data['error'].toString());
+      // Backend devuelve { success: true, data: order } o la orden directamente
       final orderMap = (data['success'] == true && data['data'] != null)
           ? data['data'] as Map<String, dynamic>
-          : data as Map<String, dynamic>;
+          : data;
       return Order.fromJson(orderMap);
     } else {
       final data = response.body.isNotEmpty ? jsonDecode(response.body) : null;
-      throw Exception(data?['error'] ?? data?['message'] ?? 'Error al obtener la orden: ${response.statusCode}');
+      final msg = data is Map ? (data['message'] ?? data['error']) : null;
+      throw Exception(msg?.toString() ?? 'Error al obtener la orden: ${response.statusCode}');
     }
   }
 
@@ -221,14 +221,13 @@ class OrderService extends ChangeNotifier {
     );
     
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['success'] == true) {
-        return;
-      } else {
-        // Manejar errores específicos (ej: tiempo límite expirado)
-        String errorMessage = data['message'] ?? 'Error al cancelar la orden';
+      final data = jsonDecode(response.body) as Map<String, dynamic>?;
+      if (data != null && (data['success'] == true || data['message'] != null)) return;
+      if (data != null) {
+        String errorMessage = data['message']?.toString() ?? 'Error al cancelar la orden';
         throw Exception(errorMessage);
       }
+      return;
     } else {
       final data = response.body.isNotEmpty ? jsonDecode(response.body) : null;
       String errorMessage = data?['message'] ?? 'Error al cancelar la orden: ${response.statusCode}';
@@ -254,6 +253,7 @@ class OrderService extends ChangeNotifier {
   }
 
   // GET /api/buyer/orders/{orderId}/tracking - Obtener tracking de la orden
+  /// Devuelve un map con al menos [latitude] y [longitude] (ubicación del repartidor).
   Future<Map<String, dynamic>> getOrderTracking(int orderId) async {
     final headers = await AuthHelper.getAuthHeaders();
     final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/tracking');
@@ -261,17 +261,39 @@ class OrderService extends ChangeNotifier {
       url,
       headers: headers,
     );
-    
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['success'] == true && data['data'] != null) {
-        return data['data'];
-      } else {
-        throw Exception(data['message'] ?? 'Error al obtener tracking');
-      }
-    } else {
+
+    if (response.statusCode != 200) {
       throw Exception('Error al obtener tracking: ${response.statusCode}');
     }
+
+    final data = jsonDecode(response.body);
+    if (data['success'] != true) {
+      throw Exception(data['message'] ?? 'Error al obtener tracking');
+    }
+
+    final dataPayload = data['data'];
+    final trackingPayload = data['tracking'];
+    if (dataPayload != null && dataPayload is Map) {
+      final lat = dataPayload['latitude'];
+      final lng = dataPayload['longitude'];
+      return {
+        'latitude': lat is num ? lat.toDouble() : (lat != null ? double.tryParse(lat.toString()) : null),
+        'longitude': lng is num ? lng.toDouble() : (lng != null ? double.tryParse(lng.toString()) : null),
+        ...Map<String, dynamic>.from(dataPayload),
+      };
+    }
+    if (trackingPayload != null && trackingPayload is Map) {
+      final dl = trackingPayload['delivery_location'];
+      if (dl is Map) {
+        final lat = dl['lat'];
+        final lng = dl['lng'];
+        return {
+          'latitude': lat is num ? lat.toDouble() : (lat != null ? double.tryParse(lat.toString()) : null),
+          'longitude': lng is num ? lng.toDouble() : (lng != null ? double.tryParse(lng.toString()) : null),
+        };
+      }
+    }
+    return {};
   }
 
   // POST /api/buyer/orders/{id}/tracking/location - Actualizar ubicación del tracking

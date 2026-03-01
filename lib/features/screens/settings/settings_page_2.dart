@@ -1206,7 +1206,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
               Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyApp())),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     child: Row(

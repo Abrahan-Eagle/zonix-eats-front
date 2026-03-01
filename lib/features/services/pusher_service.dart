@@ -111,7 +111,17 @@ class PusherService {
         body: 'channel_name=${Uri.encodeComponent(channelName)}&socket_id=${Uri.encodeComponent(socketId)}',
       );
       if (response.statusCode == 200) {
-        return jsonDecode(response.body) as Map<String, dynamic>;
+        final dynamic decoded = jsonDecode(response.body);
+        final Map<String, dynamic> data = decoded is Map
+            ? Map<String, dynamic>.from(Map.from(decoded))
+            : <String, dynamic>{};
+        // Respuesta puede venir envuelta en "data" o directo { auth, shared_secret }
+        final Map<String, dynamic> payload = data.containsKey('data') && data['data'] is Map
+            ? Map<String, dynamic>.from(data['data'] as Map)
+            : data;
+        if (!payload.containsKey('auth')) return null;
+        payload['shared_secret'] = payload['shared_secret'] ?? '';
+        return payload;
       }
       return null;
     } catch (e) {
@@ -121,12 +131,12 @@ class PusherService {
     }
   }
 
-  /// Suscribirse al canal de chat de una orden (private-order.{orderId})
+  /// Suscribirse al canal de chat de una orden (private-orders.{orderId}, coincide con backend)
   Future<bool> subscribeToOrderChat(
     int orderId, {
     required Function(String eventName, Map<String, dynamic> data) onNewMessage,
   }) async {
-    final channelName = 'private-order.$orderId';
+    final channelName = 'private-orders.$orderId';
     return subscribeToChannel(channelName, onDomainEvent: onNewMessage);
   }
 
@@ -150,12 +160,12 @@ class PusherService {
   }
 
   /// Suscribirse al canal de una orden específica para tracking de delivery
-  /// y actualizaciones de estado de pago.
+  /// y actualizaciones de estado de pago (private-orders.{orderId}, coincide con backend).
   Future<bool> subscribeToOrderUpdates(
     int orderId, {
     required Function(String eventName, Map<String, dynamic> data) onEvent,
   }) async {
-    final channelName = 'private-order.$orderId';
+    final channelName = 'private-orders.$orderId';
     return subscribeToChannel(channelName, onDomainEvent: onEvent);
   }
 

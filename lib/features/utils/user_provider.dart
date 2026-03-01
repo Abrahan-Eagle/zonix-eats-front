@@ -1,6 +1,6 @@
 import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
+import 'package:zonix/config/app_config.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:zonix/features/utils/auth_utils.dart';
 import 'package:zonix/features/services/pusher_service.dart';
@@ -10,10 +10,6 @@ import 'package:http/http.dart' as http;
 
 final logger = Logger();
 const FlutterSecureStorage _storage = FlutterSecureStorage();
-
-final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-    ? dotenv.env['API_URL_PROD']!
-    : dotenv.env['API_URL_LOCAL']!;
 
 /// Estado del usuario autenticado.
 ///
@@ -153,7 +149,7 @@ class UserProvider with ChangeNotifier {
       if (token == null || fcmToken == null || fcmToken.isEmpty) return;
 
       await http.post(
-        Uri.parse('$baseUrl/api/chat/fcm/register'),
+        Uri.parse('${AppConfig.apiUrl}/api/chat/fcm/register'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -224,7 +220,7 @@ class UserProvider with ChangeNotifier {
 
       logger.i('Retrieved token: $token');
       final response = await http.get(
-        Uri.parse('$baseUrl/api/auth/user'),
+        Uri.parse('${AppConfig.apiUrl}/api/auth/user'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

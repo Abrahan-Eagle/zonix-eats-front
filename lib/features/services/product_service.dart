@@ -1,14 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:logger/logger.dart';
-import '../../models/product.dart';
-import '../../helpers/auth_helper.dart';
-import '../../config/app_config.dart';
+import 'package:zonix/models/product.dart';
+import 'package:zonix/helpers/auth_helper.dart';
+import 'package:zonix/config/app_config.dart';
 
-final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
 final Logger _logger = Logger();
 
 class ProductService {

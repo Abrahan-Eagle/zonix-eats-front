@@ -4,38 +4,32 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() {
   setUpAll(() async {
-    // Mock dotenv para evitar NotInitializedError
     if (!dotenv.isInitialized) {
-      dotenv.testLoad(fileInput: '');
+      dotenv.testLoad(fileInput: '''
+API_URL_LOCAL=http://localhost:8000
+API_URL_PROD=https://example.com
+WS_URL_LOCAL=ws://localhost:6001
+WS_URL_PROD=wss://example.com
+ENABLE_PUSHER=true
+ENABLE_WEBSOCKETS=false
+GOOGLE_MAPS_API_KEY=test_key
+FIREBASE_PROJECT_ID=test_project
+FIREBASE_MESSAGING_SENDER_ID=test_sender
+''');
     }
   });
 
   group('AppConfig Tests', () {
-    test('should return correct API URLs', () {
-      expect(AppConfig.apiUrlLocal, isNotEmpty);
-      expect(AppConfig.apiUrlProd, isNotEmpty);
-    });
-
     test('should return correct base URL based on environment', () {
       final baseUrl = AppConfig.apiUrl;
       expect(baseUrl, isNotEmpty);
       expect(baseUrl.startsWith('http'), isTrue);
     });
 
-    test('should return correct WebSocket URLs', () {
-          expect(AppConfig.wsUrlLocal, isNotEmpty);
-    expect(AppConfig.wsUrlProd, isNotEmpty);
-    });
-
     test('should return correct WebSocket URL based on environment', () {
-          final websocketUrl = AppConfig.wsUrl;
-    expect(websocketUrl, isNotEmpty);
-    expect(websocketUrl.startsWith('ws'), isTrue);
-    });
-
-    test('should return correct Echo configuration', () {
-      expect(AppConfig.echoAppId, isNotEmpty);
-      expect(AppConfig.echoKey, isNotEmpty);
+      final websocketUrl = AppConfig.wsUrl;
+      expect(websocketUrl, isNotEmpty);
+      expect(websocketUrl.startsWith('ws'), isTrue);
     });
 
     test('should return correct enable WebSockets flag', () {
@@ -57,11 +51,9 @@ void main() {
   });
 
   group('Configuration Integration Tests', () {
-    test('should use fallback values when environment variables are not set', () {
+    test('should use apiUrl and wsUrl from env', () {
       expect(AppConfig.apiUrl, isNotEmpty);
       expect(AppConfig.wsUrl, isNotEmpty);
-      expect(AppConfig.echoAppId, isNotEmpty);
-      expect(AppConfig.echoKey, isNotEmpty);
       expect(AppConfig.enableWebsockets, isA<bool>());
       expect(AppConfig.googleMapsApiKey, isNotEmpty);
       expect(AppConfig.firebaseProjectId, isNotEmpty);
@@ -77,4 +69,4 @@ void main() {
       expect(websocketUrl.contains('://'), isTrue);
     });
   });
-} 
+}

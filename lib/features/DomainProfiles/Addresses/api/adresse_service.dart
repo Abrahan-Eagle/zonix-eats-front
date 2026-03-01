@@ -1,15 +1,12 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
+import 'package:zonix/config/app_config.dart';
 import '../models/adresse.dart';
 import '../models/models.dart';
 
 final logger = Logger();
-final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-    ? dotenv.env['API_URL_PROD']!
-    : dotenv.env['API_URL_LOCAL']!;
 
 class ApiException implements Exception {
   final String message;
@@ -33,7 +30,7 @@ Future<List<Country>> fetchCountries() async {
   final token = await _getToken();
   try {
     final response = await http.post(
-      Uri.parse('$baseUrl/api/addresses/getCountries'),
+      Uri.parse('${AppConfig.apiUrl}/api/addresses/getCountries'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -62,7 +59,7 @@ Future<List<StateModel>> fetchStates(int countryId) async {
   final token = await _getToken();
   try {
     final response = await http.post(
-      Uri.parse('$baseUrl/api/addresses/get-states-by-country'),
+      Uri.parse('${AppConfig.apiUrl}/api/addresses/get-states-by-country'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -92,7 +89,7 @@ Future<List<City>> fetchCitiesByState(int stateId) async {
   final token = await _getToken();
   try {
     final response = await http.post(
-      Uri.parse('$baseUrl/api/addresses/get-cities-by-state'),
+      Uri.parse('${AppConfig.apiUrl}/api/addresses/get-cities-by-state'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -146,7 +143,7 @@ Future<List<City>> fetchCitiesByState(int stateId) async {
       }
 
       final response = await http.post(
-        Uri.parse('$baseUrl/api/addresses'),
+        Uri.parse('${AppConfig.apiUrl}/api/addresses'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -179,7 +176,7 @@ Future<List<City>> fetchCitiesByState(int stateId) async {
     final token = await _getToken();
     
     logger.i('Token obtenido: $token');
-    logger.i('URL de actualización: $baseUrl/api/addresses/${address.id}');
+    logger.i('URL de actualización: ${AppConfig.apiUrl}/api/addresses/${address.id}');
     
     try {
       final requestBody = {
@@ -196,7 +193,7 @@ Future<List<City>> fetchCitiesByState(int stateId) async {
       logger.i('Datos a enviar: ${json.encode(requestBody)}');
       
       final response = await http.put(
-        Uri.parse('$baseUrl/api/addresses/${address.id}'),
+        Uri.parse('${AppConfig.apiUrl}/api/addresses/${address.id}'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -222,7 +219,7 @@ Future<List<City>> fetchCitiesByState(int stateId) async {
   Future<Address?> getAddressById(int id) async {
     final token = await _getToken();
     final response = await http.get(
-      Uri.parse('$baseUrl/api/addresses/$id'),
+      Uri.parse('${AppConfig.apiUrl}/api/addresses/$id'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -251,7 +248,7 @@ Future<List<City>> fetchCitiesByState(int stateId) async {
 
   try {
     final response = await http.post(
-      Uri.parse('$baseUrl/api/data-verification/$userId/update-status-check-scanner/addresses'),
+      Uri.parse('${AppConfig.apiUrl}/api/data-verification/$userId/update-status-check-scanner/addresses'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/screens/location/location_search_page.dart';
+import 'package:zonix/features/screens/notifications/notifications_page.dart';
 import 'package:zonix/features/screens/settings/settings_page_2.dart';
 import 'package:zonix/features/services/location_service.dart';
+import 'package:zonix/features/services/notification_service.dart';
 import 'package:zonix/features/utils/search_radius_provider.dart';
 
 /// Shell para flujo comprador: header "Delivering to" + bottom nav estilo template Stitch.
@@ -29,19 +31,35 @@ class BuyerShell extends StatefulWidget {
 
 class _BuyerShellState extends State<BuyerShell> {
   int _addressReloadKey = 0;
+  int _unreadNotifications = 0;
 
   static const Color _primary = Color(0xFF3399FF);
   static const Color _navActive = Color(0xFF3299FF);
   static const Color _navBg = Color(0xFF1A2E46);
   static const Color _bgLight = Color(0xFFF5F7F8);
   static const Color _bgDark = Color(0xFF0F1923);
+  static const Color _badgeRed = Color(0xFFE53935);
 
   final LocationService _locationService = LocationService();
+  final NotificationService _notificationService = NotificationService();
 
   @override
   void initState() {
     super.initState();
     _loadDeliveryAddress();
+    _loadUnreadCount();
+  }
+
+  Future<void> _loadUnreadCount() async {
+    try {
+      final data = await _notificationService.getNotificationCount();
+      if (!mounted) return;
+      setState(() {
+        _unreadNotifications = (data['unread'] as int?) ?? 0;
+      });
+    } catch (_) {
+      // Silenciar fallo; el icono se muestra sin badge
+    }
   }
 
   Future<void> _loadDeliveryAddress() async {
@@ -69,7 +87,10 @@ class _BuyerShellState extends State<BuyerShell> {
   }
 
   void _onNotificationTap() {
-    // Solo notificaciones; Configuración está en el tab del bottom nav
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const NotificationsPage()),
+    ).then((_) => _loadUnreadCount());
   }
 
   @override
@@ -98,7 +119,7 @@ class _BuyerShellState extends State<BuyerShell> {
         top: MediaQuery.of(context).padding.top + 8,
         left: 20,
         right: 12,
-        bottom: 16,
+        bottom: 8,
       ),
       decoration: BoxDecoration(
         color: (isDark ? _bgDark : _bgLight).withValues(alpha: 0.95),
@@ -159,15 +180,45 @@ class _BuyerShellState extends State<BuyerShell> {
                   ),
                 ),
               ),
-              IconButton(
-                onPressed: _onNotificationTap,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
-                icon: Icon(
-                  Icons.notifications_none,
-                  color: isDark ? Colors.white70 : Colors.black54,
-                  size: 26,
-                ),
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  IconButton(
+                    onPressed: _onNotificationTap,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                    icon: Icon(
+                      Icons.notifications_none,
+                      color: isDark ? Colors.white70 : Colors.black54,
+                      size: 26,
+                    ),
+                  ),
+                  if (_unreadNotifications > 0)
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: Container(
+                        padding: _unreadNotifications > 9
+                            ? const EdgeInsets.symmetric(horizontal: 5, vertical: 2)
+                            : const EdgeInsets.all(4),
+                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                        decoration: BoxDecoration(
+                          color: _badgeRed,
+                          shape: _unreadNotifications > 9 ? BoxShape.rectangle : BoxShape.circle,
+                          borderRadius: _unreadNotifications > 9 ? BorderRadius.circular(10) : null,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          _unreadNotifications > 99 ? '99+' : '$_unreadNotifications',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ],
           ),

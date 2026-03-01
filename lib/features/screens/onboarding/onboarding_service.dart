@@ -1,15 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
+import 'package:zonix/config/app_config.dart';
 
 final logger = Logger();
-
-final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-    ? dotenv.env['API_URL_PROD']!
-    : dotenv.env['API_URL_LOCAL']!;
 
 class OnboardingService {
   final _storage = const FlutterSecureStorage();
@@ -43,7 +39,7 @@ class OnboardingService {
         payload['role'] = role;
       }
       final response = await http.put(
-        Uri.parse('$baseUrl/api/onboarding/$userId'),
+        Uri.parse('${AppConfig.apiUrl}/api/onboarding/$userId'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

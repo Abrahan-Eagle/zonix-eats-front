@@ -1,52 +1,69 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+/// Configuración central de la app. Todas las URLs y credenciales se leen desde .env.
 class AppConfig {
-  // API URLs
-  static const String apiUrlLocal = 'http://192.168.27.12:8000';
-  static const String apiUrlProd = 'https://zonix.uniblockweb.com';
+  static bool get _isProduction =>
+      const bool.fromEnvironment('dart.vm.product', defaultValue: false);
 
+  // API URLs (desde .env: API_URL o API_URL_LOCAL / API_URL_PROD)
   static String get apiUrl {
-    const bool isProduction = bool.fromEnvironment('dart.vm.product');
-    return isProduction ? apiUrlProd : apiUrlLocal;
+    final override = dotenv.env['API_URL'];
+    if (override != null && override.isNotEmpty) return override;
+    return _isProduction
+        ? (dotenv.env['API_URL_PROD'] ?? '')
+        : (dotenv.env['API_URL_LOCAL'] ?? '');
   }
 
-  // Legacy: URLs no usadas. Tiempo real vía Pusher (PusherService), no WebSocket.
-  static const String wsUrlLocal = 'ws://192.168.27.12:6001';
-  static const String wsUrlProd = 'wss://zonix.uniblockweb.com';
-
+  // WebSocket / legacy (desde .env; tiempo real real usa Pusher)
   static String get wsUrl {
-    const bool isProduction = bool.fromEnvironment('dart.vm.product');
-    return isProduction ? wsUrlProd : wsUrlLocal;
+    final override = dotenv.env['WS_URL'];
+    if (override != null && override.isNotEmpty) return override;
+    return _isProduction
+        ? (dotenv.env['WS_URL_PROD'] ?? '')
+        : (dotenv.env['WS_URL_LOCAL'] ?? '');
   }
 
-  // Echo/WebSocket no usados; tiempo real con Pusher.
-  static const String echoAppId = 'zonix-eats-app';
-  static const String echoKey = 'zonix-eats-key';
-  static const bool enableWebsockets = false;
   /// Tiempo real: true para usar Pusher (notificaciones, chat, órdenes).
-  static const bool enablePusher = true;
+  static bool get enablePusher =>
+      dotenv.env['ENABLE_PUSHER']?.toLowerCase() == 'true';
 
-  // Google Maps API Key
-  static const String googleMapsApiKey = 'your_google_maps_api_key_here';
+  static bool get enableWebsockets =>
+      dotenv.env['ENABLE_WEBSOCKETS']?.toLowerCase() == 'true';
 
-  // Firebase Configuration (si usas notificaciones push)
-  static const String firebaseProjectId = 'your_firebase_project_id';
-  static const String firebaseMessagingSenderId = 'your_sender_id';
-  static const String firebaseAppId = 'your_app_id';
+  // Google Maps (desde .env)
+  static String get googleMapsApiKey =>
+      dotenv.env['GOOGLE_MAPS_API_KEY'] ?? '';
 
-  // Configuración de la aplicación
-  static const String appName = 'Zonix Eats';
-  static const String appVersion = '1.0.0';
-  static const String appBuildNumber = '1';
+  // Firebase (desde .env)
+  static String get firebaseProjectId =>
+      dotenv.env['FIREBASE_PROJECT_ID'] ?? '';
+  static String get firebaseMessagingSenderId =>
+      dotenv.env['FIREBASE_MESSAGING_SENDER_ID'] ?? '';
+  static String get firebaseAppId => dotenv.env['FIREBASE_APP_ID'] ?? '';
 
-  // Configuración de paginación
-  static const int defaultPageSize = 20;
-  static const int maxPageSize = 100;
+  // App info (desde .env o constantes por defecto)
+  static String get appName => dotenv.env['APP_NAME'] ?? 'Zonix Eats';
+  static String get appVersion => dotenv.env['APP_VERSION'] ?? '1.0.0';
+  static String get appBuildNumber =>
+      dotenv.env['APP_BUILD_NUMBER'] ?? '1';
 
-  // Configuración de timeouts
-  static const int connectionTimeout = 30000; // 30 segundos
-  static const int receiveTimeout = 30000; // 30 segundos
-  static const int requestTimeout = 30000; // 30 segundos
+  // Timeouts (desde .env, en ms)
+  static int get connectionTimeout =>
+      int.tryParse(dotenv.env['CONNECTION_TIMEOUT'] ?? '') ?? 30000;
+  static int get receiveTimeout =>
+      int.tryParse(dotenv.env['RECEIVE_TIMEOUT'] ?? '') ?? 30000;
+  static int get requestTimeout =>
+      int.tryParse(dotenv.env['REQUEST_TIMEOUT'] ?? '') ?? 30000;
 
-  // Configuración de reintentos
-  static const int maxRetryAttempts = 3;
-  static const int retryDelayMs = 1000; // 1 segundo
+  // Reintentos
+  static int get maxRetryAttempts =>
+      int.tryParse(dotenv.env['MAX_RETRY_ATTEMPTS'] ?? '') ?? 3;
+  static int get retryDelayMs =>
+      int.tryParse(dotenv.env['RETRY_DELAY_MS'] ?? '') ?? 1000;
+
+  // Paginación
+  static int get defaultPageSize =>
+      int.tryParse(dotenv.env['DEFAULT_PAGE_SIZE'] ?? '') ?? 20;
+  static int get maxPageSize =>
+      int.tryParse(dotenv.env['MAX_PAGE_SIZE'] ?? '') ?? 100;
 }

@@ -1,16 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
+import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/DomainProfiles/Addresses/api/adresse_service.dart';
 import '../models/document.dart';
 
 final logger = Logger();
-final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-    ? dotenv.env['API_URL_PROD']!
-    : dotenv.env['API_URL_LOCAL']!;
 
 class DocumentService {
   final _storage = const FlutterSecureStorage();
@@ -27,7 +24,7 @@ class DocumentService {
       if (token == null) throw Exception('Token not found.');
       
       final response = await http.get(
-        Uri.parse('$baseUrl/api/documents/$id'),
+        Uri.parse('${AppConfig.apiUrl}/api/documents/$id'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -61,7 +58,7 @@ class DocumentService {
 
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('$baseUrl/api/documents'),
+        Uri.parse('${AppConfig.apiUrl}/api/documents'),
       );
 
       // Configure headers and basic fields
@@ -129,7 +126,7 @@ class DocumentService {
 
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse('$baseUrl/api/documents/${document.id}'),
+        Uri.parse('${AppConfig.apiUrl}/api/documents/${document.id}'),
       );
 
       // Configure headers and basic fields
@@ -194,7 +191,7 @@ class DocumentService {
 
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/api/data-verification/$userId/update-status-check-scanner/documents'),
+        Uri.parse('${AppConfig.apiUrl}/api/data-verification/$userId/update-status-check-scanner/documents'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

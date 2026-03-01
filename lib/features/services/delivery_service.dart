@@ -121,6 +121,46 @@ class DeliveryService extends ChangeNotifier {
     }
   }
 
+  /// GET /api/delivery/status - estado working del agente actual
+  Future<bool> getWorkingStatus() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/delivery/status'),
+        headers: await AuthHelper.getAuthHeaders(),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return (data['data']['working'] as bool?) ?? false;
+        }
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// PATCH /api/delivery/working - actualizar disponibilidad (working)
+  Future<bool> updateWorking(bool working) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('$baseUrl/api/delivery/working'),
+        headers: await AuthHelper.getAuthHeaders(),
+        body: jsonEncode({'working': working}),
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) {
+          notifyListeners();
+          return true;
+        }
+      }
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   // Update delivery status
   Future<Order> updateDeliveryStatus(int orderId, String status) async {
     try {

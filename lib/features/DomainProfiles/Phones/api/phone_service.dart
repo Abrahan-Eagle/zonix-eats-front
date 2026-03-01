@@ -2,14 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:zonix/config/app_config.dart';
 import '../models/phone.dart';
 
 final logger = Logger();
-
-final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-    ? dotenv.env['API_URL_PROD']!
-    : dotenv.env['API_URL_LOCAL']!;
 
 class PhoneService {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
@@ -27,7 +23,7 @@ class PhoneService {
       logger.i('Fetching phones for user: $id');
       
       final response = await http.get(
-        Uri.parse('$baseUrl/api/phones/$id'),
+        Uri.parse('${AppConfig.apiUrl}/api/phones/$id'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -71,7 +67,7 @@ class PhoneService {
       if (token == null) throw Exception('Token no encontrado.');
 
       final response = await http.post(
-        Uri.parse('$baseUrl/api/phones'),
+        Uri.parse('${AppConfig.apiUrl}/api/phones'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -131,7 +127,7 @@ class PhoneService {
       if (token == null) throw Exception('Token no encontrado.');
 
       final response = await http.put(
-        Uri.parse('$baseUrl/api/phones/$id'),
+        Uri.parse('${AppConfig.apiUrl}/api/phones/$id'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -225,7 +221,7 @@ class PhoneService {
       if (token == null) throw Exception('Token no encontrado.');
 
       final response = await http.delete(
-        Uri.parse('$baseUrl/api/phones/$id'),
+        Uri.parse('${AppConfig.apiUrl}/api/phones/$id'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -260,7 +256,7 @@ class PhoneService {
       if (token == null) throw Exception('Token no encontrado.');
 
       final response = await http.get(
-        Uri.parse('$baseUrl/api/phones/operator-codes'), // URL correcta para códigos de operador
+        Uri.parse('${AppConfig.apiUrl}/api/phones/operator-codes'), // URL correcta para códigos de operador
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -305,7 +301,7 @@ class PhoneService {
       }
 
       final response = await http.post(
-        Uri.parse('$baseUrl/api/data-verification/$userId/update-status-check-scanner/phones'),
+        Uri.parse('${AppConfig.apiUrl}/api/data-verification/$userId/update-status-check-scanner/phones'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',

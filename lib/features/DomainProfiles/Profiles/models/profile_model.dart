@@ -46,25 +46,28 @@ class Profile {
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) {
+    // Backend puede devolver { success, data } o el perfil directo; normalizar.
+    final map = json['data'] is Map<String, dynamic> ? json['data'] as Map<String, dynamic> : json;
+    String safeStr(dynamic v) => v?.toString() ?? '';
     return Profile(
-      id: json['id'],
-      userId: json['user_id'],
-      firstName: json['firstName'],
-      middleName: json['middleName'],
-      lastName: json['lastName'],
-      secondLastName: json['secondLastName'],
-      photo: json['photo_users'] ?? json['photo'],
-      dateOfBirth: json['date_of_birth'],
-      maritalStatus: json['maritalStatus'],
-      sex: json['sex'],
-      status: json['status'] ?? 'notverified',
-      phone: json['phone'],
-      address: json['address'],
-      businessName: json['business_name'],
-      businessType: json['business_type'],
-      taxId: json['tax_id'],
-      vehicleType: json['vehicle_type'],
-      licenseNumber: json['license_number'],
+      id: map['id'] as int? ?? 0,
+      userId: map['user_id'] as int? ?? 0,
+      firstName: safeStr(map['firstName']),
+      middleName: safeStr(map['middleName']),
+      lastName: safeStr(map['lastName']),
+      secondLastName: safeStr(map['secondLastName']),
+      photo: map['photo_users'] ?? map['photo'],
+      dateOfBirth: safeStr(map['date_of_birth']).isEmpty ? '' : safeStr(map['date_of_birth']),
+      maritalStatus: safeStr(map['maritalStatus']).isEmpty ? 'single' : safeStr(map['maritalStatus']),
+      sex: safeStr(map['sex']).isEmpty ? 'M' : safeStr(map['sex']),
+      status: safeStr(map['status']).isEmpty ? 'notverified' : safeStr(map['status']),
+      phone: map['phone']?.toString(),
+      address: map['address']?.toString(),
+      businessName: map['business_name']?.toString(),
+      businessType: map['business_type']?.toString(),
+      taxId: map['tax_id']?.toString(),
+      vehicleType: map['vehicle_type']?.toString(),
+      licenseNumber: map['license_number']?.toString(),
     );
   }
 

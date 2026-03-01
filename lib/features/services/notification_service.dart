@@ -67,10 +67,10 @@ class NotificationService extends ChangeNotifier {
     }
   }
 
-  // Mark all notifications as read
+  // Mark all notifications as read (backend: POST)
   Future<void> markAllAsRead() async {
     try {
-      final response = await http.put(
+      final response = await http.post(
         Uri.parse('$baseUrl/api/notifications/mark-all-read'),
         headers: await AuthHelper.getAuthHeaders(),
       );
@@ -102,11 +102,11 @@ class NotificationService extends ChangeNotifier {
     }
   }
 
-  // Get notification count
+  // Get notification count (usa /notifications/stats del backend)
   Future<Map<String, dynamic>> getNotificationCount() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/api/notifications/count'),
+        Uri.parse('$baseUrl/api/notifications/stats'),
         headers: await AuthHelper.getAuthHeaders(),
       );
 
@@ -120,7 +120,14 @@ class NotificationService extends ChangeNotifier {
             'by_type': <String, int>{},
           };
         }
-        return Map<String, dynamic>.from(countData);
+        final map = Map<String, dynamic>.from(countData);
+        // Backend devuelve unread_count; normalizamos a 'unread'
+        final unread = map['unread'] ?? map['unread_count'] ?? 0;
+        return {
+          'total': unread,
+          'unread': unread,
+          'by_type': map['by_type'] ?? <String, int>{},
+        };
       } else {
         throw Exception('Error al obtener conteo de notificaciones: ${response.statusCode}');
       }

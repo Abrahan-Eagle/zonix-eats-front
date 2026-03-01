@@ -64,14 +64,16 @@ class GoogleSignInService {
             logger.e('Backend devolvió respuesta vacía');
             return null;
           }
-          final token = data['token']?.toString();
+          // Backend puede devolver { data: { user, token } } o { token } directo
+          final inner = data['data'] is Map<String, dynamic> ? data['data'] as Map<String, dynamic> : data;
+          final token = inner['token']?.toString();
           final expiresIn = data['expires_in'] is int ? data['expires_in'] as int : (int.tryParse(data['expires_in']?.toString() ?? '0') ?? 3600);
           if (token == null || token.isEmpty) {
             logger.e('Backend no devolvió token');
             return null;
           }
           await AuthUtils.saveToken(token, expiresIn);
-          final role = data['user']?['role']?.toString() ?? 'users';
+          final role = inner['user']?['role']?.toString() ?? data['user']?['role']?.toString() ?? 'users';
           await _storage.write(key: 'role', value: role);
           logger.i('Token guardado correctamente con su expiración.');
           return user; // Retorna el usuario autenticado
