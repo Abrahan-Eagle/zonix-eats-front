@@ -323,7 +323,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: _statusColor(order.status).withOpacity(0.2),
+                color: _statusColor(order.status).withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: _statusColor(order.status)),
               ),
@@ -563,7 +563,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 height: 120,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.1),
+                  color: Colors.grey.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(

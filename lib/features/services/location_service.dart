@@ -36,7 +36,7 @@ class LocationService extends ChangeNotifier {
 
       // Obtener ubicación actual
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
       );
 
       // Obtener dirección usando Nominatim (geocodificación inversa)
@@ -52,7 +52,7 @@ class LocationService extends ChangeNotifier {
         'altitude': position.altitude,
         'speed': position.speed,
         'heading': position.heading,
-        'timestamp': position.timestamp?.toIso8601String(),
+        'timestamp': position.timestamp.toIso8601String(),
         'address': address,
       };
     } catch (e) {

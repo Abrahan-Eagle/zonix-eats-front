@@ -27,7 +27,7 @@ class LocationModule {
 
     // Obtiene la ubicación actual
     Position currentPosition = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
     print('Ubicación actual: $currentPosition');
     
     return currentPosition;

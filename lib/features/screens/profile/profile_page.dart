@@ -158,7 +158,7 @@ Widget build(BuildContext context) {
             child: Card(
               color: AppColors.cardBg(context),
               elevation: 8,
-              shadowColor: AppColors.purple.withOpacity(0.15),
+              shadowColor: AppColors.purple.withValues(alpha: 0.15),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
               child: Padding(
                 padding: const EdgeInsets.all(28.0),
@@ -169,7 +169,7 @@ Widget build(BuildContext context) {
                       CircleAvatar(
                         radius: 60,
                         backgroundImage: NetworkImage(profile.photo!),
-                        backgroundColor: AppColors.purple.withOpacity(0.15),
+                        backgroundColor: AppColors.purple.withValues(alpha: 0.15),
                       ),
                     const SizedBox(height: 16),
                     Text(

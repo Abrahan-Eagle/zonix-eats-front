@@ -176,7 +176,7 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.2),
+                    color: statusColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
@@ -411,7 +411,7 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: priorityColor.withOpacity(0.2),
+          backgroundColor: priorityColor.withValues(alpha: 0.2),
           child: Icon(
             Icons.local_shipping,
             color: priorityColor,
@@ -439,7 +439,7 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: priorityColor.withOpacity(0.2),
+                color: priorityColor.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(

@@ -190,7 +190,7 @@ class _ActivityHistoryPageState extends State<ActivityHistoryPage> {
           if (!isLoading && stats.isNotEmpty)
             Card(
               color: AppColors.cardBg(context),
-              shadowColor: AppColors.orange.withOpacity(0.10),
+              shadowColor: AppColors.orange.withValues(alpha: 0.10),
               elevation: 8,
               margin: const EdgeInsets.all(16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -233,7 +233,7 @@ class _ActivityHistoryPageState extends State<ActivityHistoryPage> {
                             final activity = activities[index];
                             return Card(
                               color: AppColors.cardBg(context),
-                              shadowColor: AppColors.purple.withOpacity(0.10),
+                              shadowColor: AppColors.purple.withValues(alpha: 0.10),
                               elevation: 6,
                               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
@@ -281,7 +281,7 @@ class _ActivityHistoryPageState extends State<ActivityHistoryPage> {
     final createdAt = DateTime.tryParse(activity['created_at'] ?? '');
     return Card(
       color: AppColors.cardBg(context),
-      shadowColor: AppColors.purple.withOpacity(0.10),
+      shadowColor: AppColors.purple.withValues(alpha: 0.10),
       elevation: 6,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),

@@ -254,7 +254,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     
     return Card(
       elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.1),
+      shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -266,8 +266,8 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.orange.withOpacity(0.1),
-              Colors.orange.withOpacity(0.05),
+              Colors.orange.withValues(alpha: 0.1),
+              Colors.orange.withValues(alpha: 0.05),
             ],
           ),
         ),
@@ -279,7 +279,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.2),
+                    color: Colors.orange.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -303,7 +303,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
                       Text(
                         'Modifica la información del documento',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurface.withOpacity(0.7),
+                          color: colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -329,7 +329,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
 
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.05),
+      shadowColor: Colors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -349,9 +349,9 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceVariant.withOpacity(0.3),
+                color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: colorScheme.outline.withOpacity(0.3)),
+                border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
@@ -437,7 +437,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.05),
+      shadowColor: Colors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -510,7 +510,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceVariant.withOpacity(0.3),
+              color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -706,7 +706,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.05),
+      shadowColor: Colors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -764,7 +764,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
+                color: Colors.green.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(

@@ -45,7 +45,7 @@ class OnboardingPage1 extends StatelessWidget {
           center: Alignment.topRight,
           radius: 1.2,
           colors: [
-            const Color(0xFF1E3A5F).withOpacity(0.6),
+            const Color(0xFF1E3A5F).withValues(alpha: 0.6),
             _kBackgroundDark,
           ],
           stops: const [0.0, 0.6],
@@ -68,9 +68,9 @@ class OnboardingPage1 extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(opacity),
+        color: Colors.white.withValues(alpha: opacity),
         shape: BoxShape.circle,
-        boxShadow: size >= 2 ? [BoxShadow(color: Colors.white.withOpacity(0.3), blurRadius: 4)] : null,
+        boxShadow: size >= 2 ? [BoxShadow(color: Colors.white.withValues(alpha: 0.3), blurRadius: 4)] : null,
       ),
     );
   }
@@ -87,9 +87,9 @@ class OnboardingPage1 extends StatelessWidget {
           width: iconSize,
           height: iconSize,
           decoration: BoxDecoration(
-            color: _kPrimary.withOpacity(0.2),
+            color: _kPrimary.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: _kPrimary.withOpacity(0.3)),
+            border: Border.all(color: _kPrimary.withValues(alpha: 0.3)),
           ),
           child: Icon(Icons.rocket_launch, size: iconSize * 0.56, color: _kPrimary),
         ),
@@ -111,7 +111,7 @@ class OnboardingPage1 extends StatelessWidget {
           style: GoogleFonts.plusJakartaSans(
             fontSize: bodySize,
             fontWeight: FontWeight.w500,
-            color: Colors.white.withOpacity(0.7),
+            color: Colors.white.withValues(alpha: 0.7),
             height: 1.5,
           ),
         ),
@@ -150,7 +150,7 @@ class OnboardingPage1 extends StatelessWidget {
         border: Border.all(color: const Color(0xFF334155)),
         boxShadow: [
           BoxShadow(
-            color: _kPrimary.withOpacity(0.05),
+            color: _kPrimary.withValues(alpha: 0.05),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -163,7 +163,7 @@ class OnboardingPage1 extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: _kPrimary.withOpacity(0.1),
+              color: _kPrimary.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: _kPrimary, size: 24),
@@ -187,7 +187,7 @@ class OnboardingPage1 extends StatelessWidget {
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: bodySize,
                     fontWeight: FontWeight.w400,
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withValues(alpha: 0.7),
                     height: 1.4,
                   ),
                 ),

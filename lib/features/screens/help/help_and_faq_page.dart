@@ -114,7 +114,7 @@ class HelpAndFAQPage extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 10),
       color: AppColors.cardBg(context),
-      shadowColor: AppColors.purple.withOpacity(0.10),
+      shadowColor: AppColors.purple.withValues(alpha: 0.10),
       elevation: 6,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: ExpansionTile(

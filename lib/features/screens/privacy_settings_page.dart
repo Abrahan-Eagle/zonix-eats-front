@@ -136,7 +136,7 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
                 children: [
                   Card(
                     color: AppColors.cardBg(context),
-                    shadowColor: AppColors.purple.withOpacity(0.10),
+                    shadowColor: AppColors.purple.withValues(alpha: 0.10),
                     elevation: 8,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                     child: Padding(

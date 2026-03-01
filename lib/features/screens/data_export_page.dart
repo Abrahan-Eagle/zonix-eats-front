@@ -190,7 +190,7 @@ class _DataExportPageState extends State<DataExportPage> {
           children: [
             Card(
               color: AppColors.cardBg(context),
-              shadowColor: AppColors.orange.withOpacity(0.10),
+              shadowColor: AppColors.orange.withValues(alpha: 0.10),
               elevation: 8,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child: Padding(
@@ -217,7 +217,7 @@ class _DataExportPageState extends State<DataExportPage> {
             const SizedBox(height: 16),
             Card(
               color: AppColors.cardBg(context),
-              shadowColor: AppColors.orange.withOpacity(0.10),
+              shadowColor: AppColors.orange.withValues(alpha: 0.10),
               elevation: 8,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child: Padding(
@@ -254,7 +254,7 @@ class _DataExportPageState extends State<DataExportPage> {
             const SizedBox(height: 16),
             Card(
               color: AppColors.cardBg(context),
-              shadowColor: AppColors.orange.withOpacity(0.10),
+              shadowColor: AppColors.orange.withValues(alpha: 0.10),
               elevation: 8,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child: Padding(
@@ -304,7 +304,7 @@ class _DataExportPageState extends State<DataExportPage> {
             const SizedBox(height: 24),
             Card(
               color: AppColors.cardBg(context),
-              shadowColor: AppColors.orange.withOpacity(0.10),
+              shadowColor: AppColors.orange.withValues(alpha: 0.10),
               elevation: 8,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child: Padding(

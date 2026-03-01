@@ -269,7 +269,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         begin: Alignment.bottomCenter,
                         end: Alignment.topCenter,
                         colors: [
-                          Colors.black.withOpacity(0.5),
+                          Colors.black.withValues(alpha: 0.5),
                           Colors.transparent,
                         ],
                       ),
@@ -292,9 +292,9 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                     width: MediaQuery.of(context).size.width * 0.65,
                                     height: 42,
                                     decoration: BoxDecoration(
-                                      color: isDark ? const Color(0xFF0F172A).withOpacity(0.85) : Colors.white.withOpacity(0.95),
+                                      color: isDark ? const Color(0xFF0F172A).withValues(alpha: 0.85) : Colors.white.withValues(alpha: 0.95),
                                       borderRadius: BorderRadius.circular(999),
-                                      boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8)],
+                                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 8)],
                                     ),
                                     child: TextField(
                                       controller: _searchController,
@@ -380,8 +380,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                 decoration: BoxDecoration(
                                   color: widget.abierto
-                                      ? Colors.green.withOpacity(0.12)
-                                      : Colors.red.withOpacity(0.12),
+                                      ? Colors.green.withValues(alpha: 0.12)
+                                      : Colors.red.withValues(alpha: 0.12),
                                   borderRadius: BorderRadius.circular(999),
                                 ),
                                 child: Text(
@@ -402,7 +402,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           child: Container(
                             padding: const EdgeInsets.all(6),
                             decoration: BoxDecoration(
-                              color: _primary.withOpacity(0.1),
+                              color: _primary.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.info_outline, size: 20, color: _primary),
@@ -514,7 +514,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF25D366).withOpacity(0.1),
+                            color: const Color(0xFF25D366).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
@@ -539,7 +539,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
-                          color: _primary.withOpacity(0.08),
+                          color: _primary.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Row(
@@ -592,7 +592,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           borderRadius: BorderRadius.circular(999),
                           border: sel ? null : Border.all(color: borderColor),
                           boxShadow: sel
-                              ? [BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 6, offset: const Offset(0, 2))]
+                              ? [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 6, offset: const Offset(0, 2))]
                               : null,
                         ),
                         child: Text(
@@ -738,7 +738,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   //  WIDGETS AUXILIARES
   // ══════════════════════════════════════════════════════════════
 
-  Widget _dot(Color c) => Container(width: 4, height: 4, decoration: BoxDecoration(color: c.withOpacity(0.5), shape: BoxShape.circle));
+  Widget _dot(Color c) => Container(width: 4, height: 4, decoration: BoxDecoration(color: c.withValues(alpha: 0.5), shape: BoxShape.circle));
 
   String _formatBusinessType(String raw) {
     final parts = raw.split(RegExp(r'[,;_]')).map((s) {
@@ -754,9 +754,9 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF0F172A).withOpacity(0.5) : Colors.white.withOpacity(0.9),
+          color: isDark ? const Color(0xFF0F172A).withValues(alpha: 0.5) : Colors.white.withValues(alpha: 0.9),
           shape: BoxShape.circle,
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 8)],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 8)],
         ),
         child: Icon(icon, size: 22, color: iconColor ?? (isDark ? Colors.white : const Color(0xFF0F172A))),
       ),
@@ -866,7 +866,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
               Center(
                 child: Container(
                   width: 40, height: 4, margin: const EdgeInsets.only(bottom: 20),
-                  decoration: BoxDecoration(color: textSecondary.withOpacity(0.3), borderRadius: BorderRadius.circular(2)),
+                  decoration: BoxDecoration(color: textSecondary.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
                 ),
               ),
               Text(widget.nombreLocal, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textPrimary)),
@@ -874,7 +874,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: widget.abierto ? Colors.green.withOpacity(0.12) : Colors.red.withOpacity(0.12),
+                  color: widget.abierto ? Colors.green.withValues(alpha: 0.12) : Colors.red.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
@@ -914,16 +914,16 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     : Container(
                         height: 100,
                         decoration: BoxDecoration(
-                          color: _primary.withOpacity(0.06),
+                          color: _primary.withValues(alpha: 0.06),
                           borderRadius: BorderRadius.circular(14),
                         ),
                         child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.map_outlined, size: 32, color: _primary.withOpacity(0.4)),
+                              Icon(Icons.map_outlined, size: 32, color: _primary.withValues(alpha: 0.4)),
                               const SizedBox(height: 6),
-                              Text('Toca "Cómo llegar" para ver la ubicación', style: TextStyle(fontSize: 12, color: _primary.withOpacity(0.6))),
+                              Text('Toca "Cómo llegar" para ver la ubicación', style: TextStyle(fontSize: 12, color: _primary.withValues(alpha: 0.6))),
                             ],
                           ),
                         ),
@@ -938,7 +938,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: _primary.withOpacity(0.08),
+                    color: _primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -1010,9 +1010,9 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
             margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: _accent.withOpacity(0.1),
+              color: _accent.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: _accent.withOpacity(0.2)),
+              border: Border.all(color: _accent.withValues(alpha: 0.2)),
             ),
             child: Row(
               children: [
@@ -1042,7 +1042,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     ],
                   ),
                 ),
-                Icon(Icons.chevron_right, color: _accent.withOpacity(0.5)),
+                Icon(Icons.chevron_right, color: _accent.withValues(alpha: 0.5)),
               ],
             ),
           ),
@@ -1074,7 +1074,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
               Center(
                 child: Container(
                   width: 40, height: 4, margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(color: textSecondary.withOpacity(0.3), borderRadius: BorderRadius.circular(2)),
+                  decoration: BoxDecoration(color: textSecondary.withValues(alpha: 0.3), borderRadius: BorderRadius.circular(2)),
                 ),
               ),
               Text('Promociones activas', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary)),
@@ -1083,9 +1083,9 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: _accent.withOpacity(0.08),
+                  color: _accent.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: _accent.withOpacity(0.15)),
+                  border: Border.all(color: _accent.withValues(alpha: 0.15)),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1136,7 +1136,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
 
   Widget _shimmerCard(Color cardColor, Color borderColor) {
     final shimmerBase = Theme.of(context).brightness == Brightness.dark
-        ? Colors.white.withOpacity(0.06)
+        ? Colors.white.withValues(alpha: 0.06)
         : Colors.grey.shade200;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -1209,7 +1209,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   elevation: 10,
-                  shadowColor: _primary.withOpacity(0.4),
+                  shadowColor: _primary.withValues(alpha: 0.4),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1217,7 +1217,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     Row(children: [
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.2), borderRadius: BorderRadius.circular(10)),
+                        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(10)),
                         child: Text('$total', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                       ),
                       const SizedBox(width: 12),
@@ -1247,7 +1247,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
             color: cardColor,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: borderColor),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))],
+            boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
           ),
           child: InkWell(
             borderRadius: BorderRadius.circular(20),
@@ -1277,7 +1277,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                           decoration: BoxDecoration(
-                            color: _accent.withOpacity(0.12),
+                            color: _accent.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(product.category, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _accent)),
@@ -1326,8 +1326,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     height: 112,
                     child: product.image.isNotEmpty
                         ? Image.network(product.image, fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(color: textSecondary.withOpacity(0.1), child: Icon(Icons.fastfood, size: 40, color: textSecondary)))
-                        : Container(color: textSecondary.withOpacity(0.1), child: Icon(Icons.fastfood, size: 40, color: textSecondary)),
+                            errorBuilder: (_, __, ___) => Container(color: textSecondary.withValues(alpha: 0.1), child: Icon(Icons.fastfood, size: 40, color: textSecondary)))
+                        : Container(color: textSecondary.withValues(alpha: 0.1), child: Icon(Icons.fastfood, size: 40, color: textSecondary)),
                   ),
                 ),
               ],
@@ -1346,7 +1346,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
       },
       child: Container(
         width: 32, height: 32,
-        decoration: BoxDecoration(color: _primary.withOpacity(0.1), shape: BoxShape.circle),
+        decoration: BoxDecoration(color: _primary.withValues(alpha: 0.1), shape: BoxShape.circle),
         child: Icon(icon, size: 20, color: _primary),
       ),
     );

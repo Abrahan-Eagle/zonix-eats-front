@@ -163,7 +163,7 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.white.withOpacity(0.2),
+                  backgroundColor: Colors.white.withValues(alpha: 0.2),
                 ),
               ),
             ],
@@ -180,7 +180,7 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -212,7 +212,7 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: isTablet ? 16 : (isSmallPhone ? 12 : 14),
-              color: Colors.white.withOpacity(0.9),
+              color: Colors.white.withValues(alpha: 0.9),
             ),
           ),
         ],
@@ -228,7 +228,7 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),

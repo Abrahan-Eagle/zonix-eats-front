@@ -228,7 +228,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        color: isDark ? _TemplateColors.cardDark.withOpacity(0.6) : Colors.white,
+        color: isDark ? _TemplateColors.cardDark.withValues(alpha: 0.6) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark ? Colors.white12 : Colors.grey.shade200,
@@ -236,7 +236,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.2 : 0.06),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -299,11 +299,11 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: (isDark ? Colors.black54 : Colors.white).withOpacity(0.9),
+                          color: (isDark ? Colors.black54 : Colors.white).withValues(alpha: 0.9),
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
+                              color: Colors.black.withValues(alpha: 0.15),
                               blurRadius: 8,
                             ),
                           ],
@@ -369,7 +369,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: _TemplateColors.ratingYellow.withOpacity(0.15),
+                          color: _TemplateColors.ratingYellow.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(

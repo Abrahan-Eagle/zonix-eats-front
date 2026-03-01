@@ -158,7 +158,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
       margin: const EdgeInsets.only(bottom: 12),
       child: Card(
         elevation: 4,
-        shadowColor: Colors.black.withOpacity(0.1),
+        shadowColor: Colors.black.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -177,7 +177,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(0.1),
+                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Icon(
@@ -205,7 +205,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
                           Text(
                             'Nº ${getDocumentNumber(document)}',
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurface.withOpacity(0.7),
+                              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                             ),
                           ),
                         ],
@@ -223,7 +223,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
+                      color: theme.colorScheme.surfaceVariant.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Wrap(
@@ -237,14 +237,14 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
                               Icon(
                                 Icons.calendar_today,
                                 size: 16,
-                                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                               ),
                               const SizedBox(width: 4),
                               Flexible(
                                 child: Text(
                                   'Emitido: ${_formatDate(document.issuedAt!)}',
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -258,14 +258,14 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
                               Icon(
                                 Icons.event_busy,
                                 size: 16,
-                                color: theme.colorScheme.onSurface.withOpacity(0.6),
+                                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                               ),
                               const SizedBox(width: 4),
                               Flexible(
                                 child: Text(
                                   'Vence: ${_formatDate(document.expiresAt!)}',
                                   style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurface.withOpacity(0.6),
+                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -321,7 +321,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
           Icon(
             Icons.error_outline,
             size: 64,
-            color: Colors.red.withOpacity(0.5),
+            color: Colors.red.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           const Text(
@@ -353,7 +353,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
           Icon(
             Icons.folder_open,
             size: 64,
-            color: Colors.grey.withOpacity(0.5),
+            color: Colors.grey.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           const Text(

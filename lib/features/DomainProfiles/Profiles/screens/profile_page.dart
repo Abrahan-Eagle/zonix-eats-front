@@ -173,7 +173,7 @@ class ProfilePagex extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
+                    color: Colors.black.withValues(alpha: 0.2),
                     blurRadius: 18,
                     offset: const Offset(0, 6),
                   ),
@@ -213,7 +213,7 @@ class ProfilePagex extends StatelessWidget {
                   'Usuario Activo',
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDark ? Colors.white.withOpacity(0.9) : Colors.black.withOpacity(0.7),
+                    color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -239,7 +239,7 @@ class ProfilePagex extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.blue.withOpacity(0.08),
+                    color: AppColors.blue.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -291,7 +291,7 @@ class ProfilePagex extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.green.withOpacity(0.15),
+                    color: AppColors.green.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -336,7 +336,7 @@ class ProfilePagex extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.orange.withOpacity(0.15),
+                    color: AppColors.orange.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -385,7 +385,7 @@ class ProfilePagex extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.purple.withOpacity(0.15),
+                    color: AppColors.purple.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
@@ -432,7 +432,7 @@ class ProfilePagex extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: _getStatusColor(profile.status).withOpacity(isDark ? 0.15 : 0.08),
+                    color: _getStatusColor(profile.status).withValues(alpha: isDark ? 0.15 : 0.08),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
