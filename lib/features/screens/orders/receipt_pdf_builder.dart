@@ -4,6 +4,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import 'package:zonix/models/order.dart';
+import 'package:zonix/l10n/app_strings.dart';
 
 /// Genera el PDF del recibo siguiendo el template Zonix Eats (code.html).
 /// Archivo separado para no mezclar lógica de PDF con la pantalla de detalle de orden.
@@ -106,13 +107,12 @@ class ReceiptPdfBuilder {
                             pw.Row(
                               mainAxisSize: pw.MainAxisSize.min,
                               children: [
-                                pw.Text('Zoni', style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold, color: PdfColors.white)),
-                                pw.Text('x', style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold, color: PdfColors.blue700)),
-                                pw.Text('EATS', style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold, color: _zonixEats)),
+                                pw.Text('Zonix', style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold, color: PdfColors.white)),
+                                pw.Text(' EATS', style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold, color: _zonixEats)),
                               ],
                             ),
                             pw.SizedBox(height: 2),
-                            pw.Text('INTERSTELLAR GOURMET DELIVERY', style: pw.TextStyle(fontSize: 10, color: PdfColors.grey300, fontWeight: pw.FontWeight.bold)),
+                            pw.Text(AppStrings.zonixEatsTagline, style: pw.TextStyle(fontSize: 10, color: PdfColors.grey300, fontWeight: pw.FontWeight.bold)),
                             if (commerceAddress.isNotEmpty) pw.Text(commerceAddress, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey400)),
                           ],
                         ),
@@ -121,12 +121,12 @@ class ReceiptPdfBuilder {
                     pw.Column(
                       crossAxisAlignment: pw.CrossAxisAlignment.end,
                       children: [
-                        pw.Text('RECIBO', style: pw.TextStyle(fontSize: 28, fontWeight: pw.FontWeight.bold, color: PdfColors.white)),
+                        pw.Text(AppStrings.receiptTitle, style: pw.TextStyle(fontSize: 28, fontWeight: pw.FontWeight.bold, color: PdfColors.white)),
                         pw.SizedBox(height: 12),
-                        pw.Text('N.º de recibo', style: pw.TextStyle(fontSize: 9, color: _zonixBlue, fontWeight: pw.FontWeight.bold)),
+                        pw.Text(AppStrings.receiptNumberLabel, style: pw.TextStyle(fontSize: 9, color: _zonixBlue, fontWeight: pw.FontWeight.bold)),
                         pw.Text('#ZX-$orderIdDisplay', style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.white)),
                         pw.SizedBox(height: 6),
-                        pw.Text('Fecha de emisión', style: pw.TextStyle(fontSize: 9, color: _zonixBlue, fontWeight: pw.FontWeight.bold)),
+                        pw.Text(AppStrings.issueDateLabel, style: pw.TextStyle(fontSize: 9, color: _zonixBlue, fontWeight: pw.FontWeight.bold)),
                         pw.Text(dateStr, style: pw.TextStyle(fontSize: 11, fontWeight: pw.FontWeight.bold, color: PdfColors.white)),
                       ],
                     ),
@@ -149,9 +149,9 @@ class ReceiptPdfBuilder {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    pw.Row(children: [pw.Container(width: 4, height: 4, decoration: const pw.BoxDecoration(color: _zonixBlue, shape: pw.BoxShape.circle)), pw.SizedBox(width: 6), pw.Text('Datos del cliente', style: pw.TextStyle(fontSize: 9, color: _zonixBlue, fontWeight: pw.FontWeight.bold))]),
+                    pw.Row(children: [pw.Container(width: 4, height: 4, decoration: const pw.BoxDecoration(color: _zonixBlue, shape: pw.BoxShape.circle)), pw.SizedBox(width: 6), pw.Text(AppStrings.clientDataLabel, style: pw.TextStyle(fontSize: 9, color: _zonixBlue, fontWeight: pw.FontWeight.bold))]),
                     pw.SizedBox(height: 6),
-                    pw.Text('Cliente', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: _zonixDark)),
+                    pw.Text(AppStrings.clientLabel, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: _zonixDark)),
                     pw.SizedBox(height: 4),
                     pw.Text(order.deliveryAddress.isEmpty ? '—' : order.deliveryAddress, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600), maxLines: 4),
                   ],
@@ -161,7 +161,7 @@ class ReceiptPdfBuilder {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                   children: [
-                    pw.Row(mainAxisAlignment: pw.MainAxisAlignment.end, children: [pw.Text('Método de pago', style: pw.TextStyle(fontSize: 9, color: _zonixBlue, fontWeight: pw.FontWeight.bold)), pw.SizedBox(width: 6), pw.Container(width: 4, height: 4, decoration: const pw.BoxDecoration(color: _zonixBlue, shape: pw.BoxShape.circle))]),
+                    pw.Row(mainAxisAlignment: pw.MainAxisAlignment.end, children: [pw.Text(AppStrings.paymentMethodLabelPdf, style: pw.TextStyle(fontSize: 9, color: _zonixBlue, fontWeight: pw.FontWeight.bold)), pw.SizedBox(width: 6), pw.Container(width: 4, height: 4, decoration: const pw.BoxDecoration(color: _zonixBlue, shape: pw.BoxShape.circle))]),
                     pw.SizedBox(height: 6),
                     pw.Text(paymentLabel, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: _zonixDark)),
                     if (order.referenceNumber != null && order.referenceNumber!.isNotEmpty)
@@ -186,10 +186,10 @@ class ReceiptPdfBuilder {
               pw.TableRow(
                 decoration: const pw.BoxDecoration(color: PdfColors.grey100),
                 children: [
-                  pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 10, horizontal: 12), child: pw.Text('Cant.', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700))),
-                  pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 10, horizontal: 12), child: pw.Text('Descripción', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700))),
-                  pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 10, horizontal: 12), child: pw.Text('Precio unit.', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700))),
-                  pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 10, horizontal: 12), child: pw.Text('Subtotal', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700))),
+                  pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 10, horizontal: 12), child: pw.Text(AppStrings.quantityCol, style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700))),
+                  pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 10, horizontal: 12), child: pw.Text(AppStrings.descriptionCol, style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700))),
+                  pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 10, horizontal: 12), child: pw.Text(AppStrings.unitPriceCol, style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700))),
+                  pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 10, horizontal: 12), child: pw.Text(AppStrings.subtotalCol, style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: PdfColors.grey700))),
                 ],
               ),
               ...order.items.map((item) {
@@ -223,11 +223,11 @@ class ReceiptPdfBuilder {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.stretch,
                 children: [
-                  _summaryRow('Subtotal', order.subtotal),
+                  _summaryRow(AppStrings.subtotal, order.subtotal),
                   pw.SizedBox(height: 8),
-                  _summaryRow('Costo de envío', order.deliveryFee),
+                  _summaryRow(AppStrings.shippingCostLabel, order.deliveryFee),
                   pw.SizedBox(height: 8),
-                  _summaryRow('Impuestos (IVA 16%)', order.tax),
+                  _summaryRow(AppStrings.taxLabelIva, order.tax),
                   pw.SizedBox(height: 16),
                   pw.Container(
                     padding: const pw.EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -235,7 +235,7 @@ class ReceiptPdfBuilder {
                     child: pw.Row(
                       mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                       children: [
-                        pw.Text('TOTAL FINAL', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.white)),
+                        pw.Text(AppStrings.totalFinalLabel, style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: PdfColors.white)),
                         pw.Container(
                           padding: const pw.EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           decoration: pw.BoxDecoration(color: _zonixOrange, borderRadius: pw.BorderRadius.circular(4)),
@@ -280,11 +280,11 @@ class ReceiptPdfBuilder {
             children: [
               _footerLogo(logoImageBytes),
               pw.SizedBox(width: 8),
-              pw.Text('¡Gracias por elegir ZonixEATS!', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: _zonixDark)),
+              pw.Text(AppStrings.thanksZonixEats, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: _zonixDark)),
             ],
           ),
           pw.SizedBox(height: 6),
-          pw.Text('Esperamos que disfrutes tu pedido. Guarda este recibo. Para soporte, visita zonixeats.com/support.', style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
+          pw.Text(AppStrings.footerSupportText, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey600)),
           pw.SizedBox(height: 12),
           pw.Container(height: 1, color: PdfColors.grey300),
           pw.SizedBox(height: 10),
@@ -293,11 +293,11 @@ class ReceiptPdfBuilder {
             children: [
               pw.Text('Zonix', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500)),
               pw.Text('EATS', style: pw.TextStyle(fontSize: 8, fontWeight: pw.FontWeight.bold, color: _zonixEats)),
-              pw.Text(' - Recibo #$orderIdDisplay', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500)),
+              pw.Text(' - ${AppStrings.receiptHashLabel}$orderIdDisplay', style: const pw.TextStyle(fontSize: 8, color: PdfColors.grey500)),
             ],
           ),
           pw.SizedBox(height: 4),
-          pw.Text('Escanea para verificar: #$orderIdDisplay', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: _zonixEats)),
+          pw.Text('${AppStrings.scanToVerify}: #$orderIdDisplay', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: _zonixEats)),
         ],
       ),
     );
@@ -322,13 +322,13 @@ class ReceiptPdfBuilder {
     switch (method.toLowerCase()) {
       case 'efectivo':
       case 'cash':
-        return 'Efectivo';
+        return AppStrings.paymentCash;
       case 'transferencia':
-        return 'Transferencia';
+        return AppStrings.paymentTransfer;
       case 'tarjeta':
-        return 'Tarjeta';
+        return AppStrings.paymentCard;
       case 'pago_movil':
-        return 'Pago móvil';
+        return AppStrings.paymentMobile;
       default:
         return method.isEmpty ? '' : method;
     }

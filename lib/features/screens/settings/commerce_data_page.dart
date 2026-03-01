@@ -117,9 +117,34 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
 
   Future<void> _uploadLogo() async {
     try {
+      final source = await showModalBottomSheet<ImageSource>(
+        context: context,
+        builder: (ctx) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.photo_library),
+                  title: const Text('Galería'),
+                  onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.camera_alt),
+                  title: const Text('Cámara'),
+                  onTap: () => Navigator.pop(ctx, ImageSource.camera),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+      if (source == null || !mounted) return;
+
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(
-        source: ImageSource.gallery,
+        source: source,
         maxWidth: 1024,
         maxHeight: 1024,
         imageQuality: 85,
