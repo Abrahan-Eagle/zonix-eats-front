@@ -155,11 +155,12 @@ class _DataExportPageState extends State<DataExportPage> {
       appBar: AppBar(
         title: const Text('Exportar Datos Personales'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // Información sobre la exportación
             Card(
               child: Padding(
@@ -330,6 +331,7 @@ class _DataExportPageState extends State<DataExportPage> {
           ],
         ),
       ),
+    ),
     );
   }
 

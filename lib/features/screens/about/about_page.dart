@@ -5,8 +5,9 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'pubspec.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+/// Pantalla "Acerca de" (versión, licencias, etc.). No confundir con el widget raíz de la app.
+class AboutScreen extends StatelessWidget {
+  const AboutScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -11,11 +11,14 @@ class NotificationsPage extends StatefulWidget {
 
 class _NotificationsPageState extends State<NotificationsPage> {
   late Future<List<NotificationItem>> _notificationsFuture;
+  final NotificationService _notificationService = NotificationService();
 
   @override
   void initState() {
     super.initState();
-    _notificationsFuture = NotificationService().getNotificationItems();
+    _notificationsFuture = _notificationService.getNotificationItems();
+    // Marcar todas como leídas al entrar para que el badge se actualice al salir
+    _notificationService.markAllAsRead();
   }
 
   @override

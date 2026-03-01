@@ -78,15 +78,11 @@ import 'package:zonix/features/widgets/buyer_shell.dart';
 
 final ApiService apiService = ApiService();
 
-final String baseUrl =
-    const bool.fromEnvironment('dart.vm.product')
-        ? dotenv.env['API_URL_PROD']!
-        : dotenv.env['API_URL_LOCAL']!;
-
 // Configuración del logger
 final logger = Logger();
 
 Future<void> main() async {
+  await dotenv.load(fileName: '.env');
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   initialization();
@@ -95,8 +91,6 @@ Future<void> main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-
-  await dotenv.load();
 
   // Bypass de login para tests de integración
   const bool isIntegrationTest = String.fromEnvironment('INTEGRATION_TEST', defaultValue: 'false') == 'true';

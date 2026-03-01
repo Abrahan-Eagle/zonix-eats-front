@@ -30,7 +30,7 @@ class RestaurantService {
       final response = await http.get(
         Uri.parse(apiUrl),
         headers: headers,
-      ).timeout(const Duration(milliseconds: AppConfig.requestTimeout));
+      ).timeout(Duration(milliseconds: AppConfig.requestTimeout));
 
       logger.i('API Response Status: ${response.statusCode}');
 
@@ -83,7 +83,7 @@ class RestaurantService {
       final response = await http.get(
         Uri.parse(url),
         headers: headers,
-      ).timeout(const Duration(milliseconds: AppConfig.requestTimeout));
+      ).timeout(Duration(milliseconds: AppConfig.requestTimeout));
 
       logger.i('API Details Response Status: ${response.statusCode}');
 

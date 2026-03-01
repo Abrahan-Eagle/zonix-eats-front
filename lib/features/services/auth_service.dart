@@ -30,7 +30,7 @@ class AuthService {
           'email': email,
           'password': password,
         }),
-      ).timeout(const Duration(milliseconds: AppConfig.requestTimeout));
+      ).timeout(Duration(milliseconds: AppConfig.requestTimeout));
 
       logger.i('Login Response Status: ${response.statusCode}');
 
@@ -87,7 +87,7 @@ class AuthService {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
-      ).timeout(const Duration(milliseconds: AppConfig.requestTimeout));
+      ).timeout(Duration(milliseconds: AppConfig.requestTimeout));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -114,7 +114,7 @@ class AuthService {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
-      ).timeout(const Duration(milliseconds: AppConfig.requestTimeout));
+      ).timeout(Duration(milliseconds: AppConfig.requestTimeout));
 
       // Limpiar almacenamiento local
       await storage.delete(key: 'token');

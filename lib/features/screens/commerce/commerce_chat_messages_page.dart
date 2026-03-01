@@ -38,7 +38,7 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
 
   @override
   void dispose() {
-    PusherService.instance.unsubscribeFromChannel('private-order.${widget.orderId}');
+    PusherService.instance.unsubscribeFromChannel('private-orders.${widget.orderId}');
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();

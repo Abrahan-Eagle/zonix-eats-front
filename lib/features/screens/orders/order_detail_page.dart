@@ -46,9 +46,17 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   @override
+  void didUpdateWidget(OrderDetailPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.order != widget.order) {
+      _order = widget.order;
+    }
+  }
+
+  @override
   void dispose() {
     if (_trackingSubscribed) {
-      PusherService.instance.unsubscribeFromChannel('private-order.${widget.orderId}');
+      PusherService.instance.unsubscribeFromChannel('private-orders.${widget.orderId}');
     }
     super.dispose();
   }
@@ -56,7 +64,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   void _subscribeToTracking() {
     if (_order == null || _trackingSubscribed) return;
     final s = _order!.status;
-    if (s == 'shipped' || s == 'out_for_delivery' || s == 'processing') {
+    if (s == 'shipped' || s == 'out_for_delivery' || s == 'processing' || s == 'paid') {
       PusherService.instance.subscribeToOrderChat(
         widget.orderId,
         onNewMessage: (eventName, data) {
@@ -76,6 +84,24 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         },
       );
       _trackingSubscribed = true;
+      _loadInitialTracking();
+    }
+  }
+
+  Future<void> _loadInitialTracking() async {
+    if (_order == null || !_isTrackableStatus(_order!.status)) return;
+    try {
+      final data = await OrderService().getOrderTracking(widget.orderId);
+      final lat = data['latitude'] is double ? data['latitude'] as double : (data['latitude'] != null ? double.tryParse(data['latitude'].toString()) : null);
+      final lng = data['longitude'] is double ? data['longitude'] as double : (data['longitude'] != null ? double.tryParse(data['longitude'].toString()) : null);
+      if (mounted && lat != null && lng != null) {
+        setState(() {
+          _deliveryLat = lat;
+          _deliveryLng = lng;
+        });
+      }
+    } catch (_) {
+      // Sin ubicación inicial; se actualizará por Pusher
     }
   }
 

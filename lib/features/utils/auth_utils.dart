@@ -84,13 +84,20 @@ class AuthUtils {
         if (response.statusCode == 200) {
           await _storage.deleteAll();
           logger.i('Sesión cerrada correctamente');
+        } else if (response.statusCode == 401 || response.statusCode == 404) {
+          // Token ya revocado o inválido (ej. tras eliminar cuenta): limpiar igual
+          await _storage.deleteAll();
+          logger.i('Sesión cerrada (token ya no válido)');
         } else {
           logger.e('Error: ${response.statusCode}');
-          throw Exception('Error en la API al cerrar sesión');
+          await _storage.deleteAll();
         }
       }
     } catch (e) {
       logger.e('Error al cerrar sesión: $e');
+      try {
+        await _storage.deleteAll();
+      } catch (_) {}
     }
   }
 

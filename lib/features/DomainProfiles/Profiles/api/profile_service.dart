@@ -7,16 +7,11 @@ import 'package:zonix/features/DomainProfiles/Addresses/api/adresse_service.dart
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
 // import 'package:zonix/features/DomainProfiles/Profiles/utils/constants.dart';
 import 'package:logger/logger.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
-
+import 'package:zonix/config/app_config.dart';
 
 
 
 final logger = Logger();
-final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
 
 class ProfileService {
   final _storage = const FlutterSecureStorage();
@@ -31,7 +26,7 @@ class ProfileService {
     final token = await _getToken();
     if (token == null) return null;
     final response = await http.get(
-      Uri.parse('$baseUrl/api/profile'),
+      Uri.parse('${AppConfig.apiUrl}/api/profile'),
       headers: {
         'Authorization': 'Bearer $token',
         'Accept': 'application/json',
@@ -48,10 +43,9 @@ class ProfileService {
 
   // Recupera un perfil por ID.
   Future<Profile?> getProfileById(int id) async {
-        logger.i('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: $id');
     final token = await _getToken();
     final response = await http.get(
-      Uri.parse('$baseUrl/api/profiles/$id'),
+      Uri.parse('${AppConfig.apiUrl}/api/profiles/$id'),
       headers: {'Authorization': 'Bearer $token'},
     );
       
@@ -68,7 +62,7 @@ class ProfileService {
   Future<List<Profile>> getAllProfiles() async {
     final token = await _getToken();
     final response = await http.get(
-      Uri.parse('$baseUrl/api/profiles'),
+      Uri.parse('${AppConfig.apiUrl}/api/profiles'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -85,7 +79,7 @@ Future<int> createProfile(Profile profile, int userId, {File? imageFile}) async 
     final token = await _getToken();
     if (token == null) throw Exception('Token no encontrado.');
 
-    final uri = Uri.parse('$baseUrl/api/profiles');
+    final uri = Uri.parse('${AppConfig.apiUrl}/api/profiles');
     final request = http.MultipartRequest('POST', uri)
       ..headers['Authorization'] = 'Bearer $token'
       ..headers['Accept'] = 'application/json'
@@ -157,7 +151,7 @@ Future<int> createProfile(Profile profile, int userId, {File? imageFile}) async 
       final token = await _getToken();
       if (token == null) throw Exception('Token no encontrado.');
 
-      final uri = Uri.parse('$baseUrl/api/profiles/$id');
+      final uri = Uri.parse('${AppConfig.apiUrl}/api/profiles/$id');
       final request = http.MultipartRequest('POST', uri) // Cambiar PUT a POST si tu API requiere POST.
         ..headers['Authorization'] = 'Bearer $token'
         ..headers['Accept'] = 'application/json'
@@ -211,7 +205,7 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
 
   try {
     final response = await http.post(
-      Uri.parse('$baseUrl/api/data-verification/$userId/update-status-check-scanner/profiles'),
+      Uri.parse('${AppConfig.apiUrl}/api/data-verification/$userId/update-status-check-scanner/profiles'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -235,7 +229,7 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
   Future<Map<String, dynamic>> getActivityHistory() async {
     final token = await _getToken();
     final response = await http.get(
-      Uri.parse('$baseUrl/api/user/activity-history'),
+      Uri.parse('${AppConfig.apiUrl}/api/user/activity-history'),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (response.statusCode == 200) {
@@ -249,21 +243,29 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
   Future<Map<String, dynamic>> exportPersonalData() async {
     final token = await _getToken();
     final response = await http.get(
-      Uri.parse('$baseUrl/api/buyer/export'),
+      Uri.parse('${AppConfig.apiUrl}/api/buyer/export'),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Error al exportar los datos personales');
+      return jsonDecode(response.body) as Map<String, dynamic>;
     }
+    String msg = 'Error al exportar los datos personales';
+    if (response.body.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map && decoded['message'] != null) {
+          msg = decoded['message'] as String;
+        }
+      } catch (_) {}
+    }
+    throw Exception(msg);
   }
 
   // Obtener configuración de privacidad (API: GET /api/user/privacy-settings)
   Future<Map<String, dynamic>> getPrivacySettings() async {
     final token = await _getToken();
     final response = await http.get(
-      Uri.parse('$baseUrl/api/user/privacy-settings'),
+      Uri.parse('${AppConfig.apiUrl}/api/user/privacy-settings'),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (response.statusCode == 200) {
@@ -296,7 +298,7 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
       'push_notifications': settings['push_notifications'],
     };
     final response = await http.put(
-      Uri.parse('$baseUrl/api/user/privacy-settings'),
+      Uri.parse('${AppConfig.apiUrl}/api/user/privacy-settings'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -312,11 +314,21 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
   Future<void> deleteAccount() async {
     final token = await _getToken();
     final response = await http.delete(
-      Uri.parse('$baseUrl/api/buyer/account'),
+      Uri.parse('${AppConfig.apiUrl}/api/buyer/account'),
       headers: {'Authorization': 'Bearer $token'},
     );
-    if (response.statusCode != 200) {
-      throw Exception('Error al eliminar la cuenta');
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      final body = response.body.isNotEmpty ? response.body : null;
+      String msg = 'Error al eliminar la cuenta';
+      if (body != null) {
+        try {
+          final decoded = jsonDecode(body);
+          if (decoded is Map && decoded['message'] != null) {
+            msg = decoded['message'] as String;
+          }
+        } catch (_) {}
+      }
+      throw Exception(msg);
     }
   }
 

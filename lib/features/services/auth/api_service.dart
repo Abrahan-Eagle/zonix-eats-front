@@ -2,13 +2,11 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:zonix/config/app_config.dart';
 
 final logger = Logger();
-const FlutterSecureStorage _storage = FlutterSecureStorage(); // Inicializa _storage
-final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
+const FlutterSecureStorage _storage = FlutterSecureStorage();
+
 class ApiService {
   // Enviar el token al backend
   Future<http.Response> sendTokenToBackend(String? result) async {
@@ -28,7 +26,7 @@ class ApiService {
       });
 
       final response = await http.post(
-      Uri.parse( '$baseUrl/api/auth/google'), // Cambia por la URL de tu backend
+      Uri.parse( '${AppConfig.apiUrl}/api/auth/google'), // Cambia por la URL de tu backend
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -81,7 +79,7 @@ class ApiService {
          // Leer el token del almacenamiento seguro
           String? role = await _storage.read(key: 'role');
           if (role != null) {
-            logger.i('role almacenadoaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: $role');
+            logger.i('Role almacenado: $role');
           } else {
             logger.e('No se encontró ningún role almacenado');
           }
@@ -107,7 +105,7 @@ class ApiService {
   // Método para cerrar sesión
   Future<http.Response> logout(String token) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/api/auth/logout'),
+      Uri.parse('${AppConfig.apiUrl}/api/auth/logout'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -121,7 +119,7 @@ class ApiService {
     final token = await _storage.read(key: 'token');
     if (token != null) {
       final response = await http.get(
-        Uri.parse('$baseUrl/api/auth/protected-endpoint'),
+        Uri.parse('${AppConfig.apiUrl}/api/auth/protected-endpoint'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -177,7 +175,7 @@ class ApiService {
 //       });
 
 //       final response = await http.post(
-//       Uri.parse( '$baseUrl/api/auth/google'), // Cambia por la URL de tu backend
+//       Uri.parse( '${AppConfig.apiUrl}/api/auth/google'), // Cambia por la URL de tu backend
 //         headers: {
 //           'Content-Type': 'application/json',
 //           'Accept': 'application/json',
@@ -215,7 +213,7 @@ class ApiService {
 //          // Leer el token del almacenamiento seguro
 //           String? role = await _storage.read(key: 'role');
 //           if (role != null) {
-//             logger.i('role almacenadoaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: $role');
+//             logger.i('Role almacenado: $role');
 //           } else {
 //             logger.e('No se encontró ningún role almacenado');
 //           }
@@ -241,7 +239,7 @@ class ApiService {
 //   // Método para cerrar sesión
 //   Future<http.Response> logout(String token) async {
 //     final response = await http.post(
-//       Uri.parse('$baseUrl/api/auth/logout'),
+//       Uri.parse('${AppConfig.apiUrl}/api/auth/logout'),
 //       headers: {
 //         'Authorization': 'Bearer $token',
 //         'Content-Type': 'application/json',
@@ -255,7 +253,7 @@ class ApiService {
 //     final token = await _storage.read(key: 'token');
 //     if (token != null) {
 //       final response = await http.get(
-//         Uri.parse('$baseUrl/api/auth/protected-endpoint'),
+//         Uri.parse('${AppConfig.apiUrl}/api/auth/protected-endpoint'),
 //         headers: {
 //           'Authorization': 'Bearer $token',
 //           'Accept': 'application/json',

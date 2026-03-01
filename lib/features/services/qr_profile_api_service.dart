@@ -1,28 +1,21 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import '../../helpers/auth_helper.dart';
-import '../../config/app_config.dart';
+import 'package:zonix/helpers/auth_helper.dart';
+import 'package:zonix/config/app_config.dart';
 
 final logger = Logger();
-final String baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
-
-
 
 class QrProfileApiService {
 
 Future<String?> sendUserIdToBackend(int userId) async {
   logger.i('User ID enviado al backend: $userId');
-  logger.i('Base URL: $baseUrl');
+  logger.i('Base URL: ${AppConfig.apiUrl}');
 
   try {
     final headers = await AuthHelper.getAuthHeaders();
-    // Verificar primero si el endpoint existe, si no, usar un endpoint alternativo
     final response = await http.get(
-      Uri.parse('$baseUrl/api/profiles/$userId/qr'),
+      Uri.parse('${AppConfig.apiUrl}/api/profiles/$userId/qr'),
       headers: headers,
     ).timeout(
       const Duration(seconds: 10),
