@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:zonix/models/order.dart';
+import 'package:zonix/features/screens/orders/receipt_pdf_builder.dart';
 import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
@@ -423,7 +422,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   Widget _commercePlaceholder({Color? bgColor}) {
     final bg = bgColor ?? const Color(0xFFF1F5F9);
-    final border = bgColor != null ? bgColor : const Color(0xFFE2E8F0);
+    final border = bgColor ?? const Color(0xFFE2E8F0);
     return Container(
       width: 80,
       height: 80,
@@ -673,102 +672,6 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
   }
 
-  /// Genera el PDF del recibo con los datos de la orden (siempre funcional).
-  Future<Uint8List?> _generateReceiptPdf(Order order) async {
-    try {
-      final commerceName = order.commerce?['business_name']?.toString() ?? 'Comercio';
-      final orderIdDisplay = order.orderNumber.isNotEmpty ? order.orderNumber : '#${order.id}';
-      final dateStr = _formatReceiptDate(order.createdAt);
-      final paymentLabel = _paymentMethodLabel(order.paymentMethod);
-
-      final pdf = pw.Document();
-      pdf.addPage(
-        pw.MultiPage(
-          pageFormat: PdfPageFormat.a4,
-          margin: const pw.EdgeInsets.all(24),
-          build: (pw.Context context) {
-            return [
-              pw.Header(
-                level: 0,
-                child: pw.Text(
-                  'Detalle del Recibo',
-                  style: pw.TextStyle(fontSize: 22, fontWeight: pw.FontWeight.bold),
-                ),
-              ),
-              pw.SizedBox(height: 16),
-              pw.Text(commerceName, style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 4),
-              pw.Text(dateStr, style: const pw.TextStyle(fontSize: 12, color: PdfColors.grey700)),
-              pw.SizedBox(height: 8),
-              pw.Text('Orden ID: $orderIdDisplay', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 20),
-              pw.Text('RESUMEN', style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold)),
-              pw.SizedBox(height: 8),
-              pw.Table(
-                columnWidths: const {
-                  0: pw.FlexColumnWidth(1.5),
-                  1: pw.FlexColumnWidth(3),
-                  2: pw.FlexColumnWidth(1.2),
-                },
-                children: [
-                  pw.TableRow(
-                    decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(width: 0.5))),
-                    children: [
-                      pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 4), child: pw.Text('Cant', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold))),
-                      pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 4), child: pw.Text('Producto', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold))),
-                      pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 4), child: pw.Text('Total', style: pw.TextStyle(fontSize: 10, fontWeight: pw.FontWeight.bold))),
-                    ],
-                  ),
-                  ...order.items.map((item) {
-                    return pw.TableRow(
-                      decoration: const pw.BoxDecoration(border: pw.Border(bottom: pw.BorderSide(width: 0.3))),
-                      children: [
-                        pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 6), child: pw.Text('${item.quantity}x', style: const pw.TextStyle(fontSize: 10))),
-                        pw.Padding(
-                          padding: const pw.EdgeInsets.symmetric(vertical: 6),
-                          child: pw.Column(
-                            crossAxisAlignment: pw.CrossAxisAlignment.start,
-                            mainAxisSize: pw.MainAxisSize.min,
-                            children: [
-                              pw.Text(item.productName, style: const pw.TextStyle(fontSize: 10)),
-                              if (item.specialInstructions != null && item.specialInstructions!.isNotEmpty)
-                                pw.Text(item.specialInstructions!, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700)),
-                            ],
-                          ),
-                        ),
-                        pw.Padding(padding: const pw.EdgeInsets.symmetric(vertical: 6), child: pw.Text('\$${item.total.toStringAsFixed(2)}', style: const pw.TextStyle(fontSize: 10))),
-                      ],
-                    );
-                  }),
-                ],
-              ),
-              pw.SizedBox(height: 12),
-              pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [pw.Text('Subtotal', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)), pw.Text('\$${order.subtotal.toStringAsFixed(2)}', style: const pw.TextStyle(fontSize: 10))]),
-              pw.SizedBox(height: 4),
-              pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [pw.Text('Tarifa de entrega', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)), pw.Text('\$${order.deliveryFee.toStringAsFixed(2)}', style: const pw.TextStyle(fontSize: 10))]),
-              pw.SizedBox(height: 4),
-              pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [pw.Text('Impuestos', style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700)), pw.Text('\$${order.tax.toStringAsFixed(2)}', style: const pw.TextStyle(fontSize: 10))]),
-              pw.SizedBox(height: 12),
-              pw.Row(mainAxisAlignment: pw.MainAxisAlignment.spaceBetween, children: [pw.Text('Total', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold)), pw.Text('\$${order.total.toStringAsFixed(2)}', style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold))]),
-              pw.SizedBox(height: 20),
-              pw.Text('Método de pago: $paymentLabel', style: const pw.TextStyle(fontSize: 10)),
-              pw.SizedBox(height: 8),
-              pw.Text('Dirección de entrega: ${order.deliveryAddress.isEmpty ? '—' : order.deliveryAddress}', style: const pw.TextStyle(fontSize: 10), maxLines: 3),
-            ];
-          },
-        ),
-      );
-      return await pdf.save();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al generar PDF: ${e.toString().replaceFirst('Exception: ', '')}'), backgroundColor: Colors.red),
-        );
-      }
-      return null;
-    }
-  }
-
   Future<void> _onDownloadPdf(Order order) async {
     if (!mounted) return;
     setState(() => _updating = true);
@@ -790,19 +693,30 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               const SnackBar(content: Text('No se pudo abrir el enlace. Generando PDF...'), backgroundColor: Colors.orange),
             );
           }
-          final bytes = await _generateReceiptPdf(order);
+          final bytes = await ReceiptPdfBuilder.build(order);
           if (bytes != null && mounted) {
             await Printing.sharePdf(bytes: bytes, filename: 'recibo-${order.id}.pdf');
             if (!mounted) return;
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('PDF listo para guardar o compartir'), backgroundColor: Colors.green),
             );
+          } else if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Error al generar el PDF'), backgroundColor: Colors.red),
+            );
           }
         }
         return;
       }
-      final bytes = await _generateReceiptPdf(order);
-      if (bytes == null || !mounted) return;
+      final bytes = await ReceiptPdfBuilder.build(order);
+      if (bytes == null || !mounted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error al generar el PDF'), backgroundColor: Colors.red),
+          );
+        }
+        return;
+      }
       await Printing.sharePdf(bytes: bytes, filename: 'recibo-${order.id}.pdf');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
