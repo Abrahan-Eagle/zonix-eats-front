@@ -183,6 +183,7 @@ class _CommerceProductsPageState extends State<CommerceProductsPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'commerce_products_add',
         onPressed: () => Navigator.pushNamed(context, '/commerce/products/create'),
         backgroundColor: AppColors.orange,
         child: const Icon(Icons.add),

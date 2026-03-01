@@ -306,14 +306,26 @@ class _SettingsPage2State extends State<SettingsPage2> {
                   shape: BoxShape.circle,
                   color: theme.scaffoldBackgroundColor,
                 ),
-                child: CircleAvatar(
-                  radius: (isTablet ? 100 : 96) / 2 - 4,
-                  backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                  backgroundImage: _getProfileImage(_profile?.photo),
-                  child: _profile?.photo == null || (_profile?.photo?.toString().isEmpty ?? true)
-                      ? Icon(Icons.person, size: isTablet ? 40 : 36, color: theme.colorScheme.onSurfaceVariant)
-                      : null,
-                ),
+                child: _profile?.photo != null && _profile!.photo!.isNotEmpty
+                    ? ClipOval(
+                        child: Image.network(
+                          _profile!.photo!,
+                          width: (isTablet ? 100 : 96) - 8,
+                          height: (isTablet ? 100 : 96) - 8,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Image.asset(
+                            'assets/default_avatar.png',
+                            width: (isTablet ? 100 : 96) - 8,
+                            height: (isTablet ? 100 : 96) - 8,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      )
+                    : CircleAvatar(
+                        radius: (isTablet ? 100 : 96) / 2 - 4,
+                        backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                        child: Icon(Icons.person, size: isTablet ? 40 : 36, color: theme.colorScheme.onSurfaceVariant),
+                      ),
               ),
             ),
             Positioned(
@@ -1172,13 +1184,4 @@ class _SettingsPage2State extends State<SettingsPage2> {
     );
   }
 
-  ImageProvider<Object> _getProfileImage(String? profilePhoto) {
-    if (profilePhoto != null && profilePhoto.isNotEmpty) {
-      if (profilePhoto.contains('via.placeholder.com') || profilePhoto.contains('placeholder.com')) {
-        return const AssetImage('assets/default_avatar.png');
-      }
-      return NetworkImage(profilePhoto);
-    }
-    return const AssetImage('assets/default_avatar.png');
-  }
 }

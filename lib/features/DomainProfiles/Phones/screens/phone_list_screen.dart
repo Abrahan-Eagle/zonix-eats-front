@@ -366,6 +366,7 @@ class PhoneScreenState extends State<PhoneScreen> {
           right: 10,
           bottom: 20,
           child: FloatingActionButton(
+            heroTag: 'phone_list_new',
             onPressed: _navigateToCreatePhone,
             backgroundColor: Colors.blue,
             foregroundColor: Colors.white,
@@ -378,6 +379,7 @@ class PhoneScreenState extends State<PhoneScreen> {
             right: 10,
             bottom: 85,
             child: FloatingActionButton(
+              heroTag: 'phone_list_confirm',
               onPressed: _handleStatusConfirmation,
               backgroundColor: Colors.green,
               foregroundColor: Colors.white,

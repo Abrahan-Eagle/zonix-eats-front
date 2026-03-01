@@ -9,10 +9,10 @@ class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
 
   @override
-  _AdminDashboardPageState createState() => _AdminDashboardPageState();
+  AdminDashboardPageState createState() => AdminDashboardPageState();
 }
 
-class _AdminDashboardPageState extends State<AdminDashboardPage> {
+class AdminDashboardPageState extends State<AdminDashboardPage> {
   final AdminService _adminService = AdminService();
   Map<String, dynamic>? _systemStats;
   Map<String, dynamic>? _analytics;

@@ -95,6 +95,7 @@ class _CommercePageState extends State<CommercePage> {
     switch (_selectedIndex) {
       case 1: // Órdenes
         return FloatingActionButton(
+          heroTag: 'commerce_page_orders_refresh',
           onPressed: () {
             // Refresh orders
             setState(() {
@@ -112,6 +113,7 @@ class _CommercePageState extends State<CommercePage> {
         );
       case 2: // Productos
         return FloatingActionButton(
+          heroTag: 'commerce_page_products_add',
           onPressed: () {
             Navigator.of(context).pushNamed('/commerce/products/create');
           },

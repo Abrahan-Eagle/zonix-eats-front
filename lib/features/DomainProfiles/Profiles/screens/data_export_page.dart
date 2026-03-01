@@ -204,8 +204,8 @@ class _DataExportPageState extends State<DataExportPage> {
                     title: const Text('JSON'),
                     subtitle: const Text('Formato estructurado'),
                     value: 'json',
-                    groupValue: _selectedFormat,
-                    onChanged: (value) {
+                    groupValue: _selectedFormat, // ignore: deprecated_member_use
+                    onChanged: (value) { // ignore: deprecated_member_use
                       setState(() {
                         _selectedFormat = value!;
                       });
@@ -217,8 +217,8 @@ class _DataExportPageState extends State<DataExportPage> {
                     title: const Text('Texto'),
                     subtitle: const Text('Formato legible'),
                     value: 'text',
-                    groupValue: _selectedFormat,
-                    onChanged: (value) {
+                    groupValue: _selectedFormat, // ignore: deprecated_member_use
+                    onChanged: (value) { // ignore: deprecated_member_use
                       setState(() {
                         _selectedFormat = value!;
                       });

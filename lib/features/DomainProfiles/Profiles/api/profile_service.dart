@@ -235,7 +235,7 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
   Future<Map<String, dynamic>> getActivityHistory() async {
     final token = await _getToken();
     final response = await http.get(
-      Uri.parse('$baseUrl/api/buyer/activity'),
+      Uri.parse('$baseUrl/api/user/activity-history'),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (response.statusCode == 200) {
@@ -259,30 +259,49 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
     }
   }
 
-  // Obtener configuración de privacidad
+  // Obtener configuración de privacidad (API: GET /api/user/privacy-settings)
   Future<Map<String, dynamic>> getPrivacySettings() async {
     final token = await _getToken();
     final response = await http.get(
-      Uri.parse('$baseUrl/api/buyer/privacy'),
+      Uri.parse('$baseUrl/api/user/privacy-settings'),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final body = jsonDecode(response.body);
+      final d = body['data'] as Map<String, dynamic>? ?? {};
+      // Mapear nombres del backend al formato que espera la pantalla
+      return {
+        'privacy_settings': {
+          'profile_visible': d['profile_visibility'] ?? true,
+          'reviews_visible': true,
+          'order_history_visible': d['order_history_visibility'] ?? true,
+          'activity_visible': d['activity_visibility'] ?? true,
+          'email_notifications': d['marketing_emails'] ?? true,
+          'push_notifications': d['push_notifications'] ?? true,
+        },
+      };
     } else {
       throw Exception('Error al obtener la configuración de privacidad');
     }
   }
 
-  // Actualizar configuración de privacidad
+  // Actualizar configuración de privacidad (API: PUT /api/user/privacy-settings)
   Future<void> updatePrivacySettings(Map<String, dynamic> settings) async {
     final token = await _getToken();
+    final body = {
+      'profile_visibility': settings['profile_visible'],
+      'order_history_visibility': settings['order_history_visible'],
+      'activity_visibility': settings['activity_visible'],
+      'marketing_emails': settings['email_notifications'],
+      'push_notifications': settings['push_notifications'],
+    };
     final response = await http.put(
-      Uri.parse('$baseUrl/api/buyer/privacy'),
+      Uri.parse('$baseUrl/api/user/privacy-settings'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode(settings),
+      body: jsonEncode(body),
     );
     if (response.statusCode != 200) {
       throw Exception('Error al actualizar la configuración de privacidad');

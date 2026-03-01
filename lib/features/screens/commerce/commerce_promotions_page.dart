@@ -130,6 +130,7 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> {
               ),
             ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'commerce_promotions_add',
         onPressed: () async {
           final result = await Navigator.push<bool>(
             context,

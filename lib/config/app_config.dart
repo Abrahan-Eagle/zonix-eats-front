@@ -8,7 +8,7 @@ class AppConfig {
     return isProduction ? apiUrlProd : apiUrlLocal;
   }
 
-  // WebSocket Configuration - Laravel Echo Server
+  // Legacy: URLs no usadas. Tiempo real vía Pusher (PusherService), no WebSocket.
   static const String wsUrlLocal = 'ws://192.168.27.12:6001';
   static const String wsUrlProd = 'wss://zonix.uniblockweb.com';
 
@@ -17,10 +17,12 @@ class AppConfig {
     return isProduction ? wsUrlProd : wsUrlLocal;
   }
 
-  // Echo Server Configuration
+  // Echo/WebSocket no usados; tiempo real con Pusher.
   static const String echoAppId = 'zonix-eats-app';
   static const String echoKey = 'zonix-eats-key';
-  static const bool enableWebsockets = true;
+  static const bool enableWebsockets = false;
+  /// Tiempo real: true para usar Pusher (notificaciones, chat, órdenes).
+  static const bool enablePusher = true;
 
   // Google Maps API Key
   static const String googleMapsApiKey = 'your_google_maps_api_key_here';

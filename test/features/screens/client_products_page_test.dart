@@ -107,6 +107,7 @@ class MockProductService implements ProductService {
     return [];
   }
 
+  @override
   Future<Product> getProductById(int productId) async {
     return Product(
       id: productId,

@@ -23,7 +23,7 @@ class ActivityService {
       if (activityType != null) queryParams['activity_type'] = activityType;
       if (startDate != null) queryParams['start_date'] = startDate.toIso8601String();
       if (endDate != null) queryParams['end_date'] = endDate.toIso8601String();
-      final uri = Uri.parse('$baseUrl/user/activity-history').replace(queryParameters: queryParams);
+      final uri = Uri.parse('$baseUrl/api/user/activity-history').replace(queryParameters: queryParams);
       final response = await http.get(
         uri,
         headers: headers,
@@ -48,7 +48,7 @@ class ActivityService {
     final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/user/activity-stats'),
+        Uri.parse('$baseUrl/api/user/activity-stats'),
         headers: headers,
       );
 

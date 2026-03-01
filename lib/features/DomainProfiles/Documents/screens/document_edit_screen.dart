@@ -790,6 +790,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
           right: 0,
           bottom: 80,
           child: FloatingActionButton.extended(
+            heroTag: 'document_edit_scan',
             onPressed: _scanDocument,
             backgroundColor: colorScheme.primary,
             foregroundColor: colorScheme.onPrimary,
@@ -802,6 +803,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
           right: 0,
           bottom: 0,
           child: FloatingActionButton.extended(
+            heroTag: 'document_edit_save',
             onPressed: _updateDocument,
             backgroundColor: Colors.green,
             foregroundColor: Colors.white,

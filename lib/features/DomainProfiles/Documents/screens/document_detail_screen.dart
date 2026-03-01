@@ -517,6 +517,7 @@ class DocumentDetailScreen extends StatelessWidget {
           right: 0,
           bottom: 80,
           child: FloatingActionButton.extended(
+            heroTag: 'document_detail_edit',
             onPressed: () => _navigateToEdit(context),
             backgroundColor: Colors.orange,
             foregroundColor: Colors.white,
@@ -529,6 +530,7 @@ class DocumentDetailScreen extends StatelessWidget {
           right: 0,
           bottom: 0,
           child: FloatingActionButton.extended(
+            heroTag: 'document_detail_view_image',
             onPressed: () {
               _showImageDialog(context, document.frontImage ?? '');
             },

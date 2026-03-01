@@ -9,6 +9,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/widgets/profile_avatar.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
 
@@ -160,12 +161,10 @@ Widget build(BuildContext context) {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    if (profile.photo != null && profile.photo!.isNotEmpty)
-                      CircleAvatar(
-                        radius: 60,
-                        backgroundImage: NetworkImage(profile.photo!),
-                        backgroundColor: AppColors.purple.withValues(alpha: 0.15),
-                      ),
+                    ProfileAvatar(
+                      photoUrl: profile.photo?.isNotEmpty == true ? profile.photo : null,
+                      radius: 60,
+                    ),
                     const SizedBox(height: 16),
                     Text(
                       '${profile.firstName} ${profile.lastName}',

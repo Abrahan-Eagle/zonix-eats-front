@@ -68,8 +68,8 @@ class OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return WillPopScope(
-      onWillPop: () async => false,
+    return PopScope(
+      canPop: false,
       child: Scaffold(
         body: Stack(
           children: [
@@ -130,6 +130,7 @@ class OnboardingScreenState extends State<OnboardingScreen> {
                           // continúa mediante el botón propio de selección de rol.
                           if (_currentPage < onboardingPages.length - 1)
                             FloatingActionButton(
+                              heroTag: 'onboarding_next',
                               onPressed: _handleNext,
                               backgroundColor: theme.primaryColor,
                               elevation: 2,

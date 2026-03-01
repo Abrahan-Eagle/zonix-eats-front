@@ -21,18 +21,18 @@ class _OrdersPageState extends State<OrdersPage> {
   List<Order> _orders = [];
   bool _isLoading = true;
   String? _error;
-  StreamSubscription? _webSocketSubscription;
+  StreamSubscription? _pusherSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadOrders();
-    _initializeWebSocket();
+    _initializePusher();
   }
 
   @override
   void dispose() {
-    _webSocketSubscription?.cancel();
+    _pusherSubscription?.cancel();
     super.dispose();
   }
 
@@ -57,27 +57,26 @@ class _OrdersPageState extends State<OrdersPage> {
     }
   }
 
-  Future<void> _initializeWebSocket() async {
-    if (!AppConfig.enableWebsockets) return;
+  Future<void> _initializePusher() async {
+    if (!AppConfig.enablePusher) return;
 
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final user = userProvider.user;
+      final userId = userProvider.userId;
+      if (userId <= 0) return;
 
-      final channelName = 'profile.${user['id']}';
-
-      _webSocketSubscription?.cancel();
-      await PusherService.instance.subscribeToProfileChannel(
-        channelName,
-        onDomainEvent: (eventName, data) {
+      _pusherSubscription?.cancel();
+      await PusherService.instance.subscribeToUserChannel(
+        userId,
+        onEvent: (eventName, data) {
           final mapped = <String, dynamic>{
             'type': _mapPusherEventToType(eventName),
             'data': data,
           };
-          _handleWebSocketMessage(mapped);
+          _handlePusherMessage(mapped);
         },
       );
-        } catch (e) {
+    } catch (e) {
       debugPrint('Error inicializando Pusher: $e');
     }
   }
@@ -95,7 +94,7 @@ class _OrdersPageState extends State<OrdersPage> {
     }
   }
 
-  void _handleWebSocketMessage(Map<String, dynamic> message) {
+  void _handlePusherMessage(Map<String, dynamic> message) {
     final type = message['type'];
     
     switch (type) {

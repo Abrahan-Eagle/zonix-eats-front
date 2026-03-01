@@ -389,6 +389,7 @@ class AddressPage extends StatelessWidget {
 
   Widget _buildStatusUpdateButton(BuildContext context) {
     return FloatingActionButton(
+      heroTag: 'adresse_list_status',
       onPressed: () => _showStatusUpdateDialog(context),
       backgroundColor: Colors.green,
       child: const Icon(Icons.check, color: Colors.white),
@@ -399,6 +400,7 @@ class AddressPage extends StatelessWidget {
     final hasAddress = addressModel.address != null;
     
     return FloatingActionButton.extended(
+      heroTag: 'adresse_list_create',
       onPressed: () => _navigateToCreateAddress(context),
       backgroundColor: hasAddress ? Colors.orange : const Color(0xFF1976D2),
       foregroundColor: Colors.white,

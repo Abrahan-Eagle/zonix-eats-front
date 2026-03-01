@@ -179,8 +179,8 @@ class CommerceNotificationService {
     }
   }
 
-  // Conectar Pusher para notificaciones en tiempo casi real (reemplaza WebSocket)
-  Future<void> connectWebSocket(int commerceId) async {
+  /// Conecta Pusher para notificaciones en tiempo casi real (no WebSocket).
+  Future<void> connectPusher(int commerceId) async {
     if (_isConnected) return;
 
     try {
@@ -200,7 +200,7 @@ class CommerceNotificationService {
       _isConnected = ok;
       _logger.i('Pusher conectado para notificaciones de comercio: $ok');
     } catch (e) {
-      _logger.e('Error conectando WebSocket: $e');
+      _logger.e('Error conectando Pusher: $e');
       _isConnected = false;
     }
   }
@@ -368,7 +368,7 @@ class CommerceNotificationService {
       _isConnected = false;
       _logger.i('Notificaciones de comercio desconectadas');
     } catch (e) {
-      _logger.e('Error desconectando WebSocket: $e');
+      _logger.e('Error desconectando Pusher: $e');
     }
   }
 

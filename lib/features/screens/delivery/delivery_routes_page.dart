@@ -687,6 +687,7 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
               ],
             ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'delivery_routes_fab',
         onPressed: () {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Crear nueva ruta')),

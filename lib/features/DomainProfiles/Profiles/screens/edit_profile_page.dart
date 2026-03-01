@@ -418,6 +418,7 @@ Future<void> _pickDate(BuildContext context) async {
             right: 10,
             bottom: 85, // Separación del botón inferior
             child: FloatingActionButton(
+              heroTag: 'edit_profile_pick_image',
               onPressed: _pickImage,
               backgroundColor: Colors.blue, // Color distintivo
               child: const Column(
@@ -438,6 +439,7 @@ Future<void> _pickDate(BuildContext context) async {
             right: 10,
             bottom: 11, // Espaciado desde el borde inferior
             child: FloatingActionButton(
+              heroTag: 'edit_profile_update',
               onPressed: _updateProfile,
               backgroundColor: Colors.green, // Color distintivo
               child: const Column(

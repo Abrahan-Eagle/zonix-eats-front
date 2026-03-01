@@ -222,7 +222,7 @@ class ChatService extends ChangeNotifier {
   void startListening() {
     _messageController = StreamController<Map<String, dynamic>>.broadcast();
     
-    // TODO: Implement real-time WebSocket connection
+    // TODO: Implementar tiempo real con Pusher (canal de chat)
     // _socket = io.connect('ws://your-server.com/chat');
     // _socket.on('new_message', (data) {
     //   _messageController?.add(data);
@@ -235,7 +235,7 @@ class ChatService extends ChangeNotifier {
     _messageController = null;
     _typingTimer?.cancel();
     
-    // TODO: Disconnect WebSocket
+    // TODO: Desconectar Pusher (canal de chat)
     // _socket?.disconnect();
   }
 

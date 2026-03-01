@@ -123,7 +123,23 @@ class AuthUtils {
     }
   }
 
+  static Future<void> saveProfileId(int profileId) async {
+    await _storage.write(key: 'profileId', value: profileId.toString());
+  }
 
+  static Future<int?> getProfileId() async {
+    try {
+      final v = await _storage.read(key: 'profileId');
+      if (v != null) return int.tryParse(v);
+      return null;
+    } catch (e) {
+      if (e.toString().contains('BAD_DECRYPT') || e.toString().contains('BadPaddingException')) {
+        logger.w('Error leyendo profileId: $e');
+        try { await _storage.deleteAll(); } catch (_) {}
+      }
+      return null;
+    }
+  }
 
   static Future<String?> getUserGoogleId() async {
     try {

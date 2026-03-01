@@ -387,6 +387,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
           right: 10,
           bottom: 20,
           child: FloatingActionButton.extended(
+            heroTag: 'document_list_new',
             onPressed: () => _navigateToCreateDocument(context),
             icon: const Icon(Icons.add),
             label: const Text('Nuevo'),
@@ -401,6 +402,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
             right: 10,
             bottom: 85,
             child: FloatingActionButton(
+              heroTag: 'document_list_confirm',
               onPressed: _showConfirmationDialog,
               backgroundColor: Colors.green,
               foregroundColor: Colors.white,
