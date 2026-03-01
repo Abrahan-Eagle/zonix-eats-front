@@ -2874,7 +2874,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
               )
             else
               Container(
-                color: colorScheme.surfaceVariant,
+                color: colorScheme.surfaceContainerHighest,
                 alignment: Alignment.center,
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

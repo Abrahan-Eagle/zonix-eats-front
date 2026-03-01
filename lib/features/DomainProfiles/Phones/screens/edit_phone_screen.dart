@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/phone.dart';
 import '../api/phone_service.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-
 class EditPhoneScreen extends StatefulWidget {
   final Phone phone;
   final int userId;
@@ -42,15 +40,15 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
     _isPrimary = widget.phone.isPrimary;
     _isActive = widget.phone.status;
     
-    print('DEBUG: Initializing data for phone: ${widget.phone.id}');
-    print('DEBUG: Original number: ${widget.phone.number}');
-    print('DEBUG: Original operator code ID: ${widget.phone.operatorCodeId}');
-    print('DEBUG: Original is primary: ${widget.phone.isPrimary}');
-    print('DEBUG: Original status: ${widget.phone.status}');
-    print('DEBUG: Controller text: ${_numberController.text}');
-    print('DEBUG: Selected operator code: $_selectedOperatorCodeId');
-    print('DEBUG: Is primary: $_isPrimary');
-    print('DEBUG: Is active: $_isActive');
+    debugPrint('DEBUG: Initializing data for phone: ${widget.phone.id}');
+    debugPrint('DEBUG: Original number: ${widget.phone.number}');
+    debugPrint('DEBUG: Original operator code ID: ${widget.phone.operatorCodeId}');
+    debugPrint('DEBUG: Original is primary: ${widget.phone.isPrimary}');
+    debugPrint('DEBUG: Original status: ${widget.phone.status}');
+    debugPrint('DEBUG: Controller text: ${_numberController.text}');
+    debugPrint('DEBUG: Selected operator code: $_selectedOperatorCodeId');
+    debugPrint('DEBUG: Is primary: $_isPrimary');
+    debugPrint('DEBUG: Is active: $_isActive');
   }
 
   Future<void> _loadOperatorCodes() async {
@@ -101,19 +99,19 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
         'status': _isActive ? 1 : 0,
       };
 
-      print('DEBUG: Phone ID: ${widget.phone.id}');
-      print('DEBUG: Updates: $updates');
-      print('DEBUG: Selected operator code: $_selectedOperatorCodeId');
-      print('DEBUG: Number: ${_numberController.text}');
-      print('DEBUG: Is primary: $_isPrimary');
-      print('DEBUG: Is active: $_isActive');
+      debugPrint('DEBUG: Phone ID: ${widget.phone.id}');
+      debugPrint('DEBUG: Updates: $updates');
+      debugPrint('DEBUG: Selected operator code: $_selectedOperatorCodeId');
+      debugPrint('DEBUG: Number: ${_numberController.text}');
+      debugPrint('DEBUG: Is primary: $_isPrimary');
+      debugPrint('DEBUG: Is active: $_isActive');
 
       await _phoneService.updatePhone(widget.phone.id, updates);
       
       _showSuccessSnackBar('Teléfono actualizado exitosamente');
       Navigator.pop(context, true);
     } catch (e) {
-      print('DEBUG: Error updating phone: $e');
+      debugPrint('DEBUG: Error updating phone: $e');
       _showErrorSnackBar('Error al actualizar teléfono: $e');
     } finally {
       setState(() {

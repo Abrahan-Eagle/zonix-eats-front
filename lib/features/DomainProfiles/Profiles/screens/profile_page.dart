@@ -261,11 +261,11 @@ class ProfilePagex extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             _buildInfoRow(context, 'Nombre', profile.firstName, Icons.person_outline),
-            if (profile.middleName != null && profile.middleName!.isNotEmpty)
-              _buildInfoRow(context, 'Segundo Nombre', profile.middleName!, Icons.person_outline),
+            if (profile.middleName.isNotEmpty)
+              _buildInfoRow(context, 'Segundo Nombre', profile.middleName, Icons.person_outline),
             _buildInfoRow(context, 'Apellido', profile.lastName, Icons.person_outline),
-            if (profile.secondLastName != null && profile.secondLastName!.isNotEmpty)
-              _buildInfoRow(context, 'Segundo Apellido', profile.secondLastName!, Icons.person_outline),
+            if (profile.secondLastName.isNotEmpty)
+              _buildInfoRow(context, 'Segundo Apellido', profile.secondLastName, Icons.person_outline),
             _buildInfoRow(context, 'Fecha de Nacimiento', _formatDate(profile.dateOfBirth), Icons.calendar_today),
             _buildInfoRow(context, 'Estado Civil', _translateMaritalStatus(profile.maritalStatus ?? 'N/A'), Icons.favorite),
             _buildInfoRow(context, 'Sexo', _translateSex(profile.sex), Icons.wc),

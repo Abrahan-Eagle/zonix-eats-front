@@ -29,19 +29,19 @@ class PhoneScreenState extends State<PhoneScreen> {
 
   Future<void> _loadPhones() async {
     try {
-      print('Loading phones for user: ${widget.userId}');
+      debugPrint('Loading phones for user: ${widget.userId}');
       final phones = await _phoneService.fetchPhones(widget.userId);
-      print('Fetched ${phones.length} phones');
+      debugPrint('Fetched ${phones.length} phones');
       
       if (mounted) {
         setState(() {
           _phones = phones;
           _loading = false;
         });
-        print('State updated with ${_phones.length} phones');
+        debugPrint('State updated with ${_phones.length} phones');
       }
     } catch (e) {
-      print('Error loading phones: $e');
+      debugPrint('Error loading phones: $e');
       if (mounted) {
         setState(() {
           _loading = false;
@@ -93,22 +93,6 @@ class PhoneScreenState extends State<PhoneScreen> {
       _showSuccessSnackBar('Estado actualizado exitosamente');
     } catch (e) {
       // Revertir cambios si hay error
-      _loadPhones();
-      _showErrorSnackBar('Error al actualizar teléfono: $e');
-    }
-  }
-
-  Future<void> _updateActiveStatus(Phone phone, bool status) async {
-    try {
-      setState(() {
-        _phones = _phones.map((p) {
-          return p.id == phone.id ? p.copyWith(status: status) : p;
-        }).toList();
-      });
-
-      await _phoneService.updateActiveStatus(phone.id, status, widget.userId);
-      _showSuccessSnackBar('Estado actualizado exitosamente');
-    } catch (e) {
       _loadPhones();
       _showErrorSnackBar('Error al actualizar teléfono: $e');
     }
@@ -423,11 +407,11 @@ class PhoneScreenState extends State<PhoneScreen> {
       ),
     );
 
-    print('Create phone result: $result');
+    debugPrint('Create phone result: $result');
     if (result == true) {
-      print('Reloading phones after create...');
+      debugPrint('Reloading phones after create...');
       await _loadPhones();
-      print('Phones reloaded. Count: ${_phones.length}');
+      debugPrint('Phones reloaded. Count: ${_phones.length}');
     }
   }
 
@@ -442,11 +426,11 @@ class PhoneScreenState extends State<PhoneScreen> {
       ),
     );
 
-    print('Edit phone result: $result');
+    debugPrint('Edit phone result: $result');
     if (result == true) {
-      print('Reloading phones after edit...');
+      debugPrint('Reloading phones after edit...');
       await _loadPhones();
-      print('Phones reloaded. Count: ${_phones.length}');
+      debugPrint('Phones reloaded. Count: ${_phones.length}');
     }
   }
 
@@ -458,11 +442,11 @@ class PhoneScreenState extends State<PhoneScreen> {
       ),
     );
 
-    print('Phone detail result: $result');
+    debugPrint('Phone detail result: $result');
     if (result == true) {
-      print('Reloading phones after delete from detail...');
+      debugPrint('Reloading phones after delete from detail...');
       await _loadPhones();
-      print('Phones reloaded. Count: ${_phones.length}');
+      debugPrint('Phones reloaded. Count: ${_phones.length}');
     }
   }
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/phone.dart';
 import '../api/phone_service.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -83,8 +82,9 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
         status: true,
       );
 
-      final createdPhone = await _phoneService.createPhone(phone, widget.userId);
-      
+      await _phoneService.createPhone(phone, widget.userId);
+
+      if (!context.mounted) return;
       context.read<UserProvider>().setPhoneCreated(true);
       _showSuccessSnackBar('Teléfono creado exitosamente');
       Navigator.pop(context, true);
