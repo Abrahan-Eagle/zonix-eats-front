@@ -4,9 +4,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/models/order.dart';
 import 'package:zonix/models/cart_item.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/testing.dart';
-import 'dart:convert';
 
 class MockOrderService extends OrderService {
   @override
@@ -30,7 +27,7 @@ class MockOrderService extends OrderService {
       paymentMethod: 'cash',
       paymentStatus: 'pending',
       deliveryAddress: 'Test Address',
-      estimatedDeliveryTime: DateTime.now().add(Duration(minutes: 30)),
+      estimatedDeliveryTime: DateTime.now().add(const Duration(minutes: 30)),
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       items: [],
@@ -53,7 +50,7 @@ class MockOrderService extends OrderService {
       paymentMethod: 'cash',
       paymentStatus: 'pending',
       deliveryAddress: 'Test Address',
-      estimatedDeliveryTime: DateTime.now().add(Duration(minutes: 30)),
+      estimatedDeliveryTime: DateTime.now().add(const Duration(minutes: 30)),
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
       items: [],

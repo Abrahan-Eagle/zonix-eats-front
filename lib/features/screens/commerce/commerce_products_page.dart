@@ -6,7 +6,7 @@ import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
 
 class CommerceProductsPage extends StatefulWidget {
-  const CommerceProductsPage({Key? key}) : super(key: key);
+  const CommerceProductsPage({super.key});
 
   @override
   State<CommerceProductsPage> createState() => _CommerceProductsPageState();
@@ -201,7 +201,7 @@ class _CommerceProductsPageState extends State<CommerceProductsPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: AppColors.red),
+              const Icon(Icons.error_outline, size: 64, color: AppColors.red),
               const SizedBox(height: 16),
               Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
@@ -225,9 +225,9 @@ class _CommerceProductsPageState extends State<CommerceProductsPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.inventory_2, size: 64, color: AppColors.gray),
+                  const Icon(Icons.inventory_2, size: 64, color: AppColors.gray),
                   const SizedBox(height: 16),
-                  Text(
+                  const Text(
                     'No hay productos',
                     style: TextStyle(fontSize: 18, color: AppColors.gray),
                   ),
@@ -288,7 +288,7 @@ class _CommerceProductsPageState extends State<CommerceProductsPage> {
                   Switch(
                     value: product.available,
                     onChanged: (_) => _toggleAvailability(product),
-                    activeColor: AppColors.green,
+                    activeThumbColor: AppColors.green,
                   ),
                   PopupMenuButton<String>(
                     onSelected: (v) {

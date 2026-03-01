@@ -4,7 +4,7 @@ import 'package:zonix/features/services/commerce_analytics_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
 class CommerceReportsPage extends StatefulWidget {
-  const CommerceReportsPage({Key? key}) : super(key: key);
+  const CommerceReportsPage({super.key});
 
   @override
   State<CommerceReportsPage> createState() => _CommerceReportsPageState();
@@ -69,7 +69,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 64, color: AppColors.red),
+                const Icon(Icons.error_outline, size: 64, color: AppColors.red),
                 const SizedBox(height: 16),
                 Text(_error!, textAlign: TextAlign.center),
                 const SizedBox(height: 16),
@@ -327,7 +327,7 @@ class _StatCard extends StatelessWidget {
                 color: color,
               ),
             ),
-            Text(label, style: TextStyle(fontSize: 12, color: AppColors.gray)),
+            Text(label, style: const TextStyle(fontSize: 12, color: AppColors.gray)),
           ],
         ),
       ),

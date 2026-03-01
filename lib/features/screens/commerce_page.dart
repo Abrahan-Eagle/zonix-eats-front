@@ -1,16 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../../models/commerce_order.dart';
-import '../../../models/commerce_product.dart';
-import '../../../features/services/commerce_order_service.dart';
-import '../../../features/services/commerce_product_service.dart';
 import 'commerce/commerce_dashboard_page.dart';
 import 'commerce/commerce_orders_page.dart';
 import 'commerce/commerce_products_page.dart';
-import 'commerce/commerce_product_form_page.dart';
 import 'commerce/commerce_profile_page.dart';
 
 class CommercePage extends StatefulWidget {
-  const CommercePage({Key? key}) : super(key: key);
+  const CommercePage({super.key});
 
   @override
   State<CommercePage> createState() => _CommercePageState();
@@ -170,7 +165,7 @@ class _CommercePageState extends State<CommercePage> {
 class QuickStatsWidget extends StatelessWidget {
   final Map<String, dynamic> stats;
 
-  const QuickStatsWidget({Key? key, required this.stats}) : super(key: key);
+  const QuickStatsWidget({super.key, required this.stats});
 
   @override
   Widget build(BuildContext context) {
@@ -262,7 +257,7 @@ class QuickStatsWidget extends StatelessWidget {
 
 // Widget de acciones rápidas
 class QuickActionsWidget extends StatelessWidget {
-  const QuickActionsWidget({Key? key}) : super(key: key);
+  const QuickActionsWidget({super.key});
 
   @override
   Widget build(BuildContext context) {

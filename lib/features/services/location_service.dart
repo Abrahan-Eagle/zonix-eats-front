@@ -213,7 +213,7 @@ class LocationService extends ChangeNotifier {
         headers: {
           'User-Agent': '${AppConfig.appName} App',
         },
-      ).timeout(Duration(seconds: 5));
+      ).timeout(const Duration(seconds: 5));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -272,7 +272,7 @@ class LocationService extends ChangeNotifier {
         headers: {
           'User-Agent': '${AppConfig.appName} App',
         },
-      ).timeout(Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -419,7 +419,7 @@ class LocationService extends ChangeNotifier {
     } else {
       final hours = minutes ~/ 60;
       final remainingMinutes = minutes % 60;
-      return '$hours h ${remainingMinutes} min';
+      return '$hours h $remainingMinutes min';
     }
   }
 } 

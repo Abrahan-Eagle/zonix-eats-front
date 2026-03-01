@@ -3,7 +3,7 @@ import '../services/export_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
 class DataExportPage extends StatefulWidget {
-  const DataExportPage({Key? key}) : super(key: key);
+  const DataExportPage({super.key});
 
   @override
   State<DataExportPage> createState() => _DataExportPageState();
@@ -179,7 +179,7 @@ class _DataExportPageState extends State<DataExportPage> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             title: const Text('Exportar Datos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)), // TODO: internacionalizar
-            iconTheme: IconThemeData(color: AppColors.white),
+            iconTheme: const IconThemeData(color: AppColors.white),
           ),
         ),
       ),
@@ -193,20 +193,20 @@ class _DataExportPageState extends State<DataExportPage> {
               shadowColor: AppColors.orange.withValues(alpha: 0.10),
               elevation: 8,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
+              child: const Padding(
+                padding: EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Exportar tus datos personales', // TODO: internacionalizar
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
+                    SizedBox(height: 8),
+                    Text(
                       'Puedes solicitar una copia de todos los datos que tenemos sobre ti. La exportación puede tardar hasta 24 horas en completarse.', // TODO: internacionalizar
                       style: TextStyle(color: Colors.grey),
                     ),
@@ -413,7 +413,7 @@ class _DataExportPageState extends State<DataExportPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Detalles de exportación'),
+        title: const Text('Detalles de exportación'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

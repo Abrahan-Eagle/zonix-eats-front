@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class DeliveryEarningsPage extends StatefulWidget {
-  const DeliveryEarningsPage({Key? key}) : super(key: key);
+  const DeliveryEarningsPage({super.key});
 
   @override
   State<DeliveryEarningsPage> createState() => _DeliveryEarningsPageState();
@@ -241,7 +241,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
             const SizedBox(height: 16),
             
             // Gráfico de dona
-            Container(
+            SizedBox(
               height: 150,
               child: Row(
                 children: [
@@ -426,7 +426,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
                   ],
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),
@@ -599,7 +599,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
                   ],
                 ),
               );
-            }).toList(),
+            }),
           ],
         ),
       ),

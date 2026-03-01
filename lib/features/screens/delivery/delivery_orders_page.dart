@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:zonix/features/services/delivery_service.dart';
 
 class DeliveryOrdersPage extends StatefulWidget {
+  const DeliveryOrdersPage({super.key});
+
   @override
   _DeliveryOrdersPageState createState() => _DeliveryOrdersPageState();
 }
@@ -67,30 +69,30 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Órdenes de Delivery'),
+        title: const Text('Órdenes de Delivery'),
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
             onPressed: _loadOrders,
           ),
         ],
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : _error != null
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error, size: 64, color: Colors.red),
-                      SizedBox(height: 16),
+                      const Icon(Icons.error, size: 64, color: Colors.red),
+                      const SizedBox(height: 16),
                       Text('Error: $_error'),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _loadOrders,
-                        child: Text('Reintentar'),
+                        child: const Text('Reintentar'),
                       ),
                     ],
                   ),
@@ -106,8 +108,8 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.inbox, size: 64, color: Colors.grey),
-                                    SizedBox(height: 16),
+                                    const Icon(Icons.inbox, size: 64, color: Colors.grey),
+                                    const SizedBox(height: 16),
                                     Text(
                                       'No hay órdenes disponibles',
                                       style: TextStyle(
@@ -119,7 +121,7 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
                                 ),
                               )
                             : ListView.builder(
-                                padding: EdgeInsets.all(16),
+                                padding: const EdgeInsets.all(16),
                                 itemCount: _filteredOrders.length,
                                 itemBuilder: (context, index) {
                                   final order = _filteredOrders[index];
@@ -138,7 +140,7 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
     
     return Container(
       height: 60,
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         itemCount: filters.length,
@@ -147,7 +149,7 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
           final isSelected = _selectedFilter == filter;
           
           return Padding(
-            padding: EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.only(right: 8),
             child: FilterChip(
               label: Text(filter),
               selected: isSelected,
@@ -171,10 +173,10 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
     final statusText = _getStatusText(order['status']);
 
     return Card(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 16),
       elevation: 4,
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -187,12 +189,12 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
                     children: [
                       Text(
                         'Orden #${order['order_number']}',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         order['customer_name'],
                         style: TextStyle(
@@ -204,14 +206,14 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: statusColor,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     statusText,
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -220,7 +222,7 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
@@ -231,7 +233,7 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
                 ),
               ],
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -242,7 +244,7 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
@@ -254,7 +256,7 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
               ],
             ),
             if (order['status'] == 'in_progress') ...[
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
@@ -266,23 +268,23 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
                 ],
               ),
             ],
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: () => _showOrderDetails(order),
-                    icon: Icon(Icons.info),
-                    label: Text('Detalles'),
+                    icon: const Icon(Icons.info),
+                    label: const Text('Detalles'),
                   ),
                 ),
-                SizedBox(width: 8),
+                const SizedBox(width: 8),
                 if (order['status'] == 'pending')
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () => _acceptOrder(order),
-                      icon: Icon(Icons.check),
-                      label: Text('Aceptar'),
+                      icon: const Icon(Icons.check),
+                      label: const Text('Aceptar'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
                         foregroundColor: Colors.white,
@@ -293,8 +295,8 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () => _updateOrderStatus(order),
-                      icon: Icon(Icons.update),
-                      label: Text('Actualizar'),
+                      icon: const Icon(Icons.update),
+                      label: const Text('Actualizar'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
@@ -321,10 +323,10 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
             fontWeight: FontWeight.w500,
           ),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
           ),
@@ -422,7 +424,7 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cerrar'),
+            child: const Text('Cerrar'),
           ),
         ],
       ),
@@ -431,7 +433,7 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
 
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -439,7 +441,7 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
             width: 120,
             child: Text(
               '$label:',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
           Expanded(child: Text(value)),
@@ -452,19 +454,19 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Confirmar Aceptación'),
+        title: const Text('Confirmar Aceptación'),
         content: Text('¿Estás seguro de que quieres aceptar la orden #${order['order_number']}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar'),
+            child: const Text('Cancelar'),
           ),
           ElevatedButton(
             onPressed: () async {
               Navigator.pop(context);
               await _updateOrderStatusToInProgress(order);
             },
-            child: Text('Aceptar'),
+            child: const Text('Aceptar'),
           ),
         ],
       ),
@@ -475,7 +477,7 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
     try {
       await _deliveryService.updateOrderStatus(order['id'], 'in_progress');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Orden aceptada exitosamente')),
+        const SnackBar(content: Text('Orden aceptada exitosamente')),
       );
       _loadOrders();
     } catch (e) {
@@ -489,23 +491,23 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Actualizar Estado'),
+        title: const Text('Actualizar Estado'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: Icon(Icons.local_shipping),
-              title: Text('En Camino'),
+              leading: const Icon(Icons.local_shipping),
+              title: const Text('En Camino'),
               onTap: () => _updateStatus(order, 'in_progress'),
             ),
             ListTile(
-              leading: Icon(Icons.check_circle),
-              title: Text('Entregado'),
+              leading: const Icon(Icons.check_circle),
+              title: const Text('Entregado'),
               onTap: () => _updateStatus(order, 'completed'),
             ),
             ListTile(
-              leading: Icon(Icons.cancel),
-              title: Text('Cancelar'),
+              leading: const Icon(Icons.cancel),
+              title: const Text('Cancelar'),
               onTap: () => _updateStatus(order, 'cancelled'),
             ),
           ],
@@ -513,7 +515,7 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancelar'),
+            child: const Text('Cancelar'),
           ),
         ],
       ),
@@ -525,7 +527,7 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
     try {
       await _deliveryService.updateOrderStatus(order['id'], status);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Estado actualizado exitosamente')),
+        const SnackBar(content: Text('Estado actualizado exitosamente')),
       );
       _loadOrders();
     } catch (e) {

@@ -4,7 +4,6 @@ import 'package:zonix/models/order.dart';
 import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/config/app_config.dart';
-import 'package:zonix/helpers/auth_helper.dart';
 import 'dart:async'; // Added for StreamSubscription
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/services/pusher_service.dart';
@@ -46,10 +45,6 @@ class _OrdersPageState extends State<OrdersPage> {
 
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       final user = userProvider.user;
-      
-      if (user == null) {
-        throw Exception('Usuario no autenticado');
-      }
 
       final orders = await _orderService.getUserOrders();
       
@@ -72,22 +67,20 @@ class _OrdersPageState extends State<OrdersPage> {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
       final user = userProvider.user;
 
-      if (user != null) {
-        final channelName = 'profile.${user['id']}';
+      final channelName = 'profile.${user['id']}';
 
-        _webSocketSubscription?.cancel();
-        await PusherService.instance.subscribeToProfileChannel(
-          channelName,
-          onDomainEvent: (eventName, data) {
-            final mapped = <String, dynamic>{
-              'type': _mapPusherEventToType(eventName),
-              'data': data,
-            };
-            _handleWebSocketMessage(mapped);
-          },
-        );
-      }
-    } catch (e) {
+      _webSocketSubscription?.cancel();
+      await PusherService.instance.subscribeToProfileChannel(
+        channelName,
+        onDomainEvent: (eventName, data) {
+          final mapped = <String, dynamic>{
+            'type': _mapPusherEventToType(eventName),
+            'data': data,
+          };
+          _handleWebSocketMessage(mapped);
+        },
+      );
+        } catch (e) {
       print('Error inicializando Pusher: $e');
     }
   }
@@ -154,7 +147,7 @@ class _OrdersPageState extends State<OrdersPage> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             title: const Text('Órdenes', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)), // TODO: internacionalizar
-            iconTheme: IconThemeData(color: AppColors.white),
+            iconTheme: const IconThemeData(color: AppColors.white),
           ),
         ),
       ),

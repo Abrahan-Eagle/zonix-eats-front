@@ -42,9 +42,6 @@ class DocumentDetailScreen extends StatelessWidget {
   }
 
   Widget _buildDocumentDetails(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -199,9 +196,6 @@ class DocumentDetailScreen extends StatelessWidget {
   }
 
   Widget _buildDocumentSpecificInfo(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     switch (document.type) {
       case 'ci':
         return _buildInfoRow('Cédula de Identidad', 'Documento Nacional de Identidad', Icons.badge);
@@ -423,7 +417,7 @@ class DocumentDetailScreen extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.qr_code,
                       color: Colors.orange,
                       size: 24,

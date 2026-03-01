@@ -26,7 +26,7 @@ class HelpAndFAQPage extends StatelessWidget {
             backgroundColor: Colors.transparent,
             elevation: 0,
             title: const Text('Ayuda y Comentarios', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)), // TODO: internacionalizar
-            iconTheme: IconThemeData(color: AppColors.white),
+            iconTheme: const IconThemeData(color: AppColors.white),
           ),
         ),
       ),

@@ -443,7 +443,7 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
                   Switch(
                     value: _trabajando,
                     onChanged: (value) => setState(() => _trabajando = value),
-                    activeColor: const Color(0xFF27AE60),
+                    activeThumbColor: const Color(0xFF27AE60),
                   ),
                 ],
               ),
@@ -514,7 +514,7 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
     required bool isSmallPhone,
   }) {
     return DropdownButtonFormField<String>(
-      value: value.isEmpty ? null : value,
+      initialValue: value.isEmpty ? null : value,
       onChanged: onChanged,
       style: TextStyle(
         fontSize: isTablet ? 16 : (isSmallPhone ? 13 : 14),

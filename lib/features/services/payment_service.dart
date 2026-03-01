@@ -331,7 +331,7 @@ class PaymentService extends ChangeNotifier {
   Future<bool> validatePaymentMethod(Map<String, dynamic> paymentData) async {
     try {
       // Client-side validation (backend will also validate)
-      await Future.delayed(Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 500));
       
       // Simple validation rules
       if (paymentData['type'] == 'card') {

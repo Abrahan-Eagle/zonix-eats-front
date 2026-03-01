@@ -209,7 +209,7 @@ class ScheduledOrderService {
   /// Formatear fecha y hora para mostrar
   static String formatScheduledDateTime(String date, String time) {
     final dateTime = DateTime.parse('$date $time');
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year} a las ${time}';
+    return '${dateTime.day}/${dateTime.month}/${dateTime.year} a las $time';
   }
 
   /// Obtener estado del pedido programado
@@ -263,7 +263,7 @@ class ScheduledOrderService {
       final now = DateTime.now();
       
       // Debe ser al menos 2 horas en el futuro
-      final minimumDateTime = now.add(Duration(hours: 2));
+      final minimumDateTime = now.add(const Duration(hours: 2));
       
       return scheduledDateTime.isAfter(minimumDateTime);
     } catch (e) {

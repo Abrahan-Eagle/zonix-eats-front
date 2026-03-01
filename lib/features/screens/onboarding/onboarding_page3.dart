@@ -189,7 +189,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
           ),
-          child: Icon(Icons.rocket_launch, color: _kPrimary, size: 32),
+          child: const Icon(Icons.rocket_launch, color: _kPrimary, size: 32),
         ),
         const SizedBox(height: 16),
         Text(

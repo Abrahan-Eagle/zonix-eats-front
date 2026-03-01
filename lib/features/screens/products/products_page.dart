@@ -19,7 +19,7 @@ const Color _accentYellow = Color(0xFFFFC107);
 
 class ProductsPage extends StatefulWidget {
   final ProductService? productService;
-  const ProductsPage({Key? key, this.productService}) : super(key: key);
+  const ProductsPage({super.key, this.productService});
 
   @override
   State<ProductsPage> createState() => _ProductsPageState();
@@ -216,7 +216,7 @@ class _ProductsPageState extends State<ProductsPage> {
                   ),
                   TextButton(
                     onPressed: () {},
-                    child: Text('Ver todo', style: TextStyle(color: _primary, fontWeight: FontWeight.w600)),
+                    child: const Text('Ver todo', style: TextStyle(color: _primary, fontWeight: FontWeight.w600)),
                   ),
                 ],
               ),
@@ -316,7 +316,7 @@ class _ProductsPageState extends State<ProductsPage> {
           height: 160,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
-            boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 12, offset: const Offset(0, 4))],
+            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 12, offset: Offset(0, 4))],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(20),
@@ -329,11 +329,11 @@ class _ProductsPageState extends State<ProductsPage> {
                   Image.asset('assets/onboarding/onboarding_eats.png', fit: BoxFit.cover),
                 // Gradiente como template: from-background-dark to-transparent
                 Container(
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
-                      colors: [const Color(0xFF0F1923), Colors.transparent],
+                      colors: [Color(0xFF0F1923), Colors.transparent],
                     ),
                   ),
                 ),
@@ -449,13 +449,13 @@ class _ProductsPageState extends State<ProductsPage> {
                     color: _accentYellow.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Text(product.category, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _accentYellow)),
+                  child: Text(product.category, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _accentYellow)),
                 ),
               ],
               const SizedBox(height: 4),
               Row(
                 children: [
-                  Icon(Icons.star, color: _primary, size: 14),
+                  const Icon(Icons.star, color: _primary, size: 14),
                   const SizedBox(width: 4),
                   Text('${product.rating.toStringAsFixed(1)} (${product.reviewCount})', style: TextStyle(fontSize: 11, color: isDark ? Colors.white54 : Colors.black54)),
                   const SizedBox(width: 8),

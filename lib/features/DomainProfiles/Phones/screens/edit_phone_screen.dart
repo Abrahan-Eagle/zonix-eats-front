@@ -154,7 +154,7 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
                                   Column(
                                     children: [
                                       DropdownButtonFormField<int>(
-                                        value: _selectedOperatorCodeId,
+                                        initialValue: _selectedOperatorCodeId,
                                         decoration: const InputDecoration(
                                           labelText: 'Código',
                                           border: OutlineInputBorder(),
@@ -216,7 +216,7 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
                                       Flexible(
                                         flex: 1,
                                         child: DropdownButtonFormField<int>(
-                                          value: _selectedOperatorCodeId,
+                                          initialValue: _selectedOperatorCodeId,
                                           decoration: const InputDecoration(
                                             labelText: 'Código',
                                             border: OutlineInputBorder(),
@@ -325,15 +325,15 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            const Row(
               children: [
                 Icon(
                   Icons.phone,
                   color: Colors.blue,
                   size: 24,
                 ),
-                const SizedBox(width: 8),
-                const Text(
+                SizedBox(width: 8),
+                Text(
                   'Teléfono Actual',
                   style: TextStyle(
                     fontSize: 18,

@@ -281,7 +281,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
                     color: Colors.orange.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.edit,
                     color: Colors.orange,
                     size: 24,
@@ -514,7 +514,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
             ),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.check_circle,
                   color: Colors.green,
                   size: 20,
@@ -753,7 +753,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.check_circle,
                     color: Colors.green,
                     size: 20,

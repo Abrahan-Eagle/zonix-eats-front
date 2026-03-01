@@ -1687,7 +1687,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                   ),
                 ),
                 DropdownButtonFormField<String>(
-                  value: _selectedSex,
+                  initialValue: _selectedSex,
                   isExpanded: true,
                   dropdownColor: _kSurfaceDark,
                   icon: Icon(Icons.expand_more, color: Colors.white.withValues(alpha: 0.6)),
@@ -1710,11 +1710,11 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                     'Selecciona tu sexo',
                     style: GoogleFonts.plusJakartaSans(color: Colors.white.withValues(alpha: 0.5)),
                   ),
-                  items: [
-                    const DropdownMenuItem(value: 'M', child: Text('Masculino', style: TextStyle(color: Colors.white))),
-                    const DropdownMenuItem(value: 'F', child: Text('Femenino', style: TextStyle(color: Colors.white))),
-                    const DropdownMenuItem(value: 'O', child: Text('Otro', style: TextStyle(color: Colors.white))),
-                    const DropdownMenuItem(value: 'X', child: Text('Prefiero no decir', style: TextStyle(color: Colors.white))),
+                  items: const [
+                    DropdownMenuItem(value: 'M', child: Text('Masculino', style: TextStyle(color: Colors.white))),
+                    DropdownMenuItem(value: 'F', child: Text('Femenino', style: TextStyle(color: Colors.white))),
+                    DropdownMenuItem(value: 'O', child: Text('Otro', style: TextStyle(color: Colors.white))),
+                    DropdownMenuItem(value: 'X', child: Text('Prefiero no decir', style: TextStyle(color: Colors.white))),
                   ],
                   onChanged: (v) => setState(() => _selectedSex = v),
                   validator: (v) =>
@@ -1753,7 +1753,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                       SizedBox(
                         width: 100,
                         child: DropdownButtonFormField<Map<String, dynamic>>(
-                          value: _selectedOperator,
+                          initialValue: _selectedOperator,
                           isExpanded: true,
                           dropdownColor: _kSurfaceDark,
                           decoration: InputDecoration(
@@ -2197,7 +2197,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       label: 'País',
       icon: Icons.public,
       child: DropdownButtonFormField<Country>(
-        value: _selectedCountry,
+        initialValue: _selectedCountry,
         isExpanded: true,
         dropdownColor: _kAddressSurface,
         icon: Icon(Icons.expand_more, color: Colors.white.withValues(alpha: 0.6)),
@@ -2222,7 +2222,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       label: 'Estado',
       icon: Icons.map_outlined,
       child: DropdownButtonFormField<StateModel>(
-        value: _selectedState,
+        initialValue: _selectedState,
         isExpanded: true,
         dropdownColor: _kAddressSurface,
         icon: Icon(Icons.expand_more, color: Colors.white.withValues(alpha: 0.6)),
@@ -2247,7 +2247,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       label: 'Ciudad',
       icon: Icons.apartment,
       child: DropdownButtonFormField<City>(
-        value: _selectedCity,
+        initialValue: _selectedCity,
         isExpanded: true,
         dropdownColor: _kAddressSurface,
         icon: Icon(Icons.expand_more, color: Colors.white.withValues(alpha: 0.6)),
@@ -2432,9 +2432,9 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
               inputFormatters: [_CIVenezuelaInputFormatter()],
               onChanged: (value) {
                 if (!value.startsWith('V-')) {
-                  _commerceOwnerCiController.value = TextEditingValue(
+                  _commerceOwnerCiController.value = const TextEditingValue(
                     text: 'V-',
-                    selection: const TextSelection.collapsed(offset: 2),
+                    selection: TextSelection.collapsed(offset: 2),
                   );
                 }
               },
@@ -2463,7 +2463,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                   Expanded(
                     flex: 1,
                     child: DropdownButtonFormField<Map<String, dynamic>>(
-                      value: _selectedOperator,
+                      initialValue: _selectedOperator,
                       isExpanded: true,
                       dropdownColor: _kSurfaceDark,
                       icon: Icon(Icons.arrow_drop_down, color: Colors.white.withValues(alpha: 0.6)),
@@ -2558,7 +2558,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                       color: _kPrimary.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Icon(Icons.door_front_door_outlined, color: _kPrimary, size: 22),
+                    child: const Icon(Icons.door_front_door_outlined, color: _kPrimary, size: 22),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -2587,7 +2587,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                   Switch(
                     value: _commerceOpen,
                     onChanged: (v) => setState(() => _commerceOpen = v),
-                    activeColor: _kPrimary,
+                    activeThumbColor: _kPrimary,
                     activeTrackColor: _kPrimary.withValues(alpha: 0.5),
                   ),
                 ],
@@ -2685,7 +2685,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.verified_user_outlined, color: _kPrimary, size: 24),
+                  const Icon(Icons.verified_user_outlined, color: _kPrimary, size: 24),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -3005,7 +3005,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
 
   Widget _buildCountryDropdownDark() {
     return DropdownButtonFormField<Country>(
-      value: _selectedCountry,
+      initialValue: _selectedCountry,
       isExpanded: true,
       dropdownColor: _kSurfaceDark,
       decoration: _commerceDropdownDecoration('País'),
@@ -3028,7 +3028,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
 
   Widget _buildStateDropdownDark() {
     return DropdownButtonFormField<StateModel>(
-      value: _selectedState,
+      initialValue: _selectedState,
       isExpanded: true,
       dropdownColor: _kSurfaceDark,
       decoration: _commerceDropdownDecoration('Estado'),
@@ -3051,7 +3051,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
 
   Widget _buildCityDropdownDark() {
     return DropdownButtonFormField<City>(
-      value: _selectedCity,
+      initialValue: _selectedCity,
       isExpanded: true,
       dropdownColor: _kSurfaceDark,
       decoration: _commerceDropdownDecoration('Ciudad'),
@@ -3144,14 +3144,14 @@ class _RIFVenezuelaInputFormatter extends TextInputFormatter {
 
     if (isDeleting && (text.length <= 2 || text == 'V' || text == 'J')) {
       if (text == 'V') {
-        return TextEditingValue(
+        return const TextEditingValue(
           text: 'V-',
-          selection: const TextSelection.collapsed(offset: 2),
+          selection: TextSelection.collapsed(offset: 2),
         );
       } else if (text == 'J') {
-        return TextEditingValue(
+        return const TextEditingValue(
           text: 'J-',
-          selection: const TextSelection.collapsed(offset: 2),
+          selection: TextSelection.collapsed(offset: 2),
         );
       }
       if (text.length <= 1) {
@@ -3165,14 +3165,14 @@ class _RIFVenezuelaInputFormatter extends TextInputFormatter {
     } else if (text.startsWith('J-')) {
       prefix = 'J-';
     } else if (text.startsWith('V')) {
-      return TextEditingValue(
+      return const TextEditingValue(
         text: 'V-',
-        selection: const TextSelection.collapsed(offset: 2),
+        selection: TextSelection.collapsed(offset: 2),
       );
     } else if (text.startsWith('J')) {
-      return TextEditingValue(
+      return const TextEditingValue(
         text: 'J-',
-        selection: const TextSelection.collapsed(offset: 2),
+        selection: TextSelection.collapsed(offset: 2),
       );
     } else {
       return oldValue;

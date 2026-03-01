@@ -52,7 +52,7 @@ void main() {
 
     test('should handle export request parameters', () {
       final dataTypes = ['profile', 'orders'];
-      final format = 'json';
+      const format = 'json';
 
       expect(dataTypes, isA<List<String>>());
       expect(format, isA<String>());

@@ -4,7 +4,7 @@ import 'package:zonix/features/services/commerce_delivery_zone_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
 class CommerceDeliveryZonesPage extends StatefulWidget {
-  const CommerceDeliveryZonesPage({Key? key}) : super(key: key);
+  const CommerceDeliveryZonesPage({super.key});
 
   @override
   State<CommerceDeliveryZonesPage> createState() =>
@@ -59,7 +59,7 @@ class _CommerceDeliveryZonesPageState extends State<CommerceDeliveryZonesPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: AppColors.red),
+              const Icon(Icons.error_outline, size: 64, color: AppColors.red),
               const SizedBox(height: 16),
               Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
@@ -105,8 +105,8 @@ class _CommerceDeliveryZonesPageState extends State<CommerceDeliveryZonesPage> {
                       leading: const Icon(Icons.location_on, color: AppColors.blue),
                       title: Text(name.toString()),
                       subtitle: Text(
-                        'Radio: ${radius} km · Tarifa: \$${fee.toStringAsFixed(2)}'
-                        '${time != null ? ' · ${time} min' : ''}',
+                        'Radio: $radius km · Tarifa: \$${fee.toStringAsFixed(2)}'
+                        '${time != null ? ' · $time min' : ''}',
                       ),
                       trailing: const Icon(Icons.chevron_right),
                       onTap: () {

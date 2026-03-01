@@ -13,8 +13,6 @@ final documentService = DocumentService();
 
 final TextEditingController _numberCiController = TextEditingController();
 final TextEditingController _taxDomicileController = TextEditingController();
-final TextEditingController _communeRegisterController = TextEditingController();
-final TextEditingController _communityRifController = TextEditingController();
 final TextEditingController _rifUrlController = TextEditingController();
 final TextEditingController _receiptNController = TextEditingController();
 final TextEditingController _skyController = TextEditingController();
@@ -37,8 +35,6 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
   String? _rifUrl;
   String? _taxDomicile;
   int? _sky;
-  String? _communeRegister; // Campo específico para 'neighborhood_association'
-  String? _communityRif;
   DateTime? _issuedAt;
   DateTime? _expiresAt;
   int? _receiptN;
@@ -329,7 +325,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _selectedType,
+              initialValue: _selectedType,
               items: typeTranslations.entries
                   .map(
                     (entry) => DropdownMenuItem(
@@ -539,7 +535,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
             ),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.check_circle,
                   color: Colors.green,
                   size: 20,
@@ -780,7 +776,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.check_circle,
                     color: Colors.green,
                     size: 20,

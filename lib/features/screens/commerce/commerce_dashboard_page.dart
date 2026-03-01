@@ -8,10 +8,10 @@ import 'package:zonix/features/utils/app_colors.dart';
 
 class CommerceDashboardPage extends StatefulWidget {
   const CommerceDashboardPage({
-    Key? key,
+    super.key,
     this.initialProfile,
     this.initialUnreadNotifications,
-  }) : super(key: key);
+  });
 
   final dynamic initialProfile;
   final int? initialUnreadNotifications;
@@ -152,7 +152,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 64, color: AppColors.red),
+                const Icon(Icons.error_outline, size: 64, color: AppColors.red),
                 const SizedBox(height: 16),
                 Text(
                   _error!,
@@ -194,7 +194,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
                     Switch(
                       value: _commerceOpen,
                       onChanged: _toggleCommerceOpen,
-                      activeColor: AppColors.green,
+                      activeThumbColor: AppColors.green,
                     ),
                   ],
                 ),
@@ -253,14 +253,14 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
             ),
             const SizedBox(height: 8),
             if (_recentOrders.isEmpty)
-              Card(
+              const Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(32),
+                  padding: EdgeInsets.all(32),
                   child: Center(
                     child: Column(
                       children: [
                         Icon(Icons.receipt_long, size: 48, color: AppColors.gray),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         Text(
                           'No hay órdenes recientes',
                           style: TextStyle(color: AppColors.gray),
@@ -271,7 +271,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
                 ),
               )
             else
-              ...(_recentOrders as List).map((o) {
+              ...(_recentOrders).map((o) {
                 final order = o is Map ? o : {};
                 return Card(
                   margin: const EdgeInsets.only(bottom: 8),
@@ -404,7 +404,7 @@ class _StatCard extends StatelessWidget {
                 color: color,
               ),
             ),
-            Text(label, style: TextStyle(fontSize: 12, color: AppColors.gray)),
+            Text(label, style: const TextStyle(fontSize: 12, color: AppColors.gray)),
           ],
         ),
       ),

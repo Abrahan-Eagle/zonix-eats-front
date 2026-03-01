@@ -242,7 +242,7 @@ class ProfilePagex extends StatelessWidget {
                     color: AppColors.blue.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.person,
                     color: AppColors.blue,
                     size: 24,
@@ -294,7 +294,7 @@ class ProfilePagex extends StatelessWidget {
                     color: AppColors.green.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.contact_phone,
                     color: AppColors.green,
                     size: 24,
@@ -339,7 +339,7 @@ class ProfilePagex extends StatelessWidget {
                     color: AppColors.orange.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.business,
                     color: AppColors.orange,
                     size: 24,
@@ -388,7 +388,7 @@ class ProfilePagex extends StatelessWidget {
                     color: AppColors.purple.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.delivery_dining,
                     color: AppColors.purple,
                     size: 24,

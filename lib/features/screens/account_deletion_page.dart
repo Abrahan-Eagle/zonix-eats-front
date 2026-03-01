@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import '../services/account_deletion_service.dart';
-import '../../helpers/auth_helper.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
 class AccountDeletionPage extends StatefulWidget {
-  const AccountDeletionPage({Key? key}) : super(key: key);
+  const AccountDeletionPage({super.key});
 
   @override
   State<AccountDeletionPage> createState() => _AccountDeletionPageState();
@@ -186,7 +185,7 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             title: const Text('Eliminar Cuenta', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)), // TODO: internacionalizar
-            iconTheme: IconThemeData(color: AppColors.white),
+            iconTheme: const IconThemeData(color: AppColors.white),
           ),
         ),
       ),
@@ -202,16 +201,16 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
                     shadowColor: AppColors.red.withValues(alpha: 0.15),
                     elevation: 8,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+                    child: const Padding(
+                      padding: EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
                             children: [
                               Icon(Icons.warning, color: AppColors.red),
-                              const SizedBox(width: 8),
-                              const Text(
+                              SizedBox(width: 8),
+                              Text(
                                 'Advertencia importante', // TODO: internacionalizar
                                 style: TextStyle(
                                   fontSize: 18,
@@ -221,8 +220,8 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          const Text(
+                          SizedBox(height: 8),
+                          Text(
                             'La eliminación de tu cuenta es permanente e irreversible. Todos tus datos, pedidos, reseñas y configuraciones serán eliminados definitivamente.', // TODO: internacionalizar
                             style: TextStyle(color: Colors.red),
                           ),
@@ -246,24 +245,24 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
                     shadowColor: AppColors.red.withValues(alpha: 0.10),
                     elevation: 8,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+                    child: const Padding(
+                      padding: EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             '¿Qué se elimina?', // TODO: internacionalizar
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          const Text('• Tu perfil y información personal'),
-                          const Text('• Historial completo de pedidos'),
-                          const Text('• Reseñas y calificaciones'),
-                          const Text('• Direcciones guardadas'),
-                          const Text('• Configuraciones de la app'),
+                          SizedBox(height: 8),
+                          Text('• Tu perfil y información personal'),
+                          Text('• Historial completo de pedidos'),
+                          Text('• Reseñas y calificaciones'),
+                          Text('• Direcciones guardadas'),
+                          Text('• Configuraciones de la app'),
                         ],
                       ),
                     ),
@@ -286,11 +285,11 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
+            const Row(
               children: [
                 Icon(Icons.schedule, color: AppColors.orange),
-                const SizedBox(width: 8),
-                const Text(
+                SizedBox(width: 8),
+                Text(
                   'Estado de eliminación',
                   style: TextStyle(
                     fontSize: 16,
@@ -329,7 +328,7 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
             
             // Razón de eliminación
             DropdownButtonFormField<String>(
-              value: selectedReason,
+              initialValue: selectedReason,
               decoration: const InputDecoration(
                 labelText: 'Razón de eliminación *',
                 border: OutlineInputBorder(),

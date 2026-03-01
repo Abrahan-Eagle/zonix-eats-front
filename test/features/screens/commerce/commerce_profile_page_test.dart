@@ -1,8 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import '../../../../lib/features/screens/commerce/commerce_profile_page.dart';
-import '../../../../lib/models/commerce_profile.dart';
+import 'package:zonix/features/screens/commerce/commerce_profile_page.dart';
+import 'package:zonix/models/commerce_profile.dart';
 
 void main() {
   setUpAll(() async {

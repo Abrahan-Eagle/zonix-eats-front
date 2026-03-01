@@ -133,18 +133,14 @@ class OrderService extends ChangeNotifier {
         return [];
       }
       
-      if (ordersData is List) {
-        try {
-          return ordersData.map<Order>((item) {
-            return Order.fromJson(item);
-          }).toList();
-        } catch (e) {
-          throw Exception('Error processing orders: $e');
-        }
-      } else {
-        return [];
+      try {
+        return ordersData.map<Order>((item) {
+          return Order.fromJson(item);
+        }).toList();
+      } catch (e) {
+        throw Exception('Error processing orders: $e');
       }
-    } else {
+        } else {
       throw Exception('Error al obtener órdenes: ${response.statusCode}');
     }
   }

@@ -4,7 +4,7 @@ import 'package:zonix/features/services/commerce_order_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
 class CommerceOrdersPage extends StatefulWidget {
-  const CommerceOrdersPage({Key? key}) : super(key: key);
+  const CommerceOrdersPage({super.key});
 
   @override
   State<CommerceOrdersPage> createState() => _CommerceOrdersPageState();
@@ -115,7 +115,7 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: AppColors.red),
+              const Icon(Icons.error_outline, size: 64, color: AppColors.red),
               const SizedBox(height: 16),
               Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
@@ -135,12 +135,12 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
           physics: const AlwaysScrollableScrollPhysics(),
           child: SizedBox(
             height: MediaQuery.of(context).size.height - 200,
-            child: Center(
+            child: const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.receipt_long, size: 64, color: AppColors.gray),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Text(
                     'No hay órdenes',
                     style: TextStyle(fontSize: 18, color: AppColors.gray),

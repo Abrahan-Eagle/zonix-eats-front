@@ -28,11 +28,11 @@ class AppColors {
       Theme.of(context).brightness == Brightness.dark ? grayDark : white;
 
   static Color headerGradientStart(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? grayDark : Color(0xff0043ba);
+      Theme.of(context).brightness == Brightness.dark ? grayDark : const Color(0xff0043ba);
   static Color headerGradientMid(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? orange : Color(0xff006df1);
+      Theme.of(context).brightness == Brightness.dark ? orange : const Color(0xff006df1);
   static Color headerGradientEnd(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark ? orangeCoral : Color(0xff4a90e2);
+      Theme.of(context).brightness == Brightness.dark ? orangeCoral : const Color(0xff4a90e2);
 
   static Color primaryText(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark ? white : blueDark;

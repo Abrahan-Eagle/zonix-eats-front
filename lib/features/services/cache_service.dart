@@ -240,9 +240,10 @@ class CacheHelper {
           return List<Map<String, dynamic>>.from(
             list.map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e as Map))
           );
-        } else if (data is Map) {
+        } else {
           return [Map<String, dynamic>.from(data as Map)];
         }
+      
         return <Map<String, dynamic>>[];
       },
     );
@@ -267,9 +268,10 @@ class CacheHelper {
           return List<Map<String, dynamic>>.from(
             list.map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e as Map))
           );
-        } else if (data is Map) {
+        } else {
           return [Map<String, dynamic>.from(data as Map)];
         }
+      
         return <Map<String, dynamic>>[];
       },
     );
@@ -311,9 +313,10 @@ class CacheHelper {
           return List<Map<String, dynamic>>.from(
             list.map<Map<String, dynamic>>((e) => Map<String, dynamic>.from(e as Map))
           );
-        } else if (data is Map) {
+        } else {
           return [Map<String, dynamic>.from(data as Map)];
         }
+      
         return <Map<String, dynamic>>[];
       },
     );

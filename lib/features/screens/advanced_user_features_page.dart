@@ -5,7 +5,7 @@ import 'privacy_settings_page.dart';
 import 'account_deletion_page.dart';
 
 class AdvancedUserFeaturesPage extends StatelessWidget {
-  const AdvancedUserFeaturesPage({Key? key}) : super(key: key);
+  const AdvancedUserFeaturesPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,21 +21,21 @@ class AdvancedUserFeaturesPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Información general
-            Card(
+            const Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       'Funcionalidades de Usuario Avanzado',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    const Text(
+                    SizedBox(height: 8),
+                    Text(
                       'Accede a herramientas avanzadas para gestionar tu cuenta, '
                       'datos personales y privacidad.',
                       style: TextStyle(color: Colors.grey),

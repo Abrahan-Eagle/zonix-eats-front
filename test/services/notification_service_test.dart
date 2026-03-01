@@ -1,7 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:zonix/features/services/notification_service.dart';
-import 'package:zonix/models/notification_item.dart';
 
 void main() {
   setUpAll(() async {

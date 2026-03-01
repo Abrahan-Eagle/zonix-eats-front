@@ -22,7 +22,7 @@ void main() {
     });
 
     test('should validate confirmation code format', () {
-      final confirmationCode = 'ABC123';
+      const confirmationCode = 'ABC123';
       expect(confirmationCode, isA<String>());
       expect(confirmationCode.length, 6);
     });
@@ -41,14 +41,14 @@ void main() {
     });
 
     test('should validate immediate deletion flag', () {
-      final immediate = true;
+      const immediate = true;
       expect(immediate, isA<bool>());
     });
 
     test('should handle deletion request parameters', () {
-      final reason = 'Test reason';
-      final feedback = 'Test feedback';
-      final immediate = false;
+      const reason = 'Test reason';
+      const feedback = 'Test feedback';
+      const immediate = false;
 
       expect(reason, isA<String>());
       expect(feedback, isA<String>());

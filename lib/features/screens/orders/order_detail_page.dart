@@ -238,7 +238,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: AppColors.red),
+              const Icon(Icons.error_outline, size: 64, color: AppColors.red),
               const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -511,7 +511,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             label: const Text('Cancelar orden'),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppColors.red,
-              side: BorderSide(color: AppColors.red),
+              side: const BorderSide(color: AppColors.red),
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
           ),
@@ -534,7 +534,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           children: [
             Row(
               children: [
-                Icon(Icons.delivery_dining, color: AppColors.green, size: 22),
+                const Icon(Icons.delivery_dining, color: AppColors.green, size: 22),
                 const SizedBox(width: 8),
                 Text(
                   'Seguimiento de entrega',
@@ -700,7 +700,7 @@ class _UploadProofDialogState extends State<_UploadProofDialog> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _selectedMethod,
+              initialValue: _selectedMethod,
               decoration: const InputDecoration(
                 labelText: 'Método de pago',
                 border: OutlineInputBorder(),

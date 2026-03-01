@@ -5,7 +5,7 @@ import 'package:zonix/features/utils/app_colors.dart';
 import 'package:flutter/services.dart'; // Added for FilteringTextInputFormatter
 
 class CommerceDataPage extends StatefulWidget {
-  const CommerceDataPage({Key? key}) : super(key: key);
+  const CommerceDataPage({super.key});
 
   @override
   State<CommerceDataPage> createState() => _CommerceDataPageState();
@@ -350,7 +350,7 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
                           Switch(
                             value: _open,
                             onChanged: (v) => setState(() => _open = v),
-                            activeColor: AppColors.green,
+                            activeThumbColor: AppColors.green,
                           ),
                         ],
                       ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class CommerceZonesPage extends StatelessWidget {
-  const CommerceZonesPage({Key? key}) : super(key: key);
+  const CommerceZonesPage({super.key});
 
   @override
   Widget build(BuildContext context) {

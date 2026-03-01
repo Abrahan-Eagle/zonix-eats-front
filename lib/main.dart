@@ -8,9 +8,7 @@ import 'package:logger/logger.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
-import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/utils/search_radius_provider.dart';
@@ -18,7 +16,6 @@ import 'package:flutter/services.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'package:zonix/features/screens/profile/profile_page.dart';
 import 'package:zonix/features/screens/settings/settings_page_2.dart';
 import 'package:zonix/features/screens/auth/sign_in_screen.dart';
 import 'package:zonix/features/screens/onboarding/onboarding_screen.dart';
@@ -32,7 +29,6 @@ import 'package:zonix/features/screens/orders/orders_page.dart';
 import 'package:zonix/features/screens/orders/order_detail_page.dart';
 import 'package:zonix/features/screens/restaurants/restaurants_page.dart';
 
-import 'package:zonix/features/screens/cart/checkout_page.dart';
 
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/order_service.dart';
@@ -62,8 +58,6 @@ import 'package:zonix/features/screens/admin/admin_users_page.dart';
 import 'package:zonix/features/screens/admin/admin_security_page.dart';
 import 'package:zonix/features/screens/admin/admin_analytics_page.dart';
 
-import 'package:zonix/features/screens/help/help_and_faq_page.dart';
-import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zonix/features/screens/commerce/commerce_chat_page.dart';
@@ -107,7 +101,7 @@ Future<void> main() async {
   await dotenv.load();
 
   // Bypass de login para tests de integración
-  final bool isIntegrationTest = const String.fromEnvironment('INTEGRATION_TEST', defaultValue: 'false') == 'true';
+  const bool isIntegrationTest = String.fromEnvironment('INTEGRATION_TEST', defaultValue: 'false') == 'true';
 
   runApp(
     MultiProvider(
@@ -128,7 +122,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => CommerceAnalyticsService()),
         // PusherService se maneja como singleton interno, no necesitamos Provider aquí.
       ],
-      child: MyApp(isIntegrationTest: isIntegrationTest),
+      child: const MyApp(isIntegrationTest: isIntegrationTest),
     ),
   );
 }
@@ -168,13 +162,13 @@ ThemeData _buildStitchLightTheme() {
       ),
       iconTheme: const IconThemeData(color: Colors.white),
     ),
-    colorScheme: ColorScheme.light(
+    colorScheme: const ColorScheme.light(
       primary: _stitchPrimary,
       secondary: AppColors.orange,
       error: AppColors.red,
       surface: _stitchBgLight,
       onPrimary: Colors.white,
-      onSurface: const Color(0xFF0F172A),
+      onSurface: Color(0xFF0F172A),
     ),
     cardColor: _stitchCardCream,
     cardTheme: CardThemeData(
@@ -226,7 +220,7 @@ ThemeData _buildStitchDarkTheme() {
       ),
       iconTheme: const IconThemeData(color: Colors.white),
     ),
-    colorScheme: ColorScheme.dark(
+    colorScheme: const ColorScheme.dark(
       primary: _stitchPrimary,
       secondary: AppColors.orangeCoral,
       error: AppColors.red,
@@ -302,7 +296,7 @@ class MyApp extends StatelessWidget {
         '/commerce/inventory': (context) => const CommerceProductsPage(),
         '/commerce/products': (context) => const CommerceProductsPage(),
         '/commerce/orders': (context) => const CommerceOrdersPage(),
-        '/commerce/profile': (context) => CommerceProfilePage(),
+        '/commerce/profile': (context) => const CommerceProfilePage(),
         '/commerce/chat': (context) => const CommerceChatPage(),
         '/commerce/notifications': (context) => const CommerceNotificationsPage(),
         '/commerce/reports': (context) => const CommerceReportsPage(),
@@ -506,7 +500,7 @@ class MainRouterState extends State<MainRouter> {
                     Navigator.pop(context);
                   },
                 );
-              }).toList(),
+              }),
             ],
           ),
         );
@@ -805,7 +799,7 @@ class MainRouterState extends State<MainRouter> {
                 if (_selectedLevel == 2) {
                   switch (_bottomNavIndex) {
                     case 0:
-                      return DeliveryOrdersPage(); // Entregas
+                      return const DeliveryOrdersPage(); // Entregas
                     case 1:
                       return const DeliveryHistoryPage(); // Historial
                     case 2:
@@ -813,7 +807,7 @@ class MainRouterState extends State<MainRouter> {
                     case 3:
                       return const DeliveryEarningsPage(); // Ganancias
                     default:
-                      return DeliveryOrdersPage();
+                      return const DeliveryOrdersPage();
                   }
                 }
 
@@ -821,7 +815,7 @@ class MainRouterState extends State<MainRouter> {
                 if (_selectedLevel == 3) {
                   switch (_bottomNavIndex) {
                     case 0:
-                      return DeliveryOrdersPage(); // Entregas (empresa)
+                      return const DeliveryOrdersPage(); // Entregas (empresa)
                     case 1:
                       return const DeliveryHistoryPage(); // Historial
                     case 2:
@@ -829,7 +823,7 @@ class MainRouterState extends State<MainRouter> {
                     case 3:
                       return const DeliveryEarningsPage(); // Ganancias
                     default:
-                      return DeliveryOrdersPage();
+                      return const DeliveryOrdersPage();
                   }
                 }
 
@@ -837,7 +831,7 @@ class MainRouterState extends State<MainRouter> {
                 if (_selectedLevel == 4) {
                   switch (_bottomNavIndex) {
                     case 0:
-                      return AdminDashboardPage(); // Panel Admin
+                      return const AdminDashboardPage(); // Panel Admin
                     case 1:
                       return const AdminUsersPage(); // Usuarios
                     case 2:
@@ -845,7 +839,7 @@ class MainRouterState extends State<MainRouter> {
                     case 3:
                       return const AdminAnalyticsPage(); // Sistema/Analíticas
                     default:
-                      return AdminDashboardPage();
+                      return const AdminDashboardPage();
                   }
                 }
 

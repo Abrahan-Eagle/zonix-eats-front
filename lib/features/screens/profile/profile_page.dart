@@ -7,7 +7,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:zonix/features/utils/auth_utils.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
-import 'package:qr_flutter/qr_flutter.dart'; // Importa QrImageView
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
 import 'package:zonix/features/utils/app_colors.dart';
@@ -81,8 +80,6 @@ Future<void> _initializeData() async {
 
 @override
 Widget build(BuildContext context) {
-  final userProvider = Provider.of<UserProvider>(context);
-  final isDark = Theme.of(context).brightness == Brightness.dark;
   return Scaffold(
     backgroundColor: AppColors.scaffoldBg(context),
     appBar: PreferredSize(
@@ -173,7 +170,7 @@ Widget build(BuildContext context) {
                       ),
                     const SizedBox(height: 16),
                     Text(
-                      profile.firstName + ' ' + profile.lastName,
+                      '${profile.firstName} ${profile.lastName}',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,

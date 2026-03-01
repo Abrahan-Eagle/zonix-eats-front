@@ -144,8 +144,8 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+      child: const Padding(
+        padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
             Icon(
@@ -153,8 +153,8 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
               size: 48,
               color: Colors.blue,
             ),
-            const SizedBox(height: 12),
-            const Text(
+            SizedBox(height: 12),
+            Text(
               'Registra tu nuevo número de teléfono',
               style: TextStyle(
                 fontSize: 20,
@@ -163,8 +163,8 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
-            const Text(
+            SizedBox(height: 8),
+            Text(
               'Completa la información para agregar un nuevo teléfono a tu perfil',
               style: TextStyle(
                 fontSize: 14,
@@ -186,7 +186,7 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
           Column(
             children: [
               DropdownButtonFormField<int>(
-                value: _selectedOperatorCodeId,
+                initialValue: _selectedOperatorCodeId,
                 decoration: const InputDecoration(
                   labelText: 'Código de Operador',
                   border: OutlineInputBorder(),
@@ -245,7 +245,7 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
               Flexible(
                 flex: 1,
                 child: DropdownButtonFormField<int>(
-                  value: _selectedOperatorCodeId,
+                  initialValue: _selectedOperatorCodeId,
                   decoration: const InputDecoration(
                     labelText: 'Código de Operador',
                     border: OutlineInputBorder(),

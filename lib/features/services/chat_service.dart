@@ -202,7 +202,7 @@ class ChatService extends ChangeNotifier {
   void startTyping(int conversationId, int userId) {
     // TODO: Implement real-time typing indicator
     _typingTimer?.cancel();
-    _typingTimer = Timer(Duration(seconds: 5), () {
+    _typingTimer = Timer(const Duration(seconds: 5), () {
       stopTyping(conversationId, userId);
     });
   }

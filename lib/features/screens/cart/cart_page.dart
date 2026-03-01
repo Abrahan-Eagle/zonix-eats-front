@@ -7,7 +7,7 @@ import 'package:zonix/features/utils/network_image_with_fallback.dart';
 import 'package:zonix/models/cart_item.dart';
 
 class CartPage extends StatelessWidget {
-  const CartPage({Key? key}) : super(key: key);
+  const CartPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -412,7 +412,7 @@ class CartPage extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: Row(
+                    child: const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
@@ -423,7 +423,7 @@ class CartPage extends StatelessWidget {
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Icon(Icons.arrow_forward_rounded, size: 22, color: Colors.white),
                       ],
                     ),

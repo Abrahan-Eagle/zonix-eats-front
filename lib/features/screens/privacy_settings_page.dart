@@ -3,7 +3,7 @@ import '../services/privacy_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
 class PrivacySettingsPage extends StatefulWidget {
-  const PrivacySettingsPage({Key? key}) : super(key: key);
+  const PrivacySettingsPage({super.key});
 
   @override
   State<PrivacySettingsPage> createState() => _PrivacySettingsPageState();
@@ -109,7 +109,7 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             title: const Text('Configuración de Privacidad', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)), // TODO: internacionalizar
-            iconTheme: IconThemeData(color: AppColors.white),
+            iconTheme: const IconThemeData(color: AppColors.white),
             actions: [
               if (isSaving)
                 const Padding(
@@ -139,20 +139,20 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
                     shadowColor: AppColors.purple.withValues(alpha: 0.10),
                     elevation: 8,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+                    child: const Padding(
+                      padding: EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Controla tu privacidad', // TODO: internacionalizar
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          const Text(
+                          SizedBox(height: 8),
+                          Text(
                             'Gestiona cómo se utilizan y comparten tus datos personales.', // TODO: internacionalizar
                             style: TextStyle(color: Colors.grey),
                           ),
@@ -174,7 +174,7 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
                             'profile_visibility': value,
                           });
                         },
-                        activeColor: AppColors.accentButton(context),
+                        activeThumbColor: AppColors.accentButton(context),
                       ),
                     ],
                   ),
@@ -192,7 +192,7 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
                             'order_history_visibility': value,
                           });
                         },
-                        activeColor: AppColors.accentButton(context),
+                        activeThumbColor: AppColors.accentButton(context),
                       ),
                     ],
                   ),
@@ -210,7 +210,7 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
                             'activity_visibility': value,
                           });
                         },
-                        activeColor: AppColors.accentButton(context),
+                        activeThumbColor: AppColors.accentButton(context),
                       ),
                     ],
                   ),
@@ -228,7 +228,7 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
                             'marketing_emails': value,
                           });
                         },
-                        activeColor: AppColors.accentButton(context),
+                        activeThumbColor: AppColors.accentButton(context),
                       ),
                       SwitchListTile(
                         title: const Text('Notificaciones push'), // TODO: internacionalizar
@@ -239,7 +239,7 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
                             'push_notifications': value,
                           });
                         },
-                        activeColor: AppColors.accentButton(context),
+                        activeThumbColor: AppColors.accentButton(context),
                       ),
                     ],
                   ),
@@ -257,7 +257,7 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
                             'location_sharing': value,
                           });
                         },
-                        activeColor: AppColors.accentButton(context),
+                        activeThumbColor: AppColors.accentButton(context),
                       ),
                     ],
                   ),

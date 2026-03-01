@@ -6,6 +6,8 @@ import 'package:zonix/features/screens/settings/settings_page_2.dart';
 import 'package:zonix/features/services/admin_service.dart';
 
 class AdminDashboardPage extends StatefulWidget {
+  const AdminDashboardPage({super.key});
+
   @override
   _AdminDashboardPageState createState() => _AdminDashboardPageState();
 }
@@ -53,30 +55,30 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Panel de Administración'),
+        title: const Text('Panel de Administración'),
         backgroundColor: Colors.red,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
             onPressed: _loadDashboardData,
           ),
         ],
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : _error != null
               ? Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.error, size: 64, color: Colors.red),
-                      SizedBox(height: 16),
+                      const Icon(Icons.error, size: 64, color: Colors.red),
+                      const SizedBox(height: 16),
                       Text('Error: $_error'),
-                      SizedBox(height: 16),
+                      const SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: _loadDashboardData,
-                        child: Text('Reintentar'),
+                        child: const Text('Reintentar'),
                       ),
                     ],
                   ),
@@ -84,20 +86,20 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               : RefreshIndicator(
                   onRefresh: _loadDashboardData,
                   child: SingleChildScrollView(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _buildSystemHealthCard(),
-                        SizedBox(height: 24),
+                        const SizedBox(height: 24),
                         _buildSystemStatsGrid(),
-                        SizedBox(height: 24),
+                        const SizedBox(height: 24),
                         _buildUserDistributionChart(),
-                        SizedBox(height: 24),
+                        const SizedBox(height: 24),
                         _buildQuickActions(),
-                        SizedBox(height: 24),
+                        const SizedBox(height: 24),
                         _buildRecentActivity(),
-                        SizedBox(height: 24),
+                        const SizedBox(height: 24),
                         _buildAnalyticsChart(),
                       ],
                     ),
@@ -107,34 +109,34 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Widget _buildSystemHealthCard() {
-    if (_systemHealth == null) return SizedBox.shrink();
+    if (_systemHealth == null) return const SizedBox.shrink();
 
     return Card(
       elevation: 4,
       child: Padding(
-        padding: EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                Icon(Icons.monitor_heart, color: Colors.green, size: 24),
-                SizedBox(width: 8),
-                Text(
+                const Icon(Icons.monitor_heart, color: Colors.green, size: 24),
+                const SizedBox(width: 8),
+                const Text(
                   'Estado del Sistema',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Spacer(),
+                const Spacer(),
                 Container(
-                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.green,
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Saludable',
                     style: TextStyle(
                       color: Colors.white,
@@ -145,7 +147,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 ),
               ],
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
@@ -159,17 +161,17 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 ),
               ],
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
                   child: _buildResourceUsage('CPU', _systemHealth!['cpu_usage']?.toString() ?? '0%', Colors.blue),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
                   child: _buildResourceUsage('Memoria', _systemHealth!['memory_usage']?.toString() ?? '0%', Colors.green),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
                   child: _buildResourceUsage('Disco', _systemHealth!['disk_usage']?.toString() ?? '0%', Colors.orange),
                 ),
@@ -185,10 +187,10 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     return Column(
       children: [
         Icon(icon, color: Colors.grey[600], size: 20),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -218,7 +220,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             fontWeight: FontWeight.w500,
           ),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Row(
           children: [
             Expanded(
@@ -228,7 +230,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 valueColor: AlwaysStoppedAnimation<Color>(color),
               ),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Text(
               value,
               style: TextStyle(
@@ -244,22 +246,22 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Widget _buildSystemStatsGrid() {
-    if (_systemStats == null) return SizedBox.shrink();
+    if (_systemStats == null) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Estadísticas del Sistema',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         GridView.count(
           shrinkWrap: true,
-          physics: NeverScrollableScrollPhysics(),
+          physics: const NeverScrollableScrollPhysics(),
           crossAxisCount: 2,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
@@ -299,12 +301,12 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     return Card(
       elevation: 2,
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, color: color, size: 32),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               value,
               style: TextStyle(
@@ -313,7 +315,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 color: color,
               ),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
               title,
               style: TextStyle(
@@ -330,23 +332,23 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Widget _buildUserDistributionChart() {
-    if (_systemStats == null || _systemStats!['user_distribution'] == null) return SizedBox.shrink();
+    if (_systemStats == null || _systemStats!['user_distribution'] == null) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Distribución de Usuarios por Rol',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Card(
           elevation: 2,
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Column(
               children: [
                 _buildDistributionItem('Compradores', _systemStats!['user_distribution']['buyers'], Colors.blue),
@@ -366,7 +368,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     final percentage = total > 0 ? (count / total * 100) : 0.0;
 
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           Container(
@@ -377,18 +379,18 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
               borderRadius: BorderRadius.circular(2),
             ),
           ),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               label,
-              style: TextStyle(fontWeight: FontWeight.w500),
+              style: const TextStyle(fontWeight: FontWeight.w500),
             ),
           ),
           Text(
             '$count',
-            style: TextStyle(fontWeight: FontWeight.bold),
+            style: const TextStyle(fontWeight: FontWeight.bold),
           ),
-          SizedBox(width: 8),
+          const SizedBox(width: 8),
           Text(
             '(${percentage.toStringAsFixed(1)}%)',
             style: TextStyle(
@@ -405,14 +407,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Acciones Rápidas',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Row(
           children: [
             Expanded(
@@ -423,7 +425,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 () => _navigateToUserManagement(),
               ),
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Expanded(
               child: _buildActionButton(
                 'Seguridad',
@@ -434,7 +436,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             ),
           ],
         ),
-        SizedBox(height: 12),
+        const SizedBox(height: 12),
         Row(
           children: [
             Expanded(
@@ -445,7 +447,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 () => _navigateToAnalytics(),
               ),
             ),
-            SizedBox(width: 12),
+            const SizedBox(width: 12),
             Expanded(
               child: _buildActionButton(
                 'Configuración',
@@ -466,11 +468,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       icon: Icon(icon, color: Colors.white),
       label: Text(
         title,
-        style: TextStyle(color: Colors.white),
+        style: const TextStyle(color: Colors.white),
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: color,
-        padding: EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 16),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -482,19 +484,19 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Actividad Reciente del Sistema',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Card(
           elevation: 2,
           child: ListView.builder(
             shrinkWrap: true,
-            physics: NeverScrollableScrollPhysics(),
+            physics: const NeverScrollableScrollPhysics(),
             itemCount: 5,
             itemBuilder: (context, index) {
               final activities = [
@@ -517,7 +519,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 ),
                 title: Text(activity['action']!),
                 subtitle: Text('${activity['user']} • Hace ${activity['time']}'),
-                trailing: Icon(Icons.chevron_right, color: Colors.grey),
+                trailing: const Icon(Icons.chevron_right, color: Colors.grey),
                 onTap: () => _showActivityDetails(activity),
               );
             },
@@ -528,34 +530,34 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   }
 
   Widget _buildAnalyticsChart() {
-    if (_analytics == null) return SizedBox.shrink();
+    if (_analytics == null) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Crecimiento de Usuarios',
           style: TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         Card(
           elevation: 2,
           child: Padding(
-            padding: EdgeInsets.all(16),
+            padding: const EdgeInsets.all(16),
             child: Column(
               children: _analytics!['user_growth'].map<Widget>((data) {
                 return Padding(
-                  padding: EdgeInsets.symmetric(vertical: 8),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   child: Row(
                     children: [
                       Expanded(
                         flex: 2,
                         child: Text(
                           data['date'],
-                          style: TextStyle(fontWeight: FontWeight.w500),
+                          style: const TextStyle(fontWeight: FontWeight.w500),
                         ),
                       ),
                       Expanded(
@@ -563,7 +565,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                         child: Text(
                           '${data['value']} usuarios',
                           textAlign: TextAlign.right,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.blue,
                           ),
@@ -601,7 +603,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Detalles de Actividad'),
+        title: const Text('Detalles de Actividad'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -614,7 +616,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cerrar'),
+            child: const Text('Cerrar'),
           ),
         ],
       ),

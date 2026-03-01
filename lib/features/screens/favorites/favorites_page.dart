@@ -3,10 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../services/favorites_service.dart';
-import '../../../models/product.dart';
 
 class FavoritesPage extends StatefulWidget {
-  const FavoritesPage({Key? key}) : super(key: key);
+  const FavoritesPage({super.key});
 
   @override
   State<FavoritesPage> createState() => _FavoritesPageState();
@@ -213,10 +212,10 @@ class _FavoritesPageState extends State<FavoritesPage> {
             const SizedBox(height: 4),
             Row(
               children: [
-                Icon(Icons.star, size: 16, color: Colors.amber),
+                const Icon(Icons.star, size: 16, color: Colors.amber),
                 Text(
                   ' ${favorite['rating']?.toString() ?? '0.0'}',
-                  style: TextStyle(fontSize: 12),
+                  style: const TextStyle(fontSize: 12),
                 ),
                 const SizedBox(width: 8),
                 Text(
@@ -232,7 +231,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
           ],
         ),
         trailing: IconButton(
-          icon: Icon(Icons.favorite, color: Colors.red),
+          icon: const Icon(Icons.favorite, color: Colors.red),
           onPressed: () => _removeFavorite(favorite['id']),
         ),
         onTap: () {

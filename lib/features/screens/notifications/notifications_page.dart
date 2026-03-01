@@ -3,7 +3,7 @@ import 'package:zonix/models/notification_item.dart';
 import 'package:zonix/features/services/notification_service.dart';
 
 class NotificationsPage extends StatefulWidget {
-  const NotificationsPage({Key? key}) : super(key: key);
+  const NotificationsPage({super.key});
 
   @override
   State<NotificationsPage> createState() => _NotificationsPageState();

@@ -3,7 +3,7 @@ import 'package:zonix/features/services/commerce_data_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
 class CommerceSchedulePage extends StatefulWidget {
-  const CommerceSchedulePage({Key? key}) : super(key: key);
+  const CommerceSchedulePage({super.key});
 
   @override
   State<CommerceSchedulePage> createState() => _CommerceSchedulePageState();
@@ -19,7 +19,7 @@ class _CommerceSchedulePageState extends State<CommerceSchedulePage> {
   String? _success;
 
   // Horarios por día
-  Map<String, Map<String, dynamic>> _scheduleData = {
+  final Map<String, Map<String, dynamic>> _scheduleData = {
     'monday': {'enabled': true, 'open': '08:00', 'close': '18:00'},
     'tuesday': {'enabled': true, 'open': '08:00', 'close': '18:00'},
     'wednesday': {'enabled': true, 'open': '08:00', 'close': '18:00'},
@@ -251,11 +251,11 @@ class _CommerceSchedulePageState extends State<CommerceSchedulePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
+                      const Row(
                         children: [
-                          const Icon(Icons.schedule, color: AppColors.blue),
-                          const SizedBox(width: 8),
-                          const Text(
+                          Icon(Icons.schedule, color: AppColors.blue),
+                          SizedBox(width: 8),
+                          Text(
                             'Horario por Días',
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           ),
@@ -308,28 +308,28 @@ class _CommerceSchedulePageState extends State<CommerceSchedulePage> {
               Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                child: const Padding(
+                  padding: EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.info_outline, color: AppColors.blue),
-                          const SizedBox(width: 8),
-                          const Text(
+                          Icon(Icons.info_outline, color: AppColors.blue),
+                          SizedBox(width: 8),
+                          Text(
                             'Información',
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      const Text(
+                      SizedBox(height: 12),
+                      Text(
                         '• El horario se muestra a los clientes para que sepan cuándo pueden hacer pedidos\n'
                         '• Los días marcados como "Cerrado" no aparecerán en el horario público\n'
                         '• Puedes usar el horario personalizado para casos especiales\n'
                         '• Los cambios se aplican inmediatamente',
-                        style: const TextStyle(fontSize: 14, color: Colors.grey),
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                     ],
                   ),

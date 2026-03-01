@@ -85,7 +85,7 @@ class SignInScreenState extends State<SignInScreen> {
         } else {
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => MainRouter()),
+            MaterialPageRoute(builder: (context) => const MainRouter()),
           );
         }
       } else {

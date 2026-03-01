@@ -88,7 +88,7 @@ class _CommerceAddRestaurantPageState extends State<CommerceAddRestaurantPage> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _selectedBusinessType,
+                initialValue: _selectedBusinessType,
                 decoration: const InputDecoration(
                   labelText: 'Tipo de negocio',
                   border: OutlineInputBorder(),

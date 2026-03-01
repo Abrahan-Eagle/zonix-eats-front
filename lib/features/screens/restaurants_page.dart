@@ -4,7 +4,7 @@ import '../../../features/services/restaurant_service.dart';
 import 'restaurants/restaurant_details_page.dart';
 
 class RestaurantsPage extends StatefulWidget {
-  const RestaurantsPage({Key? key}) : super(key: key);
+  const RestaurantsPage({super.key});
 
   @override
   State<RestaurantsPage> createState() => _RestaurantsPageState();
@@ -326,7 +326,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(Icons.star, color: Colors.amber, size: 16),
+                              const Icon(Icons.star, color: Colors.amber, size: 16),
                               const SizedBox(width: 4),
                               Text(
                                 restaurant.rating.toString(),
@@ -432,7 +432,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
               const Text('Categoría:', style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _selectedCategory,
+                initialValue: _selectedCategory,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                 ),
@@ -453,7 +453,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
               const Text('Ordenar por:', style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
-                value: _sortBy,
+                initialValue: _sortBy,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                 ),

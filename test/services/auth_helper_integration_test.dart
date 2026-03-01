@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zonix/helpers/auth_helper.dart';
-import 'package:zonix/features/services/test_auth_service.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 

@@ -3,7 +3,7 @@ import '../services/activity_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
 class ActivityHistoryPage extends StatefulWidget {
-  const ActivityHistoryPage({Key? key}) : super(key: key);
+  const ActivityHistoryPage({super.key});
 
   @override
   State<ActivityHistoryPage> createState() => _ActivityHistoryPageState();
@@ -175,7 +175,7 @@ class _ActivityHistoryPageState extends State<ActivityHistoryPage> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             title: const Text('Historial de Actividad', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)), // TODO: internacionalizar
-            iconTheme: IconThemeData(color: AppColors.white),
+            iconTheme: const IconThemeData(color: AppColors.white),
             actions: [
               IconButton(
                 icon: const Icon(Icons.filter_list),
@@ -238,7 +238,7 @@ class _ActivityHistoryPageState extends State<ActivityHistoryPage> {
                               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                               child: ListTile(
-                                leading: Text(_getActivityIcon(activity['activity_type'] ?? ''), style: TextStyle(fontSize: 28)),
+                                leading: Text(_getActivityIcon(activity['activity_type'] ?? ''), style: const TextStyle(fontSize: 28)),
                                 title: Text(_getActivityTitle(activity['activity_type'] ?? ''), style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryText(context))),
                                 subtitle: Text(activity['description'] ?? '', style: TextStyle(color: AppColors.secondaryText(context))),
                                 trailing: activity['created_at'] != null ? Text(DateTime.tryParse(activity['created_at']) != null ? '${DateTime.parse(activity['created_at']).day}/${DateTime.parse(activity['created_at']).month}/${DateTime.parse(activity['created_at']).year}' : '', style: TextStyle(color: AppColors.secondaryText(context))) : null,
@@ -286,7 +286,7 @@ class _ActivityHistoryPageState extends State<ActivityHistoryPage> {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: ListTile(
-        leading: Text(_getActivityIcon(type), style: TextStyle(fontSize: 28)),
+        leading: Text(_getActivityIcon(type), style: const TextStyle(fontSize: 28)),
         title: Text(_getActivityTitle(type), style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryText(context))),
         subtitle: Text(description, style: TextStyle(color: AppColors.secondaryText(context))),
         trailing: createdAt != null ? Text('${createdAt.day}/${createdAt.month}/${createdAt.year}', style: TextStyle(color: AppColors.secondaryText(context))) : null,
@@ -352,7 +352,7 @@ class _ActivityHistoryPageState extends State<ActivityHistoryPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             DropdownButtonFormField<String>(
-              value: selectedActivityType,
+              initialValue: selectedActivityType,
               decoration: const InputDecoration(
                 labelText: 'Tipo de actividad',
               ),

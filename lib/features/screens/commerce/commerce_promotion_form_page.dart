@@ -5,8 +5,7 @@ import 'package:zonix/features/services/commerce_promotion_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
 class CommercePromotionFormPage extends StatefulWidget {
-  const CommercePromotionFormPage({Key? key, this.promotionId, this.initialData})
-      : super(key: key);
+  const CommercePromotionFormPage({super.key, this.promotionId, this.initialData});
 
   final int? promotionId;
   final Map<String, dynamic>? initialData;
@@ -243,7 +242,7 @@ class _CommercePromotionFormPageState extends State<CommercePromotionFormPage> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _discountType,
+              initialValue: _discountType,
               decoration: const InputDecoration(labelText: 'Tipo de descuento', border: OutlineInputBorder()),
               items: const [
                 DropdownMenuItem(value: 'percentage', child: Text('Porcentaje')),

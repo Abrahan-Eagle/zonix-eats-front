@@ -52,7 +52,7 @@ class _AffiliateStatisticsPageState extends State<AffiliateStatisticsPage> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _selectedPeriod,
+                          initialValue: _selectedPeriod,
                           decoration: InputDecoration(
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -76,7 +76,7 @@ class _AffiliateStatisticsPageState extends State<AffiliateStatisticsPage> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: DropdownButtonFormField<String>(
-                          value: _selectedMetric,
+                          initialValue: _selectedMetric,
                           decoration: InputDecoration(
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

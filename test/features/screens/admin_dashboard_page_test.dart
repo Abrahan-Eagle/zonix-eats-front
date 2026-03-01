@@ -9,9 +9,9 @@ void main() {
         home: Scaffold(
           body: Column(
             children: [
-              Text('Panel de Administración'),
-              ElevatedButton(onPressed: () {}, child: Text('Gestionar usuarios')),
-              ElevatedButton(onPressed: () {}, child: Text('Gestionar comercios')),
+              const Text('Panel de Administración'),
+              ElevatedButton(onPressed: () {}, child: const Text('Gestionar usuarios')),
+              ElevatedButton(onPressed: () {}, child: const Text('Gestionar comercios')),
             ],
           ),
         ),
