@@ -78,6 +78,7 @@ class PromotionService {
   }
 
   // POST /api/buyer/promotions/validate-coupon - Validar cupón
+  // Backend espera: code (required), order_amount (required, numeric, min:0)
   Future<Map<String, dynamic>> validateCoupon({
     required String couponCode,
     double? orderAmount,
@@ -86,68 +87,97 @@ class PromotionService {
     try {
       final headers = await AuthHelper.getAuthHeaders();
       final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/promotions/validate-coupon');
-      
+      final amount = orderAmount ?? 0.0;
+
       final body = {
-        'coupon_code': couponCode,
-        if (orderAmount != null) 'order_amount': orderAmount,
+        'code': couponCode.trim(),
+        'order_amount': amount,
         if (commerceId != null) 'commerce_id': commerceId,
       };
-      
+
       final response = await http.post(
         url,
         headers: headers,
         body: jsonEncode(body),
       );
-      
+
+      final data = response.body.isNotEmpty
+          ? (jsonDecode(response.body) as Map<String, dynamic>? ?? <String, dynamic>{})
+          : <String, dynamic>{};
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
         if (data['success'] == true) {
-          return data['data'] ?? {};
-        } else {
-          throw Exception(data['message'] ?? 'Error al validar cupón');
+          return data['data'] as Map<String, dynamic>? ?? {};
         }
-      } else {
-        throw Exception('Error al validar cupón: ${response.statusCode}');
+        throw Exception(data['message'] as String? ?? 'Error al validar cupón');
       }
+
+      final message = data['message'] as String? ?? _defaultCouponError(response.statusCode);
+      final errors = data['errors'];
+      if (errors is Map<String, dynamic>) {
+        final parts = errors.values.expand((e) => e is List ? e : [e]);
+        final msg = parts.map((e) => e.toString()).join(' ').trim();
+        throw Exception(msg.isNotEmpty ? msg : message);
+      }
+      throw Exception(message);
     } catch (e) {
       _logger.e('Error en validateCoupon: $e');
-      throw Exception('Error al validar cupón: $e');
+      rethrow;
+    }
+  }
+
+  static String _defaultCouponError(int statusCode) {
+    switch (statusCode) {
+      case 422:
+        return 'Datos inválidos. Revisa el código y el monto del pedido.';
+      case 404:
+        return 'Cupón no válido o expirado.';
+      case 400:
+        return 'No se pudo aplicar el cupón.';
+      default:
+        return 'Error al validar cupón ($statusCode).';
     }
   }
 
   // POST /api/buyer/promotions/apply-coupon - Aplicar cupón a la orden
+  // Backend espera: order_id (required), coupon_id (required)
   Future<Map<String, dynamic>> applyCouponToOrder({
-    required String couponCode,
+    required int couponId,
     required int orderId,
   }) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
       final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/promotions/apply-coupon');
-      
-      final body = {
-        'coupon_code': couponCode,
-        'order_id': orderId,
-      };
-      
+      final body = {'coupon_id': couponId, 'order_id': orderId};
+
       final response = await http.post(
         url,
         headers: headers,
         body: jsonEncode(body),
       );
-      
+
+      final data = response.body.isNotEmpty
+          ? (jsonDecode(response.body) as Map<String, dynamic>? ?? <String, dynamic>{})
+          : <String, dynamic>{};
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
         if (data['success'] == true) {
-          return data['data'] ?? {};
-        } else {
-          throw Exception(data['message'] ?? 'Error al aplicar cupón');
+          return data['data'] as Map<String, dynamic>? ?? {};
         }
-      } else {
-        throw Exception('Error al aplicar cupón: ${response.statusCode}');
+        throw Exception(data['message'] as String? ?? 'Error al aplicar cupón');
       }
+
+      final message = data['message'] as String? ?? 'Error al aplicar cupón (${response.statusCode})';
+      final errors = data['errors'];
+      if (errors is Map<String, dynamic>) {
+        final parts = errors.values.expand((e) => e is List ? e : [e]);
+        final msg = parts.map((e) => e.toString()).join(' ').trim();
+        throw Exception(msg.isNotEmpty ? msg : message);
+      }
+      throw Exception(message);
     } catch (e) {
       _logger.e('Error en applyCouponToOrder: $e');
-      throw Exception('Error al aplicar cupón: $e');
+      rethrow;
     }
   }
 
