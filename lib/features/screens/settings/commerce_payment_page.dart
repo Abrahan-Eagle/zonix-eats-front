@@ -4,7 +4,7 @@ import 'package:zonix/features/utils/app_colors.dart';
 import 'package:flutter/services.dart'; // Added for FilteringTextInputFormatter
 
 class CommercePaymentPage extends StatefulWidget {
-  const CommercePaymentPage({Key? key}) : super(key: key);
+  const CommercePaymentPage({super.key});
 
   @override
   State<CommercePaymentPage> createState() => _CommercePaymentPageState();
@@ -157,7 +157,7 @@ class _CommercePaymentPageState extends State<CommercePaymentPage> {
                           border: OutlineInputBorder(),
                           prefixIcon: Icon(Icons.account_balance),
                         ),
-                        value: _bank,
+                        initialValue: _bank,
                         items: _banks.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
                         onChanged: (v) => setState(() => _bank = v),
                         validator: (v) => v == null || v.isEmpty ? 'Seleccione un banco' : null,
@@ -223,28 +223,28 @@ class _CommercePaymentPageState extends State<CommercePaymentPage> {
               Card(
                 elevation: 2,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                child: const Padding(
+                  padding: EdgeInsets.all(16.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
-                          const Icon(Icons.info_outline, color: AppColors.blue),
-                          const SizedBox(width: 8),
-                          const Text(
+                          Icon(Icons.info_outline, color: AppColors.blue),
+                          SizedBox(width: 8),
+                          Text(
                             'Información Importante',
                             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
-                      const Text(
+                      SizedBox(height: 12),
+                      Text(
                         '• Los datos de pago móvil se utilizan para recibir pagos de los clientes\n'
                         '• Asegúrate de que el número de teléfono esté activo\n'
                         '• El ID de pago móvil debe ser el mismo registrado en tu banco\n'
                         '• Estos datos son confidenciales y seguros',
-                        style: const TextStyle(fontSize: 14, color: Colors.grey),
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                     ],
                   ),

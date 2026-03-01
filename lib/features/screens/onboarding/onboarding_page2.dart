@@ -255,10 +255,10 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                 height: centerSize,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: LinearGradient(
+                  gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [_kPrimary, const Color(0xFF1E3A5F)],
+                    colors: [_kPrimary, Color(0xFF1E3A5F)],
                   ),
                   boxShadow: [
                     BoxShadow(

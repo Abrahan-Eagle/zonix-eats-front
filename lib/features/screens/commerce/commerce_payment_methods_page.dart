@@ -5,7 +5,7 @@ import 'package:zonix/features/services/payment_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
 class CommercePaymentMethodsPage extends StatefulWidget {
-  const CommercePaymentMethodsPage({Key? key}) : super(key: key);
+  const CommercePaymentMethodsPage({super.key});
 
   @override
   State<CommercePaymentMethodsPage> createState() =>
@@ -148,7 +148,7 @@ class _CommercePaymentMethodsPageState
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 64, color: AppColors.red),
+                const Icon(Icons.error_outline, size: 64, color: AppColors.red),
                 const SizedBox(height: 16),
                 Text(_error!, textAlign: TextAlign.center),
                 const SizedBox(height: 16),

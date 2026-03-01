@@ -3,9 +3,9 @@ import 'package:zonix/features/utils/app_colors.dart';
 
 class CommerceDeliveryZoneFormPage extends StatefulWidget {
   const CommerceDeliveryZoneFormPage({
-    Key? key,
+    super.key,
     this.zoneId,
-  }) : super(key: key);
+  });
 
   final int? zoneId;
 
@@ -24,23 +24,23 @@ class _CommerceDeliveryZoneFormPageState
           widget.zoneId == null ? 'Nueva zona' : 'Editar zona',
         ),
       ),
-      body: Center(
+      body: const Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.location_on, size: 64, color: AppColors.blue),
-              const SizedBox(height: 24),
-              const Text(
+              SizedBox(height: 24),
+              Text(
                 'Zonas de delivery',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 12),
-              const Text(
+              SizedBox(height: 12),
+              Text(
                 'Las zonas de entrega son configuradas por el administrador de la plataforma. '
                 'Para agregar o modificar zonas de delivery, contacta con soporte.',
                 textAlign: TextAlign.center,

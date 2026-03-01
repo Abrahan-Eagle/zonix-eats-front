@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -83,7 +82,7 @@ void main() {
 
     test('should handle default selections', () {
       final defaultDataTypes = {'profile', 'orders', 'activity'};
-      final defaultFormat = 'json';
+      const defaultFormat = 'json';
 
       expect(defaultDataTypes, contains('profile'));
       expect(defaultDataTypes, contains('orders'));

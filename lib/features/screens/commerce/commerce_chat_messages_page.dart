@@ -6,10 +6,10 @@ import 'package:zonix/features/utils/app_colors.dart';
 /// Chat comercio-cliente. Usa Pusher para mensajes en tiempo real.
 class CommerceChatMessagesPage extends StatefulWidget {
   const CommerceChatMessagesPage({
-    Key? key,
+    super.key,
     required this.orderId,
     this.customerName = 'Cliente',
-  }) : super(key: key);
+  });
 
   final int orderId;
   final String customerName;
@@ -152,7 +152,7 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: AppColors.red),
+            const Icon(Icons.error_outline, size: 64, color: AppColors.red),
             const SizedBox(height: 16),
             Text(_error!, textAlign: TextAlign.center),
             const SizedBox(height: 16),
@@ -239,11 +239,11 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black12,
             blurRadius: 4,
-            offset: const Offset(0, -2),
+            offset: Offset(0, -2),
           ),
         ],
       ),

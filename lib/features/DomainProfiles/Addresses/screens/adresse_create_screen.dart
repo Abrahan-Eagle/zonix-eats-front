@@ -534,7 +534,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
         ],
       ),
       child: DropdownButtonFormField<T>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon, color: const Color(0xFF1976D2)),

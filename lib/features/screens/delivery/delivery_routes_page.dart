@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class DeliveryRoutesPage extends StatefulWidget {
-  const DeliveryRoutesPage({Key? key}) : super(key: key);
+  const DeliveryRoutesPage({super.key});
 
   @override
   State<DeliveryRoutesPage> createState() => _DeliveryRoutesPageState();
@@ -648,7 +648,7 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Container(
+                  SizedBox(
                     height: 120,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,

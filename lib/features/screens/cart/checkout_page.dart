@@ -6,7 +6,7 @@ import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/features/services/promotion_service.dart';
 
 class CheckoutPage extends StatefulWidget {
-  const CheckoutPage({Key? key}) : super(key: key);
+  const CheckoutPage({super.key});
 
   @override
   State<CheckoutPage> createState() => _CheckoutPageState();
@@ -110,7 +110,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final cartItems = cartService.items;
     final totalItems = cartItems.fold<int>(0, (sum, item) => sum + item.quantity);
     final subtotal = cartItems.fold<double>(0, (sum, item) => sum + (item.precio ?? 0) * item.quantity);
-    final tax = 0.0;
+    const tax = 0.0;
     final delivery = _deliveryType == 'delivery' ? 2.50 : 0.0;
     final totalPayment = (subtotal + tax + delivery - _couponDiscount).clamp(0.0, double.infinity);
     return Scaffold(

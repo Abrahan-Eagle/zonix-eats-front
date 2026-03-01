@@ -7,10 +7,10 @@ import 'package:zonix/config/app_config.dart';
 
 class CommerceOrderDetailPage extends StatefulWidget {
   const CommerceOrderDetailPage({
-    Key? key,
+    super.key,
     required this.orderId,
     this.order,
-  }) : super(key: key);
+  });
 
   final int orderId;
   final CommerceOrder? order;
@@ -170,7 +170,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: AppColors.red),
+              const Icon(Icons.error_outline, size: 64, color: AppColors.red),
               const SizedBox(height: 16),
               Text(_error ?? 'Orden no encontrada', textAlign: TextAlign.center),
               const SizedBox(height: 16),
@@ -501,8 +501,8 @@ class _RejectOrderDialogState extends State<_RejectOrderDialog> {
         ),
         TextButton(
           onPressed: () => Navigator.pop(context, _controller.text.trim()),
-          child: const Text('Rechazar orden'),
           style: TextButton.styleFrom(foregroundColor: AppColors.red),
+          child: const Text('Rechazar orden'),
         ),
       ],
     );

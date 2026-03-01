@@ -375,7 +375,7 @@ Future<void> _pickDate(BuildContext context) async {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _profile!.maritalStatus,
+                initialValue: _profile!.maritalStatus,
                 decoration: const InputDecoration(labelText: 'Estado Civil'),
                 items: maritalStatusOptions,
                 onChanged: (value) {
@@ -388,7 +388,7 @@ Future<void> _pickDate(BuildContext context) async {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _profile!.sex,
+                initialValue: _profile!.sex,
                 decoration: const InputDecoration(labelText: 'Sexo'),
                 items: sexOptions,
                 onChanged: (value) {

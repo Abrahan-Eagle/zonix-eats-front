@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:zonix/helpers/auth_helper.dart';
-import 'package:zonix/features/services/test_auth_service.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -20,14 +19,9 @@ void main() {
   });
 
     test('AuthHelper getAuthHeaders should return Future<Map<String, String>>', () async {
-      // Saltar este test si estamos en entorno de test sin plugins
-      bool isTestEnv = true;
-      if (isTestEnv) {
-        return;
-      }
       final headers = await AuthHelper.getAuthHeaders();
       expect(headers, isA<Map<String, String>>());
       expect(headers['Authorization'], isNotEmpty);
-    });
+    }, skip: 'Requiere plugins de plataforma en test');
   });
 } 

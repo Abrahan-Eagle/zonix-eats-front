@@ -387,7 +387,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.star, size: 16, color: _kAccent),
+                    const Icon(Icons.star, size: 16, color: _kAccent),
                     const SizedBox(width: 4),
                     Text(
                       '${widget.product.rating > 0 ? widget.product.rating.toStringAsFixed(1) : '-'} (${widget.product.reviewCount > 0 ? _formatCount(widget.product.reviewCount) : '0'})',

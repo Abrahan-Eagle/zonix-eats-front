@@ -1,14 +1,10 @@
 import 'package:flutter/foundation.dart';
-import 'package:zonix/features/services/auth/api_service.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 
 class PaymentService extends ChangeNotifier {
-  final ApiService _apiService = ApiService();
-  final _storage = const FlutterSecureStorage();
   static String get baseUrl => AppConfig.apiUrl;
 
   // Get payment methods
@@ -331,7 +327,7 @@ class PaymentService extends ChangeNotifier {
   Future<bool> validatePaymentMethod(Map<String, dynamic> paymentData) async {
     try {
       // Client-side validation (backend will also validate)
-      await Future.delayed(Duration(milliseconds: 500));
+      await Future.delayed(const Duration(milliseconds: 500));
       
       // Simple validation rules
       if (paymentData['type'] == 'card') {

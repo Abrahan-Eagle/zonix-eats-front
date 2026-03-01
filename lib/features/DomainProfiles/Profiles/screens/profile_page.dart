@@ -242,7 +242,7 @@ class ProfilePagex extends StatelessWidget {
                     color: AppColors.blue.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.person,
                     color: AppColors.blue,
                     size: 24,
@@ -261,13 +261,13 @@ class ProfilePagex extends StatelessWidget {
             ),
             const SizedBox(height: 20),
             _buildInfoRow(context, 'Nombre', profile.firstName, Icons.person_outline),
-            if (profile.middleName != null && profile.middleName!.isNotEmpty)
-              _buildInfoRow(context, 'Segundo Nombre', profile.middleName!, Icons.person_outline),
+            if (profile.middleName.isNotEmpty)
+              _buildInfoRow(context, 'Segundo Nombre', profile.middleName, Icons.person_outline),
             _buildInfoRow(context, 'Apellido', profile.lastName, Icons.person_outline),
-            if (profile.secondLastName != null && profile.secondLastName!.isNotEmpty)
-              _buildInfoRow(context, 'Segundo Apellido', profile.secondLastName!, Icons.person_outline),
+            if (profile.secondLastName.isNotEmpty)
+              _buildInfoRow(context, 'Segundo Apellido', profile.secondLastName, Icons.person_outline),
             _buildInfoRow(context, 'Fecha de Nacimiento', _formatDate(profile.dateOfBirth), Icons.calendar_today),
-            _buildInfoRow(context, 'Estado Civil', _translateMaritalStatus(profile.maritalStatus ?? 'N/A'), Icons.favorite),
+            _buildInfoRow(context, 'Estado Civil', _translateMaritalStatus(profile.maritalStatus), Icons.favorite),
             _buildInfoRow(context, 'Sexo', _translateSex(profile.sex), Icons.wc),
           ],
         ),
@@ -276,7 +276,6 @@ class ProfilePagex extends StatelessWidget {
   }
 
   Widget _buildContactInfoCard(BuildContext context, Profile profile) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       color: AppColors.cardBg(context),
       elevation: 4,
@@ -294,7 +293,7 @@ class ProfilePagex extends StatelessWidget {
                     color: AppColors.green.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.contact_phone,
                     color: AppColors.green,
                     size: 24,
@@ -321,7 +320,6 @@ class ProfilePagex extends StatelessWidget {
   }
 
   Widget _buildBusinessInfoCard(BuildContext context, Profile profile) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       color: AppColors.cardBg(context),
       elevation: 4,
@@ -339,7 +337,7 @@ class ProfilePagex extends StatelessWidget {
                     color: AppColors.orange.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.business,
                     color: AppColors.orange,
                     size: 24,
@@ -370,7 +368,6 @@ class ProfilePagex extends StatelessWidget {
   }
 
   Widget _buildDeliveryInfoCard(BuildContext context, Profile profile) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       color: AppColors.cardBg(context),
       elevation: 4,
@@ -388,7 +385,7 @@ class ProfilePagex extends StatelessWidget {
                     color: AppColors.purple.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.delivery_dining,
                     color: AppColors.purple,
                     size: 24,

@@ -65,13 +65,13 @@ dependencies:
   pusher_channels_flutter: ^2.2.1
   share_plus: ^12.0.1
 
+  flutter_native_splash: any
 dev_dependencies:
   flutter_test:
     sdk: flutter
   integration_test:
     sdk: flutter
   mockito: ^5.4.2
-  flutter_native_splash: ^2.4.1
   flutter_lints: ^4.0.0 
   build_runner: ^2.4.6
   json_serializable: ^6.8.0

@@ -9,8 +9,8 @@ void main() {
         home: Scaffold(
           body: Column(
             children: [
-              Text('Órdenes Asignadas'),
-              ElevatedButton(onPressed: () {}, child: Text('Marcar como entregada')),
+              const Text('Órdenes Asignadas'),
+              ElevatedButton(onPressed: () {}, child: const Text('Marcar como entregada')),
             ],
           ),
         ),

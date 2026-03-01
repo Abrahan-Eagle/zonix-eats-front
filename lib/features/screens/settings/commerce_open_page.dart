@@ -3,7 +3,7 @@ import 'package:zonix/features/services/commerce_data_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
 class CommerceOpenPage extends StatefulWidget {
-  const CommerceOpenPage({Key? key}) : super(key: key);
+  const CommerceOpenPage({super.key});
 
   @override
   State<CommerceOpenPage> createState() => _CommerceOpenPageState();
@@ -164,11 +164,11 @@ class _CommerceOpenPageState extends State<CommerceOpenPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    const Row(
                       children: [
-                        const Icon(Icons.power_settings_new, color: AppColors.blue),
-                        const SizedBox(width: 12),
-                        const Text(
+                        Icon(Icons.power_settings_new, color: AppColors.blue),
+                        SizedBox(width: 12),
+                        Text(
                           'Control de Estado',
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
@@ -202,7 +202,7 @@ class _CommerceOpenPageState extends State<CommerceOpenPage> {
                         ),
                         Switch(
                           value: _open,
-                          activeColor: Colors.green,
+                          activeThumbColor: Colors.green,
                           inactiveThumbColor: Colors.red,
                           inactiveTrackColor: Colors.red.shade200,
                           onChanged: (v) => setState(() => _open = v),
@@ -224,11 +224,11 @@ class _CommerceOpenPageState extends State<CommerceOpenPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    const Row(
                       children: [
-                        const Icon(Icons.info_outline, color: AppColors.blue),
-                        const SizedBox(width: 8),
-                        const Text(
+                        Icon(Icons.info_outline, color: AppColors.blue),
+                        SizedBox(width: 8),
+                        Text(
                           'Información',
                           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                         ),

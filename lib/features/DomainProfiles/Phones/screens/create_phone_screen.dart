@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/phone.dart';
 import '../api/phone_service.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -83,8 +82,9 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
         status: true,
       );
 
-      final createdPhone = await _phoneService.createPhone(phone, widget.userId);
-      
+      await _phoneService.createPhone(phone, widget.userId);
+
+      if (!context.mounted) return;
       context.read<UserProvider>().setPhoneCreated(true);
       _showSuccessSnackBar('Teléfono creado exitosamente');
       Navigator.pop(context, true);
@@ -144,8 +144,8 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
+      child: const Padding(
+        padding: EdgeInsets.all(16.0),
         child: Column(
           children: [
             Icon(
@@ -153,8 +153,8 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
               size: 48,
               color: Colors.blue,
             ),
-            const SizedBox(height: 12),
-            const Text(
+            SizedBox(height: 12),
+            Text(
               'Registra tu nuevo número de teléfono',
               style: TextStyle(
                 fontSize: 20,
@@ -163,8 +163,8 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
-            const Text(
+            SizedBox(height: 8),
+            Text(
               'Completa la información para agregar un nuevo teléfono a tu perfil',
               style: TextStyle(
                 fontSize: 14,
@@ -186,7 +186,7 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
           Column(
             children: [
               DropdownButtonFormField<int>(
-                value: _selectedOperatorCodeId,
+                initialValue: _selectedOperatorCodeId,
                 decoration: const InputDecoration(
                   labelText: 'Código de Operador',
                   border: OutlineInputBorder(),
@@ -245,7 +245,7 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
               Flexible(
                 flex: 1,
                 child: DropdownButtonFormField<int>(
-                  value: _selectedOperatorCodeId,
+                  initialValue: _selectedOperatorCodeId,
                   decoration: const InputDecoration(
                     labelText: 'Código de Operador',
                     border: OutlineInputBorder(),

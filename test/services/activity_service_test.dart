@@ -37,8 +37,8 @@ void main() {
     });
 
     test('should handle pagination parameters', () {
-      final page = 1;
-      final limit = 20;
+      const page = 1;
+      const limit = 20;
 
       expect(page, isA<int>());
       expect(limit, isA<int>());

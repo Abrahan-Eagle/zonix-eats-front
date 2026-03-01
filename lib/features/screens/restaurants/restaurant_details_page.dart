@@ -34,7 +34,7 @@ class RestaurantDetailsPage extends StatefulWidget {
   final double? longitude;
 
   RestaurantDetailsPage({
-    Key? key,
+    super.key,
     Restaurant? restaurant,
     int? commerceId,
     String? nombreLocal,
@@ -56,8 +56,7 @@ class RestaurantDetailsPage extends StatefulWidget {
         telefono = restaurant?.telefono ?? telefono ?? '',
         abierto = restaurant?.abierto ?? abierto ?? false,
         latitude = restaurant?.latitude ?? latitude,
-        longitude = restaurant?.longitude ?? longitude,
-        super(key: key);
+        longitude = restaurant?.longitude ?? longitude;
 
   factory RestaurantDetailsPage.fromRestaurant(Restaurant restaurant) {
     return RestaurantDetailsPage(restaurant: restaurant);
@@ -517,14 +516,14 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             color: const Color(0xFF25D366).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Row(
+                          child: const Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(Icons.chat, size: 18, color: const Color(0xFF25D366)),
-                              const SizedBox(width: 6),
+                              Icon(Icons.chat, size: 18, color: Color(0xFF25D366)),
+                              SizedBox(width: 6),
                               Text(
                                 'Escribir por WhatsApp',
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF25D366)),
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF25D366)),
                               ),
                             ],
                           ),
@@ -542,16 +541,16 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           color: _primary.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Icon(Icons.location_on, size: 18, color: _primary),
-                            const SizedBox(width: 6),
+                            SizedBox(width: 6),
                             Text(
                               'Ver ubicación',
                               style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _primary),
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: 4),
                             Icon(Icons.open_in_new, size: 14, color: _primary),
                           ],
                         ),
@@ -941,12 +940,12 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                     color: _primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Row(
+                  child: const Row(
                     children: [
                       Icon(Icons.directions, size: 18, color: _primary),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Text('Cómo llegar', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _primary)),
-                      const Spacer(),
+                      Spacer(),
                       Icon(Icons.open_in_new, size: 16, color: _primary),
                     ],
                   ),
@@ -1090,7 +1089,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.local_offer, color: _accent, size: 22),
+                    const Icon(Icons.local_offer, color: _accent, size: 22),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -1280,7 +1279,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             color: _accent.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: Text(product.category, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _accent)),
+                          child: Text(product.category, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _accent)),
                         ),
                       ],
                       if (product.description.isNotEmpty) ...[

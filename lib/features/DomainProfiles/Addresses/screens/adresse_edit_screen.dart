@@ -247,7 +247,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
             ),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
-            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
           ),
         );
         Navigator.pop(context, updatedAddress);
@@ -617,7 +617,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
         ],
       ),
       child: DropdownButtonFormField<T>(
-        value: value,
+        initialValue: value,
         decoration: InputDecoration(
           labelText: label,
           prefixIcon: Icon(icon, color: const Color(0xFF1976D2)),

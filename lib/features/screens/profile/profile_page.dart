@@ -7,7 +7,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:zonix/features/utils/auth_utils.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
-import 'package:qr_flutter/qr_flutter.dart'; // Importa QrImageView
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
 import 'package:zonix/features/utils/app_colors.dart';
@@ -27,7 +26,6 @@ class ProfilePage1State extends State<ProfilePage1> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   GoogleSignInAccount? currentUser;
   bool isAuthenticated = false;
-  String? _profileId;
   late Future<Profile?> _profileFuture;
 
 Future<void> _initializeData() async {
@@ -67,7 +65,6 @@ Future<void> _initializeData() async {
       final profileId = await QrProfileApiService().sendUserIdToBackend(userProvider.userId);
 
       if (profileId != null) {
-        _profileId = profileId; // Asigna directamente el ID de perfil
         await _storage.write(key: 'profileId', value: profileId);
         logger.i('ID de perfil obtenido: $profileId');
       } else {
@@ -81,8 +78,6 @@ Future<void> _initializeData() async {
 
 @override
 Widget build(BuildContext context) {
-  final userProvider = Provider.of<UserProvider>(context);
-  final isDark = Theme.of(context).brightness == Brightness.dark;
   return Scaffold(
     backgroundColor: AppColors.scaffoldBg(context),
     appBar: PreferredSize(
@@ -173,7 +168,7 @@ Widget build(BuildContext context) {
                       ),
                     const SizedBox(height: 16),
                     Text(
-                      profile.firstName + ' ' + profile.lastName,
+                      '${profile.firstName} ${profile.lastName}',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                             fontSize: 32,
                             fontWeight: FontWeight.bold,

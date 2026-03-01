@@ -3,7 +3,7 @@ import 'package:zonix/features/services/commerce_notification_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
 class CommerceNotificationsPage extends StatefulWidget {
-  const CommerceNotificationsPage({Key? key}) : super(key: key);
+  const CommerceNotificationsPage({super.key});
 
   @override
   State<CommerceNotificationsPage> createState() =>
@@ -59,7 +59,7 @@ class _CommerceNotificationsPageState extends State<CommerceNotificationsPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: AppColors.red),
+              const Icon(Icons.error_outline, size: 64, color: AppColors.red),
               const SizedBox(height: 16),
               Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 16),

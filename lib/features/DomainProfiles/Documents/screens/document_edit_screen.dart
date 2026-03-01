@@ -9,7 +9,6 @@ import 'package:image/image.dart' as img;
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
-import 'package:flutter/scheduler.dart';
 
 final logger = Logger();
 final documentService = DocumentService();
@@ -282,7 +281,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
                     color: Colors.orange.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.edit,
                     color: Colors.orange,
                     size: 24,
@@ -349,7 +348,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
+                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
               ),
@@ -510,12 +509,12 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.check_circle,
                   color: Colors.green,
                   size: 20,
@@ -557,9 +556,6 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
   }
 
   Widget _buildNumberField() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     return TextFormField(
       controller: _numberCiController,
       decoration: InputDecoration(
@@ -588,9 +584,6 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
   }
 
   Widget _buildReceiptNField() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     return TextFormField(
       controller: _receiptNController,
       decoration: InputDecoration(
@@ -610,9 +603,6 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
   }
 
   Widget _buildSkyField() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     return TextFormField(
       controller: _skyController,
       decoration: InputDecoration(
@@ -646,9 +636,6 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     List<TextInputFormatter>? inputFormatters,
     TextInputType? keyboardType,
   }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     return TextFormField(
       decoration: InputDecoration(
         labelText: label,
@@ -671,9 +658,6 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     DateTime? date,
     ValueChanged<DateTime?> onDateSelected,
   ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     return TextFormField(
       decoration: InputDecoration(
         labelText: label,
@@ -769,7 +753,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.check_circle,
                     color: Colors.green,
                     size: 20,
@@ -875,11 +859,6 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
         );
 
         final userId = widget.userId ?? Provider.of<UserProvider>(context, listen: false).userId;
-        if (userId == null) {
-          Navigator.of(context).pop();
-          _showCustomSnackBar(context, 'Error: ID de usuario no encontrado', Colors.red);
-          return;
-        }
 
         // Create updated document
         Document updatedDocument = Document(

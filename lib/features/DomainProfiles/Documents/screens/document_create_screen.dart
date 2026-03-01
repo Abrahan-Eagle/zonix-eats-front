@@ -6,18 +6,13 @@ import '../models/document.dart';
 import 'package:flutter/services.dart'; // Importar para usar FilteringTextInputFormatter
 import 'package:logger/logger.dart';
 import 'package:image/image.dart' as img; // Importar el paquete de imagen
-import 'package:zonix/features/utils/user_provider.dart';
-import 'package:provider/provider.dart';
 import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
-import 'package:flutter/scheduler.dart';
 
 final logger = Logger();
 final documentService = DocumentService();
 
 final TextEditingController _numberCiController = TextEditingController();
 final TextEditingController _taxDomicileController = TextEditingController();
-final TextEditingController _communeRegisterController = TextEditingController();
-final TextEditingController _communityRifController = TextEditingController();
 final TextEditingController _rifUrlController = TextEditingController();
 final TextEditingController _receiptNController = TextEditingController();
 final TextEditingController _skyController = TextEditingController();
@@ -40,8 +35,6 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
   String? _rifUrl;
   String? _taxDomicile;
   int? _sky;
-  String? _communeRegister; // Campo específico para 'neighborhood_association'
-  String? _communityRif;
   DateTime? _issuedAt;
   DateTime? _expiresAt;
   int? _receiptN;
@@ -332,7 +325,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              value: _selectedType,
+              initialValue: _selectedType,
               items: typeTranslations.entries
                   .map(
                     (entry) => DropdownMenuItem(
@@ -537,12 +530,12 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.check_circle,
                   color: Colors.green,
                   size: 20,
@@ -584,9 +577,6 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
   }
 
   Widget _buildNumberField() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     return TextFormField(
       controller: _numberCiController, // Asegúrate de vincular el controlador
       decoration: InputDecoration(
@@ -615,9 +605,6 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
   }
 
   Widget _buildReceiptNField() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     return TextFormField(
       controller: _receiptNController,
       decoration: InputDecoration(
@@ -637,9 +624,6 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
   }
 
   Widget _buildSkyField() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     return TextFormField(
       controller: _skyController,
       decoration: InputDecoration(
@@ -674,9 +658,6 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     List<TextInputFormatter>? inputFormatters,
     TextInputType? keyboardType,
   }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     return TextFormField(
       decoration: InputDecoration(
         labelText: label,
@@ -699,9 +680,6 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     DateTime? date,
     ValueChanged<DateTime?> onDateSelected,
   ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     return TextFormField(
       decoration: InputDecoration(
         labelText: label,
@@ -783,7 +761,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.check_circle,
                     color: Colors.green,
                     size: 20,

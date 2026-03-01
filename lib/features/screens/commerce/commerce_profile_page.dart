@@ -5,10 +5,10 @@ import 'package:zonix/features/utils/app_colors.dart';
 
 class CommerceProfilePage extends StatefulWidget {
   const CommerceProfilePage({
-    Key? key,
+    super.key,
     this.initialProfile,
     this.isTestMode = false,
-  }) : super(key: key);
+  });
 
   final dynamic initialProfile;
   final bool isTestMode;
@@ -114,7 +114,7 @@ class _CommerceProfilePageState extends State<CommerceProfilePage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: AppColors.red),
+              const Icon(Icons.error_outline, size: 64, color: AppColors.red),
               const SizedBox(height: 16),
               Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
@@ -172,7 +172,7 @@ class _CommerceProfilePageState extends State<CommerceProfilePage> {
                       Switch(
                         value: _commerceOpen,
                         onChanged: _toggleOpen,
-                        activeColor: AppColors.green,
+                        activeThumbColor: AppColors.green,
                       ),
                     ],
                   ),

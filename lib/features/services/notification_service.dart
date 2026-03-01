@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:zonix/models/notification_item.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -215,12 +214,12 @@ class NotificationService extends ChangeNotifier {
           children: [
             Text(
               notification['title'],
-              style: TextStyle(fontWeight: FontWeight.bold),
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             Text(notification['message']),
           ],
         ),
-        duration: Duration(seconds: 4),
+        duration: const Duration(seconds: 4),
         action: SnackBarAction(
           label: 'Ver',
           onPressed: () => _handleNotificationTap(context, notification),
@@ -241,19 +240,19 @@ class NotificationService extends ChangeNotifier {
       case 'commission':
         // Navigate to commission details
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Navegando a comisiones')),
+          const SnackBar(content: Text('Navegando a comisiones')),
         );
         break;
       case 'maintenance':
         // Navigate to maintenance details
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Navegando a mantenimiento')),
+          const SnackBar(content: Text('Navegando a mantenimiento')),
         );
         break;
       default:
         // Navigate to notifications page
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Navegando a notificaciones')),
+          const SnackBar(content: Text('Navegando a notificaciones')),
         );
     }
   }

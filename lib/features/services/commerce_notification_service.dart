@@ -18,7 +18,6 @@ class CommerceNotificationService {
   StreamController<List<Map<String, dynamic>>>? _notificationsController;
   List<Map<String, dynamic>> _notifications = [];
   bool _isConnected = false;
-  int? _commerceId;
 
   // Getters
   bool get isConnected => _isConnected;
@@ -185,7 +184,6 @@ class CommerceNotificationService {
     if (_isConnected) return;
 
     try {
-      _commerceId = commerceId;
       _notificationsController = StreamController<List<Map<String, dynamic>>>.broadcast();
 
       // Suscribirse a canal de perfil/comercio en Pusher

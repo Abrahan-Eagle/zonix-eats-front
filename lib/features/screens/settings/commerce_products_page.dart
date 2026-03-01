@@ -3,7 +3,7 @@ import '../../../models/commerce_product.dart';
 import '../../services/commerce_product_service.dart';
 
 class CommerceProductsPage extends StatefulWidget {
-  const CommerceProductsPage({Key? key}) : super(key: key);
+  const CommerceProductsPage({super.key});
 
   @override
   State<CommerceProductsPage> createState() => _CommerceProductsPageState();
@@ -57,7 +57,7 @@ class _CommerceProductsPageState extends State<CommerceProductsPage> {
             child: _loadingCategories
                 ? const LinearProgressIndicator()
                 : DropdownButtonFormField<int>(
-                    value: _selectedCategoryId,
+                    initialValue: _selectedCategoryId,
                     items: [
                       const DropdownMenuItem<int>(value: null, child: Text('Todas las categorías')),
                       ..._categories.map((cat) => DropdownMenuItem<int>(
@@ -139,8 +139,8 @@ class _CommerceProductsPageState extends State<CommerceProductsPage> {
         onPressed: () {
           // TODO: Navegar a formulario de crear producto
         },
-        child: const Icon(Icons.add),
         tooltip: 'Agregar producto',
+        child: const Icon(Icons.add),
       ),
     );
   }

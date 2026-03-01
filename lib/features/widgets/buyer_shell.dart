@@ -126,7 +126,7 @@ class _BuyerShellState extends State<BuyerShell> {
                           color: _primary.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.location_on, color: _primary, size: 22),
+                        child: const Icon(Icons.location_on, color: _primary, size: 22),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -154,7 +154,7 @@ class _BuyerShellState extends State<BuyerShell> {
                           ],
                         ),
                       ),
-                      Icon(Icons.expand_more, color: _primary, size: 20),
+                      const Icon(Icons.expand_more, color: _primary, size: 20),
                     ],
                   ),
                 ),

@@ -13,7 +13,6 @@ class PrivacySettingsPage extends StatefulWidget {
 
 class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
   final ProfileService _profileService = ProfileService();
-  Map<String, dynamic>? _privacySettings;
   bool _isLoading = true;
   String? _error;
 
@@ -40,7 +39,6 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
 
       final data = await _profileService.getPrivacySettings();
       setState(() {
-        _privacySettings = data;
         _profileVisible = data['privacy_settings']['profile_visible'] ?? true;
         _reviewsVisible = data['privacy_settings']['reviews_visible'] ?? true;
         _orderHistoryVisible = data['privacy_settings']['order_history_visible'] ?? true;

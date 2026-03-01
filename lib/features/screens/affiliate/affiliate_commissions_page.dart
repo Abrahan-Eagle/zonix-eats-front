@@ -60,7 +60,7 @@ class _AffiliateCommissionsPageState extends State<AffiliateCommissionsPage> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: DropdownButtonFormField<String>(
-                    value: _selectedFilter,
+                    initialValue: _selectedFilter,
                     decoration: InputDecoration(
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -471,8 +471,8 @@ class _AffiliateCommissionsPageState extends State<AffiliateCommissionsPage> {
           children: [
             const Text('Tu saldo disponible es \$180.00'),
             const SizedBox(height: 16),
-            TextField(
-              decoration: const InputDecoration(
+            const TextField(
+              decoration: InputDecoration(
                 labelText: 'Monto a retirar',
                 border: OutlineInputBorder(),
                 prefixText: '\$',

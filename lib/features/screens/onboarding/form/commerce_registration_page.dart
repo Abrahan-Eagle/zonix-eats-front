@@ -35,7 +35,7 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
   bool _abierto = false;
   
   // Horario de trabajo
-  Map<String, Map<String, String>> _horario = {
+  final Map<String, Map<String, String>> _horario = {
     'lunes': {'inicio': '', 'fin': '', 'cerrado': 'false'},
     'martes': {'inicio': '', 'fin': '', 'cerrado': 'false'},
     'miercoles': {'inicio': '', 'fin': '', 'cerrado': 'false'},
@@ -328,7 +328,7 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
                   Switch(
                     value: _abierto,
                     onChanged: (value) => setState(() => _abierto = value),
-                    activeColor: const Color(0xFF27AE60),
+                    activeThumbColor: const Color(0xFF27AE60),
                   ),
                 ],
               ),
@@ -525,7 +525,7 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
                     }
                   });
                 },
-                activeColor: const Color(0xFF27AE60),
+                activeThumbColor: const Color(0xFF27AE60),
               ),
             ],
           ),

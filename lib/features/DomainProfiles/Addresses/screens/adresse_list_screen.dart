@@ -4,9 +4,6 @@ import 'package:zonix/features/DomainProfiles/Addresses/models/adresse.dart';
 import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_create_screen.dart';
 import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_edit_screen.dart';
 import 'package:provider/provider.dart';
-import 'package:webview_flutter/webview_flutter.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zonix/widgets/osm_map_widget.dart';
 import 'package:latlong2/latlong.dart';
@@ -306,10 +303,6 @@ class AddressPage extends StatelessWidget {
   }
 
   Widget _buildMapCard(Address address, BuildContext context, bool isSmallScreen) {
-    if (address.latitude == null || address.longitude == null) {
-      return SizedBox.shrink();
-    }
-
     return Padding(
       padding: EdgeInsets.all(isSmallScreen ? 16.0 : 24.0),
       child: Column(
@@ -319,19 +312,19 @@ class AddressPage extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: OsmMapWidget(
-              center: LatLng(address.latitude!, address.longitude!),
+              center: LatLng(address.latitude, address.longitude),
               zoom: 15.0,
               height: 200,
               markers: [
                 MapMarker.create(
-                  point: LatLng(address.latitude!, address.longitude!),
+                  point: LatLng(address.latitude, address.longitude),
                   iconData: Icons.location_on,
                   color: Theme.of(context).colorScheme.primary,
                 ),
               ],
             ),
           ),
-          SizedBox(height: 12),
+          const SizedBox(height: 12),
           // Botón para abrir en navegador externo
           GestureDetector(
             onTap: () async {
@@ -358,7 +351,7 @@ class AddressPage extends StatelessWidget {
                 color: Theme.of(context).colorScheme.primary,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Row(
+              child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.open_in_new, color: Colors.white, size: 20),
@@ -376,67 +369,6 @@ class AddressPage extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildMap(double latitude, double longitude, BuildContext context) {
-    if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-      return Container(
-        decoration: BoxDecoration(
-          color: Colors.grey[200],
-          borderRadius: const BorderRadius.only(
-            bottomLeft: Radius.circular(16),
-            bottomRight: Radius.circular(16),
-          ),
-        ),
-        child: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 48, color: Colors.grey),
-              SizedBox(height: 8),
-              Text(
-                'Coordenadas inválidas',
-                style: TextStyle(color: Colors.grey),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      height: 300,
-      decoration: const BoxDecoration(
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(16),
-          bottomRight: Radius.circular(16),
-        ),
-        child: Stack(
-          children: [
-            // Fondo del mapa simple
-            Container(
-              width: double.infinity,
-              height: double.infinity,
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
-                ),
-              ),
-            ),
-
-
-          ],
-        ),
       ),
     );
   }
@@ -538,7 +470,7 @@ class AddressPage extends StatelessWidget {
         ],
       ),
     ).then((confirmed) async {
-      if (confirmed == true) {
+      if (confirmed == true && context.mounted) {
         await _updateStatus(context);
       }
     });

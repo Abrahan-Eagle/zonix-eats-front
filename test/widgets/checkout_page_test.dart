@@ -14,7 +14,7 @@ void main() {
       MaterialApp(
         home: ChangeNotifierProvider<CartService>(
           create: (_) => CartService(),
-          child: CheckoutPage(),
+          child: const CheckoutPage(),
         ),
       ),
     );

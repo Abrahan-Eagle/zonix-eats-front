@@ -105,11 +105,11 @@ class MyApp extends StatelessWidget {
         primaryColor: AppColors.purple,
         brightness: Brightness.light,
         visualDensity: VisualDensity.adaptivePlatformDensity,
-        appBarTheme: AppBarTheme(
+        appBarTheme: const AppBarTheme(
           backgroundColor: AppColors.purple,
           foregroundColor: AppColors.white,
           elevation: 0,
-          titleTextStyle: const TextStyle(
+          titleTextStyle: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 22,
@@ -120,11 +120,11 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark,
         primaryColor: AppColors.purple,
         visualDensity: VisualDensity.adaptivePlatformDensity,
-        appBarTheme: AppBarTheme(
+        appBarTheme: const AppBarTheme(
           backgroundColor: AppColors.purple,
           foregroundColor: AppColors.white,
           elevation: 0,
-          titleTextStyle: const TextStyle(
+          titleTextStyle: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 22,

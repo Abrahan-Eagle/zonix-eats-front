@@ -5,9 +5,9 @@ import 'package:zonix/features/utils/app_colors.dart';
 
 class CommercePaymentMethodFormPage extends StatefulWidget {
   const CommercePaymentMethodFormPage({
-    Key? key,
+    super.key,
     this.method,
-  }) : super(key: key);
+  });
 
   final Map<String, dynamic>? method;
 
@@ -152,7 +152,7 @@ class _CommercePaymentMethodFormPageState
           padding: const EdgeInsets.all(16),
           children: [
             DropdownButtonFormField<String>(
-              value: _type,
+              initialValue: _type,
               decoration: const InputDecoration(
                 labelText: 'Tipo de método',
                 border: OutlineInputBorder(),

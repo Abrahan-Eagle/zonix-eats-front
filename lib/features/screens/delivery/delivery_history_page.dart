@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class DeliveryHistoryPage extends StatefulWidget {
-  const DeliveryHistoryPage({Key? key}) : super(key: key);
+  const DeliveryHistoryPage({super.key});
 
   @override
   State<DeliveryHistoryPage> createState() => _DeliveryHistoryPageState();

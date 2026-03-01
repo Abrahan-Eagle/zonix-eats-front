@@ -38,7 +38,7 @@ class OnboardingPage4 extends StatelessWidget {
                     SizedBox(height: screenHeight * 0.02),
 
                   // Imagen de delivery
-                    Container(
+                    SizedBox(
                       height: screenHeight * 0.28,
                       width: double.infinity,
                       child: Center(

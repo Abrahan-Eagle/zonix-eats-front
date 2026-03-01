@@ -6,9 +6,9 @@ import 'package:zonix/features/utils/app_colors.dart';
 
 class CommerceProfileEditPage extends StatefulWidget {
   const CommerceProfileEditPage({
-    Key? key,
+    super.key,
     required this.initialData,
-  }) : super(key: key);
+  });
 
   final Map<String, dynamic> initialData;
 

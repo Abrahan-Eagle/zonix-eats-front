@@ -8,9 +8,9 @@ import 'package:zonix/config/app_config.dart';
 
 class CommerceProductFormPage extends StatefulWidget {
   const CommerceProductFormPage({
-    Key? key,
+    super.key,
     this.product,
-  }) : super(key: key);
+  });
 
   final CommerceProduct? product;
 

@@ -35,7 +35,7 @@ void main() {
     });
 
     test('should handle policy versions correctly', () {
-      final version = '1.0';
+      const version = '1.0';
       expect(version, isA<String>());
       expect(version.isNotEmpty, isTrue);
     });

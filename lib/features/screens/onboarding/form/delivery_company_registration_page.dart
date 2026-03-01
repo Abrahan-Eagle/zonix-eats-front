@@ -458,7 +458,7 @@ class _DeliveryCompanyRegistrationPageState extends State<DeliveryCompanyRegistr
                   Switch(
                     value: _activo,
                     onChanged: (value) => setState(() => _activo = value),
-                    activeColor: const Color(0xFF27AE60),
+                    activeThumbColor: const Color(0xFF27AE60),
                   ),
                 ],
               ),
@@ -529,7 +529,7 @@ class _DeliveryCompanyRegistrationPageState extends State<DeliveryCompanyRegistr
     required bool isSmallPhone,
   }) {
     return DropdownButtonFormField<String>(
-      value: value,
+      initialValue: value,
       onChanged: onChanged,
       style: TextStyle(
         fontSize: isTablet ? 16 : (isSmallPhone ? 13 : 14),

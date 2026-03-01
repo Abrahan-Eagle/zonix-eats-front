@@ -199,7 +199,7 @@ class _AffiliateSupportPageState extends State<AffiliateSupportPage> {
             const SizedBox(height: 16),
             
             DropdownButtonFormField<String>(
-              value: _selectedCategory,
+              initialValue: _selectedCategory,
               decoration: const InputDecoration(
                 labelText: 'Categoría',
                 border: OutlineInputBorder(),

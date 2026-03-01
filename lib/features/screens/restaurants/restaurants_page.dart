@@ -20,7 +20,7 @@ class _TemplateColors {
 }
 
 class RestaurantsPage extends StatefulWidget {
-  const RestaurantsPage({Key? key}) : super(key: key);
+  const RestaurantsPage({super.key});
 
   @override
   State<RestaurantsPage> createState() => _RestaurantsPageState();
@@ -375,7 +375,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.star, size: 14, color: _TemplateColors.ratingYellow),
+                            const Icon(Icons.star, size: 14, color: _TemplateColors.ratingYellow),
                             const SizedBox(width: 2),
                             Text(
                               rating > 0 ? rating.toStringAsFixed(1) : 'Nuevo',
@@ -403,10 +403,10 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                   // Tiempo + Costo envío
                   Row(
                     children: [
-                      Icon(Icons.schedule, size: 16, color: _TemplateColors.primary),
+                      const Icon(Icons.schedule, size: 16, color: _TemplateColors.primary),
                       const SizedBox(width: 4),
                       Text(
-                        '${deliveryTime}-${deliveryTime + 10} min',
+                        '$deliveryTime-${deliveryTime + 10} min',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
@@ -414,7 +414,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                         ),
                       ),
                       const SizedBox(width: 16),
-                      Icon(Icons.delivery_dining, size: 16, color: _TemplateColors.primary),
+                      const Icon(Icons.delivery_dining, size: 16, color: _TemplateColors.primary),
                       const SizedBox(width: 4),
                       Text(
                         deliveryFee > 0 ? 'Envío \$${deliveryFee.toStringAsFixed(2)}' : 'Envío Gratis',

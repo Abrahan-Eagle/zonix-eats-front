@@ -12,14 +12,14 @@ class OsmMapWidget extends StatelessWidget {
   final double? width;
 
   const OsmMapWidget({
-    Key? key,
+    super.key,
     required this.center,
     this.zoom = 13.0,
     this.markers,
     this.onTap,
     this.height,
     this.width,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

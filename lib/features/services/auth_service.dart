@@ -12,7 +12,6 @@ class AuthService {
       errorMethodCount: 5,
       colors: true,
       printEmojis: true,
-      printTime: true,
     ),
   );
 
@@ -31,7 +30,7 @@ class AuthService {
           'email': email,
           'password': password,
         }),
-      ).timeout(Duration(milliseconds: AppConfig.requestTimeout));
+      ).timeout(const Duration(milliseconds: AppConfig.requestTimeout));
 
       logger.i('Login Response Status: ${response.statusCode}');
 
@@ -88,7 +87,7 @@ class AuthService {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
-      ).timeout(Duration(milliseconds: AppConfig.requestTimeout));
+      ).timeout(const Duration(milliseconds: AppConfig.requestTimeout));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
@@ -109,13 +108,13 @@ class AuthService {
       final token = await storage.read(key: 'token');
       if (token == null) return true;
 
-      final response = await http.post(
+      await http.post(
         Uri.parse('${AppConfig.apiUrl}/api/auth/logout'),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
         },
-      ).timeout(Duration(milliseconds: AppConfig.requestTimeout));
+      ).timeout(const Duration(milliseconds: AppConfig.requestTimeout));
 
       // Limpiar almacenamiento local
       await storage.delete(key: 'token');

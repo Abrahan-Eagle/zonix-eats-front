@@ -4,7 +4,7 @@ import 'package:zonix/features/services/commerce_promotion_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
 class CommercePromotionsPage extends StatefulWidget {
-  const CommercePromotionsPage({Key? key}) : super(key: key);
+  const CommercePromotionsPage({super.key});
 
   @override
   State<CommercePromotionsPage> createState() => _CommercePromotionsPageState();
@@ -58,7 +58,7 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: AppColors.red),
+              const Icon(Icons.error_outline, size: 64, color: AppColors.red),
               const SizedBox(height: 16),
               Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 16),

@@ -20,7 +20,7 @@ class OnboardingScreen extends StatefulWidget {
 class OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _controller = PageController();
   int _currentPage = 0;
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   List<Widget> get onboardingPages {
     return [

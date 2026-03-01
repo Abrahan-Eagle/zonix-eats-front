@@ -1,13 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../models/commerce_product.dart';
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 
 class CommerceProductService {
-  static const FlutterSecureStorage _storage = FlutterSecureStorage();
   static String get baseUrl => AppConfig.apiUrl;
 
   // Obtener todos los productos del comercio
@@ -31,7 +29,7 @@ class CommerceProductService {
       if (sortOrder != null) queryParams['sort_order'] = sortOrder;
       if (perPage != null) queryParams['per_page'] = perPage.toString();
 
-      final uri = Uri.parse('${baseUrl}/api/commerce/products').replace(queryParameters: queryParams);
+      final uri = Uri.parse('$baseUrl/api/commerce/products').replace(queryParameters: queryParams);
       
       final response = await http.get(
         uri,
@@ -63,7 +61,7 @@ class CommerceProductService {
     final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.get(
-        Uri.parse('${baseUrl}/api/commerce/products/$id'),
+        Uri.parse('$baseUrl/api/commerce/products/$id'),
         headers: headers,
       );
 
@@ -87,7 +85,7 @@ class CommerceProductService {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('${baseUrl}/api/commerce/products'),
+        Uri.parse('$baseUrl/api/commerce/products'),
       );
       request.headers.addAll(headers);
 
@@ -152,7 +150,7 @@ class CommerceProductService {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('${baseUrl}/api/commerce/products/$id'),
+        Uri.parse('$baseUrl/api/commerce/products/$id'),
       );
       request.headers.addAll(headers);
       request.fields['_method'] = 'PUT';
@@ -216,7 +214,7 @@ class CommerceProductService {
     final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.delete(
-        Uri.parse('${baseUrl}/api/commerce/products/$id'),
+        Uri.parse('$baseUrl/api/commerce/products/$id'),
         headers: headers,
       );
 
@@ -233,7 +231,7 @@ class CommerceProductService {
     final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.put(
-        Uri.parse('${baseUrl}/api/commerce/products/$id/toggle-disponible'),
+        Uri.parse('$baseUrl/api/commerce/products/$id/toggle-disponible'),
         headers: headers,
       );
 
@@ -256,7 +254,7 @@ class CommerceProductService {
     final headers = await AuthHelper.getAuthHeaders();
     try {
       final response = await http.get(
-        Uri.parse('${baseUrl}/api/commerce/products-stats'),
+        Uri.parse('$baseUrl/api/commerce/products-stats'),
         headers: headers,
       );
 
@@ -280,7 +278,7 @@ class CommerceProductService {
     try {
       var request = http.MultipartRequest(
         'POST',
-        Uri.parse('${baseUrl}/api/commerce/products/upload-image'),
+        Uri.parse('$baseUrl/api/commerce/products/upload-image'),
       );
 
       request.headers.addAll(headers);
@@ -313,7 +311,7 @@ class CommerceProductService {
   static Future<List<Map<String, dynamic>>> getProductCategories() async {
     final headers = await AuthHelper.getAuthHeaders();
     try {
-      final url = Uri.parse('${baseUrl}/api/buyer/search/categories');
+      final url = Uri.parse('$baseUrl/api/buyer/search/categories');
       final response = await http.get(url, headers: headers);
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
