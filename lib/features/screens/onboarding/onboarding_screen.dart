@@ -104,7 +104,7 @@ class OnboardingScreenState extends State<OnboardingScreen> {
                           dotHeight: 6,
                           dotWidth: 6,
                           activeDotColor: _kPrimary,
-                          dotColor: _kPrimary.withOpacity(0.2),
+                          dotColor: _kPrimary.withValues(alpha: 0.2),
                           spacing: 8,
                           expansionFactor: 3,
                         ),
@@ -196,8 +196,8 @@ class WelcomePage extends StatelessWidget {
                                     shape: BoxShape.circle,
                                     gradient: RadialGradient(
                                       colors: [
-                                        _kPrimary.withOpacity(0.25),
-                                        _kPrimary.withOpacity(0),
+                                        _kPrimary.withValues(alpha: 0.25),
+                                        _kPrimary.withValues(alpha: 0),
                                       ],
                                       stops: const [0.0, 0.7],
                                     ),
@@ -226,7 +226,7 @@ class WelcomePage extends StatelessWidget {
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: _kPrimary.withOpacity(0.2),
+                                        color: _kPrimary.withValues(alpha: 0.2),
                                         width: 1,
                                       ),
                                     ),
@@ -238,7 +238,7 @@ class WelcomePage extends StatelessWidget {
                                     decoration: BoxDecoration(
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: _kPrimary.withOpacity(0.1),
+                                        color: _kPrimary.withValues(alpha: 0.1),
                                         width: 1,
                                       ),
                                     ),
@@ -252,7 +252,7 @@ class WelcomePage extends StatelessWidget {
                                       color: _kSpaceBlue,
                                       boxShadow: [
                                         BoxShadow(
-                                          color: _kPrimary.withOpacity(0.25),
+                                          color: _kPrimary.withValues(alpha: 0.25),
                                           blurRadius: 50,
                                           offset: const Offset(0, 20),
                                         ),
@@ -273,9 +273,9 @@ class WelcomePage extends StatelessWidget {
                                                 begin: Alignment.topLeft,
                                                 end: Alignment.bottomRight,
                                                 colors: [
-                                                  _kBackgroundDark.withOpacity(0.8),
+                                                  _kBackgroundDark.withValues(alpha: 0.8),
                                                   Colors.transparent,
-                                                  _kPrimary.withOpacity(0.2),
+                                                  _kPrimary.withValues(alpha: 0.2),
                                                 ],
                                                 stops: const [0.0, 0.5, 1.0],
                                               ),
@@ -338,7 +338,7 @@ class WelcomePage extends StatelessWidget {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: MediaQuery.of(context).size.width < 360 ? 14.0 : 16.0,
                           fontWeight: FontWeight.w500,
-                          color: Colors.white.withOpacity(0.7),
+                          color: Colors.white.withValues(alpha: 0.7),
                           height: 1.5,
                         ),
                       ),
@@ -363,7 +363,7 @@ class WelcomePage extends StatelessWidget {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            _kSpaceBlue.withOpacity(0.5),
+            _kSpaceBlue.withValues(alpha: 0.5),
             _kBackgroundDark,
           ],
         ),
@@ -384,7 +384,7 @@ class WelcomePage extends StatelessWidget {
     return Text(
       char,
       style: TextStyle(
-        color: _kPrimary.withOpacity(opacity),
+        color: _kPrimary.withValues(alpha: opacity),
         fontSize: 12,
       ),
     );
@@ -395,7 +395,7 @@ class WelcomePage extends StatelessWidget {
       width: 8,
       height: 8,
       decoration: BoxDecoration(
-        color: _kPrimary.withOpacity(opacity),
+        color: _kPrimary.withValues(alpha: opacity),
         shape: BoxShape.circle,
       ),
     );
@@ -407,7 +407,7 @@ class WelcomePage extends StatelessWidget {
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: c.withOpacity(opacity),
+        color: c.withValues(alpha: opacity),
         shape: BoxShape.circle,
       ),
     );

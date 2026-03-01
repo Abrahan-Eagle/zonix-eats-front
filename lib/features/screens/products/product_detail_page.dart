@@ -407,7 +407,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: _kAccent.withOpacity(0.12),
+              color: _kAccent.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -487,16 +487,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: _kPrimary.withOpacity(0.08),
+              color: _kPrimary.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: _kPrimary.withOpacity(0.15)),
+              border: Border.all(color: _kPrimary.withValues(alpha: 0.15)),
             ),
             child: Row(
               children: [
                 Container(
                   width: 40, height: 40,
                   decoration: BoxDecoration(
-                    color: _kPrimary.withOpacity(0.15),
+                    color: _kPrimary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: const Icon(Icons.storefront, color: _kPrimary, size: 20),

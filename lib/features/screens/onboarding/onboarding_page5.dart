@@ -71,10 +71,10 @@
 //                           height: screenHeight * 0.25,
 //                           width: screenHeight * 0.25,
 //                           decoration: BoxDecoration(
-//                             color: Colors.white.withOpacity(0.2),
+//                             color: Colors.white.withValues(alpha: 0.2),
 //                             borderRadius: BorderRadius.circular(screenHeight * 0.125),
 //                             border: Border.all(
-//                               color: Colors.white.withOpacity(0.3),
+//                               color: Colors.white.withValues(alpha: 0.3),
 //                               width: 3,
 //                             ),
 //                           ),
@@ -123,7 +123,7 @@
 //                               Container(
 //                                 padding: EdgeInsets.all(screenWidth * 0.06),
 //                                 decoration: BoxDecoration(
-//                                   color: Colors.white.withOpacity(0.3),
+//                                   color: Colors.white.withValues(alpha: 0.3),
 //                                   borderRadius: BorderRadius.circular(50),
 //                                 ),
 //                                 child: Icon(
@@ -146,7 +146,7 @@
 //                             color: Colors.white,
 //                             shadows: [
 //                               Shadow(
-//                                 color: Colors.black.withOpacity(0.3),
+//                                 color: Colors.black.withValues(alpha: 0.3),
 //                                 offset: const Offset(0, 2),
 //                                 blurRadius: 4,
 //                               ),
@@ -160,10 +160,10 @@
 //                         Container(
 //                           padding: EdgeInsets.all(screenWidth * 0.06),
 //                           decoration: BoxDecoration(
-//                             color: Colors.white.withOpacity(0.2),
+//                             color: Colors.white.withValues(alpha: 0.2),
 //                             borderRadius: BorderRadius.circular(20),
 //                             border: Border.all(
-//                               color: Colors.white.withOpacity(0.3),
+//                               color: Colors.white.withValues(alpha: 0.3),
 //                               width: 1,
 //                             ),
 //                           ),
@@ -215,10 +215,10 @@
 //                         Container(
 //                           padding: EdgeInsets.all(screenWidth * 0.05),
 //                           decoration: BoxDecoration(
-//                             color: Colors.white.withOpacity(0.15),
+//                             color: Colors.white.withValues(alpha: 0.15),
 //                             borderRadius: BorderRadius.circular(15),
 //                             border: Border.all(
-//                               color: Colors.white.withOpacity(0.3),
+//                               color: Colors.white.withValues(alpha: 0.3),
 //                               width: 1,
 //                             ),
 //                           ),
@@ -271,10 +271,10 @@
 //           Container(
 //             padding: EdgeInsets.all(screenWidth * 0.04),
 //             decoration: BoxDecoration(
-//               color: Colors.white.withOpacity(0.25),
+//               color: Colors.white.withValues(alpha: 0.25),
 //               borderRadius: BorderRadius.circular(15),
 //               border: Border.all(
-//                 color: Colors.white.withOpacity(0.4),
+//                 color: Colors.white.withValues(alpha: 0.4),
 //                 width: 1,
 //               ),
 //             ),
@@ -375,10 +375,10 @@
 // //                           height: screenHeight * 0.25,
 // //                           width: screenHeight * 0.25,
 // //                           decoration: BoxDecoration(
-// //                             color: Colors.white.withOpacity(0.2),
+// //                             color: Colors.white.withValues(alpha: 0.2),
 // //                             borderRadius: BorderRadius.circular(screenHeight * 0.125),
 // //                             border: Border.all(
-// //                               color: Colors.white.withOpacity(0.3),
+// //                               color: Colors.white.withValues(alpha: 0.3),
 // //                               width: 3,
 // //                             ),
 // //                           ),
@@ -445,7 +445,7 @@
 // //                             color: Colors.white,
 // //                             shadows: [
 // //                               Shadow(
-// //                                 color: Colors.black.withOpacity(0.3),
+// //                                 color: Colors.black.withValues(alpha: 0.3),
 // //                                 offset: const Offset(0, 2),
 // //                                 blurRadius: 4,
 // //                               ),
@@ -459,10 +459,10 @@
 // //                         Container(
 // //                           padding: EdgeInsets.all(screenWidth * 0.06),
 // //                           decoration: BoxDecoration(
-// //                             color: Colors.white.withOpacity(0.2),
+// //                             color: Colors.white.withValues(alpha: 0.2),
 // //                             borderRadius: BorderRadius.circular(20),
 // //                             border: Border.all(
-// //                               color: Colors.white.withOpacity(0.3),
+// //                               color: Colors.white.withValues(alpha: 0.3),
 // //                               width: 1,
 // //                             ),
 // //                           ),
@@ -514,10 +514,10 @@
 // //                         Container(
 // //                           padding: EdgeInsets.all(screenWidth * 0.05),
 // //                           decoration: BoxDecoration(
-// //                             color: Colors.white.withOpacity(0.15),
+// //                             color: Colors.white.withValues(alpha: 0.15),
 // //                             borderRadius: BorderRadius.circular(15),
 // //                             border: Border.all(
-// //                               color: Colors.white.withOpacity(0.3),
+// //                               color: Colors.white.withValues(alpha: 0.3),
 // //                               width: 1,
 // //                             ),
 // //                           ),
@@ -570,10 +570,10 @@
 // //           Container(
 // //             padding: EdgeInsets.all(screenWidth * 0.04),
 // //             decoration: BoxDecoration(
-// //               color: Colors.white.withOpacity(0.25),
+// //               color: Colors.white.withValues(alpha: 0.25),
 // //               borderRadius: BorderRadius.circular(15),
 // //               border: Border.all(
-// //                 color: Colors.white.withOpacity(0.4),
+// //                 color: Colors.white.withValues(alpha: 0.4),
 // //                 width: 1,
 // //               ),
 // //             ),
@@ -737,20 +737,20 @@ class OnboardingPage5 extends StatelessWidget {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                Colors.white.withOpacity(0.25),
-                                Colors.white.withOpacity(0.1),
+                                Colors.white.withValues(alpha: 0.25),
+                                Colors.white.withValues(alpha: 0.1),
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
                             borderRadius: BorderRadius.circular(screenHeight * 0.14),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.4),
+                              color: Colors.white.withValues(alpha: 0.4),
                               width: 3,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 20,
                                 offset: const Offset(0, 10),
                               ),
@@ -772,8 +772,8 @@ class OnboardingPage5 extends StatelessWidget {
                                 decoration: BoxDecoration(
                                   gradient: LinearGradient(
                                     colors: [
-                                      const Color(0xFFF59E0B).withOpacity(0.3),
-                                      Colors.white.withOpacity(0.2),
+                                      const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                                      Colors.white.withValues(alpha: 0.2),
                                     ],
                                   ),
                                   borderRadius: BorderRadius.circular(60),
@@ -806,7 +806,7 @@ class OnboardingPage5 extends StatelessWidget {
                               color: Colors.white,
                               shadows: [
                                 Shadow(
-                                  color: Colors.black.withOpacity(0.3),
+                                  color: Colors.black.withValues(alpha: 0.3),
                                   offset: const Offset(0, 2),
                                   blurRadius: 8,
                                 ),
@@ -838,20 +838,20 @@ class OnboardingPage5 extends StatelessWidget {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                Colors.white.withOpacity(0.25),
-                                Colors.white.withOpacity(0.1),
+                                Colors.white.withValues(alpha: 0.25),
+                                Colors.white.withValues(alpha: 0.1),
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
                             borderRadius: BorderRadius.circular(25),
                             border: Border.all(
-                              color: Colors.white.withOpacity(0.4),
+                              color: Colors.white.withValues(alpha: 0.4),
                               width: 1.5,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(alpha: 0.1),
                                 blurRadius: 15,
                                 offset: const Offset(0, 5),
                               ),
@@ -911,18 +911,18 @@ class OnboardingPage5 extends StatelessWidget {
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
                               colors: [
-                                const Color(0xFFF59E0B).withOpacity(0.3),
-                                const Color(0xFFF59E0B).withOpacity(0.1),
+                                const Color(0xFFF59E0B).withValues(alpha: 0.3),
+                                const Color(0xFFF59E0B).withValues(alpha: 0.1),
                               ],
                             ),
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: const Color(0xFFF59E0B).withOpacity(0.6),
+                              color: const Color(0xFFF59E0B).withValues(alpha: 0.6),
                               width: 2,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFFF59E0B).withOpacity(0.3),
+                                color: const Color(0xFFF59E0B).withValues(alpha: 0.3),
                                 blurRadius: 15,
                                 offset: const Offset(0, 5),
                               ),
@@ -959,7 +959,7 @@ class OnboardingPage5 extends StatelessWidget {
                                     Text(
                                       '20% OFF en tu primer pedido',
                                       style: TextStyle(
-                                        color: Colors.white.withOpacity(0.9),
+                                        color: Colors.white.withValues(alpha: 0.9),
                                         fontSize: screenWidth * 0.035,
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -996,7 +996,7 @@ class OnboardingPage5 extends StatelessWidget {
           borderRadius: BorderRadius.circular(6),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.3),
+              color: color.withValues(alpha: 0.3),
               blurRadius: 4,
               offset: const Offset(0, 2),
             ),
@@ -1021,18 +1021,18 @@ class OnboardingPage5 extends StatelessWidget {
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  accentColor.withOpacity(0.3),
-                  accentColor.withOpacity(0.1),
+                  accentColor.withValues(alpha: 0.3),
+                  accentColor.withValues(alpha: 0.1),
                 ],
               ),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(
-                color: accentColor.withOpacity(0.5),
+                color: accentColor.withValues(alpha: 0.5),
                 width: 1.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: accentColor.withOpacity(0.2),
+                  color: accentColor.withValues(alpha: 0.2),
                   blurRadius: 8,
                   offset: const Offset(0, 3),
                 ),

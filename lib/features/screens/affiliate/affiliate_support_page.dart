@@ -124,7 +124,7 @@ class _AffiliateSupportPageState extends State<AffiliateSupportPage> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -330,7 +330,7 @@ class _AffiliateSupportPageState extends State<AffiliateSupportPage> {
   Widget _buildResourceItem(String title, String subtitle, IconData icon, Color color, VoidCallback onTap) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: color.withOpacity(0.1),
+        backgroundColor: color.withValues(alpha: 0.1),
         child: Icon(icon, color: color),
       ),
       title: Text(title, style: const TextStyle(fontWeight: FontWeight.w500)),

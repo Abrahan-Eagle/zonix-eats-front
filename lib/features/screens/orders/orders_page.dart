@@ -243,7 +243,7 @@ class _OrdersPageState extends State<OrdersPage> {
           final order = _orders[index];
           return Card(
             color: AppColors.cardBg(context),
-            shadowColor: AppColors.purple.withOpacity(0.10),
+            shadowColor: AppColors.purple.withValues(alpha: 0.10),
             elevation: 6,
             margin: const EdgeInsets.symmetric(vertical: 10),
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
@@ -378,7 +378,7 @@ class _OrdersPageState extends State<OrdersPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: color),
       ),

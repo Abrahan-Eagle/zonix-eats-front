@@ -67,7 +67,7 @@ class CartPage extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: AppColors.accentButton(context).withOpacity(0.1),
+            color: AppColors.accentButton(context).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(999),
           ),
           child: Text(
@@ -91,7 +91,7 @@ class CartPage extends StatelessWidget {
           Icon(
             Icons.shopping_cart_outlined,
             size: 80,
-            color: AppColors.secondaryText(context).withOpacity(0.4),
+            color: AppColors.secondaryText(context).withValues(alpha: 0.4),
           ),
           const SizedBox(height: 16),
           Text(
@@ -125,11 +125,11 @@ class CartPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.white.withOpacity(0.05)
-              : Colors.grey.withOpacity(0.2),
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.grey.withValues(alpha: 0.2),
         ),
         boxShadow: Theme.of(context).brightness == Brightness.light
-            ? [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2))]
+            ? [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))]
             : null,
       ),
       child: Row(
@@ -151,9 +151,9 @@ class CartPage extends StatelessWidget {
                     )
                   : Container(
                       color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white.withOpacity(0.06)
+                          ? Colors.white.withValues(alpha: 0.06)
                           : AppColors.grayLight,
-                      child: Icon(Icons.restaurant, size: 40, color: AppColors.secondaryText(context).withOpacity(0.3)),
+                      child: Icon(Icons.restaurant, size: 40, color: AppColors.secondaryText(context).withValues(alpha: 0.3)),
                     ),
             ),
           ),
@@ -233,9 +233,9 @@ class CartPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.05) : Colors.grey.withOpacity(0.12),
+        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(8),
-        border: isDark ? Border.all(color: Colors.white.withOpacity(0.1)) : null,
+        border: isDark ? Border.all(color: Colors.white.withValues(alpha: 0.1)) : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -276,7 +276,7 @@ class CartPage extends StatelessWidget {
               height: 32,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: isDark ? AppColors.accentButton(context).withOpacity(0.2) : Colors.transparent,
+                color: isDark ? AppColors.accentButton(context).withValues(alpha: 0.2) : Colors.transparent,
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Icon(
@@ -304,13 +304,13 @@ class CartPage extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.25),
+            color: Colors.black.withValues(alpha: 0.25),
             blurRadius: 30,
             offset: const Offset(0, -8),
           ),
         ],
         border: Border(
-          top: BorderSide(color: AppColors.secondaryText(context).withOpacity(0.1)),
+          top: BorderSide(color: AppColors.secondaryText(context).withValues(alpha: 0.1)),
         ),
       ),
       child: SafeArea(
@@ -363,7 +363,7 @@ class CartPage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              Divider(height: 1, color: AppColors.secondaryText(context).withOpacity(0.1)),
+              Divider(height: 1, color: AppColors.secondaryText(context).withValues(alpha: 0.1)),
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -406,7 +406,7 @@ class CartPage extends StatelessWidget {
                       borderRadius: BorderRadius.circular(999),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.orange.withOpacity(0.3),
+                          color: AppColors.orange.withValues(alpha: 0.3),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),

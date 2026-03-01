@@ -239,7 +239,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     
     return Card(
       elevation: 4,
-      shadowColor: Colors.black.withOpacity(0.1),
+      shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -251,8 +251,8 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              colorScheme.primary.withOpacity(0.1),
-              colorScheme.primary.withOpacity(0.05),
+              colorScheme.primary.withValues(alpha: 0.1),
+              colorScheme.primary.withValues(alpha: 0.05),
             ],
           ),
         ),
@@ -264,7 +264,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: colorScheme.primary.withOpacity(0.2),
+                    color: colorScheme.primary.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -288,7 +288,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
                       Text(
                         'Agrega un nuevo documento a tu perfil',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurface.withOpacity(0.7),
+                          color: colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -314,7 +314,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
 
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.05),
+      shadowColor: Colors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -464,7 +464,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.05),
+      shadowColor: Colors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -537,7 +537,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceVariant.withOpacity(0.3),
+              color: colorScheme.surfaceVariant.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(
@@ -735,7 +735,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withOpacity(0.05),
+      shadowColor: Colors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -778,7 +778,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.green.withOpacity(0.1),
+                color: Colors.green.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(

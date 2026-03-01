@@ -72,7 +72,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white.withOpacity(0.4),
+                          color: Colors.white.withValues(alpha: 0.4),
                           letterSpacing: 2,
                         ),
                       ),
@@ -88,7 +88,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
                         '¿Necesitas ayuda para decidir?',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 14,
-                          color: Colors.white.withOpacity(0.5),
+                          color: Colors.white.withValues(alpha: 0.5),
                         ),
                       ),
                     ),
@@ -126,7 +126,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [_kPrimary.withOpacity(0.2), Colors.transparent],
+                  colors: [_kPrimary.withValues(alpha: 0.2), Colors.transparent],
                 ),
               ),
             ),
@@ -141,7 +141,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [_kPurple.withOpacity(0.1), Colors.transparent],
+                  colors: [_kPurple.withValues(alpha: 0.1), Colors.transparent],
                 ),
               ),
             ),
@@ -169,7 +169,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
           width: 2,
           height: 2,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
+            color: Colors.white.withValues(alpha: 0.15),
             shape: BoxShape.circle,
           ),
         ),
@@ -185,9 +185,9 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: _kSurfaceDark.withOpacity(0.5),
+            color: _kSurfaceDark.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withOpacity(0.05)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
           ),
           child: Icon(Icons.rocket_launch, color: _kPrimary, size: 32),
         ),
@@ -209,7 +209,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
           style: GoogleFonts.plusJakartaSans(
             fontSize: isSmall ? 14 : 16,
             fontWeight: FontWeight.w500,
-            color: Colors.white.withOpacity(0.6),
+            color: Colors.white.withValues(alpha: 0.6),
           ),
         ),
       ],
@@ -241,7 +241,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
             width: 2,
           ),
           boxShadow: isSelected
-              ? [BoxShadow(color: _kPrimary.withOpacity(0.15), blurRadius: 30, spreadRadius: 0)]
+              ? [BoxShadow(color: _kPrimary.withValues(alpha: 0.15), blurRadius: 30, spreadRadius: 0)]
               : null,
         ),
         child: Row(
@@ -255,12 +255,12 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    iconColor.withOpacity(0.2),
-                    iconColor.withOpacity(0.05),
+                    iconColor.withValues(alpha: 0.2),
+                    iconColor.withValues(alpha: 0.05),
                   ],
                 ),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: iconColor.withOpacity(0.2)),
+                border: Border.all(color: iconColor.withValues(alpha: 0.2)),
               ),
               child: Icon(icon, color: iconColor, size: 28),
             ),
@@ -282,7 +282,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
                     subtitle,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
-                      color: Colors.white.withOpacity(0.6),
+                      color: Colors.white.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -296,7 +296,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
                 shape: BoxShape.circle,
                 color: isSelected ? _kPrimary : Colors.transparent,
                 border: Border.all(
-                  color: isSelected ? _kPrimary : Colors.white.withOpacity(0.3),
+                  color: isSelected ? _kPrimary : Colors.white.withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),
@@ -340,12 +340,12 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
               }
             : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: enabled ? _kPrimary : _kPrimary.withOpacity(0.4),
+          backgroundColor: enabled ? _kPrimary : _kPrimary.withValues(alpha: 0.4),
           foregroundColor: Colors.white,
-          disabledBackgroundColor: _kPrimary.withOpacity(0.3),
+          disabledBackgroundColor: _kPrimary.withValues(alpha: 0.3),
           disabledForegroundColor: Colors.white70,
           elevation: enabled ? 4 : 0,
-          shadowColor: _kPrimary.withOpacity(0.4),
+          shadowColor: _kPrimary.withValues(alpha: 0.4),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: Row(

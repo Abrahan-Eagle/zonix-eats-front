@@ -160,7 +160,7 @@ class SignInScreenState extends State<SignInScreen> {
                   center: Alignment.topRight,
                   radius: 1.2,
                   colors: [
-                    _kPrimary.withOpacity(0.15),
+                    _kPrimary.withValues(alpha: 0.15),
                     Colors.transparent,
                   ],
                   stops: const [0.0, 0.5],
@@ -175,7 +175,7 @@ class SignInScreenState extends State<SignInScreen> {
                   center: Alignment.bottomLeft,
                   radius: 1.2,
                   colors: [
-                    _kPrimary.withOpacity(0.1),
+                    _kPrimary.withValues(alpha: 0.1),
                     Colors.transparent,
                   ],
                   stops: const [0.0, 0.5],
@@ -192,10 +192,10 @@ class SignInScreenState extends State<SignInScreen> {
               height: 140,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: _kPrimary.withOpacity(0.08),
+                color: _kPrimary.withValues(alpha: 0.08),
                 boxShadow: [
                   BoxShadow(
-                    color: _kPrimary.withOpacity(0.1),
+                    color: _kPrimary.withValues(alpha: 0.1),
                     blurRadius: 30,
                     spreadRadius: 5,
                   ),
@@ -212,10 +212,10 @@ class SignInScreenState extends State<SignInScreen> {
               height: 150,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: _kPrimary.withOpacity(0.2),
+                color: _kPrimary.withValues(alpha: 0.2),
                 boxShadow: [
                   BoxShadow(
-                    color: _kPrimary.withOpacity(0.2),
+                    color: _kPrimary.withValues(alpha: 0.2),
                     blurRadius: 32,
                     spreadRadius: 6,
                   ),
@@ -279,7 +279,7 @@ class SignInScreenState extends State<SignInScreen> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 16,
               fontWeight: FontWeight.w500,
-              color: const Color(0xFF93C5FD).withOpacity(0.65),
+              color: const Color(0xFF93C5FD).withValues(alpha: 0.65),
             ),
           ),
         ),
@@ -315,20 +315,20 @@ class SignInScreenState extends State<SignInScreen> {
             child: InkWell(
               onTap: _handleSignIn,
               borderRadius: BorderRadius.circular(28),
-              splashColor: _kPrimary.withOpacity(0.15),
-              highlightColor: _kPrimary.withOpacity(0.08),
+              splashColor: _kPrimary.withValues(alpha: 0.15),
+              highlightColor: _kPrimary.withValues(alpha: 0.08),
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(28),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.08),
+                      color: Colors.black.withValues(alpha: 0.08),
                       blurRadius: 16,
                       offset: const Offset(0, 4),
                     ),
                     BoxShadow(
-                      color: Colors.white.withOpacity(0.1),
+                      color: Colors.white.withValues(alpha: 0.1),
                       blurRadius: 12,
                       offset: const Offset(0, -2),
                     ),
@@ -354,7 +354,7 @@ class SignInScreenState extends State<SignInScreen> {
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 12,
-            color: const Color(0xFF93C5FD).withOpacity(0.55),
+            color: const Color(0xFF93C5FD).withValues(alpha: 0.55),
             height: 1.5,
           ),
         ),

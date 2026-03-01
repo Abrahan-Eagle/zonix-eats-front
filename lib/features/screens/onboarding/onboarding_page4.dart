@@ -65,7 +65,7 @@ class OnboardingPage4 extends StatelessWidget {
                     //           width: screenWidth * 0.15,
                     //           height: screenWidth * 0.15,
                     //           decoration: BoxDecoration(
-                    //             color: Colors.white.withOpacity(0.2),
+                    //             color: Colors.white.withValues(alpha: 0.2),
                     //             borderRadius: BorderRadius.circular(screenWidth * 0.075),
                     //           ),
                     //         ),
@@ -77,7 +77,7 @@ class OnboardingPage4 extends StatelessWidget {
                     //           width: screenWidth * 0.1,
                     //           height: screenWidth * 0.1,
                     //           decoration: BoxDecoration(
-                    //             color: Colors.white.withOpacity(0.15),
+                    //             color: Colors.white.withValues(alpha: 0.15),
                     //             borderRadius: BorderRadius.circular(screenWidth * 0.05),
                     //           ),
                     //         ),
@@ -87,10 +87,10 @@ class OnboardingPage4 extends StatelessWidget {
                     //       Container(
                     //         padding: EdgeInsets.all(screenWidth * 0.08),
                     //         decoration: BoxDecoration(
-                    //           color: Colors.white.withOpacity(0.2),
+                    //           color: Colors.white.withValues(alpha: 0.2),
                     //           borderRadius: BorderRadius.circular(100),
                     //           border: Border.all(
-                    //             color: Colors.white.withOpacity(0.3),
+                    //             color: Colors.white.withValues(alpha: 0.3),
                     //             width: 2,
                     //           ),
                     //         ),
@@ -113,7 +113,7 @@ class OnboardingPage4 extends StatelessWidget {
                     //                 borderRadius: BorderRadius.circular(15),
                     //                 boxShadow: [
                     //                   BoxShadow(
-                    //                     color: Colors.black.withOpacity(0.1),
+                    //                     color: Colors.black.withValues(alpha: 0.1),
                     //                     blurRadius: 5,
                     //                     offset: const Offset(0, 2),
                     //                   ),
@@ -156,7 +156,7 @@ class OnboardingPage4 extends StatelessWidget {
                         color: Colors.white,
                         shadows: [
                           Shadow(
-                            color: Colors.black.withOpacity(0.3),
+                            color: Colors.black.withValues(alpha: 0.3),
                             offset: const Offset(0, 2),
                             blurRadius: 4,
                           ),
@@ -170,10 +170,10 @@ class OnboardingPage4 extends StatelessWidget {
                     Container(
                       padding: EdgeInsets.all(screenWidth * 0.06),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.3),
+                          color: Colors.white.withValues(alpha: 0.3),
                           width: 1,
                         ),
                       ),
@@ -242,7 +242,7 @@ class OnboardingPage4 extends StatelessWidget {
                         Text(
                           '4.9/5 en entregas',
                           style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                             fontSize: screenWidth * 0.035,
                             fontWeight: FontWeight.w500,
                           ),
@@ -274,10 +274,10 @@ class OnboardingPage4 extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(screenWidth * 0.03),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.25),
+              color: Colors.white.withValues(alpha: 0.25),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
-                color: Colors.white.withOpacity(0.4),
+                color: Colors.white.withValues(alpha: 0.4),
                 width: 1,
               ),
             ),
@@ -300,7 +300,7 @@ class OnboardingPage4 extends StatelessWidget {
           Text(
             subtitle,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               fontSize: screenWidth * 0.025,
             ),
             textAlign: TextAlign.center,

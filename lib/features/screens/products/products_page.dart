@@ -426,7 +426,7 @@ class _ProductsPageState extends State<ProductsPage> {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.3),
+                          color: Colors.black.withValues(alpha: 0.3),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -446,7 +446,7 @@ class _ProductsPageState extends State<ProductsPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: _accentYellow.withOpacity(0.15),
+                    color: _accentYellow.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(product.category, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: _accentYellow)),

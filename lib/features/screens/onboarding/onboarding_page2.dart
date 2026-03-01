@@ -97,7 +97,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                                   width: 140,
                                   height: 8,
                                   child: CustomPaint(
-                                    painter: _CurvedUnderlinePainter(color: _kPrimary.withOpacity(0.3)),
+                                    painter: _CurvedUnderlinePainter(color: _kPrimary.withValues(alpha: 0.3)),
                                   ),
                                 ),
                               ],
@@ -111,7 +111,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: bodySize,
                             fontWeight: FontWeight.w400,
-                            color: Colors.white.withOpacity(0.7),
+                            color: Colors.white.withValues(alpha: 0.7),
                             height: 1.5,
                           ),
                         ),
@@ -148,7 +148,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                   center: Alignment.center,
                   radius: 1.0,
                   colors: [
-                    _kPrimary.withOpacity(0.15),
+                    _kPrimary.withValues(alpha: 0.15),
                     Colors.transparent,
                   ],
                   stops: const [0.0, 0.6],
@@ -167,7 +167,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    _kPrimary.withOpacity(0.1),
+                    _kPrimary.withValues(alpha: 0.1),
                     Colors.transparent,
                   ],
                   stops: const [0.0, 0.4],
@@ -207,7 +207,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    _kPrimary.withOpacity(0.2 * pulse),
+                    _kPrimary.withValues(alpha: 0.2 * pulse),
                     Colors.transparent,
                   ],
                   stops: const [0.0, 0.7],
@@ -222,7 +222,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
           height: ringSize,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: _kPrimary.withOpacity(0.1)),
+            border: Border.all(color: _kPrimary.withValues(alpha: 0.1)),
           ),
         ),
         // Anillo dashed (22rem) con rotación
@@ -235,7 +235,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                 width: dashedSize,
                 height: dashedSize,
                 child: CustomPaint(
-                  painter: _DashedCirclePainter(color: _kPrimary.withOpacity(0.2)),
+                  painter: _DashedCirclePainter(color: _kPrimary.withValues(alpha: 0.2)),
                 ),
               ),
             );
@@ -262,7 +262,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: _kPrimary.withOpacity(0.4),
+                      color: _kPrimary.withValues(alpha: 0.4),
                       blurRadius: 30,
                       spreadRadius: 0,
                     ),
@@ -271,7 +271,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                 child: Icon(
                   Icons.rocket_launch,
                   size: centerSize * 0.5,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                 ),
               ),
               // Burger: -top-4 right-4, rotate-12 (HTML)
@@ -337,10 +337,10 @@ class _OnboardingPage2State extends State<OnboardingPage2>
       decoration: BoxDecoration(
         color: _kBackgroundDark,
         borderRadius: BorderRadius.circular(size * 0.25),
-        border: Border.all(color: _kPrimary.withOpacity(0.3)),
+        border: Border.all(color: _kPrimary.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -360,7 +360,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: _kPrimary.withOpacity(opacity),
+        color: _kPrimary.withValues(alpha: opacity),
         shape: BoxShape.circle,
       ),
     );
