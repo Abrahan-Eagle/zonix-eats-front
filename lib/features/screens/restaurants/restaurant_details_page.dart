@@ -1356,6 +1356,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
       context,
       MaterialPageRoute(builder: (_) => ProductDetailPage(product: product)),
     );
+    if (!context.mounted) return;
     _loadFavorite();
   }
 

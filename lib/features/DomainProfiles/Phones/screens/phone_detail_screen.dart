@@ -65,9 +65,12 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
 
       try {
         await _phoneService.deletePhone(widget.phone.id);
+        if (!context.mounted) return;
+        final c = context;
         _showSuccessSnackBar('Teléfono eliminado exitosamente');
-        Navigator.pop(context, true); // Regresar con resultado de éxito
+        Navigator.pop(c, true); // Regresar con resultado de éxito
       } catch (e) {
+        if (!context.mounted) return;
         _showErrorSnackBar('Error al eliminar teléfono: $e');
       } finally {
         setState(() {
@@ -339,7 +342,7 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
     );
 
     if (result == true) {
-      // Si se editó exitosamente, regresar con resultado
+      if (!mounted) return;
       Navigator.pop(context, true);
     }
   }

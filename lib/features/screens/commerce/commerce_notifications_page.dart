@@ -84,14 +84,13 @@ class _CommerceNotificationsPageState extends State<CommerceNotificationsPage> {
                 final service = CommerceNotificationService();
                 await service.markAllAsRead();
                 await _loadData();
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Todas marcadas como leídas'),
-                      backgroundColor: AppColors.green,
-                    ),
-                  );
-                }
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Todas marcadas como leídas'),
+                    backgroundColor: AppColors.green,
+                  ),
+                );
               } catch (_) {}
             },
           ),

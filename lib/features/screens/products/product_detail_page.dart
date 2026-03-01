@@ -169,6 +169,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           ),
         ),
       );
+      if (!context.mounted) return;
     } catch (e) {
       logger.e('Navigation error', error: e);
     } finally {

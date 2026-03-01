@@ -476,11 +476,13 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
   Future<void> _updateOrderStatusToInProgress(Map<String, dynamic> order) async {
     try {
       await _deliveryService.updateOrderStatus(order['id'], 'in_progress');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Orden aceptada exitosamente')),
       );
       _loadOrders();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al aceptar orden: $e')),
       );
@@ -523,14 +525,17 @@ class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
   }
 
   Future<void> _updateStatus(Map<String, dynamic> order, String status) async {
+    if (!mounted) return;
     Navigator.pop(context);
     try {
       await _deliveryService.updateOrderStatus(order['id'], status);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Estado actualizado exitosamente')),
       );
       _loadOrders();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al actualizar estado: $e')),
       );

@@ -52,11 +52,14 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
         _commerceId = 0;
       }
 
-      final stats = await Provider.of<CommerceService>(context, listen: false)
-          .getCommerceStatistics(_commerceId);
+      if (!mounted) return;
+      final commerceService = Provider.of<CommerceService>(context, listen: false);
+      final stats = await commerceService.getCommerceStatistics(_commerceId);
+      if (!mounted) return;
       List<dynamic> recent = stats['recent_orders'] as List<dynamic>? ?? [];
       if (recent.isEmpty) {
         final orders = await CommerceOrderService.getOrders(perPage: 5);
+        if (!mounted) return;
         recent = orders.map((o) => {
           'id': o.id,
           'status': o.status,

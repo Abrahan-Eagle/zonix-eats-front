@@ -146,6 +146,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         imageQuality: 80,
       );
       if (pickedFile != null) {
+        if (!mounted) return;
         setState(() {
           _selectedPhoto = pickedFile;
         });
@@ -1021,6 +1022,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
 
       final onboardingService = OnboardingService();
       await onboardingService.completeOnboarding(userId, role: 'users');
+      if (!mounted) return;
       userProvider.setCompletedOnboarding(true);
       onboarding.setRole('users');
 
@@ -1223,6 +1225,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
 
       final onboardingService = OnboardingService();
       await onboardingService.completeOnboarding(userId, role: 'commerce');
+      if (!mounted) return;
       userProvider.setCompletedOnboarding(true);
       onboarding.setRole('commerce');
 

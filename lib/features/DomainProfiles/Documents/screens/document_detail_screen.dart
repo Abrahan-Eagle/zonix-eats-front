@@ -549,7 +549,7 @@ class DocumentDetailScreen extends StatelessWidget {
         builder: (context) => DocumentEditScreen(document: document),
       ),
     );
-    
+    if (!context.mounted) return;
     // Si la edición fue exitosa, refrescar los datos
     if (result == true) {
       // Pasar el resultado hacia atrás para que la lista se refresque

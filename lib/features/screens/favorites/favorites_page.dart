@@ -56,10 +56,12 @@ class _FavoritesPageState extends State<FavoritesPage> {
     try {
       await _favoritesService.toggleFavorite(postId);
       await _loadFavorites(); // Recargar la lista
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Removido de favoritos')),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error: $e')),
       );

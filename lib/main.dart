@@ -364,6 +364,7 @@ class MainRouterState extends State<MainRouter> {
 
   Future<void> _loadLastPosition() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _bottomNavIndex = prefs.getInt('bottomNavIndex') ?? 0;
       logger.i(
@@ -375,6 +376,7 @@ class MainRouterState extends State<MainRouter> {
   Future<void> _saveLastPosition() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setInt('bottomNavIndex', _bottomNavIndex);
+    if (!mounted) return;
     logger.i(
       'Saved last position - bottomNavIndex: $_bottomNavIndex',
     );

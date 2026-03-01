@@ -107,10 +107,12 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
       debugPrint('DEBUG: Is active: $_isActive');
 
       await _phoneService.updatePhone(widget.phone.id, updates);
-      
+      if (!context.mounted) return;
+      final c = context;
       _showSuccessSnackBar('Teléfono actualizado exitosamente');
-      Navigator.pop(context, true);
+      Navigator.pop(c, true);
     } catch (e) {
+      if (!context.mounted) return;
       debugPrint('DEBUG: Error updating phone: $e');
       _showErrorSnackBar('Error al actualizar teléfono: $e');
     } finally {

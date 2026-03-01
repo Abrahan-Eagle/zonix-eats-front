@@ -288,20 +288,19 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                                       await CommerceOrderService
                                           .approveForPayment(widget.orderId);
                                       await _loadOrder();
-                                      if (mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                                'Orden aprobada para pago'),
-                                            backgroundColor: AppColors.green,
-                                          ),
-                                        );
-                                      }
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                              'Orden aprobada para pago'),
+                                          backgroundColor: AppColors.green,
+                                        ),
+                                      );
                                     } catch (e) {
-                                      if (mounted) {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
                                           SnackBar(
                                             content: Text(
                                               'Error: ${e.toString().replaceFirst('Exception: ', '')}',
@@ -309,7 +308,6 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                                             backgroundColor: AppColors.red,
                                           ),
                                         );
-                                      }
                                     } finally {
                                       if (mounted) {
                                         setState(() => _updating = false);

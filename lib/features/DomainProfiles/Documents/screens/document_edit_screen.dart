@@ -119,6 +119,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
       }
     } catch (e) {
       debugPrint("Error al escanear el documento: $e");
+      if (!mounted) return;
       _showCustomSnackBar(
         context,
         'Error al escanear el documento',
@@ -140,11 +141,13 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
       final imageFile = File(filePath);
 
       if (await imageFile.length() <= 2 * 1024 * 1024) {
+        if (!mounted) return null;
         Navigator.of(context).pop();
         return filePath;
       }
 
       final originalImage = img.decodeImage(await imageFile.readAsBytes());
+      if (!mounted) return null;
       if (originalImage == null) {
         Navigator.of(context).pop();
         throw Exception("No se pudo decodificar la imagen.");
@@ -171,11 +174,13 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
 
       debugPrint("Imagen comprimida guardada en: ${compressedImageFile.path}");
 
+      if (!mounted) return null;
       Navigator.of(context).pop();
 
       return compressedImageFile.path;
     } catch (e) {
       debugPrint("Error al comprimir la imagen: $e");
+      if (!mounted) return null;
       Navigator.of(context).pop();
       throw Exception("Error al comprimir la imagen: $e");
     }
@@ -839,6 +844,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
       });
     } else {
       logger.e('Escaneo cancelado o fallido.');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Escaneo cancelado o fallido.')),
       );
@@ -894,6 +900,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
           Navigator.of(context).pop(true); // Return to previous screen with success
         }
       } catch (e) {
+        if (!mounted) return;
         Navigator.of(context).pop(); // Close loading dialog
         logger.e('Error al actualizar el documento: $e');
         _showCustomSnackBar(
