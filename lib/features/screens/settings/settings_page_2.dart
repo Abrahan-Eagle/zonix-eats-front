@@ -1,11 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/DomainProfiles/Documents/screens/document_list_screen.dart';
 import 'package:zonix/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/profile_page.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
 import 'package:zonix/features/screens/auth/sign_in_screen.dart';
 import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_list_screen.dart';
 import 'package:zonix/features/screens/about/about_page.dart';
@@ -92,6 +96,51 @@ class _SettingsPage2State extends State<SettingsPage2> {
       setState(() => _error = 'Error al cargar el perfil');
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  /// Abre la cámara para tomar una nueva foto de perfil, la sube y actualiza la cabecera.
+  Future<void> _pickAndUpdatePhoto() async {
+    if (_profile == null) return;
+    final profile = _profile as Profile;
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 1200,
+        imageQuality: 85,
+      );
+      if (pickedFile == null || !mounted) return;
+      bool dialogShown = false;
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const Center(child: CircularProgressIndicator()),
+        );
+        dialogShown = true;
+      }
+      try {
+        await ProfileService().updateProfile(profile.id, profile, imageFile: File(pickedFile.path));
+        if (!mounted) return;
+        if (dialogShown) Navigator.of(context).pop();
+        await _loadProfile();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto de perfil actualizada')),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        if (dialogShown) Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al actualizar la foto: $e')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al abrir la cámara: $e')),
+      );
     }
   }
 
@@ -301,31 +350,34 @@ class _SettingsPage2State extends State<SettingsPage2> {
                 ),
               ),
               padding: const EdgeInsets.all(4),
-              child: Container(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: theme.scaffoldBackgroundColor,
-                ),
-                child: _profile?.photo != null && _profile!.photo!.isNotEmpty
-                    ? ClipOval(
-                        child: Image.network(
-                          _profile!.photo!,
-                          width: (isTablet ? 100 : 96) - 8,
-                          height: (isTablet ? 100 : 96) - 8,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => Image.asset(
-                            'assets/default_avatar.png',
+              child: GestureDetector(
+                onTap: _pickAndUpdatePhoto,
+                child: Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: theme.scaffoldBackgroundColor,
+                  ),
+                  child: _profile?.photo != null && _profile!.photo!.isNotEmpty
+                      ? ClipOval(
+                          child: Image.network(
+                            _profile!.photo!,
                             width: (isTablet ? 100 : 96) - 8,
                             height: (isTablet ? 100 : 96) - 8,
                             fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Image.asset(
+                              'assets/default_avatar.png',
+                              width: (isTablet ? 100 : 96) - 8,
+                              height: (isTablet ? 100 : 96) - 8,
+                              fit: BoxFit.cover,
+                            ),
                           ),
+                        )
+                      : CircleAvatar(
+                          radius: (isTablet ? 100 : 96) / 2 - 4,
+                          backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                          child: Icon(Icons.person, size: isTablet ? 40 : 36, color: theme.colorScheme.onSurfaceVariant),
                         ),
-                      )
-                    : CircleAvatar(
-                        radius: (isTablet ? 100 : 96) / 2 - 4,
-                        backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                        child: Icon(Icons.person, size: isTablet ? 40 : 36, color: theme.colorScheme.onSurfaceVariant),
-                      ),
+                ),
               ),
             ),
             Positioned(

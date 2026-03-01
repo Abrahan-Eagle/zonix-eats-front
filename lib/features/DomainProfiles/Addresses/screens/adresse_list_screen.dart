@@ -206,13 +206,16 @@ class AddressPage extends StatelessWidget {
   Widget _buildAddressContent(BuildContext context, Address address, bool isSmallScreen) {
     return RefreshIndicator(
       onRefresh: () => context.read<AddressModel>().refreshAddress(userId),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildAddressCard(address, isSmallScreen),
-          const SizedBox(height: 12),
-          _buildMapCard(address, context, isSmallScreen),
-        ],
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildAddressCard(address, isSmallScreen),
+            const SizedBox(height: 12),
+            _buildMapCard(address, context, isSmallScreen),
+          ],
+        ),
       ),
     );
   }
