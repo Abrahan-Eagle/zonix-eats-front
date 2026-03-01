@@ -313,7 +313,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               onRefresh: _loadOrder,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 140),
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 72),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -735,7 +735,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   Widget _buildBottomBar(Order order, {required Color surfaceColor, required Color borderColor}) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       decoration: BoxDecoration(
         color: surfaceColor,
         border: Border(top: BorderSide(color: borderColor)),
@@ -757,7 +757,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF3399FF),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: 12),
               textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
@@ -811,7 +811,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   Widget _buildTrackingCard(Order order) {
     final hasLocation = _deliveryLat != null && _deliveryLng != null;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
+      color: isDark ? null : Colors.white,
+      surfaceTintColor: Colors.transparent,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -834,12 +837,15 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             if (hasLocation)
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: SizedBox(
-                  height: 200,
-                  width: double.infinity,
-                  child: OsmMapWidget(
-                    center: LatLng(_deliveryLat!, _deliveryLng!),
-                    zoom: 15.0,
+                child: Container(
+                  color: isDark ? Colors.grey.shade900 : Colors.white,
+                  child: SizedBox(
+                    height: 200,
+                    width: double.infinity,
+                    child: OsmMapWidget(
+                      center: LatLng(_deliveryLat!, _deliveryLng!),
+                      zoom: 15.0,
+                    ),
                   ),
                 ),
               )
@@ -848,7 +854,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 height: 120,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.1),
+                  color: isDark ? Colors.grey.withValues(alpha: 0.1) : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
