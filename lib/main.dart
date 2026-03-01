@@ -8,7 +8,6 @@ import 'package:logger/logger.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/utils/search_radius_provider.dart';
@@ -77,7 +76,6 @@ import 'package:zonix/features/widgets/buyer_shell.dart';
  * 3 - Administrador (admin): Panel Admin, Usuarios, Seguridad, Sistema
  */
 
-const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
 
 final String baseUrl =
@@ -344,7 +342,6 @@ class MainRouter extends StatefulWidget {
 class MainRouterState extends State<MainRouter> {
   int _selectedLevel = 0;
   int _bottomNavIndex = 0;
-  dynamic _profile;
   List<int> _allowedLevels = [];
   String? _lastRole;
 
@@ -358,8 +355,7 @@ class MainRouterState extends State<MainRouter> {
 
    Future<void> _loadProfile() async {
       try {
-        // Perfil del usuario autenticado (GET /api/profile), no requiere user id ni profile id
-        _profile = await ProfileService().getMyProfile();
+        await ProfileService().getMyProfile();
         if (mounted) setState(() {});
       } catch (e) {
         logger.e('Error obteniendo el perfil: $e');
@@ -894,25 +890,4 @@ class MainRouterState extends State<MainRouter> {
       ),
     );
   }
-}
-
-ImageProvider<Object> _getProfileImage(String? profilePhoto, String? googlePhotoUrl) {
-  if (profilePhoto != null && profilePhoto.isNotEmpty) {
-    // Detectar URLs de placeholder y evitarlas
-    if (profilePhoto.contains('via.placeholder.com') || 
-        profilePhoto.contains('placeholder.com') ||
-        profilePhoto.contains('placehold.it')) {
-      logger.w('Detectada URL de placeholder en perfil, usando imagen local: $profilePhoto');
-      return const AssetImage('assets/default_avatar.png');
-    }
-    
-    logger.i('Usando foto del perfil: $profilePhoto');
-    return NetworkImage(profilePhoto); // Imagen del perfil del usuario
-  }
-  if (googlePhotoUrl != null && googlePhotoUrl.isNotEmpty) {
-    logger.i('Usando foto de Google: $googlePhotoUrl');
-    return NetworkImage(googlePhotoUrl); // Imagen de Google
-  }
-  logger.w('Usando imagen predeterminada');
-  return const AssetImage('assets/default_avatar.png'); // Imagen predeterminada
 }

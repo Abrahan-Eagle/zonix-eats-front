@@ -68,7 +68,7 @@ class _DataExportPageState extends State<DataExportPage> {
         isRequestingExport = true;
       });
 
-      final result = await ExportService.requestDataExport(
+      await ExportService.requestDataExport(
         dataTypes: selectedDataTypes.toList(),
         format: selectedFormat,
       );
@@ -86,7 +86,7 @@ class _DataExportPageState extends State<DataExportPage> {
 
   Future<void> _downloadExport(String exportId) async {
     try {
-      final data = await ExportService.downloadExport(exportId);
+      await ExportService.downloadExport(exportId);
       // Aquí podrías implementar la lógica para guardar el archivo
       _showSuccessSnackBar('Archivo descargado correctamente');
     } catch (e) {
@@ -110,19 +110,6 @@ class _DataExportPageState extends State<DataExportPage> {
         backgroundColor: Colors.green,
       ),
     );
-  }
-
-  String _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'completed':
-        return 'green';
-      case 'processing':
-        return 'orange';
-      case 'failed':
-        return 'red';
-      default:
-        return 'grey';
-    }
   }
 
   String _getStatusText(String status) {
@@ -344,107 +331,4 @@ class _DataExportPageState extends State<DataExportPage> {
     );
   }
 
-  Widget _buildExportHistoryCard(Map<String, dynamic> export) {
-    final id = export['id'] ?? '';
-    final status = export['status'] ?? '';
-    final format = export['format'] ?? '';
-    final dataTypes = List<String>.from(export['data_types'] ?? []);
-    final createdAt = DateTime.tryParse(export['created_at'] ?? '');
-    final completedAt = export['completed_at'] != null
-        ? DateTime.tryParse(export['completed_at'])
-        : null;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        title: Text('Exportación ${format.toUpperCase()}'),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Tipos: ${dataTypes.map(_getDataTypeText).join(', ')}'),
-            if (createdAt != null)
-              Text('Solicitado: ${_formatDate(createdAt)}'),
-            if (completedAt != null)
-              Text('Completado: ${_formatDate(completedAt)}'),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: _getStatusColor(status) == 'green'
-                    ? Colors.green
-                    : _getStatusColor(status) == 'orange'
-                        ? Colors.orange
-                        : _getStatusColor(status) == 'red'
-                            ? Colors.red
-                            : Colors.grey,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                _getStatusText(status),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-            if (status.toLowerCase() == 'completed') ...[
-              const SizedBox(width: 8),
-              IconButton(
-                icon: const Icon(Icons.download),
-                onPressed: () => _downloadExport(id),
-              ),
-            ],
-          ],
-        ),
-        onTap: () => _showExportDetails(export),
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
-  }
-
-  void _showExportDetails(Map<String, dynamic> export) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Detalles de exportación'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('ID: ${export['id']}'),
-            Text('Estado: ${_getStatusText(export['status'] ?? '')}'),
-            Text('Formato: ${export['format']?.toUpperCase()}'),
-            Text('Tipos de datos: ${(export['data_types'] as List<dynamic>?)?.map((e) => _getDataTypeText(e.toString())).join(', ')}'),
-            if (export['created_at'] != null)
-              Text('Solicitado: ${_formatDate(DateTime.parse(export['created_at']))}'),
-            if (export['completed_at'] != null)
-              Text('Completado: ${_formatDate(DateTime.parse(export['completed_at']))}'),
-            if (export['file_size'] != null)
-              Text('Tamaño: ${export['file_size']} bytes'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cerrar'),
-          ),
-          if (export['status']?.toLowerCase() == 'completed')
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _downloadExport(export['id']);
-              },
-              child: const Text('Descargar'),
-            ),
-        ],
-      ),
-    );
-  }
 } 

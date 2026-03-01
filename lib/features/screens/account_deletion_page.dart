@@ -77,7 +77,7 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
         isRequestingDeletion = true;
       });
 
-      final result = await AccountDeletionService.requestAccountDeletion(
+      await AccountDeletionService.requestAccountDeletion(
         reason: selectedReason,
         feedback: _feedbackController.text.isNotEmpty ? _feedbackController.text : null,
         immediate: immediateDeletion,
@@ -110,7 +110,7 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
         isConfirmingDeletion = true;
       });
 
-      final result = await AccountDeletionService.confirmAccountDeletion(
+      await AccountDeletionService.confirmAccountDeletion(
         confirmationCode: _confirmationCodeController.text,
         password: _passwordController.text,
       );
@@ -133,7 +133,7 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
         isCancellingDeletion = true;
       });
 
-      final result = await AccountDeletionService.cancelDeletionRequest();
+      await AccountDeletionService.cancelDeletionRequest();
       _showSuccessSnackBar('Solicitud de eliminación cancelada');
       _loadDeletionStatus(); // Recargar estado
     } catch (e) {

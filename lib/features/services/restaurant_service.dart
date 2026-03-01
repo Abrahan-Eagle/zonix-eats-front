@@ -15,7 +15,7 @@ class RestaurantService {
       errorMethodCount: 5,
       colors: true,
       printEmojis: true,
-      printTime: true,
+      dateTimeFormat: DateTimeFormat.onlyTimeAndSinceStart,
     ),
   );
 

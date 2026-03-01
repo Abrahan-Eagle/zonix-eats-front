@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
+
 class Restaurant {
   final int id;
   final int profileId;
@@ -47,7 +49,7 @@ class Restaurant {
             jsonDecode(json['schedule'] as String)
           );
         } catch (e) {
-          print('Error parsing schedule JSON: $e');
+          debugPrint('Error parsing schedule JSON: $e');
           parsedSchedule = null;
         }
       } else if (json['schedule'] is Map) {

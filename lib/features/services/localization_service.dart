@@ -183,8 +183,7 @@ class LocalizationService {
     final symbol = settings['symbol']!;
     final position = settings['position']!;
     final decimal = settings['decimal']!;
-    final thousands = settings['thousands']!;
-    
+
     final formatted = amount.toStringAsFixed(2).replaceAll('.', decimal);
     
     if (position == 'before') {
@@ -196,8 +195,6 @@ class LocalizationService {
 
   /// Formatear fecha localmente
   static String formatDateLocally(DateTime date, String language, String format) {
-    final settings = getDateSettings(language);
-    
     switch (format) {
       case 'date':
         return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';

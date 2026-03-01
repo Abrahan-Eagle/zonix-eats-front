@@ -267,7 +267,7 @@ class ProfilePagex extends StatelessWidget {
             if (profile.secondLastName.isNotEmpty)
               _buildInfoRow(context, 'Segundo Apellido', profile.secondLastName, Icons.person_outline),
             _buildInfoRow(context, 'Fecha de Nacimiento', _formatDate(profile.dateOfBirth), Icons.calendar_today),
-            _buildInfoRow(context, 'Estado Civil', _translateMaritalStatus(profile.maritalStatus ?? 'N/A'), Icons.favorite),
+            _buildInfoRow(context, 'Estado Civil', _translateMaritalStatus(profile.maritalStatus), Icons.favorite),
             _buildInfoRow(context, 'Sexo', _translateSex(profile.sex), Icons.wc),
           ],
         ),
@@ -276,7 +276,6 @@ class ProfilePagex extends StatelessWidget {
   }
 
   Widget _buildContactInfoCard(BuildContext context, Profile profile) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       color: AppColors.cardBg(context),
       elevation: 4,
@@ -321,7 +320,6 @@ class ProfilePagex extends StatelessWidget {
   }
 
   Widget _buildBusinessInfoCard(BuildContext context, Profile profile) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       color: AppColors.cardBg(context),
       elevation: 4,
@@ -370,7 +368,6 @@ class ProfilePagex extends StatelessWidget {
   }
 
   Widget _buildDeliveryInfoCard(BuildContext context, Profile profile) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
       color: AppColors.cardBg(context),
       elevation: 4,

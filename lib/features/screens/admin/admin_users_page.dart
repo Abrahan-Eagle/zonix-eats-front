@@ -10,7 +10,13 @@ class AdminUsersPage extends StatefulWidget {
 class _AdminUsersPageState extends State<AdminUsersPage> {
   String _selectedFilter = 'Todos';
   final List<String> _filters = ['Todos', 'Activos', 'Inactivos', 'Suspendidos', 'Pendientes'];
-  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,17 +54,13 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                 suffixIcon: IconButton(
                   icon: const Icon(Icons.clear),
                   onPressed: () {
-                    setState(() {
-                      _searchQuery = '';
-                    });
+                    _searchController.clear();
+                    setState(() {});
                   },
                 ),
               ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
+              controller: _searchController,
+              onChanged: (_) => setState(() {}),
             ),
           ),
           
@@ -120,9 +122,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     final userType = userTypes[index % userTypes.length];
     final status = statuses[index % statuses.length];
     final email = emails[index % emails.length];
-    final isActive = status == 'Activo';
-    final isSuspended = status == 'Suspendido';
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,

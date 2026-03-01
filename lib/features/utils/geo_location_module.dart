@@ -10,7 +10,7 @@ class LocationModule {
     // Verifica si el servicio de ubicación está habilitado
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      print('El servicio de ubicación está deshabilitado.');
+      debugPrint('El servicio de ubicación está deshabilitado.');
       return null;
     }
 
@@ -20,7 +20,7 @@ class LocationModule {
       permission = await Geolocator.requestPermission();
       if (permission != LocationPermission.whileInUse &&
           permission != LocationPermission.always) {
-        print('Los permisos de ubicación están denegados.');
+        debugPrint('Los permisos de ubicación están denegados.');
         return null;
       }
     }
@@ -28,8 +28,8 @@ class LocationModule {
     // Obtiene la ubicación actual
     Position currentPosition = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
-    print('Ubicación actual: $currentPosition');
-    
+    debugPrint('Ubicación actual: $currentPosition');
+
     return currentPosition;
   }
 

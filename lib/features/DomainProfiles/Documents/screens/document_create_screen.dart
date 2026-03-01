@@ -577,9 +577,6 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
   }
 
   Widget _buildNumberField() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     return TextFormField(
       controller: _numberCiController, // Asegúrate de vincular el controlador
       decoration: InputDecoration(
@@ -608,9 +605,6 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
   }
 
   Widget _buildReceiptNField() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     return TextFormField(
       controller: _receiptNController,
       decoration: InputDecoration(
@@ -630,9 +624,6 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
   }
 
   Widget _buildSkyField() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     return TextFormField(
       controller: _skyController,
       decoration: InputDecoration(
@@ -667,9 +658,6 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     List<TextInputFormatter>? inputFormatters,
     TextInputType? keyboardType,
   }) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     return TextFormField(
       decoration: InputDecoration(
         labelText: label,
@@ -692,9 +680,6 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     DateTime? date,
     ValueChanged<DateTime?> onDateSelected,
   ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
     return TextFormField(
       decoration: InputDecoration(
         labelText: label,

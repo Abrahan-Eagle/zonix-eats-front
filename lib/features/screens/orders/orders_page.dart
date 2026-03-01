@@ -43,9 +43,6 @@ class _OrdersPageState extends State<OrdersPage> {
         _error = null;
       });
 
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final user = userProvider.user;
-
       final orders = await _orderService.getUserOrders();
       
       setState(() {
@@ -81,7 +78,7 @@ class _OrdersPageState extends State<OrdersPage> {
         },
       );
         } catch (e) {
-      print('Error inicializando Pusher: $e');
+      debugPrint('Error inicializando Pusher: $e');
     }
   }
 
@@ -119,10 +116,9 @@ class _OrdersPageState extends State<OrdersPage> {
     final orderId = message['order_id'];
     final latitude = message['latitude'];
     final longitude = message['longitude'];
-    final estimatedArrival = message['estimated_arrival'];
-    
+
     // Aquí podrías actualizar el estado de tracking si estás en esa página
-    print('Ubicación actualizada para orden $orderId: $latitude, $longitude');
+    debugPrint('Ubicación actualizada para orden $orderId: $latitude, $longitude');
   }
 
   @override
@@ -263,141 +259,4 @@ class _OrdersPageState extends State<OrdersPage> {
     );
   }
 
-  Widget _buildOrderCard(Order order) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: InkWell(
-        onTap: () {
-          // Navegar a detalles de la orden
-          Navigator.pushNamed(
-            context,
-            '/order-details',
-            arguments: order,
-          );
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Pedido #${order.id}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  _buildStatusChip(order.status),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                order.commerce?['name'] ?? 'Restaurante',
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '${order.items.length} productos',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '\$${order.total.toStringAsFixed(2)}',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Theme.of(context).primaryColor,
-                    ),
-                  ),
-                  Text(
-                    _formatDate(order.createdAt),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusChip(String status) {
-    Color color;
-    String text;
-    
-    switch (status.toLowerCase()) {
-      case 'pendiente_pago':
-        color = Colors.orange;
-        text = 'Pendiente';
-        break;
-      case 'pagado':
-        color = Colors.blue;
-        text = 'Pagado';
-        break;
-      case 'en_preparacion':
-        color = Colors.purple;
-        text = 'Preparando';
-        break;
-      case 'listo_retirar':
-        color = Colors.green;
-        text = 'Listo';
-        break;
-      case 'en_camino':
-        color = Colors.indigo;
-        text = 'En Camino';
-        break;
-      case 'entregado':
-        color = Colors.green;
-        text = 'Entregado';
-        break;
-      case 'cancelado':
-        color = Colors.red;
-        text = 'Cancelado';
-        break;
-      default:
-        color = Colors.grey;
-        text = status;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: color,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays} día${difference.inDays > 1 ? 's' : ''}';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} hora${difference.inHours > 1 ? 's' : ''}';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} minuto${difference.inMinutes > 1 ? 's' : ''}';
-    } else {
-      return 'Ahora';
-    }
-  }
 }

@@ -79,7 +79,6 @@ class MockProductService implements ProductService {
     ];
   }
 
-  @override
   Future<Product?> fetchProduct(int id) async {
     return Product(
       id: id,
@@ -104,12 +103,10 @@ class MockProductService implements ProductService {
     );
   }
 
-  @override
   Future<List<Product>> searchProducts(String query) async {
     return [];
   }
 
-  @override
   Future<Product> getProductById(int productId) async {
     return Product(
       id: productId,

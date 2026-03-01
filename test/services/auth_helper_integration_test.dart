@@ -19,14 +19,9 @@ void main() {
   });
 
     test('AuthHelper getAuthHeaders should return Future<Map<String, String>>', () async {
-      // Saltar este test si estamos en entorno de test sin plugins
-      bool isTestEnv = true;
-      if (isTestEnv) {
-        return;
-      }
       final headers = await AuthHelper.getAuthHeaders();
       expect(headers, isA<Map<String, String>>());
       expect(headers['Authorization'], isNotEmpty);
-    });
+    }, skip: 'Requiere plugins de plataforma en test');
   });
 } 

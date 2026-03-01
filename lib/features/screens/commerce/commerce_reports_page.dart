@@ -15,7 +15,6 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
   String? _error;
   Map<String, dynamic> _overview = {};
   Map<String, dynamic> _products = {};
-  Map<String, dynamic> _orders = {};
   String _period = 'month';
 
   @override
@@ -33,13 +32,11 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
       final analytics = Provider.of<CommerceAnalyticsService>(context, listen: false);
       final overview = await analytics.getOverview();
       final products = await analytics.getProducts();
-      final orders = await analytics.getOrders();
 
       if (mounted) {
         setState(() {
           _overview = overview;
           _products = products;
-          _orders = orders;
           _loading = false;
         });
       }

@@ -26,7 +26,6 @@ class ProfilePage1State extends State<ProfilePage1> {
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   GoogleSignInAccount? currentUser;
   bool isAuthenticated = false;
-  String? _profileId;
   late Future<Profile?> _profileFuture;
 
 Future<void> _initializeData() async {
@@ -66,7 +65,6 @@ Future<void> _initializeData() async {
       final profileId = await QrProfileApiService().sendUserIdToBackend(userProvider.userId);
 
       if (profileId != null) {
-        _profileId = profileId; // Asigna directamente el ID de perfil
         await _storage.write(key: 'profileId', value: profileId);
         logger.i('ID de perfil obtenido: $profileId');
       } else {

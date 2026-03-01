@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../models/order.dart';
 import '../../models/cart_item.dart';
 import '../../helpers/auth_helper.dart';
@@ -10,10 +9,6 @@ import 'package:http_parser/http_parser.dart';
 import '../../features/utils/auth_utils.dart';
 
 class OrderService extends ChangeNotifier {
-  final String _baseUrl = const bool.fromEnvironment('dart.vm.product')
-      ? dotenv.env['API_URL_PROD']!
-      : dotenv.env['API_URL_LOCAL']!;
-
   // POST /api/buyer/orders - Crear orden
   /// [deliveryType] 'pickup' o 'delivery'
   /// [deliveryAddress] requerido cuando deliveryType es 'delivery'
