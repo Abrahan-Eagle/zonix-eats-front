@@ -11,6 +11,7 @@ import 'package:zonix/config/app_config.dart';
 import 'package:zonix/widgets/osm_map_widget.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zonix/l10n/app_strings.dart';
 
 class OrderDetailPage extends StatefulWidget {
   const OrderDetailPage({
@@ -255,13 +256,13 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   Widget build(BuildContext context) {
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Detalle de orden')),
+        appBar: AppBar(title: const Text(AppStrings.orderDetailTitle)),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
     if (_error != null || _order == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Detalle de orden')),
+        appBar: AppBar(title: const Text(AppStrings.orderDetailTitle)),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -270,12 +271,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(_error ?? 'Orden no encontrada', textAlign: TextAlign.center),
+                child: Text(_error ?? AppStrings.orderNotFound, textAlign: TextAlign.center),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _loadOrder,
-                child: const Text('Reintentar'),
+                child: const Text(AppStrings.retry),
               ),
             ],
           ),
@@ -299,7 +300,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           icon: Icon(Icons.arrow_back, color: textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text('Detalle del Recibo', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary)),
+        title: Text(AppStrings.receiptDetailTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary)),
         centerTitle: true,
         backgroundColor: surfaceColor,
         foregroundColor: textPrimary,
@@ -313,7 +314,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               onRefresh: _loadOrder,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(16, 24, 16, 140),
+                padding: const EdgeInsets.fromLTRB(16, 24, 16, 72),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -735,7 +736,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   Widget _buildBottomBar(Order order, {required Color surfaceColor, required Color borderColor}) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       decoration: BoxDecoration(
         color: surfaceColor,
         border: Border(top: BorderSide(color: borderColor)),
@@ -753,11 +754,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           child: FilledButton.icon(
             onPressed: _updating ? null : () => _onDownloadPdf(order),
             icon: _updating ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.download, size: 22),
-            label: Text(_updating ? 'Generando...' : 'Descargar PDF'),
+            label: Text(_updating ? AppStrings.generating : AppStrings.downloadPdf),
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF3399FF),
               foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: 12),
               textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
@@ -811,7 +812,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   Widget _buildTrackingCard(Order order) {
     final hasLocation = _deliveryLat != null && _deliveryLng != null;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
+      color: isDark ? null : Colors.white,
+      surfaceTintColor: Colors.transparent,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -822,7 +826,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 const Icon(Icons.delivery_dining, color: AppColors.green, size: 22),
                 const SizedBox(width: 8),
                 Text(
-                  'Seguimiento de entrega',
+                  AppStrings.deliveryTracking,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.bold,
                         color: AppColors.primaryText(context),
@@ -834,12 +838,15 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             if (hasLocation)
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: SizedBox(
-                  height: 200,
-                  width: double.infinity,
-                  child: OsmMapWidget(
-                    center: LatLng(_deliveryLat!, _deliveryLng!),
-                    zoom: 15.0,
+                child: Container(
+                  color: isDark ? Colors.grey.shade900 : Colors.white,
+                  child: SizedBox(
+                    height: 200,
+                    width: double.infinity,
+                    child: OsmMapWidget(
+                      center: LatLng(_deliveryLat!, _deliveryLng!),
+                      zoom: 15.0,
+                    ),
                   ),
                 ),
               )
@@ -848,7 +855,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 height: 120,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.1),
+                  color: isDark ? Colors.grey.withValues(alpha: 0.1) : Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Column(
@@ -857,7 +864,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     Icon(Icons.location_searching, size: 36, color: Colors.grey[400]),
                     const SizedBox(height: 8),
                     Text(
-                      'Esperando ubicación del repartidor...',
+                      AppStrings.waitingDeliveryLocation,
                       style: TextStyle(color: Colors.grey[500], fontSize: 13),
                     ),
                   ],
@@ -869,7 +876,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.navigation, size: 18),
-                  label: const Text('Ver en Google Maps'),
+                  label: const Text(AppStrings.openInGoogleMaps),
                   onPressed: () async {
                     final url = Uri.parse(
                       'https://www.google.com/maps?q=$_deliveryLat,$_deliveryLng',
