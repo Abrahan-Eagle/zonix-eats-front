@@ -5,10 +5,71 @@ import '../../models/commerce_product.dart';
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 
+/// Resultado paginado de productos (para "cargar más").
+class ProductsPageResult {
+  const ProductsPageResult({
+    required this.products,
+    required this.currentPage,
+    required this.lastPage,
+    required this.total,
+  });
+  final List<CommerceProduct> products;
+  final int currentPage;
+  final int lastPage;
+  final int total;
+  bool get hasMore => currentPage < lastPage;
+}
+
 class CommerceProductService {
   static String get baseUrl => AppConfig.apiUrl;
 
-  // Obtener todos los productos del comercio
+  /// Obtener una página de productos (para listado con "cargar más").
+  static Future<ProductsPageResult> getProductsPage({
+    required int page,
+    int perPage = 15,
+    String? search,
+    bool? available,
+    double? minPrice,
+    double? maxPrice,
+    String? sortBy,
+    String? sortOrder,
+  }) async {
+    final headers = await AuthHelper.getAuthHeaders();
+    final queryParams = <String, String>{
+      'page': page.toString(),
+      'per_page': perPage.toString(),
+    };
+    if (search != null && search.isNotEmpty) queryParams['search'] = search;
+    if (available != null) queryParams['available'] = available.toString();
+    if (minPrice != null) queryParams['min_price'] = minPrice.toString();
+    if (maxPrice != null) queryParams['max_price'] = maxPrice.toString();
+    if (sortBy != null) queryParams['sort_by'] = sortBy;
+    if (sortOrder != null) queryParams['sort_order'] = sortOrder;
+
+    final uri = Uri.parse('$baseUrl/api/commerce/products').replace(queryParameters: queryParams);
+    final response = await http.get(uri, headers: headers);
+
+    if (response.statusCode != 200) {
+      throw Exception('Error al obtener productos: ${response.statusCode}');
+    }
+    final data = jsonDecode(response.body);
+    if (data['success'] != true || data['data'] == null) {
+      return const ProductsPageResult(products: [], currentPage: 1, lastPage: 1, total: 0);
+    }
+    final list = data['data'] is List
+        ? data['data'] as List
+        : (data['data'] as Map)['data'] as List? ?? [];
+    final pag = data['pagination'] as Map<String, dynamic>? ?? {};
+    final products = list.map((json) => CommerceProduct.fromJson(json as Map<String, dynamic>)).toList();
+    return ProductsPageResult(
+      products: products,
+      currentPage: (pag['current_page'] as num?)?.toInt() ?? page,
+      lastPage: (pag['last_page'] as num?)?.toInt() ?? 1,
+      total: (pag['total'] as num?)?.toInt() ?? products.length,
+    );
+  }
+
+  // Obtener todos los productos del comercio (primera página; para compatibilidad).
   static Future<List<CommerceProduct>> getProducts({
     String? search,
     bool? available,
@@ -18,42 +79,17 @@ class CommerceProductService {
     String? sortOrder,
     int? perPage,
   }) async {
-    final headers = await AuthHelper.getAuthHeaders();
-    try {
-      final queryParams = <String, String>{};
-      if (search != null && search.isNotEmpty) queryParams['search'] = search;
-      if (available != null) queryParams['available'] = available.toString();
-      if (minPrice != null) queryParams['min_price'] = minPrice.toString();
-      if (maxPrice != null) queryParams['max_price'] = maxPrice.toString();
-      if (sortBy != null) queryParams['sort_by'] = sortBy;
-      if (sortOrder != null) queryParams['sort_order'] = sortOrder;
-      if (perPage != null) queryParams['per_page'] = perPage.toString();
-
-      final uri = Uri.parse('$baseUrl/api/commerce/products').replace(queryParameters: queryParams);
-      
-      final response = await http.get(
-        uri,
-        headers: headers,
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success'] == true && data['data'] != null) {
-          final productsData = data['data'];
-          if (productsData is List) {
-            return productsData.map((json) => CommerceProduct.fromJson(json)).toList();
-          } else if (productsData['data'] != null) {
-            // Si es paginación
-            return (productsData['data'] as List).map((json) => CommerceProduct.fromJson(json)).toList();
-          }
-        }
-        return [];
-      } else {
-        throw Exception('Error al obtener productos: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Error al obtener productos: $e');
-    }
+    final result = await getProductsPage(
+      page: 1,
+      perPage: perPage ?? 15,
+      search: search,
+      available: available,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
+      sortBy: sortBy,
+      sortOrder: sortOrder,
+    );
+    return result.products;
   }
 
   // Obtener un producto específico
