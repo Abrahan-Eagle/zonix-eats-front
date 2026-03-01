@@ -60,30 +60,19 @@ class TrackingService {
     }
   }
 
-  // Método para obtener la ubicación del delivery
+  // Método para obtener la ubicación del delivery. Null si no hay coords reales (GPS/BD).
   Future<Map<String, double>?> getDeliveryLocation(int orderId) async {
     try {
       final tracking = await getOrderTracking(orderId);
       final location = tracking['delivery_location'];
-      if (location != null) {
-        return {
-          'latitude': (location['latitude'] is String)
-              ? double.tryParse(location['latitude']) ?? 0.0
-              : (location['latitude'] is int)
-                  ? (location['latitude'] as int).toDouble()
-                  : (location['latitude'] is double)
-                      ? location['latitude']
-                      : 0.0,
-          'longitude': (location['longitude'] is String)
-              ? double.tryParse(location['longitude']) ?? 0.0
-              : (location['longitude'] is int)
-                  ? (location['longitude'] as int).toDouble()
-                  : (location['longitude'] is double)
-                      ? location['longitude']
-                      : 0.0,
-        };
-      }
-      return null;
+      if (location == null || location is! Map) return null;
+      // API devuelve lat/lng (no latitude/longitude)
+      final lat = location['lat'];
+      final lng = location['lng'];
+      final latVal = lat is num ? (lat as num).toDouble() : (lat != null ? double.tryParse(lat.toString()) : null);
+      final lngVal = lng is num ? (lng as num).toDouble() : (lng != null ? double.tryParse(lng.toString()) : null);
+      if (latVal == null || lngVal == null) return null;
+      return {'latitude': latVal, 'longitude': lngVal};
     } catch (e) {
       return null;
     }

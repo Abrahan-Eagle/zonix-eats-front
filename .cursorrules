@@ -42,14 +42,16 @@ Cursor lee `AGENTS.md` automáticamente. Toda la información de desarrollo est�
 - **Pusher + FCM** para eventos (NO WebSocket)
 - **AppConfig.apiUrl** — NUNCA URLs hardcodeadas
 
-### Roles (Solo 4 — Terminología Estándar)
+### Roles (6 — Terminología Estándar)
 
-| Código en BD | Nombre Estándar | Alias aceptados          |
-| ------------ | --------------- | ------------------------ |
-| `users`      | **Buyer**       | Comprador, Cliente       |
-| `commerce`   | **Commerce**    | Comercio, Restaurante    |
-| `delivery`   | **Delivery**    | Delivery Agent, Repartidor |
-| `admin`      | **Admin**       | Administrador            |
+| Código en BD       | Nombre Estándar   | Descripción |
+| ------------------ | ----------------- | ----------- |
+| `users`            | **Buyer**         | Comprador, Cliente |
+| `commerce`         | **Commerce**      | Comercio, Restaurante |
+| `delivery_company` | **Delivery Company** | Empresa que administra repartidores |
+| `delivery_agent`   | **Delivery Agent** | Repartidor vinculado a empresa |
+| `delivery`         | **Delivery**      | Repartidor autónomo (sin empresa) |
+| `admin`            | **Admin**         | Administrador |
 
 ### Patrón de Servicio
 ```dart

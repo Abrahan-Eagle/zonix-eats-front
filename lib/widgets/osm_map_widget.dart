@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:zonix/config/app_config.dart';
 
 /// Widget de mapa usando OpenStreetMap tiles (como en CorralX).
 /// [polylinePoints]: puntos para dibujar una ruta (ej. moto → cliente).
@@ -44,7 +45,7 @@ class OsmMapWidget extends StatelessWidget {
         ),
         children: [
           TileLayer(
-            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            urlTemplate: AppConfig.osmTileUrl,
             userAgentPackageName: 'com.zonix.app',
             maxZoom: 19,
           ),

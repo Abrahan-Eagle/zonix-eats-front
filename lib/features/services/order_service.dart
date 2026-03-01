@@ -12,11 +12,15 @@ class OrderService extends ChangeNotifier {
   // POST /api/buyer/orders - Crear orden
   /// [deliveryType] 'pickup' o 'delivery'
   /// [deliveryAddress] requerido cuando deliveryType es 'delivery'
+  /// [deliveryLatitude] opcional; coords del destino (GPS, casa u otra ubicación elegida).
+  /// [deliveryLongitude] opcional; junto con deliveryLatitude para mapa y ruta.
   /// [deliveryFee] opcional, costo de envío (ej. 2.50). 0 si pickup.
   Future<Order> createOrder(
     List<CartItem> items, {
     required String deliveryType,
     String? deliveryAddress,
+    double? deliveryLatitude,
+    double? deliveryLongitude,
     double deliveryFee = 0.0,
   }) async {
     if (items.isEmpty) {
@@ -44,7 +48,11 @@ class OrderService extends ChangeNotifier {
       'total': total,
       'delivery_fee': deliveryFee,
       if (orderNotes.isNotEmpty) 'notes': orderNotes,
-      if (deliveryType == 'delivery') 'delivery_address': deliveryAddress?.trim() ?? '',
+      if (deliveryType == 'delivery') ...{
+        'delivery_address': deliveryAddress?.trim() ?? '',
+        if (deliveryLatitude != null) 'delivery_latitude': deliveryLatitude,
+        if (deliveryLongitude != null) 'delivery_longitude': deliveryLongitude,
+      },
     });
     
     final response = await http.post(
@@ -276,8 +284,8 @@ class OrderService extends ChangeNotifier {
     final Map<String, dynamic> result = {};
     double? lat;
     double? lng;
-    if (dataPayload != null && dataPayload is Map) {
-      final d = dataPayload as Map<String, dynamic>;
+    if (dataPayload != null && dataPayload is Map<String, dynamic>) {
+      final d = dataPayload;
       lat = d['latitude'] is num ? (d['latitude'] as num).toDouble() : (d['latitude'] != null ? double.tryParse(d['latitude'].toString()) : null);
       lng = d['longitude'] is num ? (d['longitude'] as num).toDouble() : (d['longitude'] != null ? double.tryParse(d['longitude'].toString()) : null);
       result.addAll(d);
@@ -381,23 +389,43 @@ class OrderService extends ChangeNotifier {
       url,
       body: jsonEncode({
         'content': message,
+        'type': 'text',
       }),
       headers: {
         ...headers,
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
     );
-    
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['success'] == true) {
-        return;
-      } else {
-        throw Exception(data['message'] ?? 'Error al enviar mensaje');
-      }
-    } else {
-      throw Exception('Error al enviar mensaje: ${response.statusCode}');
+
+    // Backend Chat\ChatController devuelve 201 Created con el mensaje; aceptar 200 y 201
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return;
     }
+    final body = response.body;
+    String errMsg = 'Error al enviar mensaje: ${response.statusCode}';
+    if (body.isNotEmpty) {
+      try {
+        final data = jsonDecode(body) as Map<String, dynamic>?;
+        if (data != null) {
+          final msg = data['message'] as String?;
+          final errors = data['errors'];
+          if (msg != null && msg.isNotEmpty) {
+            errMsg = msg;
+          }
+          if (errors is Map) {
+            final errMap = errors;
+            final first = errMap.values.isNotEmpty ? errMap.values.first : null;
+            if (first is List && first.isNotEmpty) {
+              errMsg = first.first.toString();
+            } else if (first != null) {
+              errMsg = first.toString();
+            }
+          }
+        }
+      } catch (_) {}
+    }
+    throw Exception(errMsg);
   }
 
   // Método para validar comprobante (para comercios)

@@ -45,17 +45,20 @@ class _OrdersPageState extends State<OrdersPage> {
   }
 
   Future<void> _loadOrders() async {
+    if (!mounted) return;
     try {
       setState(() {
         _isLoading = true;
         _error = null;
       });
       final orders = await _orderService.getUserOrders();
+      if (!mounted) return;
       setState(() {
         _orders = orders;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.toString();
         _isLoading = false;
@@ -713,6 +716,8 @@ class _OrdersPageState extends State<OrdersPage> {
             ? CurrentOrderDetailPage(orderId: order.id, order: order)
             : OrderDetailPage(orderId: order.id, order: order),
       ),
-    ).then((_) => _loadOrders());
+    ).then((_) {
+      if (mounted) _loadOrders();
+    });
   }
 }

@@ -66,4 +66,28 @@ class AppConfig {
       int.tryParse(dotenv.env['DEFAULT_PAGE_SIZE'] ?? '') ?? 20;
   static int get maxPageSize =>
       int.tryParse(dotenv.env['MAX_PAGE_SIZE'] ?? '') ?? 100;
+
+  // Delivery: tarifa por defecto (idealmente el backend la calcula por zona; aquí solo fallback para UI)
+  static double get defaultDeliveryFee =>
+      double.tryParse(dotenv.env['DEFAULT_DELIVERY_FEE'] ?? '') ?? 2.50;
+
+  // Mapas y geocoding (sin hardcode en pantallas)
+  static String get osmTileUrl =>
+      dotenv.env['OSM_TILE_URL'] ?? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+  static String get nominatimReverseUrl =>
+      dotenv.env['NOMINATIM_REVERSE_URL'] ?? 'https://nominatim.openstreetmap.org/reverse';
+  static String get nominatimSearchUrl =>
+      dotenv.env['NOMINATIM_SEARCH_URL'] ?? 'https://nominatim.openstreetmap.org/search';
+  static String get googleMapsDirUrl =>
+      dotenv.env['GOOGLE_MAPS_DIR_URL'] ?? 'https://www.google.com/maps/dir/?api=1';
+  static String get googleMapsSearchUrl =>
+      dotenv.env['GOOGLE_MAPS_SEARCH_URL'] ?? 'https://www.google.com/maps/search/?api=1';
+  /// Base URL para abrir un punto en Google Maps: ?q=lat,lng
+  static String get googleMapsPointUrl =>
+      dotenv.env['GOOGLE_MAPS_POINT_URL'] ?? 'https://www.google.com/maps?q';
+  static String get openStreetMapViewUrl =>
+      dotenv.env['OPENSTREETMAP_VIEW_URL'] ?? 'https://www.openstreetmap.org';
+  /// Base URL para abrir chat WhatsApp (ej. https://wa.me)
+  static String get whatsappBaseUrl =>
+      dotenv.env['WHATSAPP_BASE_URL'] ?? 'https://wa.me';
 }

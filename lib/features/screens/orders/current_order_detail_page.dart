@@ -35,6 +35,7 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
   double? _customerLng;
   List<LatLng> _routePoints = [];
   bool _trackingSubscribed = false;
+  Map<String, dynamic>? _deliveryAgent;
 
   static const Color _primary = Color(0xFF3399FF);
   static const Color _accent = Color(0xFFFFC107);
@@ -45,6 +46,7 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     _order = widget.order;
     _subscribeToTracking();
     _loadInitialTracking();
+    if (_isTrackableStatus(widget.order.status)) _loadDeliveryAgent();
   }
 
   @override
@@ -118,12 +120,25 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
   Future<void> _refreshOrder() async {
     try {
       final order = await OrderService().getOrderById(widget.orderId);
-      if (mounted) setState(() => _order = order);
+      if (mounted) {
+        setState(() => _order = order);
+        if (_isTrackableStatus(order.status) && _deliveryAgent == null) {
+          _loadDeliveryAgent();
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _loadDeliveryAgent() async {
+    try {
+      final data = await OrderService().getDeliveryAgentForOrder(widget.orderId);
+      if (mounted) setState(() => _deliveryAgent = data);
     } catch (_) {}
   }
 
   int _progressStep(Order order) {
-    switch (order.status) {
+    final s = order.status.toLowerCase();
+    switch (s) {
       case 'pending_payment':
       case 'pending':
       case 'paid':
@@ -134,10 +149,15 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
         return 1;
       case 'shipped':
       case 'out_for_delivery':
+      case 'on_way':
         return 2;
       case 'delivered':
         return 3;
       default:
+        // Fallback por si el backend envía otro valor (ej. "en camino")
+        if (s.contains('camino') || s.contains('shipped') || s.contains('delivery')) return 2;
+        if (s.contains('prepar') || s.contains('process') || s.contains('ready')) return 1;
+        if (s.contains('entreg') || s.contains('delivered')) return 3;
         return 0;
     }
   }
@@ -330,15 +350,17 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
         child: Icon(icons[i], size: active ? 20 : 16, color: (done || active) ? Colors.white : textMuted),
       );
     }
+    // Etiquetas: completados y activo en primary; pendientes en textMuted
+    Color labelColor(int i) => (i <= currentStep) ? primary : textMuted;
     return Row(
       children: [
-        Column(children: [circle(0), const SizedBox(height: 6), Text(labels[0], style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.bold, color: currentStep == 0 ? primary : textMuted))]),
+        Column(children: [circle(0), const SizedBox(height: 6), Text(labels[0], style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.bold, color: labelColor(0)))]),
         Expanded(child: Center(child: Container(height: 2, color: currentStep > 0 ? primary : textMuted.withValues(alpha: 0.3)))),
-        Column(children: [circle(1), const SizedBox(height: 6), Text(labels[1], style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.bold, color: currentStep == 1 ? primary : textMuted))]),
+        Column(children: [circle(1), const SizedBox(height: 6), Text(labels[1], style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.bold, color: labelColor(1)))]),
         Expanded(child: Center(child: Container(height: 2, color: currentStep > 1 ? primary : textMuted.withValues(alpha: 0.3)))),
-        Column(children: [circle(2), const SizedBox(height: 6), Text(labels[2], style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.bold, color: currentStep == 2 ? primary : textMuted))]),
+        Column(children: [circle(2), const SizedBox(height: 6), Text(labels[2], style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.bold, color: labelColor(2)))]),
         Expanded(child: Center(child: Container(height: 2, color: currentStep > 2 ? primary : textMuted.withValues(alpha: 0.3)))),
-        Column(children: [circle(3), const SizedBox(height: 6), Text(labels[3], style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.bold, color: currentStep == 3 ? primary : textMuted))]),
+        Column(children: [circle(3), const SizedBox(height: 6), Text(labels[3], style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.bold, color: labelColor(3)))]),
       ],
     );
   }
@@ -433,89 +455,64 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     );
   }
 
+  /// Botón para ir a la pantalla "Tu repartidor" (vista separada). No duplica contenido.
   Widget _buildDeliveryPersonCard(Color surfaceColor, Color borderColor, Color primary, Color textPrimary, Color textSecondary) {
     final order = _order ?? widget.order;
     final commerceName = order.commerce?['name']?.toString() ?? 'Comercio';
-    const deliveryName = 'Repartidor asignado';
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-      child: Material(
-        color: surfaceColor,
-        borderRadius: BorderRadius.circular(12),
-        child: InkWell(
-          onTap: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => DeliveryDetailPage(
-                  orderId: widget.orderId,
-                  deliveryName: deliveryName,
-                  deliveryRating: '4.8',
-                ),
-              ),
-            );
-          },
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: surfaceColor,
           borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: borderColor),
-            ),
-            child: Row(
-              children: [
-                Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    CircleAvatar(
-                      radius: 32,
-                      backgroundColor: primary.withValues(alpha: 0.15),
-                      child: Icon(Icons.delivery_dining, color: primary, size: 32),
-                    ),
-                    Positioned(
-                      bottom: -2,
-                      right: -2,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(color: _accent, borderRadius: BorderRadius.circular(999)),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.star, size: 10, color: Colors.white),
-                            const SizedBox(width: 2),
-                            Text('4.8', style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white)),
-                          ],
-                        ),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: InkWell(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => DeliveryDetailPage(
+                        orderId: widget.orderId,
+                        commerceName: commerceName,
                       ),
                     ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(8),
+                child: Row(
+                  children: [
+                    Icon(Icons.delivery_dining, color: primary, size: 28),
+                    const SizedBox(width: 12),
+                    Text(
+                      'Ver tu repartidor',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w600, color: textPrimary),
+                    ),
+                    const Spacer(),
+                    Icon(Icons.arrow_forward_ios, size: 16, color: textSecondary),
                   ],
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Tu repartidor', style: GoogleFonts.plusJakartaSans(fontSize: 12, color: textSecondary)),
-                      Text(deliveryName, style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: textPrimary)),
-                    ],
-                  ),
-                ),
-                IconButton.filled(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => BuyerOrderChatPage(
-                          orderId: widget.orderId,
-                          commerceName: commerceName,
-                        ),
-                      ),
-                    );
-                  },
-                  style: IconButton.styleFrom(backgroundColor: primary.withValues(alpha: 0.15), foregroundColor: primary),
-                  icon: const Icon(Icons.chat_bubble_outline, size: 22),
-                ),
-              ],
+              ),
             ),
-          ),
+            IconButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => BuyerOrderChatPage(
+                      orderId: widget.orderId,
+                      commerceName: commerceName,
+                    ),
+                  ),
+                );
+              },
+              style: IconButton.styleFrom(backgroundColor: primary.withValues(alpha: 0.15), foregroundColor: primary),
+              icon: const Icon(Icons.chat_bubble_outline, size: 22),
+            ),
+          ],
         ),
       ),
     );

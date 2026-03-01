@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/screens/cart/checkout_page.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
@@ -16,7 +17,7 @@ class CartPage extends StatelessWidget {
     final cartItems = cartService.items;
     final totalItems = cartItems.fold<int>(0, (sum, item) => sum + item.quantity);
     final subtotal = cartItems.fold<double>(0, (sum, item) => sum + (item.precio ?? 0) * item.quantity);
-    const deliveryFee = 2.50;
+    final deliveryFee = AppConfig.defaultDeliveryFee;
     final total = subtotal + deliveryFee;
     return GestureDetector(
       onTap: () {

@@ -799,7 +799,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
       'Hola ${widget.nombreLocal}, los contacto desde Zonix Eats. '
       'Me gustaría hacer una consulta sobre su menú.',
     );
-    final uri = Uri.parse('https://wa.me/$normalized?text=$msg');
+    final uri = Uri.parse('${AppConfig.whatsappBaseUrl}/$normalized?text=$msg');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } else {
@@ -824,11 +824,11 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     Uri url;
     if (widget.latitude != null && widget.longitude != null) {
       url = Uri.parse(
-        'https://www.google.com/maps/dir/?api=1&destination=${widget.latitude},${widget.longitude}&travelmode=driving',
+        '${AppConfig.googleMapsDirUrl}&destination=${widget.latitude},${widget.longitude}&travelmode=driving',
       );
     } else {
       final addr = Uri.encodeComponent('${widget.nombreLocal} ${widget.direccion}');
-      url = Uri.parse('https://www.google.com/maps/search/?api=1&query=$addr');
+      url = Uri.parse('${AppConfig.googleMapsSearchUrl}&query=$addr');
     }
     if (await canLaunchUrl(url)) {
       await launchUrl(url, mode: LaunchMode.externalApplication);

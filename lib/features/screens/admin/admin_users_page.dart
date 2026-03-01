@@ -397,7 +397,9 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
               items: const [
                 DropdownMenuItem(value: 'users', child: Text('Comprador')),
                 DropdownMenuItem(value: 'commerce', child: Text('Comercio')),
-                DropdownMenuItem(value: 'delivery', child: Text('Delivery')),
+                DropdownMenuItem(value: 'delivery_company', child: Text('Empresa delivery')),
+                DropdownMenuItem(value: 'delivery_agent', child: Text('Repartidor (empresa)')),
+                DropdownMenuItem(value: 'delivery', child: Text('Repartidor (autónomo)')),
                 DropdownMenuItem(value: 'admin', child: Text('Administrador')),
               ],
               onChanged: (value) {},

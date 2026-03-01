@@ -23,6 +23,7 @@ import 'package:zonix/features/DomainProfiles/Addresses/models/models.dart';
 import 'package:zonix/features/DomainProfiles/Addresses/api/adresse_service.dart';
 import 'package:zonix/features/DomainProfiles/Phones/models/phone.dart';
 import 'package:zonix/features/DomainProfiles/Phones/api/phone_service.dart';
+import 'package:zonix/config/app_config.dart';
 import 'package:zonix/main.dart';
 
 /// Flujo completo de onboarding para CLIENTE (`users`).
@@ -2052,7 +2053,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                 ),
                 children: [
                   TileLayer(
-                    urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    urlTemplate: AppConfig.osmTileUrl,
                     userAgentPackageName: 'com.zonix.eats',
                   ),
                 ],
@@ -2870,7 +2871,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                 children: [
                   TileLayer(
                     urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        AppConfig.osmTileUrl,
                     userAgentPackageName: 'com.zonix.eats',
                   ),
                 ],

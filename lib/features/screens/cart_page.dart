@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zonix/config/app_config.dart';
 import '../../../models/cart_item.dart';
 import '../../../features/services/cart_service.dart';
 import '../../../features/services/order_service.dart';
@@ -52,7 +53,7 @@ class _CartPageState extends State<CartPage> {
 
   void _calculateTotals() {
     _subtotal = _cartItems.fold(0.0, (sum, item) => sum + ((item.precio ?? 0.0) * item.quantity));
-    _deliveryFee = _subtotal > 0 ? 2.50 : 0.0; // Delivery fee
+    _deliveryFee = _subtotal > 0 ? AppConfig.defaultDeliveryFee : 0.0;
     _tax = _subtotal * 0.12; // 12% tax
     _total = _subtotal + _deliveryFee + _tax;
   }

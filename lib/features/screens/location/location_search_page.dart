@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart' as lat_lng;
 import 'package:provider/provider.dart';
+import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/utils/search_radius_provider.dart';
 
@@ -219,7 +220,7 @@ class _LocationSearchPageState extends State<LocationSearchPage> {
               ),
               children: [
                 TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  urlTemplate: AppConfig.osmTileUrl,
                   userAgentPackageName: 'com.example.zonix',
                 ),
                 CircleLayer(
