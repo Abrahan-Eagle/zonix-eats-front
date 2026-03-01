@@ -84,7 +84,7 @@ class _DeliveryDetailPageState extends State<DeliveryDetailPage> {
                             CircleAvatar(
                               radius: 48,
                               backgroundColor: primary.withValues(alpha: 0.2),
-                              child: Icon(Icons.delivery_dining, size: 48, color: primary),
+                              child: const Icon(Icons.delivery_dining, size: 48, color: Color(0xFF3399FF)),
                             ),
                             const SizedBox(height: 16),
                             if (_agent != null) ...[
@@ -118,15 +118,15 @@ class _DeliveryDetailPageState extends State<DeliveryDetailPage> {
                           children: [
                             if (_agent?['phone'] != null)
                               ListTile(
-                                leading: Icon(Icons.phone_outlined, color: primary),
+                                leading: const Icon(Icons.phone_outlined, color: Color(0xFF3399FF)),
                                 title: const Text('Teléfono'),
                                 subtitle: Text(_agent!['phone'].toString()),
                               ),
                             if (_agent?['current_location'] is Map)
-                              ListTile(
-                                leading: Icon(Icons.location_on_outlined, color: primary),
-                                title: const Text('Ubicación actual'),
-                                subtitle: const Text('En camino a tu dirección'),
+                              const ListTile(
+                                leading: Icon(Icons.location_on_outlined, color: Color(0xFF3399FF)),
+                                title: Text('Ubicación actual'),
+                                subtitle: Text('En camino a tu dirección'),
                               ),
                           ],
                         ),
