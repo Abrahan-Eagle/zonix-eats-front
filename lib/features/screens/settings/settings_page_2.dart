@@ -226,6 +226,32 @@ class _SettingsPage2State extends State<SettingsPage2> {
       body: Column(
         children: [
           _buildTabPills(theme, isCommerce),
+          if (_activeTab == 'persona') ...[
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: isTablet ? 24 : 24),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.only(top: 8, bottom: 20),
+                decoration: BoxDecoration(
+                  color: theme.brightness == Brightness.dark
+                      ? theme.scaffoldBackgroundColor
+                      : theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.5),
+                  border: Border(
+                    bottom: BorderSide(
+                      color: theme.dividerColor.withValues(alpha: 0.5),
+                      width: 1,
+                    ),
+                  ),
+                ),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 600),
+                    child: _buildProfileHeader(context, theme, isTablet),
+                  ),
+                ),
+              ),
+            ),
+          ],
           Expanded(
             child: _activeTab == 'comercios' && isCommerce
                 ? const CommerceListPage(embedded: true)
@@ -234,18 +260,14 @@ class _SettingsPage2State extends State<SettingsPage2> {
                     color: theme.colorScheme.primary,
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.fromLTRB(isTablet ? 24 : 24, 0, isTablet ? 24 : 24, isTablet ? 40 : 40),
+                      padding: EdgeInsets.fromLTRB(isTablet ? 24 : 24, _activeTab == 'persona' ? 20 : 0, isTablet ? 24 : 24, isTablet ? 40 : 40),
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 600),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (_activeTab == 'persona') ...[
-                              _buildProfileHeader(context, theme, isTablet),
-                              SizedBox(height: isTablet ? 24 : 20),
-                              _buildPersonaContent(context, theme, isTablet, isCommerce),
-                            ],
+                            if (_activeTab == 'persona') _buildPersonaContent(context, theme, isTablet, isCommerce),
                             if (_activeTab == 'publicaciones' && isCommerce) _buildPublicacionesContent(context, theme, isTablet),
                             if (_activeTab == 'mas') _buildMasContent(context, theme, isTablet),
                           ],
@@ -382,6 +404,23 @@ class _SettingsPage2State extends State<SettingsPage2> {
             ),
             Positioned(
               bottom: 0,
+              left: 0,
+              child: GestureDetector(
+                onTap: _pickAndUpdatePhoto,
+                child: Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: theme.brightness == Brightness.dark ? _stitchSurfaceLighter : theme.colorScheme.surfaceContainerHighest,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: theme.scaffoldBackgroundColor, width: 2),
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 6)],
+                  ),
+                  child: Icon(Icons.camera_alt, size: 14, color: theme.colorScheme.onSurface),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 0,
               right: 0,
               child: GestureDetector(
                 onTap: () => Navigator.push(context, MaterialPageRoute(
@@ -423,6 +462,21 @@ class _SettingsPage2State extends State<SettingsPage2> {
     );
   }
 
+  Widget _personaSectionTitle(ThemeData theme, String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 12),
+      child: Text(
+        title,
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+          color: theme.colorScheme.onSurfaceVariant,
+          letterSpacing: 1.2,
+        ),
+      ),
+    );
+  }
+
   Widget _buildPersonaContent(BuildContext context, ThemeData theme, bool isTablet, bool isCommerce) {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final isDark = theme.brightness == Brightness.dark;
@@ -432,6 +486,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        _personaSectionTitle(theme, 'DATOS PERSONALES'),
         Row(
           children: [
             Expanded(
@@ -510,9 +565,11 @@ class _SettingsPage2State extends State<SettingsPage2> {
           const SizedBox(height: 20),
           _buildEstadisticasCard(context, theme, isTablet, surfaceColor, borderColor),
         ],
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
+        _personaSectionTitle(theme, 'LEGAL'),
         _buildLegalCard(context, theme, isTablet, surfaceColor, borderColor),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
+        _personaSectionTitle(theme, 'CUENTA'),
         Material(
           color: theme.colorScheme.error.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(24),
@@ -696,20 +753,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
   }
 
   Widget _buildLegalCard(BuildContext context, ThemeData theme, bool isTablet, Color surfaceColor, Color borderColor) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'LEGAL',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: theme.colorScheme.onSurfaceVariant,
-            letterSpacing: 1.2,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Row(
+    return Row(
           children: [
             Expanded(
               child: Material(
@@ -785,9 +829,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
               ),
             ),
           ],
-        ),
-      ],
-    );
+        );
   }
 
   Widget _buildPublicacionesContent(BuildContext context, ThemeData theme, bool isTablet) {

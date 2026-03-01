@@ -324,7 +324,11 @@ class _ProductsPageState extends State<ProductsPage> {
               fit: StackFit.expand,
               children: [
                 if (imgUrl != null && imgUrl.toString().isNotEmpty && !imgUrl.toString().contains('placeholder'))
-                  Image.network(imgUrl.toString(), fit: BoxFit.cover)
+                  Image.network(
+                    imgUrl.toString(),
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Image.asset('assets/onboarding/onboarding_eats.png', fit: BoxFit.cover),
+                  )
                 else
                   Image.asset('assets/onboarding/onboarding_eats.png', fit: BoxFit.cover),
                 // Gradiente como template: from-background-dark to-transparent

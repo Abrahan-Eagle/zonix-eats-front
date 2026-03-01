@@ -81,7 +81,7 @@ class ApiService {
          // Leer el token del almacenamiento seguro
           String? role = await _storage.read(key: 'role');
           if (role != null) {
-            logger.i('role almacenadoaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: $role');
+            logger.i('Role almacenado: $role');
           } else {
             logger.e('No se encontró ningún role almacenado');
           }
@@ -215,7 +215,7 @@ class ApiService {
 //          // Leer el token del almacenamiento seguro
 //           String? role = await _storage.read(key: 'role');
 //           if (role != null) {
-//             logger.i('role almacenadoaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: $role');
+//             logger.i('Role almacenado: $role');
 //           } else {
 //             logger.e('No se encontró ningún role almacenado');
 //           }

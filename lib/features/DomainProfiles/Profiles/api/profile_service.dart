@@ -48,7 +48,6 @@ class ProfileService {
 
   // Recupera un perfil por ID.
   Future<Profile?> getProfileById(int id) async {
-        logger.i('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa: $id');
     final token = await _getToken();
     final response = await http.get(
       Uri.parse('$baseUrl/api/profiles/$id'),
@@ -253,10 +252,18 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
       headers: {'Authorization': 'Bearer $token'},
     );
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Error al exportar los datos personales');
+      return jsonDecode(response.body) as Map<String, dynamic>;
     }
+    String msg = 'Error al exportar los datos personales';
+    if (response.body.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(response.body);
+        if (decoded is Map && decoded['message'] != null) {
+          msg = decoded['message'] as String;
+        }
+      } catch (_) {}
+    }
+    throw Exception(msg);
   }
 
   // Obtener configuración de privacidad (API: GET /api/user/privacy-settings)
@@ -315,8 +322,18 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
       Uri.parse('$baseUrl/api/buyer/account'),
       headers: {'Authorization': 'Bearer $token'},
     );
-    if (response.statusCode != 200) {
-      throw Exception('Error al eliminar la cuenta');
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      final body = response.body.isNotEmpty ? response.body : null;
+      String msg = 'Error al eliminar la cuenta';
+      if (body != null) {
+        try {
+          final decoded = jsonDecode(body);
+          if (decoded is Map && decoded['message'] != null) {
+            msg = decoded['message'] as String;
+          }
+        } catch (_) {}
+      }
+      throw Exception(msg);
     }
   }
 

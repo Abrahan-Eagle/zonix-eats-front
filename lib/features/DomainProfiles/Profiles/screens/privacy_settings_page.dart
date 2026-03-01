@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
+import 'package:zonix/features/screens/auth/sign_in_screen.dart';
+import 'package:zonix/features/utils/user_provider.dart';
 import 'package:logger/logger.dart';
 
 final logger = Logger();
@@ -158,10 +161,12 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
             backgroundColor: Colors.green,
           ),
         );
-        
-        // Navegar al login
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/login',
+        // Limpiar token y caché y salir totalmente de la app
+        final userProvider = context.read<UserProvider>();
+        await userProvider.logout();
+        if (!mounted) return;
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const SignInScreen()),
           (route) => false,
         );
       }

@@ -327,10 +327,10 @@ class UserProvider with ChangeNotifier {
       PusherService.instance.disconnect();
       await AuthUtils.logout();
       await GoogleSignIn().signOut();
-      await _clearUserData();
     } catch (e) {
       debugPrint('Error al cerrar sesión: $e');
     } finally {
+      await _clearUserData();
       notifyListeners();
     }
   }
