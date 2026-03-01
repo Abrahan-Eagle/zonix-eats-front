@@ -17,7 +17,11 @@
 | **Servicios**            | 49                                       |
 | **Tests**                | 214 pasaron ✅, 0 fallaron               |
 | **Plataformas**          | Android + iOS                            |
-| **Última actualización** | 25 Febrero 2026                          |
+| **Última actualización** | 11 Febrero 2026                          |
+
+### Cambios recientes (documentar aquí los avances)
+
+- **11 Feb 2026:** Cupón: validación envía `code` y `order_amount`; mensajes de error del backend (422/404/400) mostrados al usuario. Configuración desde `.env` (AppConfig, Pusher, timeouts). Auth Pusher con `shared_secret`.
 
 ---
 
@@ -679,4 +683,4 @@ FORMATO DE SALIDA:
 
 **Documentación completa:** Ver `README.md`
 **Backend API:** Ver `zonix-eats-back/AGENTS.md`
-**Última actualización:** 25 Febrero 2026
+**Última actualización:** 11 Febrero 2026
