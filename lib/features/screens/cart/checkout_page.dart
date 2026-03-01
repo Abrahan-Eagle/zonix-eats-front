@@ -83,12 +83,21 @@ class _CheckoutPageState extends State<CheckoutPage> {
         }
       }
       final deliveryFee = _deliveryType == 'delivery' ? 2.50 : 0.0;
-      await orderService.createOrder(
+      final order = await orderService.createOrder(
         cartService.items.toList(),
         deliveryType: _deliveryType,
         deliveryAddress: deliveryAddress,
         deliveryFee: deliveryFee,
       );
+      if (_appliedCoupon != null) {
+        final cid = _appliedCoupon!['coupon_id'];
+        if (cid != null) {
+          final couponId = cid is int ? cid : int.tryParse(cid.toString());
+          if (couponId != null) {
+            await _promotionService.applyCouponToOrder(couponId: couponId, orderId: order.id);
+          }
+        }
+      }
       cartService.clearCart();
       setState(() {
         _success = '¡Orden creada exitosamente!';
