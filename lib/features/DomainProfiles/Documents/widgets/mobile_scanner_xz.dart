@@ -5,10 +5,10 @@ class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});
 
   @override
-  _QRScannerScreenState createState() => _QRScannerScreenState();
+  QRScannerScreenState createState() => QRScannerScreenState();
 }
 
-class _QRScannerScreenState extends State<QRScannerScreen> {
+class QRScannerScreenState extends State<QRScannerScreen> {
   bool _isScanning = true;
 
   void _onDetect(BarcodeCapture barcode) {

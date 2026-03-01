@@ -9,7 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart' as latLng;
+import 'package:latlong2/latlong.dart' as lat_lng;
 import 'package:image_picker/image_picker.dart';
 
 import 'onboarding_provider.dart';
@@ -375,7 +375,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         _latitude = loc.latitude;
         _longitude = loc.longitude;
       });
-      _mapController.move(latLng.LatLng(loc.latitude, loc.longitude), 15);
+      _mapController.move(lat_lng.LatLng(loc.latitude, loc.longitude), 15);
     } catch (_) {
       // Geocoding falló (red, límite, etc.) – ignorar silenciosamente
     }
@@ -461,7 +461,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         try {
           _mapController.move(
-            latLng.LatLng(_latitude!, _longitude!),
+            lat_lng.LatLng(_latitude!, _longitude!),
             15,
           );
         } catch (_) {}
@@ -486,7 +486,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
         _mapController.move(
-          latLng.LatLng(_latitude!, _longitude!),
+          lat_lng.LatLng(_latitude!, _longitude!),
           15,
         );
       } catch (_) {}
@@ -1995,7 +1995,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
 
   Widget _buildMapCardStep2(BuildContext context, [double mapHeight = 192]) {
     final hasCoords = _latitude != null && _longitude != null;
-    final centerPoint = latLng.LatLng(
+    final centerPoint = lat_lng.LatLng(
       _latitude ?? 10.4806,
       _longitude ?? -66.9036,
     );
@@ -2811,7 +2811,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     final borderRadius = BorderRadius.circular(20);
 
     final hasCoords = _latitude != null && _longitude != null;
-    final centerPoint = latLng.LatLng(
+    final centerPoint = lat_lng.LatLng(
       _latitude ?? 10.4806,
       _longitude ?? -66.9036,
     );

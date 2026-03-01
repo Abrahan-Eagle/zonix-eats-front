@@ -260,8 +260,8 @@ class _DataExportPageState extends State<DataExportPage> {
                     ...availableFormats.map((format) => RadioListTile<String>(
                       title: Text(format.toUpperCase()),
                       value: format,
-                      groupValue: selectedFormat,
-                      onChanged: (value) {
+                      groupValue: selectedFormat, // ignore: deprecated_member_use
+                      onChanged: (value) { // ignore: deprecated_member_use
                         setState(() {
                           selectedFormat = value!;
                         });

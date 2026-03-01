@@ -162,16 +162,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   child: RadioListTile<String>(
                     title: const Text('Recoger'),
                     value: 'pickup',
-                    groupValue: _deliveryType,
-                    onChanged: (v) => setState(() => _deliveryType = v ?? 'pickup'),
+                    groupValue: _deliveryType, // ignore: deprecated_member_use
+                    onChanged: (v) => setState(() => _deliveryType = v ?? 'pickup'), // ignore: deprecated_member_use
                   ),
                 ),
                 Expanded(
                   child: RadioListTile<String>(
                     title: const Text('Envío'),
                     value: 'delivery',
-                    groupValue: _deliveryType,
-                    onChanged: (v) => setState(() => _deliveryType = v ?? 'delivery'),
+                    groupValue: _deliveryType, // ignore: deprecated_member_use
+                    onChanged: (v) => setState(() => _deliveryType = v ?? 'delivery'), // ignore: deprecated_member_use
                   ),
                 ),
               ],

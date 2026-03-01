@@ -5,10 +5,10 @@ class DeliveryOrdersPage extends StatefulWidget {
   const DeliveryOrdersPage({super.key});
 
   @override
-  _DeliveryOrdersPageState createState() => _DeliveryOrdersPageState();
+  DeliveryOrdersPageState createState() => DeliveryOrdersPageState();
 }
 
-class _DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
+class DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
   final DeliveryService _deliveryService = DeliveryService();
   List<Map<String, dynamic>> _orders = [];
   bool _isLoading = true;

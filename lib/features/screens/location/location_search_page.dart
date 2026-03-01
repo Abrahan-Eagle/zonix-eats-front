@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:latlong2/latlong.dart' as latLng;
+import 'package:latlong2/latlong.dart' as lat_lng;
 import 'package:provider/provider.dart';
 import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/utils/search_radius_provider.dart';
@@ -187,7 +187,7 @@ class _LocationSearchPageState extends State<LocationSearchPage> {
   }
 
   Widget _buildMap(double radiusKm) {
-    final center = latLng.LatLng(_latitude ?? 10.48, _longitude ?? -66.90);
+    final center = lat_lng.LatLng(_latitude ?? 10.48, _longitude ?? -66.90);
     final radiusMeters = radiusKm * 1000;
 
     return Container(
@@ -278,8 +278,8 @@ class _LocationSearchPageState extends State<LocationSearchPage> {
             children: [
               Radio<bool>(
                 value: true,
-                groupValue: provider.useSuggestedRadius,
-                onChanged: (_) => provider.setUseSuggestedRadius(true),
+                groupValue: provider.useSuggestedRadius, // ignore: deprecated_member_use
+                onChanged: (_) => provider.setUseSuggestedRadius(true), // ignore: deprecated_member_use
                 activeColor: _primary,
               ),
               Expanded(
@@ -325,8 +325,8 @@ class _LocationSearchPageState extends State<LocationSearchPage> {
             children: [
               Radio<bool>(
                 value: false,
-                groupValue: provider.useSuggestedRadius,
-                onChanged: (_) => provider.setUseSuggestedRadius(false),
+                groupValue: provider.useSuggestedRadius, // ignore: deprecated_member_use
+                onChanged: (_) => provider.setUseSuggestedRadius(false), // ignore: deprecated_member_use
                 activeColor: _primary,
               ),
               Expanded(
