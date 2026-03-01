@@ -406,7 +406,7 @@ class PhoneScreenState extends State<PhoneScreen> {
         builder: (context) => CreatePhoneScreen(userId: widget.userId),
       ),
     );
-
+    if (!context.mounted) return;
     debugPrint('Create phone result: $result');
     if (result == true) {
       debugPrint('Reloading phones after create...');
@@ -425,7 +425,7 @@ class PhoneScreenState extends State<PhoneScreen> {
         ),
       ),
     );
-
+    if (!context.mounted) return;
     debugPrint('Edit phone result: $result');
     if (result == true) {
       debugPrint('Reloading phones after edit...');
@@ -441,7 +441,7 @@ class PhoneScreenState extends State<PhoneScreen> {
         builder: (context) => PhoneDetailScreen(phone: phone),
       ),
     );
-
+    if (!context.mounted) return;
     debugPrint('Phone detail result: $result');
     if (result == true) {
       debugPrint('Reloading phones after delete from detail...');
@@ -472,9 +472,12 @@ class PhoneScreenState extends State<PhoneScreen> {
     if (confirmed == true) {
       try {
         await _phoneService.updateStatusCheckScanner(widget.userId);
+        if (!context.mounted) return;
+        final c = context;
         _showSuccessSnackBar('Estado actualizado exitosamente');
-        Navigator.pop(context);
+        Navigator.pop(c);
       } catch (e) {
+        if (!context.mounted) return;
         _showErrorSnackBar('Error: $e');
       }
     }

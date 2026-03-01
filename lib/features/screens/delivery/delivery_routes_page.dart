@@ -124,9 +124,11 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _isLoading = false;
       });
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al cargar rutas: $e')),
       );

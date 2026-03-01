@@ -245,6 +245,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
       child: InkWell(
         onTap: () async {
           await HapticFeedback.lightImpact();
+          if (!mounted) return;
           _logger.d('🚀 Navegando a detalles de ${restaurant.nombreLocal}');
           await Navigator.push(
             context,
@@ -267,6 +268,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
               ),
             ),
           );
+          if (!mounted) return;
           _loadFavorites();
         },
         borderRadius: BorderRadius.circular(16),

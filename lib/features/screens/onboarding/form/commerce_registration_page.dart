@@ -656,8 +656,10 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
 
         final onboardingService = OnboardingService();
         await onboardingService.completeOnboarding(userId, role: 'commerce');
+        if (!mounted) return;
 
         // Actualizar estado global de onboarding y rol
+        if (!context.mounted) return;
         final onboardingProvider = Provider.of<OnboardingProvider>(context, listen: false);
         onboardingProvider.setRole('commerce');
 

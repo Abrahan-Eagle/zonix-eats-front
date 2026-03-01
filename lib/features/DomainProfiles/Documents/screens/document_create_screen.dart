@@ -90,6 +90,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
       }
     } catch (e) {
       debugPrint("Error al escanear el documento: $e");
+      if (!mounted) return;
       _showCustomSnackBar(
         context,
         'Error al escanear el documento',
@@ -113,12 +114,14 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
 
       // Verificar si la imagen ya es suficientemente pequeña (menor a 2 MB)
       if (await imageFile.length() <= 2 * 1024 * 1024) {
+        if (!mounted) return null;
         Navigator.of(context).pop(); // Cerrar el diálogo de carga
         return filePath; // Devolver la imagen sin compresión si es menor a 2 MB
       }
 
       // Decodificar la imagen
       final originalImage = img.decodeImage(await imageFile.readAsBytes());
+      if (!mounted) return null;
       if (originalImage == null) {
         Navigator.of(context).pop(); // Cerrar el diálogo de carga
         throw Exception("No se pudo decodificar la imagen.");
@@ -149,12 +152,14 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
       debugPrint("Imagen comprimida guardada en: ${compressedImageFile.path}");
 
       // Cerrar el diálogo de carga después de guardar la imagen
+      if (!mounted) return null;
       Navigator.of(context).pop();
 
       return compressedImageFile.path;
     } catch (e) {
       // Si hay un error, cerrar el diálogo y mostrar un mensaje en el log
       debugPrint("Error al comprimir la imagen: $e");
+      if (!mounted) return null;
       Navigator.of(context).pop(); // Cerrar el diálogo de carga
       throw Exception("Error al comprimir la imagen: $e");
     }
@@ -849,6 +854,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     } else {
       // Manejo de error si el resultado es nulo o no es una cadena
       logger.e('Escaneo cancelado o fallido.');
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Escaneo cancelado o fallido.')),
       );
@@ -914,6 +920,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
               ..pop(true); // Indicar éxito al retroceder
           }
         } else {
+          if (!mounted) return;
           Navigator.of(context).pop(); // Cerrar diálogo de progreso
           _showCustomSnackBar(
             context,
@@ -922,6 +929,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
           );
         }
       } catch (e) {
+        if (!mounted) return;
         Navigator.of(context).pop(); // Cerrar diálogo de progreso
         logger.e('Error al guardar el documento: $e');
         _showCustomSnackBar(

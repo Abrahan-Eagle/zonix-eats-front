@@ -74,7 +74,7 @@ Future<void> _pickDate(BuildContext context) async {
     firstDate: DateTime(1900),
     lastDate: DateTime.now(),
   );
-
+  if (!context.mounted) return;
   if (picked != null) {
     // Formateamos la fecha para mostrarla en el formato 'dd-MM-yyyy'
     String displayedDate = DateFormat('dd-MM-yyyy').format(picked);
@@ -104,6 +104,7 @@ Future<void> _pickDate(BuildContext context) async {
         await _faceDetect(); // Detectar rostros después de cargar la imagen
       }
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('No se seleccionó ninguna imagen.'),
@@ -132,6 +133,7 @@ Future<void> _pickDate(BuildContext context) async {
       if (await imageFile.length() <= 2 * 1024 * 1024) return filePath;
 
       final originalImage = img.decodeImage(await imageFile.readAsBytes());
+      if (!mounted) return null;
       if (originalImage == null) return null;
 
       List<int> compressedBytes;
@@ -152,6 +154,7 @@ Future<void> _pickDate(BuildContext context) async {
         '${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}',
       ).writeAsBytes(compressedBytes);
 
+      if (!mounted) return null;
       Navigator.of(context).pop();
 
       return compressedImageFile.path;
@@ -178,7 +181,7 @@ Future<void> _pickDate(BuildContext context) async {
       );
 
       final List<Face> faces = await faceDetector.processImage(inputImage);
-
+      if (!mounted) return;
       if (faces.isEmpty) {
         setState(() {
           _imageFile = null; // Borra la imagen si no hay rostro
@@ -209,6 +212,7 @@ Future<void> _pickDate(BuildContext context) async {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -221,9 +225,11 @@ Future<void> _pickDate(BuildContext context) async {
         ),
       );
     } finally {
-      setState(() {
-        _isDetecting = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isDetecting = false;
+        });
+      }
     }
   }
 
@@ -242,8 +248,9 @@ Future<void> _pickDate(BuildContext context) async {
 
       // Actualizar el perfil con la fecha de nacimiento correctamente formateada
       await ProfileService().updateProfile(_profile!.id, _profile!.copyWith(dateOfBirth: formattedDateOfBirth), imageFile: _imageFile);
-
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!context.mounted) return;
+      final c = context;
+      ScaffoldMessenger.of(c).showSnackBar(
         SnackBar(
           content: const Text(
             'Perfil actualizado exitosamente.',
@@ -258,7 +265,7 @@ Future<void> _pickDate(BuildContext context) async {
         ),
       );
 
-      if (mounted) Navigator.pop(context);
+      if (mounted) Navigator.pop(c);
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

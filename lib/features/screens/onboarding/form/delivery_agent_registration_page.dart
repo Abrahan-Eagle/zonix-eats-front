@@ -602,8 +602,7 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
       try {
         // Aquí implementarías la lógica para enviar los datos al backend
         await Future.delayed(const Duration(seconds: 2)); // Simulación
-        
-        // Mostrar mensaje de éxito
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(widget.isEditing 
@@ -612,9 +611,9 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
             backgroundColor: const Color(0xFF27AE60),
           ),
         );
-        
         Navigator.pop(context);
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al ${widget.isEditing ? 'actualizar' : 'registrar'}: $e'),
@@ -622,7 +621,7 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
           ),
         );
       } finally {
-        setState(() => _isLoading = false);
+        if (mounted) setState(() => _isLoading = false);
       }
     }
   }

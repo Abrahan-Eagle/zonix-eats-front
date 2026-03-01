@@ -66,12 +66,14 @@ class ProfilePagex extends StatelessWidget {
 
           if (profileModel.profile == null) {
             Future.microtask(() {
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CreateProfilePage(userId: userId),
-                ),
-              );
+              if (context.mounted) {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CreateProfilePage(userId: userId),
+                  ),
+                );
+              }
             });
             return const SizedBox();
           }
@@ -608,7 +610,9 @@ class ProfilePagex extends StatelessWidget {
     );
 
     Navigator.push(context, route).then((_) {
-      Provider.of<ProfileModel>(context, listen: false).loadProfile(profile.userId);
+      if (context.mounted) {
+        Provider.of<ProfileModel>(context, listen: false).loadProfile(profile.userId);
+      }
     });
   }
 

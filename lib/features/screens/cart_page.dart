@@ -67,6 +67,7 @@ class _CartPageState extends State<CartPage> {
       await _cartService.updateQuantity(item.id, newQuantity);
       await _loadCart();
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error al actualizar cantidad: $e'),
@@ -80,6 +81,7 @@ class _CartPageState extends State<CartPage> {
     try {
       await _cartService.removeFromRemoteCart(item.id);
       await _loadCart();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Producto removido del carrito'),
@@ -87,6 +89,7 @@ class _CartPageState extends State<CartPage> {
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error al remover producto: $e'),
@@ -100,6 +103,7 @@ class _CartPageState extends State<CartPage> {
     try {
       await _cartService.clearRemoteCart();
       await _loadCart();
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Carrito limpiado'),
@@ -107,6 +111,7 @@ class _CartPageState extends State<CartPage> {
         ),
       );
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error al limpiar carrito: $e'),

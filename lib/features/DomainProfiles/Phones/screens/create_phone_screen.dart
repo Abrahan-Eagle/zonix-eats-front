@@ -85,10 +85,12 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
       await _phoneService.createPhone(phone, widget.userId);
 
       if (!context.mounted) return;
-      context.read<UserProvider>().setPhoneCreated(true);
+      final c = context;
+      c.read<UserProvider>().setPhoneCreated(true);
       _showSuccessSnackBar('Teléfono creado exitosamente');
-      Navigator.pop(context, true);
+      Navigator.pop(c, true);
     } catch (e) {
+      if (!context.mounted) return;
       _showErrorSnackBar('Error al crear teléfono: $e');
     } finally {
       setState(() {

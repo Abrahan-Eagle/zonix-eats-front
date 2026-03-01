@@ -8,6 +8,7 @@ class LocationModule {
 
     // Verifica si el servicio de ubicación está habilitado
     serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!context.mounted) return null;
     if (!serviceEnabled) {
       _showError(context, 'El servicio de ubicación está deshabilitado.');
       return null;
@@ -15,8 +16,10 @@ class LocationModule {
 
     // Solicita permisos de ubicación
     permission = await Geolocator.checkPermission();
+    if (!context.mounted) return null;
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
+      if (!context.mounted) return null;
       if (permission != LocationPermission.whileInUse &&
           permission != LocationPermission.always) {
         _showError(context, 'Los permisos de ubicación están denegados.');
@@ -27,6 +30,7 @@ class LocationModule {
     // Obtiene la ubicación actual
     Position position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
+    if (!context.mounted) return null;
     return position;
   }
 

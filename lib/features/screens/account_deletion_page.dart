@@ -114,11 +114,11 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
         confirmationCode: _confirmationCodeController.text,
         password: _passwordController.text,
       );
-
+      if (!mounted) return;
       _showSuccessSnackBar('Cuenta eliminada correctamente');
-      // Aquí podrías navegar a la pantalla de login
       Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (e) {
+      if (!mounted) return;
       _showErrorSnackBar('Error al confirmar eliminación: $e');
     } finally {
       setState(() {

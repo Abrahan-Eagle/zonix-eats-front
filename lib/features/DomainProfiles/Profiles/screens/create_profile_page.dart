@@ -66,12 +66,14 @@ class CreateProfilePageState extends State<CreateProfilePage> {
       // Verifica el tamaño de la imagen antes de decodificarla
       final imageSize = await imageFile.length();
       if (imageSize <= 2 * 1024 * 1024) {
+        if (!mounted) return null;
         Navigator.of(context).pop();
         return filePath;
       }
 
       // Decodificar la imagen
       final originalImage = img.decodeImage(await imageFile.readAsBytes());
+      if (!mounted) return null;
       if (originalImage == null) {
         Navigator.of(context).pop();
         return null; // Error al decodificar la imagen
@@ -98,6 +100,7 @@ class CreateProfilePageState extends State<CreateProfilePage> {
         '${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}',
       ).writeAsBytes(compressedBytes);
 
+      if (!mounted) return null;
       // Cerrar el diálogo de carga
       if (isDialogOpen) {
         Navigator.of(context).pop();
@@ -106,7 +109,7 @@ class CreateProfilePageState extends State<CreateProfilePage> {
 
       return compressedImageFile.path;
     } catch (e) {
-      // En caso de error, cerrar el diálogo y manejar el error
+      if (!mounted) return null;
       Navigator.of(context).pop(); // Cerrar el diálogo si hay un error
       debugPrint("Error al comprimir la imagen: $e");
       return null;
@@ -125,6 +128,7 @@ class CreateProfilePageState extends State<CreateProfilePage> {
         await _faceDetect();
       }
     } else {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('No se seleccionó ninguna imagen.'),
@@ -153,7 +157,7 @@ class CreateProfilePageState extends State<CreateProfilePage> {
       );
 
       final List<Face> faces = await faceDetector.processImage(inputImage);
-
+      if (!mounted) return;
       if (faces.isEmpty) {
         setState(() {
           _imageFile = null;
@@ -183,6 +187,7 @@ class CreateProfilePageState extends State<CreateProfilePage> {
         );
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -195,9 +200,11 @@ class CreateProfilePageState extends State<CreateProfilePage> {
         ),
       );
     } finally {
-      setState(() {
-        _isDetecting = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isDetecting = false;
+        });
+      }
     }
   }
 
@@ -208,7 +215,7 @@ class CreateProfilePageState extends State<CreateProfilePage> {
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
-
+    if (!context.mounted) return;
     if (picked != null) {
       // Formateamos la fecha para mostrarla en el formato 'dd-MM-yyyy'
       String displayedDate = DateFormat('dd-MM-yyyy').format(picked);
@@ -375,8 +382,7 @@ Future<void> _createProfile() async {
         );
       }
     } finally {
-      // Asegurarse de cerrar el diálogo de progreso
-      if (Navigator.of(context).canPop()) {
+      if (mounted && Navigator.of(context).canPop()) {
         Navigator.of(context).pop(); // Cerrar el indicador de progreso
       }
     }
