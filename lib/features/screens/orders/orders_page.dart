@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/screens/orders/order_detail_page.dart';
+import 'package:zonix/features/screens/orders/current_order_detail_page.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/models/cart_item.dart';
@@ -704,10 +705,13 @@ class _OrdersPageState extends State<OrdersPage> {
   }
 
   void _openOrderDetail(BuildContext context, Order order) {
+    final isActive = !order.isDelivered && !order.isCancelled;
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => OrderDetailPage(orderId: order.id, order: order),
+        builder: (context) => isActive
+            ? CurrentOrderDetailPage(orderId: order.id, order: order)
+            : OrderDetailPage(orderId: order.id, order: order),
       ),
     ).then((_) => _loadOrders());
   }

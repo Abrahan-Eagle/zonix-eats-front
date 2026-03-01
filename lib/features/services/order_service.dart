@@ -273,27 +273,50 @@ class OrderService extends ChangeNotifier {
 
     final dataPayload = data['data'];
     final trackingPayload = data['tracking'];
+    final Map<String, dynamic> result = {};
+    double? lat;
+    double? lng;
     if (dataPayload != null && dataPayload is Map) {
-      final lat = dataPayload['latitude'];
-      final lng = dataPayload['longitude'];
-      return {
-        'latitude': lat is num ? lat.toDouble() : (lat != null ? double.tryParse(lat.toString()) : null),
-        'longitude': lng is num ? lng.toDouble() : (lng != null ? double.tryParse(lng.toString()) : null),
-        ...Map<String, dynamic>.from(dataPayload),
-      };
+      final d = dataPayload as Map<String, dynamic>;
+      lat = d['latitude'] is num ? (d['latitude'] as num).toDouble() : (d['latitude'] != null ? double.tryParse(d['latitude'].toString()) : null);
+      lng = d['longitude'] is num ? (d['longitude'] as num).toDouble() : (d['longitude'] != null ? double.tryParse(d['longitude'].toString()) : null);
+      result.addAll(d);
     }
     if (trackingPayload != null && trackingPayload is Map) {
-      final dl = trackingPayload['delivery_location'];
+      final t = trackingPayload as Map<String, dynamic>;
+      final dl = t['delivery_location'];
       if (dl is Map) {
-        final lat = dl['lat'];
-        final lng = dl['lng'];
-        return {
-          'latitude': lat is num ? lat.toDouble() : (lat != null ? double.tryParse(lat.toString()) : null),
-          'longitude': lng is num ? lng.toDouble() : (lng != null ? double.tryParse(lng.toString()) : null),
-        };
+        lat ??= (dl['lat'] is num) ? (dl['lat'] as num).toDouble() : double.tryParse(dl['lat']?.toString() ?? '');
+        lng ??= (dl['lng'] is num) ? (dl['lng'] as num).toDouble() : double.tryParse(dl['lng']?.toString() ?? '');
+      }
+      final cl = t['customer_location'];
+      if (cl is Map) {
+        final clat = (cl['lat'] is num) ? (cl['lat'] as num).toDouble() : double.tryParse(cl['lat']?.toString() ?? '');
+        final clng = (cl['lng'] is num) ? (cl['lng'] as num).toDouble() : double.tryParse(cl['lng']?.toString() ?? '');
+        if (clat != null && clng != null) {
+          result['customer_latitude'] = clat;
+          result['customer_longitude'] = clng;
+        }
+      }
+      final routes = t['routes'];
+      if (routes is Map && routes['to_customer'] is List) {
+        result['route_to_customer'] = routes['to_customer'];
       }
     }
-    return {};
+    if (lat != null) result['latitude'] = lat;
+    if (lng != null) result['longitude'] = lng;
+    return result;
+  }
+
+  /// GET /api/buyer/tracking/delivery-agent/{orderId} - Datos del repartidor asignado a la orden.
+  Future<Map<String, dynamic>?> getDeliveryAgentForOrder(int orderId) async {
+    final headers = await AuthHelper.getAuthHeaders();
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/tracking/delivery-agent/$orderId');
+    final response = await http.get(url, headers: headers);
+    if (response.statusCode != 200) return null;
+    final data = jsonDecode(response.body);
+    if (data['success'] != true || data['data'] == null) return null;
+    return Map<String, dynamic>.from(data['data'] as Map);
   }
 
   // POST /api/buyer/orders/{id}/tracking/location - Actualizar ubicación del tracking
