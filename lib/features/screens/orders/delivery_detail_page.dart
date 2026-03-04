@@ -108,7 +108,7 @@ class _DeliveryDetailPageState extends State<DeliveryDetailPage> {
                             ),
                             child: Row(
                               children: [
-                                Icon(Icons.info_outline, size: 22, color: primary),
+                                const Icon(Icons.info_outline, size: 22, color: primary),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(
@@ -193,7 +193,7 @@ class _DeliveryDetailPageState extends State<DeliveryDetailPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.star_rounded, color: const Color(0xFFFACC15), size: 22),
+              const Icon(Icons.star_rounded, color: Color(0xFFFACC15), size: 22),
               const SizedBox(width: 4),
               Text(
                 rating != null ? rating.toString() : '—',
@@ -380,7 +380,7 @@ class _DeliveryDetailPageState extends State<DeliveryDetailPage> {
                   text: TextSpan(
                     style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w600, color: textPrimary),
                     children: [
-                      TextSpan(text: '$vehicle'),
+                      TextSpan(text: vehicle),
                       if (plate != null && plate.toString().isNotEmpty)
                         TextSpan(text: ' - ', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w600, color: textPrimary)),
                       if (plate != null && plate.toString().isNotEmpty)

@@ -69,8 +69,8 @@ class TrackingService {
       // API devuelve lat/lng (no latitude/longitude)
       final lat = location['lat'];
       final lng = location['lng'];
-      final latVal = lat is num ? (lat as num).toDouble() : (lat != null ? double.tryParse(lat.toString()) : null);
-      final lngVal = lng is num ? (lng as num).toDouble() : (lng != null ? double.tryParse(lng.toString()) : null);
+      final latVal = lat is num ? lat.toDouble() : (lat != null ? double.tryParse(lat.toString()) : null);
+      final lngVal = lng is num ? lng.toDouble() : (lng != null ? double.tryParse(lng.toString()) : null);
       if (latVal == null || lngVal == null) return null;
       return {'latitude': latVal, 'longitude': lngVal};
     } catch (e) {
