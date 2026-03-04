@@ -5,13 +5,14 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
-import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/utils/auth_utils.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/profile_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
+import 'package:zonix/features/DomainProfiles/Addresses/api/adresse_service.dart';
 import 'package:zonix/features/screens/auth/sign_in_screen.dart';
 import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_list_screen.dart';
+import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
 import 'package:zonix/features/screens/about/about_page.dart';
 import 'package:zonix/features/screens/help/help_and_faq_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
@@ -72,6 +73,9 @@ class _SettingsPage2State extends State<SettingsPage2> {
   String? _error;
   String _activeTab = 'persona';
 
+  /// Ciudad resuelta por API cuando la dirección solo trae city_id (sin objeto city).
+  String? _resolvedCityName;
+
   @override
   void initState() {
     super.initState();
@@ -82,6 +86,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
     setState(() {
       _loading = true;
       _error = null;
+      _resolvedCityName = null;
     });
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
@@ -99,6 +104,60 @@ class _SettingsPage2State extends State<SettingsPage2> {
         throw Exception('No se encontró el perfil');
       }
       logger.i('Perfil cargado correctamente: $_profile');
+      if (_profile is Profile) {
+        final profile = _profile as Profile;
+
+        // Hacemos el esfuerzo por obtener la ciudad real cargando la dirección asociada
+        // Primero desde addressesData para ahorrarnos la primera llamada si la info ya viene en el login.
+        if (mounted) {
+          try {
+            final addressService = AddressService();
+            int? cityIdToFetch;
+
+            final addrs = profile.addressesData;
+            if (addrs != null && addrs.isNotEmpty) {
+              Map<String, dynamic> addr = addrs.first;
+              for (final e in addrs) {
+                if (e['is_default'] == true || e['is_default'] == 1) {
+                  addr = e;
+                  break;
+                }
+              }
+              final raw = addr['city_id'];
+              cityIdToFetch = raw is int
+                  ? raw
+                  : (raw != null ? int.tryParse(raw.toString()) : null);
+            }
+
+            // Si no vino en addressesData, probamos llamando al endpoint AddressService para estar seguros
+            if (cityIdToFetch == null || cityIdToFetch <= 0) {
+              final address =
+                  await addressService.getAddressById(profile.userId);
+              if (address != null && address.cityId > 0) {
+                cityIdToFetch = address.cityId;
+              }
+            }
+
+            // Si conseguimos un ID de ciudad, lo traemos
+            if (cityIdToFetch != null && cityIdToFetch > 0) {
+              final cityName =
+                  await addressService.fetchCityById(cityIdToFetch);
+              if (cityName != null && cityName.trim().isNotEmpty && mounted) {
+                setState(() {
+                  _resolvedCityName = cityName.trim();
+                });
+              }
+            } else if ((profile.address ?? '').trim().isNotEmpty && mounted) {
+              // Fallback a texto en bruto
+              setState(() {
+                _resolvedCityName = profile.address!.trim();
+              });
+            }
+          } catch (e) {
+            logger.w('No se pudo cargar la ciudad desde la dirección: $e');
+          }
+        }
+      }
     } catch (e) {
       setState(() => _error = 'Error al cargar el perfil');
     } finally {
@@ -152,79 +211,334 @@ class _SettingsPage2State extends State<SettingsPage2> {
     }
   }
 
-  /// Muestra un modal con la foto ampliada y opción para tomar otra.
+  /// Abre la galería para elegir una foto de perfil, la sube y actualiza la cabecera.
+  Future<void> _pickFromGalleryAndUpdatePhoto() async {
+    if (_profile == null) return;
+    final profile = _profile as Profile;
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1200,
+        imageQuality: 85,
+      );
+      if (pickedFile == null || !mounted) return;
+      bool dialogShown = false;
+      if (mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (_) => const Center(child: CircularProgressIndicator()),
+        );
+        dialogShown = true;
+      }
+      try {
+        await ProfileService().updateProfile(profile.id, profile,
+            imageFile: File(pickedFile.path));
+        if (!mounted) return;
+        if (dialogShown) Navigator.of(context).pop();
+        await _loadProfile();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Foto de perfil actualizada')),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        if (dialogShown) Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al actualizar la foto: $e')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al abrir la galería: $e')),
+      );
+    }
+  }
+
+  /// Modal foto de perfil: usa colores de la app (AppColors + theme) y soporta modo claro/oscuro.
   void _showProfilePhotoModal(
       BuildContext context, ThemeData theme, bool isTablet) {
     final String? photoUrl = _profile?.photo;
-    showDialog<void>(
+    final username = _email != null && _email!.trim().isNotEmpty
+        ? '@${_email!.trim().split('@').first}'
+        : '@usuario_zonix';
+
+    showGeneralDialog<void>(
       context: context,
-      builder: (dialogContext) {
-        return Dialog(
-          backgroundColor: theme.scaffoldBackgroundColor,
-          insetPadding: const EdgeInsets.all(16),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Foto de perfil',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: isTablet ? 20 : 18,
-                    fontWeight: FontWeight.bold,
-                    color: theme.colorScheme.onSurface,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(24),
-                  child: AspectRatio(
-                    aspectRatio: 3 / 4,
-                    child: photoUrl != null && photoUrl.isNotEmpty
-                        ? Image.network(
-                            photoUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: theme.colorScheme.surfaceContainerHighest,
-                              child: Icon(Icons.person,
-                                  size: 64,
-                                  color: theme.colorScheme.onSurfaceVariant),
-                            ),
-                          )
-                        : Container(
-                            color: theme.colorScheme.surfaceContainerHighest,
-                            child: Icon(Icons.person,
-                                size: 64,
-                                color: theme.colorScheme.onSurfaceVariant),
+      barrierDismissible: true,
+      barrierLabel: 'Cerrar',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 200),
+      pageBuilder: (_, __, ___) => const SizedBox.shrink(),
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            // Backdrop con blur (template: bg-slate-900/60 backdrop-blur-sm)
+            GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              behavior: HitTestBehavior.opaque,
+              child: AnimatedOpacity(
+                opacity: animation.value,
+                duration: const Duration(milliseconds: 200),
+                child: Container(color: Colors.black54),
+              ),
+            ),
+            // Contenido del modal
+            ScaleTransition(
+              scale: CurvedAnimation(
+                parent: animation,
+                curve: Curves.easeOutCubic,
+              ),
+              child: _buildProfilePhotoModalContent(
+                context,
+                username: username,
+                photoUrl: photoUrl,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildProfilePhotoModalContent(
+    BuildContext context, {
+    required String username,
+    required String? photoUrl,
+  }) {
+    final modalTheme = Theme.of(context);
+    final isDark = modalTheme.brightness == Brightness.dark;
+    final colorScheme = modalTheme.colorScheme;
+    final bgColor = modalTheme.scaffoldBackgroundColor;
+    final titleColor = AppColors.primaryText(context);
+    final subtitleColor = AppColors.secondaryText(context);
+    final cardBg = AppColors.cardBg(context);
+    final primaryBtnColor = AppColors.primaryButton(context);
+    final borderColor = isDark
+        ? colorScheme.outline.withValues(alpha: 0.3)
+        : colorScheme.outline.withValues(alpha: 0.2);
+    final handleColor = colorScheme.outline.withValues(alpha: 0.5);
+
+    return Dialog(
+      backgroundColor: bgColor,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: borderColor, width: 1),
+      ),
+      elevation: 24,
+      shadowColor: Colors.black.withValues(alpha: 0.25),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 384),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(32, 32, 32, 0),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: double.infinity,
+                          child: Column(
+                            children: [
+                              Text(
+                                'Mi Perfil',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: titleColor,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                username,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  color: subtitleColor,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
                           ),
+                        ),
+                        const SizedBox(height: 24),
+                        Container(
+                          width: 192,
+                          height: 192,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: borderColor,
+                              width: 1,
+                            ),
+                          ),
+                          child: ClipOval(
+                            child: photoUrl != null && photoUrl.isNotEmpty
+                                ? Image.network(
+                                    photoUrl,
+                                    width: 192,
+                                    height: 192,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      color:
+                                          colorScheme.surfaceContainerHighest,
+                                      child: Icon(
+                                        Icons.person,
+                                        size: 64,
+                                        color: subtitleColor,
+                                      ),
+                                    ),
+                                  )
+                                : Container(
+                                    color: colorScheme.surfaceContainerHighest,
+                                    child: Icon(
+                                      Icons.person,
+                                      size: 64,
+                                      color: subtitleColor,
+                                    ),
+                                  ),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton.icon(
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              _pickAndUpdatePhoto();
+                            },
+                            icon: const Icon(Icons.photo_camera_outlined,
+                                size: 22),
+                            label: const Text('Tomar nueva foto'),
+                            style: FilledButton.styleFrom(
+                              backgroundColor: primaryBtnColor,
+                              foregroundColor: AppColors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 8,
+                              shadowColor:
+                                  primaryBtnColor.withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: double.infinity,
+                          child: Material(
+                            color: cardBg,
+                            borderRadius: BorderRadius.circular(12),
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.of(context).pop();
+                                _pickFromGalleryAndUpdatePhoto();
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 16, horizontal: 16),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.photo_library_outlined,
+                                      size: 22,
+                                      color: titleColor,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Elegir de la galería',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: titleColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.verified_user_outlined,
+                              size: 14,
+                              color: subtitleColor,
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                'Tu foto es visible para repartidores y comercios',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  color: subtitleColor,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton.icon(
-                    onPressed: () {
-                      Navigator.of(dialogContext).pop();
-                      _pickAndUpdatePhoto();
-                    },
-                    icon: const Icon(Icons.photo_camera_outlined, size: 20),
-                    label: const Text('Tomar nueva foto'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: _stitchPrimary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Center(
+                      child: Container(
+                        width: 48,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: handleColor,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Positioned(
+                top: 16,
+                right: 16,
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => Navigator.of(context).pop(),
+                    borderRadius: BorderRadius.circular(999),
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: cardBg,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.close,
+                        size: 24,
+                        color: titleColor,
+                      ),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 
@@ -477,8 +791,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
           alignment: Alignment.center,
           children: [
             Container(
-              width: isTablet ? 116 : 108,
-              height: isTablet ? 116 : 108,
+              width: isTablet ? 140 : 130,
+              height: isTablet ? 140 : 130,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
@@ -499,23 +813,23 @@ class _SettingsPage2State extends State<SettingsPage2> {
                       ? ClipOval(
                           child: Image.network(
                             _profile!.photo!,
-                            width: (isTablet ? 116 : 108) - 8,
-                            height: (isTablet ? 116 : 108) - 8,
+                            width: (isTablet ? 140 : 130) - 8,
+                            height: (isTablet ? 140 : 130) - 8,
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Image.asset(
                               'assets/default_avatar.png',
-                              width: (isTablet ? 116 : 108) - 8,
-                              height: (isTablet ? 116 : 108) - 8,
+                              width: (isTablet ? 140 : 130) - 8,
+                              height: (isTablet ? 140 : 130) - 8,
                               fit: BoxFit.cover,
                             ),
                           ),
                         )
                       : CircleAvatar(
-                          radius: (isTablet ? 116 : 108) / 2 - 4,
+                          radius: (isTablet ? 140 : 130) / 2 - 4,
                           backgroundColor:
                               theme.colorScheme.surfaceContainerHighest,
                           child: Icon(Icons.person,
-                              size: isTablet ? 40 : 36,
+                              size: isTablet ? 48 : 44,
                               color: theme.colorScheme.onSurfaceVariant),
                         ),
                 ),
@@ -527,7 +841,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
               child: GestureDetector(
                 onTap: () => _showProfilePhotoModal(context, theme, isTablet),
                 child: Container(
-                  padding: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: const Color(0xFF22C55E),
                     shape: BoxShape.circle,
@@ -540,7 +854,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                     ],
                   ),
                   child: const Icon(Icons.photo_camera_outlined,
-                      size: 16, color: Colors.white),
+                      size: 20, color: Colors.white),
                 ),
               ),
             ),
@@ -714,8 +1028,6 @@ class _SettingsPage2State extends State<SettingsPage2> {
               context, theme, isTablet, surfaceColor, borderColor),
         ],
         const SizedBox(height: 24),
-        _buildLegalCard(context, theme, isTablet, surfaceColor, borderColor),
-        const SizedBox(height: 24),
         Material(
           color: theme.colorScheme.error.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(24),
@@ -848,15 +1160,24 @@ class _SettingsPage2State extends State<SettingsPage2> {
       }
     }
 
-    final phone =
-        (profile.phone ?? '').trim().isEmpty ? '—' : profile.phone!.trim();
-    // No tenemos ciudad separada; usamos la primera parte de la dirección como aproximación.
-    final rawAddress = (profile.address ?? '').trim();
-    String city = '—';
-    if (rawAddress.isNotEmpty) {
-      final parts = rawAddress.split(',');
-      city = parts.first.trim().isEmpty ? rawAddress : parts.first.trim();
+    String formatPhone(String raw) {
+      if (raw.isEmpty) return '—';
+      final digits = raw.replaceAll(RegExp(r'\D'), '');
+      if (digits.length >= 10) {
+        // e.g. 4124241234 -> 412-4241234
+        final prefix = digits.substring(0, 3);
+        final rest = digits.substring(3);
+        return '$prefix-$rest';
+      }
+      return raw;
     }
+
+    final phone = (profile.phone ?? '').trim().isEmpty
+        ? '—'
+        : formatPhone(profile.phone!.trim());
+    final city = (_resolvedCityName ?? profile.address ?? '').trim().isEmpty
+        ? '—'
+        : (_resolvedCityName ?? profile.address!).trim();
     final gender = formatGender(profile.sex);
     final dob = formatDate(profile.dateOfBirth);
 
@@ -1445,6 +1766,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
         ],
         const SizedBox(height: 24),
         _buildMasSectionSoporte(context, theme, surfaceColor, borderColor),
+        const SizedBox(height: 32),
+        _buildLegalCard(context, theme, isTablet, surfaceColor, borderColor),
         const SizedBox(height: 24),
       ],
     );
