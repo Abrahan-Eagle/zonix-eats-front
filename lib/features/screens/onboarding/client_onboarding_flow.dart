@@ -503,7 +503,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
 
       // -----------------------------
       // 1) Autocompletar texto de dirección
-      //    (inspirado en CorralX OnboardingPage2)
+      //    (inspirado en Zonix Eats OnboardingPage2)
       // -----------------------------
       String? mainStreet;
       String? crossStreet;
@@ -558,7 +558,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       if (mounted) {
         final addressParts = <String>[];
 
-        // Urbanización / subLocality primero (como en CorralX)
+        // Urbanización / subLocality primero (como en Zonix Eats)
         String? urb;
         if (placemark.subLocality != null &&
             placemark.subLocality!.isNotEmpty &&
@@ -3101,7 +3101,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
 
 }
 
-/// Formatter para CI venezolana (V-12345678) inspirado en CorralX.
+/// Formatter para CI venezolana (V-12345678) inspirado en Zonix Eats.
 class _CIVenezuelaInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(
@@ -3131,7 +3131,7 @@ class _CIVenezuelaInputFormatter extends TextInputFormatter {
   }
 }
 
-/// Formatter para RIF venezolano (V- o J-12345678-9) copiado de CorralX.
+/// Formatter para RIF venezolano (V- o J-12345678-9) copiado de Zonix Eats.
 class _RIFVenezuelaInputFormatter extends TextInputFormatter {
   @override
   TextEditingValue formatEditUpdate(

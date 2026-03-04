@@ -5,7 +5,7 @@ import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/screens/settings/commerce_data_page.dart';
 import 'package:zonix/features/services/commerce_list_service.dart';
 
-/// Detalle de restaurante estilo CorralX: datos, descripción, ubicación, estadísticas.
+/// Detalle de restaurante estilo Zonix-Frontend: datos, descripción, ubicación, estadísticas.
 class CommerceDetailPage extends StatelessWidget {
   final MyCommerce commerce;
 

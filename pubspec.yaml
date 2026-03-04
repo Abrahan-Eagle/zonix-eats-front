@@ -61,7 +61,7 @@ dependencies:
   qr: ^3.0.2
   shimmer: ^2.0.0
   web_socket_channel: ^2.4.0
-  # Integración con Pusher Channels (similar a CorralX-Frontend)
+  # Integración con Pusher Channels (similar a Zonix-Frontend)
   pusher_channels_flutter: ^2.2.1
   share_plus: ^12.0.1
 

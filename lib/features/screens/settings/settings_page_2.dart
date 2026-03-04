@@ -5,9 +5,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix/features/DomainProfiles/Documents/screens/document_list_screen.dart';
 import 'package:zonix/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
 import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix/features/utils/auth_utils.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/profile_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
 import 'package:zonix/features/screens/auth/sign_in_screen.dart';
@@ -18,10 +18,12 @@ import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart'
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/activity_history_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/data_export_page.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/screens/privacy_settings_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:zonix/features/screens/account_deletion_page.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/screens/settings/commerce_data_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/screens/settings/commerce_payment_page.dart';
 import 'package:zonix/features/screens/settings/commerce_schedule_page.dart';
 import 'package:zonix/features/screens/settings/commerce_open_page.dart';
@@ -55,7 +57,6 @@ class _MasTile {
 // Colores Stitch (template)
 const Color _stitchPrimary = Color(0xFF3399FF);
 const Color _stitchSurfaceDark = Color(0xFF182430);
-const Color _stitchSurfaceLighter = Color(0xFF21303E);
 
 class SettingsPage2 extends StatefulWidget {
   const SettingsPage2({super.key});
@@ -84,7 +85,13 @@ class _SettingsPage2State extends State<SettingsPage2> {
     });
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      _email = userProvider.userEmail;
+      // Intentar primero desde el provider; si viene vacío, leer directo de AuthUtils.
+      final providerEmail = userProvider.userEmail;
+      if (providerEmail.isNotEmpty) {
+        _email = providerEmail;
+      } else {
+        _email = await AuthUtils.getUserEmail();
+      }
       // Usar getMyProfile (GET /api/profile) en lugar de getProfileById:
       // /api/profiles/{id} espera profile ID, no user ID
       _profile = await ProfileService().getMyProfile();
@@ -121,7 +128,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
         dialogShown = true;
       }
       try {
-        await ProfileService().updateProfile(profile.id, profile, imageFile: File(pickedFile.path));
+        await ProfileService().updateProfile(profile.id, profile,
+            imageFile: File(pickedFile.path));
         if (!mounted) return;
         if (dialogShown) Navigator.of(context).pop();
         await _loadProfile();
@@ -144,19 +152,101 @@ class _SettingsPage2State extends State<SettingsPage2> {
     }
   }
 
+  /// Muestra un modal con la foto ampliada y opción para tomar otra.
+  void _showProfilePhotoModal(
+      BuildContext context, ThemeData theme, bool isTablet) {
+    final String? photoUrl = _profile?.photo;
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) {
+        return Dialog(
+          backgroundColor: theme.scaffoldBackgroundColor,
+          insetPadding: const EdgeInsets.all(16),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Foto de perfil',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: isTablet ? 20 : 18,
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(24),
+                  child: AspectRatio(
+                    aspectRatio: 3 / 4,
+                    child: photoUrl != null && photoUrl.isNotEmpty
+                        ? Image.network(
+                            photoUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Container(
+                              color: theme.colorScheme.surfaceContainerHighest,
+                              child: Icon(Icons.person,
+                                  size: 64,
+                                  color: theme.colorScheme.onSurfaceVariant),
+                            ),
+                          )
+                        : Container(
+                            color: theme.colorScheme.surfaceContainerHighest,
+                            child: Icon(Icons.person,
+                                size: 64,
+                                color: theme.colorScheme.onSurfaceVariant),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop();
+                      _pickAndUpdatePhoto();
+                    },
+                    icon: const Icon(Icons.photo_camera_outlined, size: 20),
+                    label: const Text('Tomar nueva foto'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _stitchPrimary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isCommerce = Provider.of<UserProvider>(context, listen: false).userRole == 'commerce';
+    final isDark = theme.brightness == Brightness.dark;
+    final scaffoldBg =
+        isDark ? theme.scaffoldBackgroundColor : const Color(0xFFF5F7F8);
+    final isCommerce =
+        Provider.of<UserProvider>(context, listen: false).userRole ==
+            'commerce';
     final screenWidth = MediaQuery.of(context).size.width;
     final isTablet = screenWidth > 600;
 
     if (_loading) {
       return Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
+        backgroundColor: scaffoldBg,
         body: Center(
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+            valueColor:
+                AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
           ),
         ),
       );
@@ -164,17 +254,19 @@ class _SettingsPage2State extends State<SettingsPage2> {
 
     if (_error != null) {
       return Scaffold(
-        backgroundColor: theme.scaffoldBackgroundColor,
+        backgroundColor: scaffoldBg,
         appBar: AppBar(title: const Text('Configuraciones')),
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: theme.colorScheme.error),
+              Icon(Icons.error_outline,
+                  size: 64, color: theme.colorScheme.error),
               const SizedBox(height: 16),
               Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
-              ElevatedButton(onPressed: _loadProfile, child: const Text('Reintentar')),
+              ElevatedButton(
+                  onPressed: _loadProfile, child: const Text('Reintentar')),
             ],
           ),
         ),
@@ -182,9 +274,9 @@ class _SettingsPage2State extends State<SettingsPage2> {
     }
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: scaffoldBg,
       appBar: AppBar(
-        backgroundColor: theme.scaffoldBackgroundColor,
+        backgroundColor: scaffoldBg,
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
@@ -208,7 +300,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
             icon: Icon(_activeTab == 'mas' ? Icons.logout : Icons.settings),
             onPressed: _activeTab == 'mas'
                 ? () async {
-                    final userProvider = Provider.of<UserProvider>(context, listen: false);
+                    final userProvider =
+                        Provider.of<UserProvider>(context, listen: false);
                     await userProvider.logout();
                     if (!context.mounted) return;
                     Navigator.of(context).pushAndRemoveUntil(
@@ -226,32 +319,6 @@ class _SettingsPage2State extends State<SettingsPage2> {
       body: Column(
         children: [
           _buildTabPills(theme, isCommerce),
-          if (_activeTab == 'persona') ...[
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: isTablet ? 24 : 24),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.only(top: 8, bottom: 20),
-                decoration: BoxDecoration(
-                  color: theme.brightness == Brightness.dark
-                      ? theme.scaffoldBackgroundColor
-                      : theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.5),
-                  border: Border(
-                    bottom: BorderSide(
-                      color: theme.dividerColor.withValues(alpha: 0.5),
-                      width: 1,
-                    ),
-                  ),
-                ),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 600),
-                    child: _buildProfileHeader(context, theme, isTablet),
-                  ),
-                ),
-              ),
-            ),
-          ],
           Expanded(
             child: _activeTab == 'comercios' && isCommerce
                 ? const CommerceListPage(embedded: true)
@@ -260,16 +327,33 @@ class _SettingsPage2State extends State<SettingsPage2> {
                     color: theme.colorScheme.primary,
                     child: SingleChildScrollView(
                       physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.fromLTRB(isTablet ? 24 : 24, _activeTab == 'persona' ? 20 : 0, isTablet ? 24 : 24, isTablet ? 40 : 40),
+                      padding: EdgeInsets.fromLTRB(
+                        isTablet ? 24 : 24,
+                        _activeTab == 'persona' ? 20 : 0,
+                        isTablet ? 24 : 24,
+                        isTablet ? 40 : 40,
+                      ),
                       child: ConstrainedBox(
                         constraints: const BoxConstraints(maxWidth: 600),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            if (_activeTab == 'persona') _buildPersonaContent(context, theme, isTablet, isCommerce),
-                            if (_activeTab == 'publicaciones' && isCommerce) _buildPublicacionesContent(context, theme, isTablet),
-                            if (_activeTab == 'mas') _buildMasContent(context, theme, isTablet),
+                            if (_activeTab == 'persona') ...[
+                              _buildProfileHeader(context, theme, isTablet),
+                              const SizedBox(height: 24),
+                              _buildPersonaContent(
+                                context,
+                                theme,
+                                isTablet,
+                                isCommerce,
+                              ),
+                            ],
+                            if (_activeTab == 'publicaciones' && isCommerce)
+                              _buildPublicacionesContent(
+                                  context, theme, isTablet),
+                            if (_activeTab == 'mas')
+                              _buildMasContent(context, theme, isTablet),
                           ],
                         ),
                       ),
@@ -292,32 +376,52 @@ class _SettingsPage2State extends State<SettingsPage2> {
     }
   }
 
+  /// Devuelve la base URL para las páginas legales (términos, privacidad, etc.).
+  /// - Si APP_DOMAIN está definido, usa https://APP_DOMAIN
+  /// - Si no, usa AppConfig.apiUrl (API_URL_LOCAL / API_URL_PROD desde .env)
+  String _legalBaseUrl() {
+    final appDomain = dotenv.env['APP_DOMAIN']?.trim();
+    if (appDomain != null && appDomain.isNotEmpty) {
+      final hasScheme =
+          appDomain.startsWith('http://') || appDomain.startsWith('https://');
+      return hasScheme ? appDomain : 'https://$appDomain';
+    }
+    return AppConfig.apiUrl;
+  }
+
   Widget _buildTabPills(ThemeData theme, bool isCommerce) {
     final isDark = theme.brightness == Brightness.dark;
     const activeBg = _stitchPrimary;
-    final inactiveBg = isDark ? _stitchSurfaceDark : theme.colorScheme.surfaceContainerLow;
-    final inactiveColor = isDark ? const Color(0xFF9CA3AF) : theme.colorScheme.onSurfaceVariant;
+    final inactiveBg =
+        isDark ? _stitchSurfaceDark : theme.colorScheme.surfaceContainerLow;
+    final inactiveColor =
+        isDark ? const Color(0xFF9CA3AF) : theme.colorScheme.onSurfaceVariant;
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       child: Row(
         children: [
-          _buildPill('persona', Icons.person_outline, 'Persona', theme, activeBg, inactiveBg, inactiveColor),
+          _buildPill('persona', Icons.person_outline, 'Persona', theme,
+              activeBg, inactiveBg, inactiveColor),
           const SizedBox(width: 8),
           if (isCommerce) ...[
-            _buildPill('publicaciones', Icons.article_outlined, 'Publicaciones', theme, activeBg, inactiveBg, inactiveColor),
+            _buildPill('publicaciones', Icons.article_outlined, 'Publicaciones',
+                theme, activeBg, inactiveBg, inactiveColor),
             const SizedBox(width: 8),
-            _buildPill('comercios', Icons.storefront_outlined, 'Comercios', theme, activeBg, inactiveBg, inactiveColor),
+            _buildPill('comercios', Icons.storefront_outlined, 'Comercios',
+                theme, activeBg, inactiveBg, inactiveColor),
             const SizedBox(width: 8),
           ],
-          _buildPill('mas', Icons.grid_view_rounded, 'Más', theme, activeBg, inactiveBg, inactiveColor),
+          _buildPill('mas', Icons.grid_view_rounded, 'Más', theme, activeBg,
+              inactiveBg, inactiveColor),
         ],
       ),
     );
   }
 
-  Widget _buildPill(String tab, IconData icon, String label, ThemeData theme, Color activeBg, Color inactiveBg, Color inactiveColor) {
+  Widget _buildPill(String tab, IconData icon, String label, ThemeData theme,
+      Color activeBg, Color inactiveBg, Color inactiveColor) {
     final isActive = _activeTab == tab;
     return Material(
       color: Colors.transparent,
@@ -329,14 +433,26 @@ class _SettingsPage2State extends State<SettingsPage2> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
             color: isActive ? activeBg : inactiveBg,
-            borderRadius: BorderRadius.circular(24), // puntas redondeadas como Add Restaurante
-            border: theme.brightness == Brightness.dark ? Border.all(color: Colors.white.withValues(alpha: 0.05), width: 1) : null,
-            boxShadow: isActive ? [BoxShadow(color: activeBg.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 2))] : null,
+            borderRadius: BorderRadius.circular(
+                24), // puntas redondeadas como Add Restaurante
+            border: theme.brightness == Brightness.dark
+                ? Border.all(
+                    color: Colors.white.withValues(alpha: 0.05), width: 1)
+                : null,
+            boxShadow: isActive
+                ? [
+                    BoxShadow(
+                        color: activeBg.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2))
+                  ]
+                : null,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 16, color: isActive ? Colors.white : inactiveColor),
+              Icon(icon,
+                  size: 16, color: isActive ? Colors.white : inactiveColor),
               const SizedBox(width: 6),
               Text(
                 label,
@@ -353,16 +469,16 @@ class _SettingsPage2State extends State<SettingsPage2> {
     );
   }
 
-  Widget _buildProfileHeader(BuildContext context, ThemeData theme, bool isTablet) {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
+  Widget _buildProfileHeader(
+      BuildContext context, ThemeData theme, bool isTablet) {
     return Column(
       children: [
         Stack(
           alignment: Alignment.center,
           children: [
             Container(
-              width: isTablet ? 100 : 96,
-              height: isTablet ? 100 : 96,
+              width: isTablet ? 116 : 108,
+              height: isTablet ? 116 : 108,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: LinearGradient(
@@ -373,7 +489,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
               ),
               padding: const EdgeInsets.all(4),
               child: GestureDetector(
-                onTap: _pickAndUpdatePhoto,
+                onTap: () => _showProfilePhotoModal(context, theme, isTablet),
                 child: Container(
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
@@ -383,39 +499,25 @@ class _SettingsPage2State extends State<SettingsPage2> {
                       ? ClipOval(
                           child: Image.network(
                             _profile!.photo!,
-                            width: (isTablet ? 100 : 96) - 8,
-                            height: (isTablet ? 100 : 96) - 8,
+                            width: (isTablet ? 116 : 108) - 8,
+                            height: (isTablet ? 116 : 108) - 8,
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Image.asset(
                               'assets/default_avatar.png',
-                              width: (isTablet ? 100 : 96) - 8,
-                              height: (isTablet ? 100 : 96) - 8,
+                              width: (isTablet ? 116 : 108) - 8,
+                              height: (isTablet ? 116 : 108) - 8,
                               fit: BoxFit.cover,
                             ),
                           ),
                         )
                       : CircleAvatar(
-                          radius: (isTablet ? 100 : 96) / 2 - 4,
-                          backgroundColor: theme.colorScheme.surfaceContainerHighest,
-                          child: Icon(Icons.person, size: isTablet ? 40 : 36, color: theme.colorScheme.onSurfaceVariant),
+                          radius: (isTablet ? 116 : 108) / 2 - 4,
+                          backgroundColor:
+                              theme.colorScheme.surfaceContainerHighest,
+                          child: Icon(Icons.person,
+                              size: isTablet ? 40 : 36,
+                              color: theme.colorScheme.onSurfaceVariant),
                         ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              child: GestureDetector(
-                onTap: _pickAndUpdatePhoto,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: theme.brightness == Brightness.dark ? _stitchSurfaceLighter : theme.colorScheme.surfaceContainerHighest,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: theme.scaffoldBackgroundColor, width: 2),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 6)],
-                  ),
-                  child: Icon(Icons.camera_alt, size: 14, color: theme.colorScheme.onSurface),
                 ),
               ),
             ),
@@ -423,18 +525,39 @@ class _SettingsPage2State extends State<SettingsPage2> {
               bottom: 0,
               right: 0,
               child: GestureDetector(
-                onTap: () => Navigator.push(context, MaterialPageRoute(
-                  builder: (_) => ProfilePagex(userId: userProvider.userId),
-                )),
+                onTap: () => _showProfilePhotoModal(context, theme, isTablet),
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: theme.brightness == Brightness.dark ? _stitchSurfaceLighter : theme.colorScheme.surfaceContainerHighest,
+                    color: const Color(0xFF22C55E),
                     shape: BoxShape.circle,
-                    border: Border.all(color: theme.scaffoldBackgroundColor, width: 3),
-                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 8)],
+                    border: Border.all(
+                        color: theme.scaffoldBackgroundColor, width: 3),
+                    boxShadow: [
+                      BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.2),
+                          blurRadius: 8)
+                    ],
                   ),
-                  child: const Icon(Icons.edit, size: 14, color: Colors.white),
+                  child: const Icon(Icons.photo_camera_outlined,
+                      size: 16, color: Colors.white),
+                ),
+              ),
+            ),
+            // Pequeño punto de estado "en línea" similar al template HTML
+            Positioned(
+              bottom: 4,
+              right: 4,
+              child: Container(
+                width: 12,
+                height: 12,
+                decoration: BoxDecoration(
+                  color: Colors.greenAccent.shade400,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: theme.scaffoldBackgroundColor,
+                    width: 2,
+                  ),
                 ),
               ),
             ),
@@ -442,8 +565,12 @@ class _SettingsPage2State extends State<SettingsPage2> {
         ),
         const SizedBox(height: 16),
         Text(
-          '${_profile?.firstName ?? ''} ${_profile?.lastName ?? ''}'.trim().isEmpty
-              ? 'Usuario' : '${_profile?.firstName ?? ''} ${_profile?.lastName ?? ''}'.trim(),
+          '${_profile?.firstName ?? ''} ${_profile?.lastName ?? ''}'
+                  .trim()
+                  .isEmpty
+              ? 'Usuario'
+              : '${_profile?.firstName ?? ''} ${_profile?.lastName ?? ''}'
+                  .trim(),
           style: GoogleFonts.plusJakartaSans(
             fontSize: isTablet ? 22 : 20,
             fontWeight: FontWeight.bold,
@@ -451,72 +578,77 @@ class _SettingsPage2State extends State<SettingsPage2> {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          _email ?? 'Correo no disponible',
-          style: TextStyle(
-            fontSize: isTablet ? 14 : 13,
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
+        Builder(
+          builder: (context) {
+            final rawEmail = _email?.trim() ?? '';
+            final displayEmail =
+                rawEmail.isNotEmpty ? rawEmail : 'correo@ejemplo.com';
+            return Text(
+              displayEmail,
+              style: TextStyle(
+                fontSize: isTablet ? 14 : 13,
+                color: theme.brightness == Brightness.dark
+                    ? Colors.white.withValues(alpha: 0.75)
+                    : theme.colorScheme.onSurfaceVariant,
+              ),
+            );
+          },
         ),
       ],
     );
   }
 
-  Widget _personaSectionTitle(ThemeData theme, String title) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4, bottom: 12),
-      child: Text(
-        title,
-        style: GoogleFonts.plusJakartaSans(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: theme.colorScheme.onSurfaceVariant,
-          letterSpacing: 1.2,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPersonaContent(BuildContext context, ThemeData theme, bool isTablet, bool isCommerce) {
+  Widget _buildPersonaContent(
+      BuildContext context, ThemeData theme, bool isTablet, bool isCommerce) {
     final userProvider = Provider.of<UserProvider>(context, listen: false);
     final isDark = theme.brightness == Brightness.dark;
-    final surfaceColor = isDark ? _stitchSurfaceDark : theme.colorScheme.surface;
-    final borderColor = isDark ? Colors.white.withValues(alpha: 0.05) : theme.colorScheme.outline.withValues(alpha: 0.2);
+    final surfaceColor =
+        isDark ? _stitchSurfaceDark : theme.colorScheme.surface;
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.05)
+        : theme.colorScheme.outline.withValues(alpha: 0.2);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _personaSectionTitle(theme, 'DATOS PERSONALES'),
         Row(
           children: [
             Expanded(
               child: FilledButton.icon(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(
-                  builder: (_) => ProfilePagex(userId: userProvider.userId),
-                )),
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ProfilePagex(userId: userProvider.userId),
+                    )),
                 icon: const Icon(Icons.edit_square, size: 18),
                 label: const Text('Editar Perfil'),
                 style: FilledButton.styleFrom(
                   backgroundColor: _stitchPrimary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24)),
                 ),
               ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(
-                  builder: (_) => isCommerce ? const CommerceOrdersPage() : const OrdersPage(),
-                )),
+                onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => isCommerce
+                          ? const CommerceOrdersPage()
+                          : const OrdersPage(),
+                    )),
                 icon: const Icon(Icons.receipt_long, size: 18),
                 label: const Text('Mis Pedidos'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: theme.colorScheme.onSurface,
                   side: BorderSide(color: borderColor),
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(24)),
                 ),
               ),
             ),
@@ -526,27 +658,38 @@ class _SettingsPage2State extends State<SettingsPage2> {
         _buildStitchTile(
           context: context,
           theme: theme,
-          icon: Icons.folder_open,
-          iconColor: Colors.purple,
-          title: 'Documentos',
+          icon: Icons.location_on,
+          iconColor: Colors.orange,
+          title: 'Direcciones guardadas',
           surfaceColor: surfaceColor,
           borderColor: borderColor,
-          onTap: () => Navigator.push(context, MaterialPageRoute(
-            builder: (_) => DocumentListScreen(userId: userProvider.userId),
-          )),
+          onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => AddressPage(userId: userProvider.userId),
+              )),
         ),
         const SizedBox(height: 12),
         _buildStitchTile(
           context: context,
           theme: theme,
-          icon: Icons.location_on,
+          icon: Icons.credit_card,
           iconColor: Colors.orange,
-          title: 'Direcciones',
+          title: 'Métodos de pago',
           surfaceColor: surfaceColor,
           borderColor: borderColor,
-          onTap: () => Navigator.push(context, MaterialPageRoute(
-            builder: (_) => AddressPage(userId: userProvider.userId),
-          )),
+          onTap: () {
+            // Reutilizamos la lógica existente: si es comercio, abrimos métodos de pago del comercio;
+            // si es usuario normal, por ahora mostramos la misma pantalla (se puede afinar luego).
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => isCommerce
+                    ? const CommercePaymentMethodsPage()
+                    : const CommercePaymentMethodsPage(),
+              ),
+            );
+          },
         ),
         const SizedBox(height: 12),
         _buildStitchTile(
@@ -557,19 +700,22 @@ class _SettingsPage2State extends State<SettingsPage2> {
           title: 'Teléfonos',
           surfaceColor: surfaceColor,
           borderColor: borderColor,
-          onTap: () => Navigator.push(context, MaterialPageRoute(
-            builder: (_) => PhoneScreen(userId: userProvider.userId),
-          )),
+          onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PhoneScreen(userId: userProvider.userId),
+              )),
         ),
+        const SizedBox(height: 20),
+        _buildPersonalInfoCard(theme, isTablet),
         if (isCommerce) ...[
           const SizedBox(height: 20),
-          _buildEstadisticasCard(context, theme, isTablet, surfaceColor, borderColor),
+          _buildEstadisticasCard(
+              context, theme, isTablet, surfaceColor, borderColor),
         ],
         const SizedBox(height: 24),
-        _personaSectionTitle(theme, 'LEGAL'),
         _buildLegalCard(context, theme, isTablet, surfaceColor, borderColor),
         const SizedBox(height: 24),
-        _personaSectionTitle(theme, 'CUENTA'),
         Material(
           color: theme.colorScheme.error.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(24),
@@ -590,7 +736,11 @@ class _SettingsPage2State extends State<SettingsPage2> {
                 children: [
                   Icon(Icons.logout, size: 20, color: theme.colorScheme.error),
                   const SizedBox(width: 8),
-                  Text('Cerrar sesión', style: TextStyle(fontWeight: FontWeight.w600, color: theme.colorScheme.error, fontSize: 14)),
+                  Text('Cerrar sesión',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: theme.colorScheme.error,
+                          fontSize: 14)),
                 ],
               ),
             ),
@@ -598,9 +748,11 @@ class _SettingsPage2State extends State<SettingsPage2> {
         ),
         const SizedBox(height: 16),
         GestureDetector(
-          onTap: () => Navigator.push(context, MaterialPageRoute(
-            builder: (_) => const AccountDeletionPage(),
-          )),
+          onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AccountDeletionPage(),
+              )),
           child: Text(
             'Eliminar cuenta permanentemente',
             style: TextStyle(
@@ -661,7 +813,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
                   ),
                 ),
               ),
-              Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant, size: 24),
+              Icon(Icons.chevron_right,
+                  color: theme.colorScheme.onSurfaceVariant, size: 24),
             ],
           ),
         ),
@@ -669,7 +822,162 @@ class _SettingsPage2State extends State<SettingsPage2> {
     );
   }
 
-  Widget _buildEstadisticasCard(BuildContext context, ThemeData theme, bool isTablet, Color surfaceColor, Color borderColor) {
+  /// Card de "Información Personal" similar al template HTML, usando datos de Profile.
+  Widget _buildPersonalInfoCard(ThemeData theme, bool isTablet) {
+    if (_profile == null || _profile is! Profile) {
+      return const SizedBox.shrink();
+    }
+    final profile = _profile as Profile;
+    String formatGender(String sex) {
+      final value = sex.toLowerCase();
+      if (value == 'm' || value == 'masculino') return 'Masculino';
+      if (value == 'f' || value == 'femenino') return 'Femenino';
+      return 'Otro';
+    }
+
+    String formatDate(String raw) {
+      if (raw.isEmpty) return '—';
+      try {
+        final dt = DateTime.parse(raw);
+        final day = dt.day.toString().padLeft(2, '0');
+        final month = dt.month.toString().padLeft(2, '0');
+        final year = dt.year.toString();
+        return '$day/$month/$year';
+      } catch (_) {
+        return raw;
+      }
+    }
+
+    final phone =
+        (profile.phone ?? '').trim().isEmpty ? '—' : profile.phone!.trim();
+    // No tenemos ciudad separada; usamos la primera parte de la dirección como aproximación.
+    final rawAddress = (profile.address ?? '').trim();
+    String city = '—';
+    if (rawAddress.isNotEmpty) {
+      final parts = rawAddress.split(',');
+      city = parts.first.trim().isEmpty ? rawAddress : parts.first.trim();
+    }
+    final gender = formatGender(profile.sex);
+    final dob = formatDate(profile.dateOfBirth);
+
+    final surface = theme.brightness == Brightness.dark
+        ? _stitchSurfaceDark
+        : theme.colorScheme.surface;
+    final border = theme.brightness == Brightness.dark
+        ? Colors.white.withValues(alpha: 0.05)
+        : theme.colorScheme.outline.withValues(alpha: 0.15);
+
+    Text label(String text) {
+      return Text(
+        text.toUpperCase(),
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          letterSpacing: 1.0,
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      );
+    }
+
+    Text value(String text) {
+      return Text(
+        text,
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: isTablet
+              ? 14
+              : 14, // Aumentado ligeramente para coincidir con template
+          fontWeight: FontWeight.bold, // Segun template texto oscuro en bold
+          color: theme.brightness == Brightness.dark
+              ? Colors.white
+              : theme.colorScheme.onSurface,
+        ),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: border, width: 1),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Información Personal',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Forzar grid 2x2 como en el template (Teléfono/Ciudad, Género/Fecha de nac.).
+          Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        label('Teléfono'),
+                        const SizedBox(height: 4),
+                        value(phone),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        label('Ciudad'),
+                        const SizedBox(height: 4),
+                        value(city),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        label('Género'),
+                        const SizedBox(height: 4),
+                        value(gender),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        label('Fecha de nac.'),
+                        const SizedBox(height: 4),
+                        value(dob),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEstadisticasCard(BuildContext context, ThemeData theme,
+      bool isTablet, Color surfaceColor, Color borderColor) {
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: CommercePostService.getMyPosts(),
       builder: (context, snapshot) {
@@ -691,7 +999,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
               children: [
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 16),
                     decoration: BoxDecoration(
                       color: surfaceColor,
                       borderRadius: BorderRadius.circular(24),
@@ -710,7 +1019,10 @@ class _SettingsPage2State extends State<SettingsPage2> {
                         const SizedBox(height: 4),
                         Text(
                           'Publicaciones',
-                          style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500),
                         ),
                       ],
                     ),
@@ -719,7 +1031,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 16),
                     decoration: BoxDecoration(
                       color: surfaceColor,
                       borderRadius: BorderRadius.circular(24),
@@ -738,7 +1051,10 @@ class _SettingsPage2State extends State<SettingsPage2> {
                         const SizedBox(height: 4),
                         Text(
                           'Activas',
-                          style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant, fontWeight: FontWeight.w500),
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: theme.colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w500),
                         ),
                       ],
                     ),
@@ -752,87 +1068,93 @@ class _SettingsPage2State extends State<SettingsPage2> {
     );
   }
 
-  Widget _buildLegalCard(BuildContext context, ThemeData theme, bool isTablet, Color surfaceColor, Color borderColor) {
-    return Row(
-          children: [
-            Expanded(
-              child: Material(
-                color: surfaceColor,
-                borderRadius: BorderRadius.circular(24),
-                child: InkWell(
-                  onTap: () {},
-                  borderRadius: BorderRadius.circular(24),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: borderColor, width: 1),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Términos',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Condiciones de uso',
-                          style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+  Widget _buildLegalCard(BuildContext context, ThemeData theme, bool isTablet,
+      Color surfaceColor, Color borderColor) {
+    // Links centrados tipo texto, alineados con el template HTML.
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        TextButton(
+          onPressed: () async {
+            final baseUrl = _legalBaseUrl();
+            final uri = Uri.parse('$baseUrl/terminos-condiciones');
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          },
+          child: Text(
+            'TÉRMINOS DE SERVICIO',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.1,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Material(
-                color: surfaceColor,
-                borderRadius: BorderRadius.circular(24),
-                child: InkWell(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(
-                    builder: (_) => const PrivacySettingsPage(),
-                  )),
-                  borderRadius: BorderRadius.circular(24),
-                  child: Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: borderColor, width: 1),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Privacidad',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: theme.colorScheme.onSurface,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Política de datos',
-                          style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextButton(
+          onPressed: () async {
+            final baseUrl = _legalBaseUrl();
+            final uri = Uri.parse('$baseUrl/politica-privacidad');
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          },
+          child: Text(
+            'POLÍTICA DE PRIVACIDAD',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.1,
+              color: theme.colorScheme.onSurfaceVariant,
             ),
-          ],
-        );
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextButton(
+          onPressed: () async {
+            final baseUrl = _legalBaseUrl();
+            final uri = Uri.parse('$baseUrl/politica-cookies');
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          },
+          child: Text(
+            'POLÍTICA DE COOKIES',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.1,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        TextButton(
+          onPressed: () async {
+            final baseUrl = _legalBaseUrl();
+            final uri = Uri.parse('$baseUrl/seguridad');
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            }
+          },
+          child: Text(
+            'SEGURIDAD',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.1,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
-  Widget _buildPublicacionesContent(BuildContext context, ThemeData theme, bool isTablet) {
+  Widget _buildPublicacionesContent(
+      BuildContext context, ThemeData theme, bool isTablet) {
     return FutureBuilder<List<Map<String, dynamic>>>(
       future: CommercePostService.getMyPosts(),
       builder: (context, snapshot) {
@@ -856,21 +1178,27 @@ class _SettingsPage2State extends State<SettingsPage2> {
                       width: 192,
                       height: 192,
                       decoration: BoxDecoration(
-                        color: (theme.brightness == Brightness.dark ? _stitchSurfaceDark : theme.colorScheme.surfaceContainerLow)
+                        color: (theme.brightness == Brightness.dark
+                                ? _stitchSurfaceDark
+                                : theme.colorScheme.surfaceContainerLow)
                             .withValues(alpha: 0.5),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.rocket_launch, size: 96, color: _stitchPrimary.withValues(alpha: 0.3)),
+                      child: Icon(Icons.rocket_launch,
+                          size: 96,
+                          color: _stitchPrimary.withValues(alpha: 0.3)),
                     ),
                     Positioned(
                       top: -16,
                       right: -16,
-                      child: Icon(Icons.description, size: 48, color: Colors.white.withValues(alpha: 0.1)),
+                      child: Icon(Icons.description,
+                          size: 48, color: Colors.white.withValues(alpha: 0.1)),
                     ),
                     Positioned(
                       bottom: 8,
                       left: -24,
-                      child: Icon(Icons.star, size: 36, color: Colors.white.withValues(alpha: 0.1)),
+                      child: Icon(Icons.star,
+                          size: 36, color: Colors.white.withValues(alpha: 0.1)),
                     ),
                   ],
                 ),
@@ -901,8 +1229,10 @@ class _SettingsPage2State extends State<SettingsPage2> {
                   style: FilledButton.styleFrom(
                     backgroundColor: _stitchPrimary,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 16, horizontal: 24),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(999)),
                   ),
                 ),
               ],
@@ -923,33 +1253,44 @@ class _SettingsPage2State extends State<SettingsPage2> {
     );
   }
 
-  Widget _buildPostTile(BuildContext context, ThemeData theme, Map<String, dynamic> post) {
+  Widget _buildPostTile(
+      BuildContext context, ThemeData theme, Map<String, dynamic> post) {
     final name = post['name']?.toString() ?? 'Sin título';
     final desc = post['description']?.toString() ?? '';
     return ListTile(
-      leading: post['media_url'] != null && post['media_url'].toString().isNotEmpty
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                post['media_url'].toString(),
-                width: 48,
-                height: 48,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(Icons.article, color: theme.colorScheme.primary),
-              ),
-            )
-          : Icon(Icons.article, color: theme.colorScheme.primary),
+      leading:
+          post['media_url'] != null && post['media_url'].toString().isNotEmpty
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(
+                    post['media_url'].toString(),
+                    width: 48,
+                    height: 48,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) =>
+                        Icon(Icons.article, color: theme.colorScheme.primary),
+                  ),
+                )
+              : Icon(Icons.article, color: theme.colorScheme.primary),
       title: Text(name, style: const TextStyle(fontWeight: FontWeight.w600)),
-      subtitle: desc.isNotEmpty ? Text(desc, maxLines: 2, overflow: TextOverflow.ellipsis) : null,
+      subtitle: desc.isNotEmpty
+          ? Text(desc, maxLines: 2, overflow: TextOverflow.ellipsis)
+          : null,
       trailing: const Icon(Icons.chevron_right),
     );
   }
 
-  Widget _buildMasContent(BuildContext context, ThemeData theme, bool isTablet) {
-    final isCommerce = Provider.of<UserProvider>(context, listen: false).userRole == 'commerce';
+  Widget _buildMasContent(
+      BuildContext context, ThemeData theme, bool isTablet) {
+    final isCommerce =
+        Provider.of<UserProvider>(context, listen: false).userRole ==
+            'commerce';
     final isDark = theme.brightness == Brightness.dark;
-    final surfaceColor = isDark ? _stitchSurfaceDark : theme.colorScheme.surface;
-    final borderColor = isDark ? Colors.white.withValues(alpha: 0.05) : theme.colorScheme.outline.withValues(alpha: 0.2);
+    final surfaceColor =
+        isDark ? _stitchSurfaceDark : theme.colorScheme.surface;
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.05)
+        : theme.colorScheme.outline.withValues(alpha: 0.2);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -961,9 +1302,36 @@ class _SettingsPage2State extends State<SettingsPage2> {
           surfaceColor: surfaceColor,
           borderColor: borderColor,
           tiles: [
-            _MasTile(icon: Icons.history_rounded, iconColor: _stitchPrimary, title: 'Historial de actividad', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ActivityHistoryPage()))),
-            _MasTile(icon: Icons.download_rounded, iconColor: Colors.green, title: 'Exportar datos', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const DataExportPage()))),
-            _MasTile(icon: Icons.privacy_tip_outlined, iconColor: Colors.orange, title: 'Privacidad', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacySettingsPage()))),
+            _MasTile(
+              icon: Icons.history_rounded,
+              iconColor: _stitchPrimary,
+              title: 'Historial de actividad',
+              onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => const ActivityHistoryPage())),
+            ),
+            _MasTile(
+              icon: Icons.download_rounded,
+              iconColor: Colors.green,
+              title: 'Exportar datos',
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const DataExportPage())),
+            ),
+            _MasTile(
+              icon: Icons.privacy_tip_outlined,
+              iconColor: Colors.orange,
+              title: 'Privacidad',
+              onTap: () async {
+                final baseUrl = dotenv.env['APP_DOMAIN'] != null
+                    ? 'https://${dotenv.env['APP_DOMAIN']}'
+                    : 'https://eats.aiblockweb.com';
+                final uri = Uri.parse('$baseUrl/politica-de-privacidad');
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+            ),
           ],
         ),
         if (isCommerce) ...[
@@ -975,9 +1343,33 @@ class _SettingsPage2State extends State<SettingsPage2> {
             surfaceColor: surfaceColor,
             borderColor: borderColor,
             tiles: [
-              _MasTile(icon: Icons.store, iconColor: Colors.blue, title: 'Datos del comercio', subtitle: 'Información básica y contacto', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommerceDataPage()))),
-              _MasTile(icon: Icons.payments, iconColor: Colors.green, title: 'Métodos de pago', subtitle: 'Cuentas bancarias y móviles', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommercePaymentMethodsPage()))),
-              _MasTile(icon: Icons.schedule, iconColor: Colors.purple, title: 'Horarios', subtitle: 'Apertura y cierre', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommerceSchedulePage()))),
+              _MasTile(
+                  icon: Icons.store,
+                  iconColor: Colors.blue,
+                  title: 'Datos del comercio',
+                  subtitle: 'Información básica y contacto',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const CommerceDataPage()))),
+              _MasTile(
+                  icon: Icons.payments,
+                  iconColor: Colors.green,
+                  title: 'Métodos de pago',
+                  subtitle: 'Cuentas bancarias y móviles',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const CommercePaymentMethodsPage()))),
+              _MasTile(
+                  icon: Icons.schedule,
+                  iconColor: Colors.purple,
+                  title: 'Horarios',
+                  subtitle: 'Apertura y cierre',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const CommerceSchedulePage()))),
             ],
           ),
           const SizedBox(height: 24),
@@ -988,8 +1380,24 @@ class _SettingsPage2State extends State<SettingsPage2> {
             surfaceColor: surfaceColor,
             borderColor: borderColor,
             tiles: [
-              _MasTile(icon: Icons.campaign, iconColor: Colors.orange, title: 'Crear promo', subtitle: 'Impulsa tus ventas', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommercePromotionsPage()))),
-              _MasTile(icon: Icons.local_activity, iconColor: Colors.amber, title: 'Cupones', subtitle: 'Gestionar descuentos', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommercePromotionsPage()))),
+              _MasTile(
+                  icon: Icons.campaign,
+                  iconColor: Colors.orange,
+                  title: 'Crear promo',
+                  subtitle: 'Impulsa tus ventas',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const CommercePromotionsPage()))),
+              _MasTile(
+                  icon: Icons.local_activity,
+                  iconColor: Colors.amber,
+                  title: 'Cupones',
+                  subtitle: 'Gestionar descuentos',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const CommercePromotionsPage()))),
             ],
           ),
           const SizedBox(height: 24),
@@ -1000,10 +1408,38 @@ class _SettingsPage2State extends State<SettingsPage2> {
             surfaceColor: surfaceColor,
             borderColor: borderColor,
             tiles: [
-              _MasTile(icon: Icons.toggle_on_rounded, iconColor: Colors.red, title: 'Estado abierto/cerrado', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommerceOpenPage()))),
-              _MasTile(icon: Icons.map_outlined, iconColor: AppColors.brown, title: 'Zonas de delivery', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommerceZonesPage()))),
-              _MasTile(icon: Icons.payment_rounded, iconColor: Colors.green, title: 'Datos de pago móvil', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommercePaymentPage()))),
-              _MasTile(icon: Icons.notifications_outlined, iconColor: Colors.amber, title: 'Notificaciones del comercio', onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommerceNotificationsPage()))),
+              _MasTile(
+                  icon: Icons.toggle_on_rounded,
+                  iconColor: Colors.red,
+                  title: 'Estado abierto/cerrado',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const CommerceOpenPage()))),
+              _MasTile(
+                  icon: Icons.map_outlined,
+                  iconColor: AppColors.brown,
+                  title: 'Zonas de delivery',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const CommerceZonesPage()))),
+              _MasTile(
+                  icon: Icons.payment_rounded,
+                  iconColor: Colors.green,
+                  title: 'Datos de pago móvil',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const CommercePaymentPage()))),
+              _MasTile(
+                  icon: Icons.notifications_outlined,
+                  iconColor: Colors.amber,
+                  title: 'Notificaciones del comercio',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const CommerceNotificationsPage()))),
             ],
           ),
         ],
@@ -1056,7 +1492,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
     );
   }
 
-  Widget _buildMasTileWidget(BuildContext context, ThemeData theme, _MasTile tile, Color surfaceColor) {
+  Widget _buildMasTileWidget(BuildContext context, ThemeData theme,
+      _MasTile tile, Color surfaceColor) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -1091,13 +1528,16 @@ class _SettingsPage2State extends State<SettingsPage2> {
                       const SizedBox(height: 2),
                       Text(
                         tile.subtitle!,
-                        style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
+                        style: TextStyle(
+                            fontSize: 11,
+                            color: theme.colorScheme.onSurfaceVariant),
                       ),
                     ],
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant, size: 24),
+              Icon(Icons.chevron_right,
+                  color: theme.colorScheme.onSurfaceVariant, size: 24),
             ],
           ),
         ),
@@ -1105,7 +1545,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
     );
   }
 
-  Widget _buildMasSectionSoporte(BuildContext context, ThemeData theme, Color surfaceColor, Color borderColor) {
+  Widget _buildMasSectionSoporte(BuildContext context, ThemeData theme,
+      Color surfaceColor, Color borderColor) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1132,9 +1573,13 @@ class _SettingsPage2State extends State<SettingsPage2> {
               Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HelpAndFAQPage())),
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const HelpAndFAQPage())),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
                     child: Row(
                       children: [
                         Container(
@@ -1144,7 +1589,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
                             color: Colors.pink.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Icon(Icons.help, color: Colors.pink, size: 22),
+                          child: const Icon(Icons.help,
+                              color: Colors.pink, size: 22),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -1157,7 +1603,9 @@ class _SettingsPage2State extends State<SettingsPage2> {
                             ),
                           ),
                         ),
-                        Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant, size: 24),
+                        Icon(Icons.chevron_right,
+                            color: theme.colorScheme.onSurfaceVariant,
+                            size: 24),
                       ],
                     ),
                   ),
@@ -1167,9 +1615,13 @@ class _SettingsPage2State extends State<SettingsPage2> {
               Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsPage())),
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const NotificationsPage())),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
                     child: Row(
                       children: [
                         Container(
@@ -1179,7 +1631,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
                             color: Colors.cyan.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: const Icon(Icons.notifications, color: Colors.cyan, size: 22),
+                          child: const Icon(Icons.notifications,
+                              color: Colors.cyan, size: 22),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -1206,19 +1659,24 @@ class _SettingsPage2State extends State<SettingsPage2> {
               Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())),
+                  onTap: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const AboutScreen())),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
                     child: Row(
                       children: [
                         Container(
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.2),
+                            color: theme.colorScheme.onSurfaceVariant
+                                .withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(16),
                           ),
-                          child: Icon(Icons.info_outline, color: theme.colorScheme.onSurfaceVariant, size: 22),
+                          child: Icon(Icons.info_outline,
+                              color: theme.colorScheme.onSurfaceVariant,
+                              size: 22),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -1235,12 +1693,16 @@ class _SettingsPage2State extends State<SettingsPage2> {
                               ),
                               Text(
                                 'Versión 1.0.0',
-                                style: TextStyle(fontSize: 11, color: theme.colorScheme.onSurfaceVariant),
+                                style: TextStyle(
+                                    fontSize: 11,
+                                    color: theme.colorScheme.onSurfaceVariant),
                               ),
                             ],
                           ),
                         ),
-                        Icon(Icons.chevron_right, color: theme.colorScheme.onSurfaceVariant, size: 24),
+                        Icon(Icons.chevron_right,
+                            color: theme.colorScheme.onSurfaceVariant,
+                            size: 24),
                       ],
                     ),
                   ),
@@ -1263,7 +1725,9 @@ class _SettingsPage2State extends State<SettingsPage2> {
       decoration: BoxDecoration(
         color: isDark ? _stitchSurfaceDark : theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
-        border: isDark ? Border.all(color: Colors.white.withValues(alpha: 0.05)) : null,
+        border: isDark
+            ? Border.all(color: Colors.white.withValues(alpha: 0.05))
+            : null,
       ),
       child: Column(children: children),
     );
@@ -1274,8 +1738,9 @@ class _SettingsPage2State extends State<SettingsPage2> {
       height: 1,
       indent: 16,
       endIndent: 16,
-      color: theme.brightness == Brightness.dark ? Colors.white.withValues(alpha: 0.05) : theme.colorScheme.outline.withValues(alpha: 0.2),
+      color: theme.brightness == Brightness.dark
+          ? Colors.white.withValues(alpha: 0.05)
+          : theme.colorScheme.outline.withValues(alpha: 0.2),
     );
   }
-
 }

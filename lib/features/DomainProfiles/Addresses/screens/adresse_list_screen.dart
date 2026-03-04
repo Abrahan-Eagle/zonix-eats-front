@@ -312,7 +312,7 @@ class AddressPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Mapa usando OpenStreetMap (como en CorralX)
+          // Mapa usando OpenStreetMap (como en Zonix-Frontend)
           ClipRRect(
             borderRadius: BorderRadius.circular(12),
             child: OsmMapWidget(

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html class="light" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Detalle del Recibo - Zonix Eats</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3399ff",
+                        "background-light": "#f5f7f8",
+                        "brand-yellow": "#FFC107",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "2xl": "2rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: max(884px, 100dvh);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light text-slate-900 min-h-screen flex flex-col">
+<header class="sticky top-0 z-10 bg-white/90 backdrop-blur-md px-4 py-3 shadow-sm border-b border-slate-100">
+<div class="flex items-center justify-between max-w-md mx-auto relative">
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-slate-50 transition-colors absolute left-0">
+<span class="material-symbols-outlined text-slate-900">arrow_back</span>
+</button>
+<h1 class="text-lg font-bold text-slate-900 mx-auto">Detalle del Recibo</h1>
+<div class="size-10"></div> 
+</div>
+</header>
+<main class="flex-1 overflow-y-auto px-4 pb-32 max-w-md mx-auto w-full pt-6 space-y-6">
+<section class="flex flex-col items-center text-center space-y-4">
+<div class="size-20 rounded-2xl bg-cover bg-center shrink-0 border border-slate-100 shadow-sm" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuATd4GwJoroaJKhlhTNfkg_c6B41rQqkqItjAPH21WjMxlBkWxrBBIjX7IUZS4lZKNKzRYHvgCSSh8SXQxY5RnzAnywtFrdmC-lZa6v3VOWRsZTBamMTgiWEL9hnJ22czs_zyM1VidmEjovMvj_MmlksQPC25khU9f4TyoDkpib8LffUymM--Ej8gLBwq8CSWbvyPvwIK6wwWGMOkRcEmztiemhZCaGHwcPtfHmcmuhMpDrkciYmmdZzGc0TzAcrnAFYUpnuokvzl0')"></div>
+<div>
+<h2 class="text-xl font-bold text-slate-900">Bella Italia Pizza</h2>
+<p class="text-sm text-slate-500 font-medium mt-1">12 Oct 2023 • 14:30 PM</p>
+</div>
+<div class="bg-white px-4 py-2 rounded-lg border border-slate-200 flex items-center gap-2 shadow-sm">
+<span class="text-xs text-slate-500 uppercase font-bold tracking-wider">Orden ID:</span>
+<span class="text-base font-bold text-slate-900">#8291-334</span>
+<button class="text-primary hover:text-blue-600 transition-colors">
+<span class="material-symbols-outlined text-lg">content_copy</span>
+</button>
+</div>
+</section>
+<section class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-4">
+<h3 class="text-sm font-bold text-slate-900 uppercase tracking-wide mb-2">Resumen</h3>
+<div class="flex justify-between items-start">
+<div class="flex gap-3">
+<span class="bg-slate-100 text-slate-700 font-bold text-xs px-2 py-1 rounded h-fit">1x</span>
+<div>
+<p class="text-sm font-semibold text-slate-900">Pepperoni Pizza</p>
+<p class="text-xs text-slate-500">Grande, Masa delgada</p>
+</div>
+</div>
+<span class="text-sm font-semibold text-slate-900">$14.50</span>
+</div>
+<div class="flex justify-between items-start">
+<div class="flex gap-3">
+<span class="bg-slate-100 text-slate-700 font-bold text-xs px-2 py-1 rounded h-fit">2x</span>
+<div>
+<p class="text-sm font-semibold text-slate-900">Coca Cola</p>
+<p class="text-xs text-slate-500">355ml, Sin hielo</p>
+</div>
+</div>
+<span class="text-sm font-semibold text-slate-900">$3.00</span>
+</div>
+<div class="flex justify-between items-start">
+<div class="flex gap-3">
+<span class="bg-slate-100 text-slate-700 font-bold text-xs px-2 py-1 rounded h-fit">1x</span>
+<div>
+<p class="text-sm font-semibold text-slate-900">Pan de Ajo</p>
+<p class="text-xs text-slate-500">4 piezas</p>
+</div>
+</div>
+<span class="text-sm font-semibold text-slate-900">$4.50</span>
+</div>
+<div class="my-4 border-t border-dashed border-slate-200"></div>
+<div class="space-y-2">
+<div class="flex justify-between text-sm">
+<span class="text-slate-500">Subtotal</span>
+<span class="text-slate-900 font-medium">$22.00</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-slate-500">Tarifa de entrega</span>
+<span class="text-slate-900 font-medium">$2.50</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-slate-500">Impuestos</span>
+<span class="text-slate-900 font-medium">$1.80</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-slate-500">Tarifa de servicio</span>
+<span class="text-slate-900 font-medium">$1.20</span>
+</div>
+</div>
+<div class="pt-4 border-t border-slate-100 flex justify-between items-center">
+<span class="text-base font-bold text-slate-900">Total</span>
+<span class="text-xl font-bold text-brand-yellow drop-shadow-sm">$27.50</span>
+</div>
+</section>
+<section class="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
+<span class="material-symbols-outlined text-slate-600">credit_card</span>
+</div>
+<div>
+<p class="text-xs text-slate-500 font-medium">Método de pago</p>
+<p class="text-sm font-bold text-slate-900">Visa •••• 4242</p>
+</div>
+</div>
+</div>
+<div class="border-t border-slate-50"></div>
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-50 flex items-center justify-center border border-slate-100">
+<span class="material-symbols-outlined text-slate-600">location_on</span>
+</div>
+<div>
+<p class="text-xs text-slate-500 font-medium">Dirección de entrega</p>
+<p class="text-sm font-bold text-slate-900">Av. Reforma 222, Piso 4</p>
+</div>
+</div>
+</section>
+<div class="pt-2 flex flex-col gap-3">
+<button class="w-full bg-white hover:bg-slate-50 text-primary border border-primary/30 font-bold py-3.5 rounded-xl transition-all flex justify-center items-center gap-2 shadow-sm">
+<span class="material-symbols-outlined">download</span>
+                Descargar PDF
+            </button>
+</div>
+</main>
+<div class="fixed bottom-0 left-0 right-0 z-20 bg-white border-t border-slate-100 px-4 py-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.02)]">
+<div class="max-w-md mx-auto">
+<button class="w-full bg-primary hover:bg-blue-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex justify-center items-center gap-2 text-lg">
+<span class="material-symbols-outlined">refresh</span>
+                Pedir de nuevo
+            </button>
+</div>
+</div>
+
+</body></html>

@@ -153,7 +153,7 @@ Crear archivo `.env` en la raíz del proyecto:
 
 ```env
 API_URL_LOCAL=http://192.168.27.12:8000
-API_URL_PROD=https://zonix.uniblockweb.com
+API_URL_PROD=https://eats.aiblockweb.com
 ```
 
 **Nota:** Reemplazar `192.168.0.101` con la IP de tu servidor backend.
@@ -166,7 +166,7 @@ Las URLs se configuran en `lib/config/app_config.dart`:
 class AppConfig {
   // API URLs
   static const String apiUrlLocal = 'http://192.168.27.12:8000';
-  static const String apiUrlProd = 'https://zonix.uniblockweb.com';
+  static const String apiUrlProd = 'https://eats.aiblockweb.com';
 
   // Pusher configuration (si se usa directamente)
   // Nota: La mayoría de notificaciones en tiempo real usan Firebase + Pusher
