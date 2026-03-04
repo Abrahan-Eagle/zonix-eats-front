@@ -11,6 +11,8 @@ class MockOrderService extends OrderService {
     List<CartItem> items, {
     required String deliveryType,
     String? deliveryAddress,
+    double? deliveryLatitude,
+    double? deliveryLongitude,
     double deliveryFee = 0.0,
   }) async {
     // Simula una respuesta exitosa
