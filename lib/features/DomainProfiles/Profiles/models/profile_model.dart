@@ -13,12 +13,14 @@ class Profile {
   String status; // Estado del perfil
   String? phone; // Teléfono
   String? address; // Dirección
-  
+  List<Map<String, dynamic>>?
+      addressesData; // Direcciones estructuradas desde la API
+
   // Campos específicos para comercios
   String? businessName; // Nombre del negocio
   String? businessType; // Tipo de negocio
   String? taxId; // RFC
-  
+
   // Campos específicos para delivery
   String? vehicleType; // Tipo de vehículo
   String? licenseNumber; // Número de licencia
@@ -38,6 +40,7 @@ class Profile {
     this.status = 'notverified', // Valor por defecto
     this.phone,
     this.address,
+    this.addressesData,
     this.businessName,
     this.businessType,
     this.taxId,
@@ -47,8 +50,17 @@ class Profile {
 
   factory Profile.fromJson(Map<String, dynamic> json) {
     // Backend puede devolver { success, data } o el perfil directo; normalizar.
-    final map = json['data'] is Map<String, dynamic> ? json['data'] as Map<String, dynamic> : json;
+    final map = json['data'] is Map<String, dynamic>
+        ? json['data'] as Map<String, dynamic>
+        : json;
     String safeStr(dynamic v) => v?.toString() ?? '';
+
+    List<Map<String, dynamic>>? parsedAddresses;
+    if (map['addresses'] is List) {
+      parsedAddresses = List<Map<String, dynamic>>.from(
+          map['addresses'].map((e) => e as Map<String, dynamic>));
+    }
+
     return Profile(
       id: map['id'] as int? ?? 0,
       userId: map['user_id'] as int? ?? 0,
@@ -57,12 +69,19 @@ class Profile {
       lastName: safeStr(map['lastName']),
       secondLastName: safeStr(map['secondLastName']),
       photo: map['photo_users'] ?? map['photo'],
-      dateOfBirth: safeStr(map['date_of_birth']).isEmpty ? '' : safeStr(map['date_of_birth']),
-      maritalStatus: safeStr(map['maritalStatus']).isEmpty ? 'single' : safeStr(map['maritalStatus']),
+      dateOfBirth: safeStr(map['date_of_birth']).isEmpty
+          ? ''
+          : safeStr(map['date_of_birth']),
+      maritalStatus: safeStr(map['maritalStatus']).isEmpty
+          ? 'single'
+          : safeStr(map['maritalStatus']),
       sex: safeStr(map['sex']).isEmpty ? 'M' : safeStr(map['sex']),
-      status: safeStr(map['status']).isEmpty ? 'notverified' : safeStr(map['status']),
+      status: safeStr(map['status']).isEmpty
+          ? 'notverified'
+          : safeStr(map['status']),
       phone: map['phone']?.toString(),
       address: map['address']?.toString(),
+      addressesData: parsedAddresses,
       businessName: map['business_name']?.toString(),
       businessType: map['business_type']?.toString(),
       taxId: map['tax_id']?.toString(),
@@ -86,6 +105,7 @@ class Profile {
       'status': status,
       'phone': phone,
       'address': address,
+      'addresses': addressesData,
       'business_name': businessName,
       'business_type': businessType,
       'tax_id': taxId,
@@ -109,6 +129,7 @@ class Profile {
     String? status,
     String? phone,
     String? address,
+    List<Map<String, dynamic>>? addressesData,
     String? businessName,
     String? businessType,
     String? taxId,
@@ -129,6 +150,7 @@ class Profile {
       status: status ?? this.status,
       phone: phone ?? this.phone,
       address: address ?? this.address,
+      addressesData: addressesData ?? this.addressesData,
       businessName: businessName ?? this.businessName,
       businessType: businessType ?? this.businessType,
       taxId: taxId ?? this.taxId,

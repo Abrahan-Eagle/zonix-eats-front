@@ -427,9 +427,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              elevation: 8,
-                              shadowColor:
-                                  primaryBtnColor.withValues(alpha: 0.5),
+                              elevation: 0,
                             ),
                           ),
                         ),
