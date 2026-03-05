@@ -260,6 +260,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
   /// Modal foto de perfil: usa colores de la app (AppColors + theme) y soporta modo claro/oscuro.
   void _showProfilePhotoModal(
       BuildContext context, ThemeData theme, bool isTablet) {
+    final isDark = theme.brightness == Brightness.dark;
     final String? photoUrl = _profile?.photo;
     final username = _email != null && _email!.trim().isNotEmpty
         ? '@${_email!.trim().split('@').first}'
@@ -283,7 +284,10 @@ class _SettingsPage2State extends State<SettingsPage2> {
               child: AnimatedOpacity(
                 opacity: animation.value,
                 duration: const Duration(milliseconds: 200),
-                child: Container(color: Colors.black54),
+                child: Container(
+                    color: isDark
+                        ? Colors.black.withValues(alpha: 0.7)
+                        : Colors.black.withValues(alpha: 0.2)),
               ),
             ),
             // Contenido del modal
