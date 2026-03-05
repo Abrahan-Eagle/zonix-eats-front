@@ -792,88 +792,56 @@ class _SettingsPage2State extends State<SettingsPage2> {
         Stack(
           alignment: Alignment.center,
           children: [
-            Container(
-              width: isTablet ? 140 : 130,
-              height: isTablet ? 140 : 130,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [_stitchPrimary, Colors.cyan.shade400],
-                ),
-              ),
-              padding: const EdgeInsets.all(4),
-              child: GestureDetector(
-                onTap: () => _showProfilePhotoModal(context, theme, isTablet),
-                child: Container(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: theme.scaffoldBackgroundColor,
+            GestureDetector(
+              onTap: () => _showProfilePhotoModal(context, theme, isTablet),
+              child: Container(
+                width: isTablet ? 140 : 130,
+                height: isTablet ? 140 : 130,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: theme.colorScheme.surfaceContainerHighest,
+                  border: Border.all(
+                    color: theme.colorScheme.outline.withValues(alpha: 0.1),
+                    width: 1,
                   ),
-                  child: _profile?.photo != null && _profile!.photo!.isNotEmpty
-                      ? ClipOval(
-                          child: Image.network(
-                            _profile!.photo!,
-                            width: (isTablet ? 140 : 130) - 8,
-                            height: (isTablet ? 140 : 130) - 8,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Image.asset(
-                              'assets/default_avatar.png',
-                              width: (isTablet ? 140 : 130) - 8,
-                              height: (isTablet ? 140 : 130) - 8,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        )
-                      : CircleAvatar(
-                          radius: (isTablet ? 140 : 130) / 2 - 4,
-                          backgroundColor:
-                              theme.colorScheme.surfaceContainerHighest,
-                          child: Icon(Icons.person,
-                              size: isTablet ? 48 : 44,
-                              color: theme.colorScheme.onSurfaceVariant),
-                        ),
                 ),
+                child: _profile?.photo != null && _profile!.photo!.isNotEmpty
+                    ? ClipOval(
+                        child: Image.network(
+                          _profile!.photo!,
+                          width: isTablet ? 140 : 130,
+                          height: isTablet ? 140 : 130,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Image.asset(
+                            'assets/default_avatar.png',
+                            width: isTablet ? 140 : 130,
+                            height: isTablet ? 140 : 130,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      )
+                    : Icon(Icons.person,
+                        size: isTablet ? 48 : 44,
+                        color: theme.colorScheme.onSurfaceVariant),
               ),
             ),
             Positioned(
-              bottom: 0,
-              right: 0,
+              bottom: 4,
+              right: 8,
               child: GestureDetector(
                 onTap: () => _showProfilePhotoModal(context, theme, isTablet),
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF22C55E),
+                    color: theme.colorScheme.surface,
                     shape: BoxShape.circle,
                     border: Border.all(
-                        color: theme.scaffoldBackgroundColor, width: 3),
-                    boxShadow: [
-                      BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.2),
-                          blurRadius: 8)
-                    ],
+                      color: theme.colorScheme.outline.withValues(alpha: 0.15),
+                      width: 1,
+                    ),
                   ),
-                  child: const Icon(Icons.photo_camera_outlined,
-                      size: 20, color: Colors.white),
-                ),
-              ),
-            ),
-            // Pequeño punto de estado "en línea" similar al template HTML
-            Positioned(
-              bottom: 4,
-              right: 4,
-              child: Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: Colors.greenAccent.shade400,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: theme.scaffoldBackgroundColor,
-                    width: 2,
-                  ),
+                  child: Icon(Icons.photo_camera_outlined,
+                      size: 20, color: theme.colorScheme.onSurface),
                 ),
               ),
             ),
