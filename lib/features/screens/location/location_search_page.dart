@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/utils/search_radius_provider.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 /// Pantalla Ubicación: permite ampliar el radio de búsqueda (1-400 km) como Facebook.
 /// Muestra mapa con círculo de radio, opción sugerido vs personalizado, slider, Aplicar.
@@ -27,7 +28,7 @@ class _LocationSearchPageState extends State<LocationSearchPage> {
   bool _loadingLocation = true;
   String? _error;
 
-  static const _primary = Color(0xFF3399FF);
+  static const _primary = AppColors.blue;
 
   @override
   void initState() {
@@ -146,7 +147,7 @@ class _LocationSearchPageState extends State<LocationSearchPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.location_off, size: 64, color: Colors.red.shade300),
+            const Icon(Icons.location_off, size: 64, color: AppColors.red),
             const SizedBox(height: 16),
             Text(_error!, textAlign: TextAlign.center),
             const SizedBox(height: 16),
@@ -197,7 +198,7 @@ class _LocationSearchPageState extends State<LocationSearchPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: AppColors.black.withValues(alpha: 0.2),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -246,7 +247,7 @@ class _LocationSearchPageState extends State<LocationSearchPage> {
                   _mapController.move(center, _zoomForRadius(radiusKm));
                 },
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.white,
+                  backgroundColor: AppColors.white,
                 ),
               ),
             ),
@@ -411,7 +412,7 @@ class _LocationSearchPageState extends State<LocationSearchPage> {
         onPressed: _apply,
         style: FilledButton.styleFrom(
           backgroundColor: _primary,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),

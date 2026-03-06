@@ -1,3 +1,4 @@
+import 'package:zonix/features/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zonix/features/DomainProfiles/Documents/models/document.dart';
@@ -79,7 +80,7 @@ class DocumentDetailScreen extends StatelessWidget {
     
     return Card(
       elevation: 4,
-      shadowColor: Colors.black.withValues(alpha: 0.1),
+      shadowColor: AppColors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -169,7 +170,7 @@ class DocumentDetailScreen extends StatelessWidget {
     
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.05),
+      shadowColor: AppColors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -216,12 +217,12 @@ class DocumentDetailScreen extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.blue.withValues(alpha: 0.1),
+            color: AppColors.blue.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Icon(
             icon,
-            color: Colors.blue,
+            color: AppColors.blue,
             size: 20,
           ),
         ),
@@ -239,8 +240,8 @@ class DocumentDetailScreen extends StatelessWidget {
               ),
               Text(
                 description,
-                style: TextStyle(
-                  color: Colors.grey[600],
+                style: const TextStyle(
+                  color: AppColors.gray,
                   fontSize: 14,
                 ),
               ),
@@ -257,7 +258,7 @@ class DocumentDetailScreen extends StatelessWidget {
     
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.05),
+      shadowColor: AppColors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -280,7 +281,7 @@ class DocumentDetailScreen extends StatelessWidget {
                 'Fecha de Emisión',
                 _formatDate(document.issuedAt!),
                 Icons.calendar_today,
-                Colors.green,
+                AppColors.green,
               ),
               const SizedBox(height: 12),
             ],
@@ -290,7 +291,7 @@ class DocumentDetailScreen extends StatelessWidget {
                 'Fecha de Vencimiento',
                 _formatDate(document.expiresAt!),
                 Icons.event_busy,
-                Colors.orange,
+                AppColors.orange,
               ),
           ],
         ),
@@ -327,8 +328,8 @@ class DocumentDetailScreen extends StatelessWidget {
               ),
               Text(
                 date,
-                style: TextStyle(
-                  color: Colors.grey[600],
+                style: const TextStyle(
+                  color: AppColors.gray,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -372,7 +373,7 @@ class DocumentDetailScreen extends StatelessWidget {
     
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.05),
+      shadowColor: AppColors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -419,7 +420,7 @@ class DocumentDetailScreen extends StatelessWidget {
                   children: [
                     const Icon(
                       Icons.qr_code,
-                      color: Colors.orange,
+                      color: AppColors.orange,
                       size: 24,
                     ),
                     const SizedBox(width: 12),
@@ -436,7 +437,7 @@ class DocumentDetailScreen extends StatelessWidget {
                           Text(
                             'Ver código QR',
                             style: theme.textTheme.bodyMedium?.copyWith(
-                              color: Colors.orange,
+                              color: AppColors.orange,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -447,7 +448,7 @@ class DocumentDetailScreen extends StatelessWidget {
                       onPressed: () => _launchURL(document.rifUrl!),
                       icon: const Icon(
                         Icons.open_in_new,
-                        color: Colors.orange,
+                        color: AppColors.orange,
                       ),
                     ),
                   ],
@@ -466,7 +467,7 @@ class DocumentDetailScreen extends StatelessWidget {
     
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.05),
+      shadowColor: AppColors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -519,8 +520,8 @@ class DocumentDetailScreen extends StatelessWidget {
           child: FloatingActionButton.extended(
             heroTag: 'document_detail_edit',
             onPressed: () => _navigateToEdit(context),
-            backgroundColor: Colors.orange,
-            foregroundColor: Colors.white,
+            backgroundColor: AppColors.orange,
+            foregroundColor: AppColors.white,
             icon: const Icon(Icons.edit),
             label: const Text('Editar'),
           ),
@@ -624,7 +625,7 @@ class DocumentDetailScreen extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('No hay imagen disponible'),
-          backgroundColor: Colors.orange,
+          backgroundColor: AppColors.orange,
         ),
       );
       return;
@@ -671,16 +672,16 @@ class DocumentDetailScreen extends StatelessWidget {
                     return Container(
                       width: double.infinity,
                       height: 400,
-                      color: Colors.grey[300],
+                      color: AppColors.gray,
                       child: const Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                            Icon(Icons.error_outline, size: 64, color: AppColors.gray),
                             SizedBox(height: 16),
                             Text(
                               'Error al cargar la imagen',
-                              style: TextStyle(color: Colors.grey),
+                              style: TextStyle(color: AppColors.gray),
                             ),
                           ],
                         ),

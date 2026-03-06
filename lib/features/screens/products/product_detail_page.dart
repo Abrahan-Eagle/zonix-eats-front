@@ -15,8 +15,8 @@ import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:logger/logger.dart';
 
-const Color _kPrimary = Color(0xFF3399FF);
-const Color _kAccent = Color(0xFFFFC107);
+const Color _kPrimary = AppColors.blue;
+const Color _kAccent = AppColors.amber;
 
 class ProductDetailPage extends StatefulWidget {
   final Product product;
@@ -42,17 +42,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   bool _isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
 
-  Color _backgroundColor(BuildContext context) =>
-      _isDark(context) ? const Color(0xFF0F1923) : Colors.white;
+  Color _bgPrimary(BuildContext context) =>
+      _isDark(context) ? AppColors.backgroundDark : AppColors.white;
 
-  Color _cardColor(BuildContext context) =>
-      _isDark(context) ? const Color(0xFF1A2530) : AppColors.grayLight;
+  Color _bgSecondary(BuildContext context) =>
+      _isDark(context) ? AppColors.grayDark : AppColors.grayLight;
 
   Color _borderColor(BuildContext context) =>
-      _isDark(context) ? const Color(0xFF2D3A48) : Colors.black12;
+      _isDark(context) ? AppColors.surfaceDarkLighter : AppColors.black12;
 
-  Color _textPrimary(BuildContext context) =>
-      AppColors.primaryText(context);
+  Color _textPrimary(BuildContext context) => AppColors.primaryText(context);
 
   Color _textSecondary(BuildContext context) =>
       AppColors.secondaryText(context);
@@ -67,7 +66,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Future<void> _loadFav() async {
     final prefs = await SharedPreferences.getInstance();
     final ids = prefs.getStringList(_favProdKey) ?? [];
-    if (mounted) setState(() => _isFavProduct = ids.contains(widget.product.id.toString()));
+    if (mounted) {
+      setState(
+          () => _isFavProduct = ids.contains(widget.product.id.toString()));
+    }
   }
 
   Future<void> _toggleFav() async {
@@ -83,13 +85,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       _isFavProduct = true;
     }
     await prefs.setStringList(_favProdKey, ids);
-    if (mounted) setState(() {});
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _shareProduct() {
     final link = '${AppConfig.apiUrl}/product/${widget.product.id}';
     final restName = _restaurant?.nombreLocal ?? '';
-    final text = '🛒 *${widget.product.name}* - \$${widget.product.price.toStringAsFixed(2)}\n'
+    final text =
+        '🛒 *${widget.product.name}* - \$${widget.product.price.toStringAsFixed(2)}\n'
         '${widget.product.description.isNotEmpty ? '${widget.product.description}\n' : ''}'
         '${restName.isNotEmpty ? '🍽️ En *$restName* - Zonix Eats\n' : ''}'
         '\n👉 $link';
@@ -140,7 +145,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Future<Restaurant?> _loadRestaurant() async {
     try {
       final restaurantService = RestaurantService();
-      return await restaurantService.fetchRestaurantDetails2(widget.product.commerceId);
+      return await restaurantService
+          .fetchRestaurantDetails2(widget.product.commerceId);
     } catch (e, stack) {
       logger.e('Error loading restaurant', error: e, stackTrace: stack);
       return null;
@@ -185,7 +191,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
     final isDark = _isDark(context);
     return Scaffold(
-      backgroundColor: _backgroundColor(context),
+      backgroundColor: _bgPrimary(context),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
         child: Stack(
@@ -198,11 +204,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     offset: const Offset(0, -40),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: _backgroundColor(context),
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                        color: _bgPrimary(context),
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(24)),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
+                            color: AppColors.black.withValues(alpha: 0.1),
                             blurRadius: 20,
                             offset: const Offset(0, -10),
                           ),
@@ -247,7 +254,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget _buildHeroImage(BuildContext context, double height) {
-    final bgColor = _backgroundColor(context);
+    final bgColor = _bgPrimary(context);
     return SliverToBoxAdapter(
       child: SizedBox(
         height: height,
@@ -267,8 +274,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withValues(alpha: 0.4),
-                    Colors.transparent,
+                    AppColors.black.withValues(alpha: 0.4),
+                    AppColors.transparent,
                     bgColor.withValues(alpha: 0.95),
                   ],
                   stops: const [0.0, 0.5, 1.0],
@@ -301,7 +308,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   context: context,
                   icon: _isFavProduct ? Icons.favorite : Icons.favorite_border,
                   onTap: _toggleFav,
-                  iconColor: _isFavProduct ? Colors.redAccent : null,
+                  iconColor: _isFavProduct ? AppColors.red : null,
                 ),
                 const SizedBox(width: 8),
                 _circleButton(
@@ -324,7 +331,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     Color? iconColor,
   }) {
     return Material(
-      color: Colors.black.withValues(alpha: 0.4),
+      color: AppColors.black.withValues(alpha: 0.4),
       borderRadius: BorderRadius.circular(20),
       child: InkWell(
         onTap: onTap,
@@ -333,7 +340,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           width: 40,
           height: 40,
           alignment: Alignment.center,
-          child: Icon(icon, color: iconColor ?? Colors.white, size: 22),
+          child: Icon(icon, color: iconColor ?? AppColors.white, size: 22),
         ),
       ),
     );
@@ -413,7 +420,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ),
             child: Text(
               widget.product.category,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: _kAccent),
+              style: const TextStyle(
+                  fontSize: 12, fontWeight: FontWeight.w600, color: _kAccent),
             ),
           ),
         ],
@@ -428,7 +436,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   Widget _buildDescription(BuildContext context) {
     return Text(
-      widget.product.description.isNotEmpty ? widget.product.description : 'Sin descripción',
+      widget.product.description.isNotEmpty
+          ? widget.product.description
+          : 'Sin descripción',
       style: GoogleFonts.plusJakartaSans(
         fontSize: 14,
         color: _textSecondary(context),
@@ -442,7 +452,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     if (widget.product.rating >= 4.5) tags.add('Popular');
     if (widget.product.category.isNotEmpty) tags.add(widget.product.category);
     if (widget.product.preparationTime > 0) {
-      tags.add('${widget.product.preparationTime}-${widget.product.preparationTime + 10} min');
+      tags.add(
+          '${widget.product.preparationTime}-${widget.product.preparationTime + 10} min');
     }
     if (tags.isEmpty) tags.addAll(['Popular', '20-30 min']);
 
@@ -454,9 +465,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
-            color: isFirst ? _kPrimary.withValues(alpha: 0.2) : Colors.transparent,
+            color:
+                isFirst ? _kPrimary.withValues(alpha: 0.2) : AppColors.transparent,
             border: Border.all(
-              color: isFirst ? _kPrimary.withValues(alpha: 0.3) : _borderColor(context),
+              color: isFirst
+                  ? _kPrimary.withValues(alpha: 0.3)
+                  : _borderColor(context),
               width: 1,
             ),
             borderRadius: BorderRadius.circular(999),
@@ -479,9 +493,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       future: _restaurantFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox(height: 24, child: Center(child: CircularProgressIndicator(strokeWidth: 2, color: _kPrimary)));
+          return const SizedBox(
+              height: 24,
+              child: Center(
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: _kPrimary)));
         }
-        if (snapshot.hasError || snapshot.data == null) return const SizedBox.shrink();
+        if (snapshot.hasError || snapshot.data == null) {
+          return const SizedBox.shrink();
+        }
         _restaurant = snapshot.data;
         return GestureDetector(
           onTap: _isLoading ? null : _navigateToRestaurant,
@@ -495,12 +515,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             child: Row(
               children: [
                 Container(
-                  width: 40, height: 40,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: _kPrimary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.storefront, color: _kPrimary, size: 20),
+                  child:
+                      const Icon(Icons.storefront, color: _kPrimary, size: 20),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -509,13 +531,20 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     children: [
                       Text(
                         _restaurant?.nombreLocal ?? '',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: _textPrimary(context)),
-                        maxLines: 1, overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: _textPrimary(context)),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        _restaurant?.abierto == true ? 'Abierto · Ver menú completo' : 'Cerrado · Ver menú completo',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12, color: _textSecondary(context)),
+                        _restaurant?.abierto == true
+                            ? 'Abierto · Ver menú completo'
+                            : 'Cerrado · Ver menú completo',
+                        style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12, color: _textSecondary(context)),
                       ),
                     ],
                   ),
@@ -548,7 +577,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: _cardColor(context),
+                color: _bgSecondary(context),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
@@ -568,12 +597,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               '+ \$${e.price.toStringAsFixed(2)}',
               _selectedExtraIds.contains(e.id),
               () => setState(() {
-                    if (_selectedExtraIds.contains(e.id)) {
-                      _selectedExtraIds.remove(e.id);
-                    } else {
-                      _selectedExtraIds.add(e.id);
-                    }
-                  }),
+                if (_selectedExtraIds.contains(e.id)) {
+                  _selectedExtraIds.remove(e.id);
+                } else {
+                  _selectedExtraIds.add(e.id);
+                }
+              }),
             )),
       ],
     );
@@ -599,12 +628,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               null,
               _selectedPreferenceIds.contains(p.id),
               () => setState(() {
-                    if (_selectedPreferenceIds.contains(p.id)) {
-                      _selectedPreferenceIds.remove(p.id);
-                    } else {
-                      _selectedPreferenceIds.add(p.id);
-                    }
-                  }),
+                if (_selectedPreferenceIds.contains(p.id)) {
+                  _selectedPreferenceIds.remove(p.id);
+                } else {
+                  _selectedPreferenceIds.add(p.id);
+                }
+              }),
             )),
       ],
     );
@@ -621,7 +650,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: _cardColor(context),
+        color: _bgSecondary(context),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: _borderColor(context)),
       ),
@@ -633,10 +662,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             child: Checkbox(
               value: value,
               onChanged: (_) => onChanged(),
-              fillColor: WidgetStateProperty.all(Colors.transparent),
+              fillColor: WidgetStateProperty.all(AppColors.transparent),
               checkColor: _kPrimary,
               side: BorderSide(color: _borderColor(context)),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4)),
             ),
           ),
           const SizedBox(width: 12),
@@ -680,17 +710,19 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: _cardColor(context),
+            color: _bgSecondary(context),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(color: _borderColor(context)),
           ),
           child: TextField(
             controller: _instructionsController,
             maxLines: 3,
-            style: GoogleFonts.plusJakartaSans(fontSize: 14, color: _textPrimary(context)),
+            style: GoogleFonts.plusJakartaSans(
+                fontSize: 14, color: _textPrimary(context)),
             decoration: InputDecoration(
               hintText: 'Ej: Salsa aparte, servilletas extra...',
-              hintStyle: GoogleFonts.plusJakartaSans(color: _textSecondary(context), fontSize: 14),
+              hintStyle: GoogleFonts.plusJakartaSans(
+                  color: _textSecondary(context), fontSize: 14),
               border: InputBorder.none,
               isDense: true,
               contentPadding: EdgeInsets.zero,
@@ -716,13 +748,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isDark
-              ? _cardColor(context).withValues(alpha: 0.95)
-              : Colors.white,
+              ? _bgSecondary(context).withValues(alpha: 0.95)
+              : AppColors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.black12,
+            color:
+                isDark ? AppColors.white.withValues(alpha: 0.05) : AppColors.black12,
           ),
           boxShadow: [
             BoxShadow(
@@ -737,15 +768,18 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
-                color: isDark ? _backgroundColor(context) : AppColors.grayLight,
+                color: isDark ? _bgPrimary(context) : AppColors.grayLight,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    icon: Icon(Icons.remove, color: _textPrimary(context), size: 20),
-                    onPressed: _quantity > 1 ? () => setState(() => _quantity--) : null,
+                    icon: Icon(Icons.remove,
+                        color: _textPrimary(context), size: 20),
+                    onPressed: _quantity > 1
+                        ? () => setState(() => _quantity--)
+                        : null,
                     style: IconButton.styleFrom(
                       minimumSize: const Size(40, 40),
                       padding: EdgeInsets.zero,
@@ -764,7 +798,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.add, color: _textPrimary(context), size: 20),
+                    icon:
+                        Icon(Icons.add, color: _textPrimary(context), size: 20),
                     onPressed: () => setState(() => _quantity++),
                     style: IconButton.styleFrom(
                       minimumSize: const Size(40, 40),
@@ -793,7 +828,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ));
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text(replaced ? 'Carrito actualizado. Solo puedes tener productos de un comercio a la vez.' : 'Producto añadido al carrito'),
+                        content: Text(replaced
+                            ? 'Carrito actualizado. Solo puedes tener productos de un comercio a la vez.'
+                            : 'Producto añadido al carrito'),
                       ),
                     );
                   },
@@ -813,7 +850,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                              color: AppColors.white,
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -822,11 +859,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: Colors.white.withValues(alpha: 0.9),
+                              color: AppColors.white.withValues(alpha: 0.9),
                             ),
                           ),
                           const SizedBox(width: 6),
-                          const Icon(Icons.arrow_forward, color: Colors.white, size: 18),
+                          const Icon(Icons.arrow_forward,
+                              color: AppColors.white, size: 18),
                         ],
                       ),
                     ),

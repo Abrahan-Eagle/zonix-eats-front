@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:zonix/config/app_config.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 /// Widget de mapa usando OpenStreetMap tiles (como en Zonix Eats).
 /// [polylinePoints]: puntos para dibujar una ruta (ej. moto → cliente).
@@ -54,7 +55,7 @@ class OsmMapWidget extends StatelessWidget {
               polylines: [
                 Polyline(
                   points: polylinePoints!,
-                  color: polylineColor ?? const Color(0xFF3399FF),
+                  color: polylineColor ?? AppColors.blue,
                   strokeWidth: polylineStrokeWidth ?? 4.0,
                 ),
               ],
@@ -85,7 +86,7 @@ class MapMarker {
       child: child ??
           Icon(
             iconData,
-            color: color ?? Colors.red,
+            color: color ?? AppColors.red,
             size: size,
           ),
     );

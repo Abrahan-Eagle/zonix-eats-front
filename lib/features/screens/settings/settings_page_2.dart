@@ -55,9 +55,9 @@ class _MasTile {
   });
 }
 
-// Colores Stitch (template)
-const Color _stitchPrimary = Color(0xFF3399FF);
-const Color _stitchSurfaceDark = Color(0xFF182430);
+// Colores Stitch (template) — usar AppColors
+const Color _stitchPrimary = AppColors.blue;
+const Color _stitchSurfaceDark = AppColors.grayDark;
 
 class SettingsPage2 extends StatefulWidget {
   const SettingsPage2({super.key});
@@ -270,7 +270,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Cerrar',
-      barrierColor: Colors.transparent,
+      barrierColor: AppColors.transparent,
       transitionDuration: const Duration(milliseconds: 200),
       pageBuilder: (_, __, ___) => const SizedBox.shrink(),
       transitionBuilder: (context, animation, secondaryAnimation, child) {
@@ -286,8 +286,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
                 duration: const Duration(milliseconds: 200),
                 child: Container(
                     color: isDark
-                        ? Colors.black.withValues(alpha: 0.7)
-                        : Colors.black.withValues(alpha: 0.2)),
+                        ? AppColors.black.withValues(alpha: 0.7)
+                        : AppColors.black.withValues(alpha: 0.2)),
               ),
             ),
             // Contenido del modal
@@ -334,7 +334,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
         side: BorderSide(color: borderColor, width: 1),
       ),
       elevation: 24,
-      shadowColor: Colors.black.withValues(alpha: 0.25),
+      shadowColor: AppColors.black.withValues(alpha: 0.25),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 384),
         child: ClipRRect(
@@ -518,7 +518,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                 top: 16,
                 right: 16,
                 child: Material(
-                  color: Colors.transparent,
+                  color: AppColors.transparent,
                   child: InkWell(
                     onTap: () => Navigator.of(context).pop(),
                     borderRadius: BorderRadius.circular(999),
@@ -549,7 +549,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final scaffoldBg =
-        isDark ? theme.scaffoldBackgroundColor : const Color(0xFFF5F7F8);
+        isDark ? theme.scaffoldBackgroundColor : AppColors.scaffoldBgLight;
     final isCommerce =
         Provider.of<UserProvider>(context, listen: false).userRole ==
             'commerce';
@@ -711,7 +711,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
     final inactiveBg =
         isDark ? _stitchSurfaceDark : theme.colorScheme.surfaceContainerLow;
     final inactiveColor =
-        isDark ? const Color(0xFF9CA3AF) : theme.colorScheme.onSurfaceVariant;
+        isDark ? AppColors.textMutedGray : theme.colorScheme.onSurfaceVariant;
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -740,7 +740,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
       Color activeBg, Color inactiveBg, Color inactiveColor) {
     final isActive = _activeTab == tab;
     return Material(
-      color: Colors.transparent,
+      color: AppColors.transparent,
       child: InkWell(
         onTap: () => setState(() => _activeTab = tab),
         borderRadius: BorderRadius.circular(24),
@@ -753,7 +753,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                 24), // puntas redondeadas como Add Restaurante
             border: theme.brightness == Brightness.dark
                 ? Border.all(
-                    color: Colors.white.withValues(alpha: 0.05), width: 1)
+                    color: AppColors.white.withValues(alpha: 0.05), width: 1)
                 : null,
             boxShadow: isActive
                 ? [
@@ -768,14 +768,14 @@ class _SettingsPage2State extends State<SettingsPage2> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon,
-                  size: 16, color: isActive ? Colors.white : inactiveColor),
+                  size: 16, color: isActive ? AppColors.white : inactiveColor),
               const SizedBox(width: 6),
               Text(
                 label,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                  color: isActive ? Colors.white : inactiveColor,
+                  color: isActive ? AppColors.white : inactiveColor,
                 ),
               ),
             ],
@@ -872,7 +872,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
               style: TextStyle(
                 fontSize: isTablet ? 14 : 13,
                 color: theme.brightness == Brightness.dark
-                    ? Colors.white.withValues(alpha: 0.75)
+                    ? AppColors.white.withValues(alpha: 0.75)
                     : theme.colorScheme.onSurfaceVariant,
               ),
             );
@@ -889,7 +889,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
     final surfaceColor =
         isDark ? _stitchSurfaceDark : theme.colorScheme.surface;
     final borderColor = isDark
-        ? Colors.white.withValues(alpha: 0.05)
+        ? AppColors.white.withValues(alpha: 0.05)
         : theme.colorScheme.outline.withValues(alpha: 0.2);
 
     return Column(
@@ -908,7 +908,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                 label: const Text('Editar Perfil'),
                 style: FilledButton.styleFrom(
                   backgroundColor: _stitchPrimary,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(24)),
@@ -943,7 +943,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
           context: context,
           theme: theme,
           icon: Icons.location_on,
-          iconColor: Colors.orange,
+          iconColor: AppColors.amber,
           title: 'Direcciones guardadas',
           surfaceColor: surfaceColor,
           borderColor: borderColor,
@@ -958,7 +958,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
           context: context,
           theme: theme,
           icon: Icons.credit_card,
-          iconColor: Colors.orange,
+          iconColor: AppColors.amber,
           title: 'Métodos de pago',
           surfaceColor: surfaceColor,
           borderColor: borderColor,
@@ -980,7 +980,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
           context: context,
           theme: theme,
           icon: Icons.call,
-          iconColor: Colors.green,
+          iconColor: AppColors.green,
           title: 'Teléfonos',
           surfaceColor: surfaceColor,
           borderColor: borderColor,
@@ -1155,7 +1155,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
         ? _stitchSurfaceDark
         : theme.colorScheme.surface;
     final border = theme.brightness == Brightness.dark
-        ? Colors.white.withValues(alpha: 0.05)
+        ? AppColors.white.withValues(alpha: 0.05)
         : theme.colorScheme.outline.withValues(alpha: 0.15);
 
     Text label(String text) {
@@ -1179,7 +1179,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
               : 14, // Aumentado ligeramente para coincidir con template
           fontWeight: FontWeight.bold, // Segun template texto oscuro en bold
           color: theme.brightness == Brightness.dark
-              ? Colors.white
+              ? AppColors.white
               : theme.colorScheme.onSurface,
         ),
         maxLines: 2,
@@ -1483,13 +1483,13 @@ class _SettingsPage2State extends State<SettingsPage2> {
                       top: -16,
                       right: -16,
                       child: Icon(Icons.description,
-                          size: 48, color: Colors.white.withValues(alpha: 0.1)),
+                          size: 48, color: AppColors.white.withValues(alpha: 0.1)),
                     ),
                     Positioned(
                       bottom: 8,
                       left: -24,
                       child: Icon(Icons.star,
-                          size: 36, color: Colors.white.withValues(alpha: 0.1)),
+                          size: 36, color: AppColors.white.withValues(alpha: 0.1)),
                     ),
                   ],
                 ),
@@ -1519,7 +1519,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                   label: const Text('Crear Publicación'),
                   style: FilledButton.styleFrom(
                     backgroundColor: _stitchPrimary,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppColors.white,
                     padding: const EdgeInsets.symmetric(
                         vertical: 16, horizontal: 24),
                     shape: RoundedRectangleBorder(
@@ -1580,7 +1580,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
     final surfaceColor =
         isDark ? _stitchSurfaceDark : theme.colorScheme.surface;
     final borderColor = isDark
-        ? Colors.white.withValues(alpha: 0.05)
+        ? AppColors.white.withValues(alpha: 0.05)
         : theme.colorScheme.outline.withValues(alpha: 0.2);
 
     return Column(
@@ -1604,14 +1604,14 @@ class _SettingsPage2State extends State<SettingsPage2> {
             ),
             _MasTile(
               icon: Icons.download_rounded,
-              iconColor: Colors.green,
+              iconColor: AppColors.green,
               title: 'Exportar datos',
               onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const DataExportPage())),
             ),
             _MasTile(
               icon: Icons.privacy_tip_outlined,
-              iconColor: Colors.orange,
+              iconColor: AppColors.amber,
               title: 'Privacidad',
               onTap: () async {
                 final baseUrl = dotenv.env['APP_DOMAIN'] != null
@@ -1636,7 +1636,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
             tiles: [
               _MasTile(
                   icon: Icons.store,
-                  iconColor: Colors.blue,
+                  iconColor: AppColors.blue,
                   title: 'Datos del comercio',
                   subtitle: 'Información básica y contacto',
                   onTap: () => Navigator.push(
@@ -1645,7 +1645,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                           builder: (_) => const CommerceDataPage()))),
               _MasTile(
                   icon: Icons.payments,
-                  iconColor: Colors.green,
+                  iconColor: AppColors.green,
                   title: 'Métodos de pago',
                   subtitle: 'Cuentas bancarias y móviles',
                   onTap: () => Navigator.push(
@@ -1673,7 +1673,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
             tiles: [
               _MasTile(
                   icon: Icons.campaign,
-                  iconColor: Colors.orange,
+                  iconColor: AppColors.amber,
                   title: 'Crear promo',
                   subtitle: 'Impulsa tus ventas',
                   onTap: () => Navigator.push(
@@ -1682,7 +1682,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                           builder: (_) => const CommercePromotionsPage()))),
               _MasTile(
                   icon: Icons.local_activity,
-                  iconColor: Colors.amber,
+                  iconColor: AppColors.amber,
                   title: 'Cupones',
                   subtitle: 'Gestionar descuentos',
                   onTap: () => Navigator.push(
@@ -1701,7 +1701,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
             tiles: [
               _MasTile(
                   icon: Icons.toggle_on_rounded,
-                  iconColor: Colors.red,
+                  iconColor: AppColors.red,
                   title: 'Estado abierto/cerrado',
                   onTap: () => Navigator.push(
                       context,
@@ -1717,7 +1717,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                           builder: (_) => const CommerceZonesPage()))),
               _MasTile(
                   icon: Icons.payment_rounded,
-                  iconColor: Colors.green,
+                  iconColor: AppColors.green,
                   title: 'Datos de pago móvil',
                   onTap: () => Navigator.push(
                       context,
@@ -1725,7 +1725,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                           builder: (_) => const CommercePaymentPage()))),
               _MasTile(
                   icon: Icons.notifications_outlined,
-                  iconColor: Colors.amber,
+                  iconColor: AppColors.amber,
                   title: 'Notificaciones del comercio',
                   onTap: () => Navigator.push(
                       context,
@@ -1788,7 +1788,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
   Widget _buildMasTileWidget(BuildContext context, ThemeData theme,
       _MasTile tile, Color surfaceColor) {
     return Material(
-      color: Colors.transparent,
+      color: AppColors.transparent,
       child: InkWell(
         onTap: tile.onTap,
         child: Padding(
@@ -1864,7 +1864,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
           child: Column(
             children: [
               Material(
-                color: Colors.transparent,
+                color: AppColors.transparent,
                 child: InkWell(
                   onTap: () => Navigator.push(
                       context,
@@ -1906,7 +1906,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
               ),
               Divider(height: 1, color: borderColor),
               Material(
-                color: Colors.transparent,
+                color: AppColors.transparent,
                 child: InkWell(
                   onTap: () => Navigator.push(
                       context,
@@ -1950,7 +1950,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
               ),
               Divider(height: 1, color: borderColor),
               Material(
-                color: Colors.transparent,
+                color: AppColors.transparent,
                 child: InkWell(
                   onTap: () => Navigator.push(context,
                       MaterialPageRoute(builder: (_) => const AboutScreen())),
@@ -2019,7 +2019,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
         color: isDark ? _stitchSurfaceDark : theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         border: isDark
-            ? Border.all(color: Colors.white.withValues(alpha: 0.05))
+            ? Border.all(color: AppColors.white.withValues(alpha: 0.05))
             : null,
       ),
       child: Column(children: children),
@@ -2032,7 +2032,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
       indent: 16,
       endIndent: 16,
       color: theme.brightness == Brightness.dark
-          ? Colors.white.withValues(alpha: 0.05)
+          ? AppColors.white.withValues(alpha: 0.05)
           : theme.colorScheme.outline.withValues(alpha: 0.2),
     );
   }

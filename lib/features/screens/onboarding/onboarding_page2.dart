@@ -1,10 +1,9 @@
+import 'package:zonix/features/utils/app_colors.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // Colores del template Stitch (Onboarding 2 - Pedidos fáciles)
-const Color _kBackgroundDark = Color(0xFF0F1923);
-const Color _kPrimary = Color(0xFF3399FF);
 
 class OnboardingPage2 extends StatefulWidget {
   const OnboardingPage2({super.key});
@@ -75,7 +74,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: titleSize,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                                color: AppColors.white,
                                 height: 1.25,
                               ),
                             ),
@@ -89,7 +88,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: titleSize,
                                     fontWeight: FontWeight.bold,
-                                    color: _kPrimary,
+                                    color: AppColors.blue,
                                     height: 1.25,
                                   ),
                                 ),
@@ -97,7 +96,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                                   width: 140,
                                   height: 8,
                                   child: CustomPaint(
-                                    painter: _CurvedUnderlinePainter(color: _kPrimary.withValues(alpha: 0.3)),
+                                    painter: _CurvedUnderlinePainter(color: AppColors.blue.withValues(alpha: 0.3)),
                                   ),
                                 ),
                               ],
@@ -111,7 +110,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: bodySize,
                             fontWeight: FontWeight.w400,
-                            color: Colors.white.withValues(alpha: 0.7),
+                            color: AppColors.white.withValues(alpha: 0.7),
                             height: 1.5,
                           ),
                         ),
@@ -132,7 +131,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
   Widget _buildBackground(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Container(
-      color: _kBackgroundDark,
+      color: AppColors.backgroundDark,
       child: Stack(
         children: [
           // space-bg: radial top center
@@ -148,8 +147,8 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                   center: Alignment.center,
                   radius: 1.0,
                   colors: [
-                    _kPrimary.withValues(alpha: 0.15),
-                    Colors.transparent,
+                    AppColors.blue.withValues(alpha: 0.15),
+                    AppColors.transparent,
                   ],
                   stops: const [0.0, 0.6],
                 ),
@@ -167,8 +166,8 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    _kPrimary.withValues(alpha: 0.1),
-                    Colors.transparent,
+                    AppColors.blue.withValues(alpha: 0.1),
+                    AppColors.transparent,
                   ],
                   stops: const [0.0, 0.4],
                 ),
@@ -207,8 +206,8 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    _kPrimary.withValues(alpha: 0.2 * pulse),
-                    Colors.transparent,
+                    AppColors.blue.withValues(alpha: 0.2 * pulse),
+                    AppColors.transparent,
                   ],
                   stops: const [0.0, 0.7],
                 ),
@@ -222,7 +221,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
           height: ringSize,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            border: Border.all(color: _kPrimary.withValues(alpha: 0.1)),
+            border: Border.all(color: AppColors.blue.withValues(alpha: 0.1)),
           ),
         ),
         // Anillo dashed (22rem) con rotación
@@ -235,7 +234,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                 width: dashedSize,
                 height: dashedSize,
                 child: CustomPaint(
-                  painter: _DashedCirclePainter(color: _kPrimary.withValues(alpha: 0.2)),
+                  painter: _DashedCirclePainter(color: AppColors.blue.withValues(alpha: 0.2)),
                 ),
               ),
             );
@@ -258,11 +257,11 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [_kPrimary, Color(0xFF1E3A5F)],
+                    colors: [AppColors.blue, AppColors.onboardingBlueDark],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: _kPrimary.withValues(alpha: 0.4),
+                      color: AppColors.blue.withValues(alpha: 0.4),
                       blurRadius: 30,
                       spreadRadius: 0,
                     ),
@@ -271,7 +270,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                 child: Icon(
                   Icons.rocket_launch,
                   size: centerSize * 0.5,
-                  color: Colors.white.withValues(alpha: 0.9),
+                  color: AppColors.white.withValues(alpha: 0.9),
                 ),
               ),
               // Burger: -top-4 right-4, rotate-12 (HTML)
@@ -335,12 +334,12 @@ class _OnboardingPage2State extends State<OnboardingPage2>
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: _kBackgroundDark,
+        color: AppColors.backgroundDark,
         borderRadius: BorderRadius.circular(size * 0.25),
-        border: Border.all(color: _kPrimary.withValues(alpha: 0.3)),
+        border: Border.all(color: AppColors.blue.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: AppColors.black.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -360,7 +359,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
       width: size,
       height: size,
       decoration: BoxDecoration(
-        color: _kPrimary.withValues(alpha: opacity),
+        color: AppColors.blue.withValues(alpha: opacity),
         shape: BoxShape.circle,
       ),
     );

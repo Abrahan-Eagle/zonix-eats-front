@@ -53,12 +53,12 @@ class ProfilePagex extends StatelessWidget {
             return Scaffold(
               appBar: AppBar(
                 title: const Text('Mi Perfil'),
-                backgroundColor: Colors.transparent,
+                backgroundColor: AppColors.transparent,
                 elevation: 0,
               ),
               body: const Center(
                 child: CircularProgressIndicator(
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xff0043ba)),
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.blue),
                 ),
               ),
             );
@@ -175,7 +175,7 @@ class ProfilePagex extends StatelessWidget {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
+                    color: AppColors.black.withValues(alpha: 0.2),
                     blurRadius: 18,
                     offset: const Offset(0, 6),
                   ),
@@ -183,7 +183,7 @@ class ProfilePagex extends StatelessWidget {
               ),
               child: CircleAvatar(
                 radius: 60,
-                backgroundColor: isDark ? const Color(0xFF23262B) : Colors.white,
+                backgroundColor: isDark ? AppColors.grayDark : AppColors.white,
                 child: _buildProfileAvatar(context, isDark),
               ),
             ),
@@ -193,7 +193,7 @@ class ProfilePagex extends StatelessWidget {
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: isDark ? Colors.white : Colors.black,
+                color: isDark ? AppColors.white : AppColors.black,
               ),
               textAlign: TextAlign.center,
             ),
@@ -201,17 +201,17 @@ class ProfilePagex extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                const Icon(
                   Icons.circle,
                   size: 8,
-                  color: Colors.greenAccent.shade400,
+                  color: AppColors.green,
                 ),
                 const SizedBox(width: 8),
                 Text(
                   'Usuario Activo',
                   style: TextStyle(
                     fontSize: 14,
-                    color: isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black.withValues(alpha: 0.7),
+                    color: isDark ? AppColors.white.withValues(alpha: 0.9) : AppColors.black.withValues(alpha: 0.7),
                   ),
                 ),
               ],
@@ -501,8 +501,8 @@ class ProfilePagex extends StatelessWidget {
       child: ElevatedButton.icon(
         onPressed: () => _navigateToEditOrCreatePage(context, profile),
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xff0043ba),
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.blue,
+          foregroundColor: AppColors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
@@ -576,13 +576,13 @@ class ProfilePagex extends StatelessWidget {
   Color _getStatusColor(String status) {
     switch (status) {
       case 'completeData':
-        return Colors.green;
+        return AppColors.green;
       case 'incompleteData':
-        return Colors.orange;
+        return AppColors.orange;
       case 'notverified':
-        return Colors.red;
+        return AppColors.red;
       default:
-        return Colors.grey;
+        return AppColors.gray;
     }
   }
 
@@ -617,7 +617,7 @@ class ProfilePagex extends StatelessWidget {
     if (profile?.photo == null || profile!.photo!.isEmpty) {
       return CircleAvatar(
         radius: 55,
-        backgroundColor: isDark ? Colors.grey[800]! : Colors.grey[200]!,
+        backgroundColor: isDark ? AppColors.grayDark : AppColors.grayLight,
         child: const Icon(Icons.person, size: 55),
       );
     }

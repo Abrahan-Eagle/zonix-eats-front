@@ -14,7 +14,7 @@ import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/models/order.dart';
 
 /// Color primary del template (code1/code2 HTML): #3399ff
-const Color _templatePrimary = Color(0xFF3399FF);
+const Color _templatePrimary = AppColors.blue;
 
 class OrdersPage extends StatefulWidget {
   const OrdersPage({super.key});
@@ -160,10 +160,12 @@ class _OrdersPageState extends State<OrdersPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final surfaceColor = isDark ? AppColors.cardBg(context) : Colors.white;
-    final backgroundLight = isDark ? const Color(0xFF0f1923) : const Color(0xFFf5f7f8);
+    final surfaceColor = AppColors.cardBg(context);
+    final backgroundLight =
+        isDark ? AppColors.backgroundDark : AppColors.grayLight;
     final primary = isDark ? AppColors.accentButton(context) : _templatePrimary;
-    final borderColor = isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFE2E8F0); // slate-100/200
+    final borderColor =
+        isDark ? Colors.white.withValues(alpha: 0.08) : AppColors.grayLight;
 
     return Scaffold(
       backgroundColor: backgroundLight,
@@ -175,7 +177,7 @@ class _OrdersPageState extends State<OrdersPage> {
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : _error != null
-                          ? _buildError(theme)
+                      ? _buildError(theme)
                       : _orders.isEmpty
                           ? _buildEmpty(context, theme)
                           : RefreshIndicator(
@@ -183,8 +185,10 @@ class _OrdersPageState extends State<OrdersPage> {
                                 await _loadOrders();
                               },
                               child: _tabIndex == 0
-                                  ? _buildActivasContent(context, theme, surfaceColor, borderColor, primary)
-                                  : _buildHistorialContent(context, theme, surfaceColor, borderColor, primary),
+                                  ? _buildActivasContent(context, theme,
+                                      surfaceColor, borderColor, primary)
+                                  : _buildHistorialContent(context, theme,
+                                      surfaceColor, borderColor, primary),
                             ),
             ),
           ],
@@ -215,20 +219,25 @@ class _OrdersPageState extends State<OrdersPage> {
     }
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${order.items.length} producto(s) agregados al carrito')),
+        SnackBar(
+            content:
+                Text('${order.items.length} producto(s) agregados al carrito')),
       );
     }
   }
 
   bool get isDark => Theme.of(context).brightness == Brightness.dark;
 
-  Widget _buildTabs(BuildContext context, ThemeData theme, Color surfaceColor, Color borderColor) {
+  Widget _buildTabs(BuildContext context, ThemeData theme, Color surfaceColor,
+      Color borderColor) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
       child: Container(
         padding: const EdgeInsets.all(4),
         decoration: BoxDecoration(
-          color: isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFE2E8F0).withValues(alpha: 0.8), // slate-200/80
+          color: isDark
+              ? AppColors.grayDark.withValues(alpha: 0.5)
+              : AppColors.grayLight.withValues(alpha: 0.8), // slate-200/80
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -276,7 +285,12 @@ class _OrdersPageState extends State<OrdersPage> {
             color: selected ? surfaceColor : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
             boxShadow: selected && !isDark
-                ? [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 4, offset: const Offset(0, 1))]
+                ? [
+                    BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.06),
+                        blurRadius: 4,
+                        offset: const Offset(0, 1))
+                  ]
                 : null,
           ),
           child: Text(
@@ -285,7 +299,9 @@ class _OrdersPageState extends State<OrdersPage> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               fontWeight: selected ? FontWeight.bold : FontWeight.w600,
-              color: selected ? (isDark ? theme.colorScheme.onSurface : const Color(0xFF0F172A)) : const Color(0xFF64748B), // slate-900 / slate-500
+              color: selected
+                  ? AppColors.primaryText(context)
+                  : AppColors.secondaryText(context), // slate-900 / slate-500
             ),
           ),
         ),
@@ -300,11 +316,13 @@ class _OrdersPageState extends State<OrdersPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: AppColors.error(context)),
+            Icon(Icons.error_outline,
+                size: 64, color: AppColors.error(context)),
             const SizedBox(height: 16),
             Text('Error al cargar pedidos', style: theme.textTheme.titleMedium),
             const SizedBox(height: 8),
-            Text(_error!, style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
+            Text(_error!,
+                style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
             const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: _loadOrders,
@@ -324,13 +342,19 @@ class _OrdersPageState extends State<OrdersPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.shopping_bag_outlined, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+            Icon(Icons.shopping_bag_outlined,
+                size: 64, color: AppColors.secondaryText(context)),
             const SizedBox(height: 16),
-            Text('No tienes pedidos aún', style: theme.textTheme.titleMedium),
+            Text('No tienes pedidos aún',
+                style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryText(context))),
             const SizedBox(height: 8),
             Text(
               'Cuando hagas tu primer pedido, aparecerá aquí',
-              style: theme.textTheme.bodySmall,
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14, color: AppColors.secondaryText(context)),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
@@ -339,7 +363,9 @@ class _OrdersPageState extends State<OrdersPage> {
               icon: const Icon(Icons.storefront, size: 20),
               label: const Text('Explorar Restaurantes'),
               style: FilledButton.styleFrom(
-                backgroundColor: Theme.of(context).brightness == Brightness.dark ? AppColors.accentButton(context) : _templatePrimary,
+                backgroundColor: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.accentButton(context)
+                    : _templatePrimary,
               ),
             ),
           ],
@@ -364,15 +390,26 @@ class _OrdersPageState extends State<OrdersPage> {
         if (active != null) ...[
           Text(
             'Pedido Actual',
-            style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? theme.colorScheme.onSurface : const Color(0xFF0F172A)),
+            style: GoogleFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: isDark
+                    ? theme.colorScheme.onSurface
+                    : AppColors.primaryText(context)),
           ),
           const SizedBox(height: 12),
-          _buildCurrentOrderCard(context, active, theme, surfaceColor, borderColor, primary),
+          _buildCurrentOrderCard(
+              context, active, theme, surfaceColor, borderColor, primary),
           const SizedBox(height: 24),
         ],
         Text(
           'Historial Reciente',
-          style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? theme.colorScheme.onSurface : const Color(0xFF0F172A)),
+          style: GoogleFonts.plusJakartaSans(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isDark
+                  ? theme.colorScheme.onSurface
+                  : AppColors.primaryText(context)),
         ),
         const SizedBox(height: 12),
         if (historyForActivas.isEmpty)
@@ -380,13 +417,15 @@ class _OrdersPageState extends State<OrdersPage> {
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Text(
               'Aún no hay pedidos en el historial',
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
             ),
           )
         else
           ...historyForActivas.map((o) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: _buildHistoryOrderCardCompact(context, o, theme, surfaceColor, borderColor, primary),
+                child: _buildHistoryOrderCardCompact(
+                    context, o, theme, surfaceColor, borderColor, primary),
               )),
       ],
     );
@@ -405,7 +444,10 @@ class _OrdersPageState extends State<OrdersPage> {
       children: [
         Text(
           'Órdenes Completadas',
-          style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: isDark ? theme.colorScheme.onSurface : const Color(0xFF0F172A)),
+          style: GoogleFonts.plusJakartaSans(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primaryText(context)),
         ),
         const SizedBox(height: 12),
         if (history.isEmpty)
@@ -413,13 +455,15 @@ class _OrdersPageState extends State<OrdersPage> {
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Text(
               'No hay órdenes completadas',
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
             ),
           )
         else
           ...history.map((o) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
-                child: _buildHistoryOrderCardCompact(context, o, theme, surfaceColor, borderColor, primary),
+                child: _buildHistoryOrderCardCompact(
+                    context, o, theme, surfaceColor, borderColor, primary),
               )),
       ],
     );
@@ -443,7 +487,13 @@ class _OrdersPageState extends State<OrdersPage> {
         color: surfaceColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: borderColor),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 20, spreadRadius: -2, offset: const Offset(0, 4))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 20,
+              spreadRadius: -2,
+              offset: const Offset(0, 4))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -473,20 +523,28 @@ class _OrdersPageState extends State<OrdersPage> {
                         Expanded(
                           child: Text(
                             name,
-                            style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.onSurface),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: primary.withValues(alpha: 0.10),
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
                             order.statusText.toUpperCase(),
-                            style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 0.5, color: primary),
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
+                                color: primary),
                           ),
                         ),
                       ],
@@ -494,7 +552,10 @@ class _OrdersPageState extends State<OrdersPage> {
                     const SizedBox(height: 4),
                     Text(
                       '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
-                      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.55)),
                     ),
                     const SizedBox(height: 12),
                     Row(
@@ -504,8 +565,11 @@ class _OrdersPageState extends State<OrdersPage> {
                             borderRadius: BorderRadius.circular(999),
                             child: LinearProgressIndicator(
                               value: _progressForStatus(order.status),
-                              backgroundColor: isDark ? theme.colorScheme.surfaceContainerHighest : const Color(0xFFF1F5F9),
-                              valueColor: AlwaysStoppedAnimation<Color>(primary),
+                              backgroundColor: isDark
+                                  ? AppColors.grayDark
+                                  : AppColors.grayLight,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(primary),
                               minHeight: 6,
                             ),
                           ),
@@ -513,7 +577,11 @@ class _OrdersPageState extends State<OrdersPage> {
                         const SizedBox(width: 8),
                         Text(
                           '15 min',
-                          style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                          style: TextStyle(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface
+                                  .withValues(alpha: 0.5)),
                         ),
                       ],
                     ),
@@ -531,11 +599,19 @@ class _OrdersPageState extends State<OrdersPage> {
                 children: [
                   Text(
                     'TOTAL',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1, color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
+                    style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1,
+                        color: theme.colorScheme.onSurface
+                            .withValues(alpha: 0.55)),
                   ),
                   Text(
                     '\$${order.total.toStringAsFixed(2)}',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                    style: GoogleFonts.plusJakartaSans(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: theme.colorScheme.onSurface),
                   ),
                 ],
               ),
@@ -548,13 +624,19 @@ class _OrdersPageState extends State<OrdersPage> {
                   onTap: () => _openOrderDetail(context, order),
                   borderRadius: BorderRadius.circular(12),
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 14),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('Seguir Pedido', style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
+                        Text('Seguir Pedido',
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white)),
                         const SizedBox(width: 8),
-                        const Icon(Icons.location_on, size: 18, color: Colors.white),
+                        const Icon(Icons.location_on,
+                            size: 18, color: Colors.white),
                       ],
                     ),
                   ),
@@ -607,7 +689,12 @@ class _OrdersPageState extends State<OrdersPage> {
         color: surfaceColor,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: borderColor),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 1))],
+        boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 4,
+              offset: const Offset(0, 1))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -634,19 +721,28 @@ class _OrdersPageState extends State<OrdersPage> {
                   children: [
                     Text(
                       name,
-                      style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                      style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       '$dateStr • $statusText',
-                      style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
+                      style: TextStyle(
+                          fontSize: 12,
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.55)),
                     ),
                   ],
                 ),
               ),
               Text(
                 '\$${order.total.toStringAsFixed(2)}',
-                style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.bold, color: theme.colorScheme.onSurface),
+                style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryText(context)),
               ),
             ],
           ),
@@ -655,7 +751,7 @@ class _OrdersPageState extends State<OrdersPage> {
             children: [
               Expanded(
                 child: Material(
-                  color: isDark ? theme.colorScheme.surfaceContainerHighest : const Color(0xFFF8FAFC),
+                  color: isDark ? AppColors.grayDark : AppColors.grayLight,
                   borderRadius: BorderRadius.circular(8),
                   child: InkWell(
                     onTap: () => _pedirDeNuevo(context, order),
@@ -665,7 +761,10 @@ class _OrdersPageState extends State<OrdersPage> {
                       child: Center(
                         child: Text(
                           'Pedir de nuevo',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold, color: primary),
+                          style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: primary),
                         ),
                       ),
                     ),
@@ -677,12 +776,16 @@ class _OrdersPageState extends State<OrdersPage> {
                 child: OutlinedButton(
                   onPressed: () => _openOrderDetail(context, order),
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    foregroundColor:
+                        theme.colorScheme.onSurface.withValues(alpha: 0.6),
                     side: BorderSide(color: borderColor),
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8)),
                   ),
-                  child: Text('Ver Recibo', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold)),
+                  child: Text('Ver Recibo',
+                      style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -693,7 +796,20 @@ class _OrdersPageState extends State<OrdersPage> {
   }
 
   String _formatOrderDate(DateTime d) {
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const months = [
+      'Ene',
+      'Feb',
+      'Mar',
+      'Abr',
+      'May',
+      'Jun',
+      'Jul',
+      'Ago',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dic'
+    ];
     return '${d.day} ${months[d.month - 1]}';
   }
 
@@ -703,7 +819,9 @@ class _OrdersPageState extends State<OrdersPage> {
       width: w,
       height: h,
       color: dark ? Colors.grey.shade800 : Colors.grey.shade300,
-      child: Icon(Icons.restaurant, color: dark ? Colors.grey.shade500 : Colors.grey.shade600, size: w * 0.5),
+      child: Icon(Icons.store,
+          color: dark ? Colors.grey.shade500 : Colors.grey.shade600,
+          size: w * 0.5),
     );
   }
 

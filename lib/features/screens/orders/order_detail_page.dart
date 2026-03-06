@@ -59,15 +59,21 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   @override
   void dispose() {
     if (_trackingSubscribed) {
-      PusherService.instance.unsubscribeFromChannel('private-orders.${widget.orderId}');
+      PusherService.instance
+          .unsubscribeFromChannel('private-orders.${widget.orderId}');
     }
     super.dispose();
   }
 
   void _subscribeToTracking() {
-    if (_order == null || _trackingSubscribed) return;
+    if (_order == null || _trackingSubscribed) {
+      return;
+    }
     final s = _order!.status;
-    if (s == 'shipped' || s == 'out_for_delivery' || s == 'processing' || s == 'paid') {
+    if (s == 'shipped' ||
+        s == 'out_for_delivery' ||
+        s == 'processing' ||
+        s == 'paid') {
       PusherService.instance.subscribeToOrderChat(
         widget.orderId,
         onNewMessage: (eventName, data) {
@@ -95,8 +101,16 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     if (_order == null || !_isTrackableStatus(_order!.status)) return;
     try {
       final data = await OrderService().getOrderTracking(widget.orderId);
-      final lat = data['latitude'] is double ? data['latitude'] as double : (data['latitude'] != null ? double.tryParse(data['latitude'].toString()) : null);
-      final lng = data['longitude'] is double ? data['longitude'] as double : (data['longitude'] != null ? double.tryParse(data['longitude'].toString()) : null);
+      final lat = data['latitude'] is double
+          ? data['latitude'] as double
+          : (data['latitude'] != null
+              ? double.tryParse(data['latitude'].toString())
+              : null);
+      final lng = data['longitude'] is double
+          ? data['longitude'] as double
+          : (data['longitude'] != null
+              ? double.tryParse(data['longitude'].toString())
+              : null);
       if (mounted && lat != null && lng != null) {
         setState(() {
           _deliveryLat = lat;
@@ -139,7 +153,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       maxWidth: 1920,
       imageQuality: 85,
     );
-    if (file == null || !mounted) return;
+    if (file == null || !mounted) {
+      return;
+    }
 
     String? paymentMethod;
     String? referenceNumber;
@@ -149,15 +165,21 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       barrierDismissible: false,
       builder: (_) => const _UploadProofDialog(),
     );
-    if (result == null || !mounted) return;
+    if (result == null || !mounted) {
+      return;
+    }
 
     paymentMethod = result['method'];
     referenceNumber = result['ref'];
-    if (paymentMethod == null || paymentMethod.isEmpty ||
-        referenceNumber == null || referenceNumber.isEmpty) {
+    if (paymentMethod == null ||
+        paymentMethod.isEmpty ||
+        referenceNumber == null ||
+        referenceNumber.isEmpty) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Debes ingresar método de pago y número de referencia')),
+          const SnackBar(
+              content:
+                  Text('Debes ingresar método de pago y número de referencia')),
         );
       }
       return;
@@ -191,7 +213,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         );
       }
     } finally {
-      if (mounted) setState(() => _updating = false);
+      if (mounted) {
+        setState(() => _updating = false);
+      }
     }
   }
 
@@ -213,11 +237,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         ],
       ),
     );
-    if (confirm != true || !mounted) return;
+    if (confirm != true || !mounted) {
+      return;
+    }
 
     setState(() => _updating = true);
     try {
-      await OrderService().cancelOrder(widget.orderId, reason: 'Cancelación por usuario');
+      await OrderService()
+          .cancelOrder(widget.orderId, reason: 'Cancelación por usuario');
       if (mounted) {
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -234,7 +261,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         );
       }
     } finally {
-      if (mounted) setState(() => _updating = false);
+      if (mounted) {
+        setState(() => _updating = false);
+      }
     }
   }
 
@@ -271,7 +300,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               const SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Text(_error ?? AppStrings.orderNotFound, textAlign: TextAlign.center),
+                child: Text(_error ?? AppStrings.orderNotFound,
+                    textAlign: TextAlign.center),
               ),
               const SizedBox(height: 16),
               ElevatedButton(
@@ -286,12 +316,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
     final order = _order!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surfaceColor = isDark ? AppColors.cardBg(context) : Colors.white;
-    final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
-    final textSecondary = isDark ? Colors.white70 : const Color(0xFF64748B);
-    final borderColor = isDark ? const Color(0xFF3F3F46) : const Color(0xFFE2E8F0);
-    final badgeBg = isDark ? const Color(0xFF27272A) : const Color(0xFFF1F5F9);
-    final scaffoldBg = isDark ? AppColors.backgroundDark : const Color(0xFFF5F7F8);
+    final surfaceColor = isDark ? AppColors.cardBg(context) : AppColors.white;
+    final textPrimary = AppColors.primaryText(context);
+    final textSecondary = AppColors.secondaryText(context);
+    final borderColor = isDark ? AppColors.grayDark : AppColors.grayLight;
+    final badgeBg = isDark ? AppColors.grayDark : AppColors.grayLight;
+    final scaffoldBg = AppColors.scaffoldBg(context);
 
     return Scaffold(
       backgroundColor: scaffoldBg,
@@ -300,13 +330,15 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           icon: Icon(Icons.arrow_back, color: textPrimary),
           onPressed: () => Navigator.of(context).pop(),
         ),
-        title: Text(AppStrings.receiptDetailTitle, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary)),
+        title: Text(AppStrings.receiptDetailTitle,
+            style: TextStyle(
+                fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary)),
         centerTitle: true,
         backgroundColor: surfaceColor,
         foregroundColor: textPrimary,
         elevation: 0,
         scrolledUnderElevation: 1,
-        surfaceTintColor: Colors.transparent,
+        surfaceTintColor: AppColors.transparent,
       ),
       body: _updating
           ? const Center(child: CircularProgressIndicator())
@@ -318,11 +350,26 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildReceiptHeader(order, textPrimary: textPrimary, textSecondary: textSecondary, surfaceColor: surfaceColor, borderColor: borderColor, badgeBg: badgeBg),
+                    _buildReceiptHeader(order,
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
+                        surfaceColor: surfaceColor,
+                        borderColor: borderColor,
+                        badgeBg: badgeBg),
                     const SizedBox(height: 24),
-                    _buildResumenCard(order, textPrimary: textPrimary, textSecondary: textSecondary, surfaceColor: surfaceColor, borderColor: borderColor, badgeBg: badgeBg),
+                    _buildResumenCard(order,
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
+                        surfaceColor: surfaceColor,
+                        borderColor: borderColor,
+                        badgeBg: badgeBg),
                     const SizedBox(height: 24),
-                    _buildPaymentAndAddressCard(order, textPrimary: textPrimary, textSecondary: textSecondary, surfaceColor: surfaceColor, borderColor: borderColor, badgeBg: badgeBg),
+                    _buildPaymentAndAddressCard(order,
+                        textPrimary: textPrimary,
+                        textSecondary: textSecondary,
+                        surfaceColor: surfaceColor,
+                        borderColor: borderColor,
+                        badgeBg: badgeBg),
                     if (_isTrackableStatus(order.status)) ...[
                       const SizedBox(height: 24),
                       _buildTrackingCard(order),
@@ -335,15 +382,24 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 ),
               ),
             ),
-      bottomNavigationBar: _buildBottomBar(order, surfaceColor: surfaceColor, borderColor: borderColor),
+      bottomNavigationBar: _buildBottomBar(order,
+          surfaceColor: surfaceColor, borderColor: borderColor),
     );
   }
 
-  Widget _buildReceiptHeader(Order order, {required Color textPrimary, required Color textSecondary, required Color surfaceColor, required Color borderColor, required Color badgeBg}) {
-    final commerceName = order.commerce?['business_name']?.toString() ?? 'Comercio';
+  Widget _buildReceiptHeader(Order order,
+      {required Color textPrimary,
+      required Color textSecondary,
+      required Color surfaceColor,
+      required Color borderColor,
+      required Color badgeBg}) {
+    final commerceName =
+        order.commerce?['business_name']?.toString() ?? 'Comercio';
     final commerceImage = order.commerce?['image']?.toString();
     final imageUrl = commerceImage != null && commerceImage.isNotEmpty
-        ? (commerceImage.startsWith('http') ? commerceImage : _imageUrl(commerceImage))
+        ? (commerceImage.startsWith('http')
+            ? commerceImage
+            : _imageUrl(commerceImage))
         : null;
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -357,7 +413,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               width: 80,
               height: 80,
               fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _commercePlaceholder(bgColor: badgeBg),
+              errorBuilder: (_, __, ___) =>
+                  _commercePlaceholder(bgColor: badgeBg),
             ),
           )
         else
@@ -366,13 +423,15 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         Text(
           commerceName,
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textPrimary),
+          style: TextStyle(
+              fontSize: 20, fontWeight: FontWeight.bold, color: textPrimary),
         ),
         const SizedBox(height: 4),
         Text(
           _formatReceiptDate(order.createdAt),
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 14, color: textSecondary, fontWeight: FontWeight.w500),
+          style: TextStyle(
+              fontSize: 14, color: textSecondary, fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 16),
         Container(
@@ -383,7 +442,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             border: Border.all(color: borderColor),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
+                color: AppColors.black.withValues(alpha: 0.04),
                 blurRadius: 4,
                 offset: const Offset(0, 1),
               ),
@@ -394,20 +453,30 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             children: [
               Text(
                 'ORDEN ID: ',
-                style: TextStyle(fontSize: 12, color: textSecondary, fontWeight: FontWeight.bold, letterSpacing: 0.5),
+                style: TextStyle(
+                    fontSize: 12,
+                    color: textSecondary,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5),
               ),
               Text(
                 '#${order.orderNumber.isNotEmpty ? order.orderNumber : order.id}',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textPrimary),
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: textPrimary),
               ),
               IconButton(
-                icon: const Icon(Icons.copy, size: 20, color: Color(0xFF3399FF)),
+                icon: const Icon(Icons.copy, size: 20, color: AppColors.blue),
                 onPressed: () {
-                  final text = order.orderNumber.isNotEmpty ? order.orderNumber : '#${order.id}';
+                  final text = order.orderNumber.isNotEmpty
+                      ? order.orderNumber
+                      : '#${order.id}';
                   Clipboard.setData(ClipboardData(text: text));
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('ID copiado al portapapeles')),
+                      const SnackBar(
+                          content: Text('ID copiado al portapapeles')),
                     );
                   }
                 },
@@ -422,8 +491,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   Widget _commercePlaceholder({Color? bgColor}) {
-    final bg = bgColor ?? const Color(0xFFF1F5F9);
-    final border = bgColor ?? const Color(0xFFE2E8F0);
+    final bg = bgColor ?? AppColors.grayLight;
+    final border = bgColor ?? AppColors.grayLight;
     return Container(
       width: 80,
       height: 80,
@@ -432,12 +501,29 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: border),
       ),
-      child: Icon(Icons.store, size: 40, color: Theme.of(context).brightness == Brightness.dark ? Colors.white54 : const Color(0xFF94A3B8)),
+      child: Icon(Icons.store,
+          size: 40,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.white54
+              : AppColors.gray),
     );
   }
 
   String _formatReceiptDate(DateTime d) {
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    const months = [
+      'Ene',
+      'Feb',
+      'Mar',
+      'Abr',
+      'May',
+      'Jun',
+      'Jul',
+      'Ago',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dic'
+    ];
     final h = d.hour;
     final am = h < 12;
     final hour = am ? (h == 0 ? 12 : h) : (h == 12 ? 12 : h - 12);
@@ -445,7 +531,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     return '${d.day} ${months[d.month - 1]} ${d.year} • $hour:$min ${am ? 'AM' : 'PM'}';
   }
 
-  Widget _buildResumenCard(Order order, {required Color textPrimary, required Color textSecondary, required Color surfaceColor, required Color borderColor, required Color badgeBg}) {
+  Widget _buildResumenCard(Order order,
+      {required Color textPrimary,
+      required Color textSecondary,
+      required Color surfaceColor,
+      required Color borderColor,
+      required Color badgeBg}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -455,7 +546,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AppColors.black.withValues(alpha: 0.04),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -466,7 +557,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         children: [
           Text(
             'RESUMEN',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: textPrimary, letterSpacing: 0.5),
+            style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: textPrimary,
+                letterSpacing: 0.5),
           ),
           const SizedBox(height: 20),
           ...order.items.map((item) => Padding(
@@ -475,14 +570,18 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: badgeBg,
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         '${item.quantity}x',
-                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: textSecondary),
+                        style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: textSecondary),
                       ),
                     ),
                     const SizedBox(width: 14),
@@ -493,14 +592,18 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                         children: [
                           Text(
                             item.productName,
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: textPrimary),
+                            style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: textPrimary),
                           ),
                           if (item.specialInstructions != null &&
                               item.specialInstructions!.isNotEmpty) ...[
                             const SizedBox(height: 2),
                             Text(
                               item.specialInstructions!,
-                              style: TextStyle(fontSize: 13, color: textSecondary),
+                              style:
+                                  TextStyle(fontSize: 13, color: textSecondary),
                             ),
                           ],
                         ],
@@ -509,7 +612,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     const SizedBox(width: 12),
                     Text(
                       '\$${item.total.toStringAsFixed(2)}',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: textPrimary),
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: textPrimary),
                     ),
                   ],
                 ),
@@ -517,10 +623,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           const SizedBox(height: 16),
           _buildDashedDivider(borderColor: borderColor),
           const SizedBox(height: 16),
-          _resumenRow('Subtotal', order.subtotal, textPrimary: textPrimary, textSecondary: textSecondary),
-          _resumenRow('Tarifa de entrega', order.deliveryFee, textPrimary: textPrimary, textSecondary: textSecondary),
-          _resumenRow('Impuestos', order.tax, textPrimary: textPrimary, textSecondary: textSecondary),
-          _resumenRow('Tarifa de servicio', 0, textPrimary: textPrimary, textSecondary: textSecondary),
+          _resumenRow('Subtotal', order.subtotal,
+              textPrimary: textPrimary, textSecondary: textSecondary),
+          _resumenRow('Tarifa de entrega', order.deliveryFee,
+              textPrimary: textPrimary, textSecondary: textSecondary),
+          _resumenRow('Impuestos', order.tax,
+              textPrimary: textPrimary, textSecondary: textSecondary),
+          _resumenRow('Tarifa de servicio', 0,
+              textPrimary: textPrimary, textSecondary: textSecondary),
           Padding(
             padding: const EdgeInsets.only(top: 16),
             child: Divider(height: 1, color: borderColor),
@@ -532,11 +642,17 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               children: [
                 Text(
                   'Total',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: textPrimary),
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: textPrimary),
                 ),
                 Text(
                   '\$${order.total.toStringAsFixed(2)}',
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFFFC107)),
+                  style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.amber),
                 ),
               ],
             ),
@@ -547,7 +663,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   Widget _buildDashedDivider({Color? borderColor}) {
-    final color = borderColor ?? const Color(0xFFE2E8F0);
+    final color = borderColor ?? AppColors.grayLight;
     return LayoutBuilder(
       builder: (context, constraints) {
         const dashWidth = 8.0;
@@ -568,20 +684,30 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
-  Widget _resumenRow(String label, double value, {required Color textPrimary, required Color textSecondary}) {
+  Widget _resumenRow(String label, double value,
+      {required Color textPrimary, required Color textSecondary}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: TextStyle(fontSize: 14, color: textSecondary)),
-          Text('\$${value.toStringAsFixed(2)}', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500, color: textPrimary)),
+          Text('\$${value.toStringAsFixed(2)}',
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: textPrimary)),
         ],
       ),
     );
   }
 
-  Widget _buildPaymentAndAddressCard(Order order, {required Color textPrimary, required Color textSecondary, required Color surfaceColor, required Color borderColor, required Color badgeBg}) {
+  Widget _buildPaymentAndAddressCard(Order order,
+      {required Color textPrimary,
+      required Color textSecondary,
+      required Color surfaceColor,
+      required Color borderColor,
+      required Color badgeBg}) {
     final paymentLabel = _paymentMethodLabel(order.paymentMethod);
     final paymentDisplay = order.referenceNumber?.isNotEmpty == true
         ? '${paymentLabel.isNotEmpty ? '$paymentLabel • ' : ''}•••• ${order.referenceNumber!.length >= 4 ? order.referenceNumber!.substring(order.referenceNumber!.length - 4) : order.referenceNumber}'
@@ -595,7 +721,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AppColors.black.withValues(alpha: 0.04),
             blurRadius: 4,
             offset: const Offset(0, 1),
           ),
@@ -620,8 +746,16 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Método de pago', style: TextStyle(fontSize: 12, color: textSecondary, fontWeight: FontWeight.w500)),
-                    Text(paymentDisplay, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: textPrimary)),
+                    Text('Método de pago',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: textSecondary,
+                            fontWeight: FontWeight.w500)),
+                    Text(paymentDisplay,
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: textPrimary)),
                   ],
                 ),
               ),
@@ -646,8 +780,19 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Dirección de entrega', style: TextStyle(fontSize: 12, color: textSecondary, fontWeight: FontWeight.w500)),
-                    Text(order.deliveryAddress.isEmpty ? '—' : order.deliveryAddress, style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: textPrimary)),
+                    Text('Dirección de entrega',
+                        style: TextStyle(
+                            fontSize: 12,
+                            color: textSecondary,
+                            fontWeight: FontWeight.w500)),
+                    Text(
+                        order.deliveryAddress.isEmpty
+                            ? '—'
+                            : order.deliveryAddress,
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: textPrimary)),
                   ],
                 ),
               ),
@@ -673,68 +818,51 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
   }
 
+  /// Genera el PDF del recibo con los datos de la orden y abre la hoja de compartir
+  /// (guardar, WhatsApp, etc.). Siempre usa ReceiptPdfBuilder para imprimir los valores.
   Future<void> _onDownloadPdf(Order order) async {
-    if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
     setState(() => _updating = true);
     try {
       Uint8List? logoBytes;
       try {
         final data = await rootBundle.load('assets/images/logo_login.png');
-        logoBytes = data.buffer.asUint8List(data.offsetInBytes, data.offsetInBytes + data.lengthInBytes);
+        logoBytes = data.buffer.asUint8List(
+            data.offsetInBytes, data.offsetInBytes + data.lengthInBytes);
       } catch (_) {}
 
-      if (order.receiptUrl != null && order.receiptUrl!.isNotEmpty) {
-        try {
-          final url = order.receiptUrl!.startsWith('http')
-              ? order.receiptUrl!
-              : '${AppConfig.apiUrl}/${order.receiptUrl!.replaceFirst('/', '')}';
-          await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Abriendo recibo...'), backgroundColor: Colors.green),
-            );
-          }
-        } catch (_) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('No se pudo abrir el enlace. Generando PDF...'), backgroundColor: Colors.orange),
-            );
-          }
-          final bytes = await ReceiptPdfBuilder.build(order, logoImageBytes: logoBytes);
-          if (bytes != null && mounted) {
-            await Printing.sharePdf(bytes: bytes, filename: 'recibo-${order.id}.pdf');
-            if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('PDF listo para guardar o compartir'), backgroundColor: Colors.green),
-            );
-          } else if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Error al generar el PDF'), backgroundColor: Colors.red),
-            );
-          }
-        }
-        return;
-      }
-      final bytes = await ReceiptPdfBuilder.build(order, logoImageBytes: logoBytes);
+      final bytes =
+          await ReceiptPdfBuilder.build(order, logoImageBytes: logoBytes);
       if (bytes == null || !mounted) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error al generar el PDF'), backgroundColor: Colors.red),
+            const SnackBar(
+                content: Text('Error al generar el PDF'),
+                backgroundColor: AppColors.red),
           );
         }
         return;
       }
       await Printing.sharePdf(bytes: bytes, filename: 'recibo-${order.id}.pdf');
-      if (!mounted) return;
+      if (!mounted) {
+        return;
+      }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('PDF listo para guardar o compartir'), backgroundColor: Colors.green),
+        const SnackBar(
+            content: Text('PDF listo para guardar o compartir'),
+            backgroundColor: AppColors.green),
       );
     } finally {
-      if (mounted) setState(() => _updating = false);
+      if (mounted) {
+        setState(() => _updating = false);
+      }
     }
   }
 
-  Widget _buildBottomBar(Order order, {required Color surfaceColor, required Color borderColor}) {
+  Widget _buildBottomBar(Order order,
+      {required Color surfaceColor, required Color borderColor}) {
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
       decoration: BoxDecoration(
@@ -742,7 +870,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         border: Border(top: BorderSide(color: borderColor)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AppColors.black.withValues(alpha: 0.04),
             blurRadius: 8,
             offset: const Offset(0, -2),
           ),
@@ -753,13 +881,21 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           width: double.infinity,
           child: FilledButton.icon(
             onPressed: _updating ? null : () => _onDownloadPdf(order),
-            icon: _updating ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : const Icon(Icons.download, size: 22),
-            label: Text(_updating ? AppStrings.generating : AppStrings.downloadPdf),
+            icon: _updating
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: AppColors.white))
+                : const Icon(Icons.download, size: 22),
+            label: Text(
+                _updating ? AppStrings.generating : AppStrings.downloadPdf),
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF3399FF),
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.blue,
+              foregroundColor: AppColors.white,
               padding: const EdgeInsets.symmetric(vertical: 12),
-              textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              textStyle:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
           ),
         ),
@@ -785,7 +921,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           label: const Text('Subir comprobante de pago'),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.accentButton(context),
-            foregroundColor: Colors.white,
+            foregroundColor: AppColors.white,
             padding: const EdgeInsets.symmetric(vertical: 14),
           ),
         ),
@@ -807,15 +943,18 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   bool _isTrackableStatus(String status) {
-    return status == 'shipped' || status == 'out_for_delivery' || status == 'processing' || status == 'paid';
+    return status == 'shipped' ||
+        status == 'out_for_delivery' ||
+        status == 'processing' ||
+        status == 'paid';
   }
 
   Widget _buildTrackingCard(Order order) {
     final hasLocation = _deliveryLat != null && _deliveryLng != null;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
-      color: isDark ? null : Colors.white,
-      surfaceTintColor: Colors.transparent,
+      color: isDark ? null : AppColors.white,
+      surfaceTintColor: AppColors.transparent,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -823,7 +962,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           children: [
             Row(
               children: [
-                const Icon(Icons.delivery_dining, color: AppColors.green, size: 22),
+                const Icon(Icons.delivery_dining,
+                    color: AppColors.green, size: 22),
                 const SizedBox(width: 8),
                 Text(
                   AppStrings.deliveryTracking,
@@ -839,7 +979,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
-                  color: isDark ? Colors.grey.shade900 : Colors.white,
+                  color: isDark ? AppColors.grayDark : AppColors.white,
                   child: SizedBox(
                     height: 200,
                     width: double.infinity,
@@ -855,17 +995,20 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 height: 120,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: isDark ? Colors.grey.withValues(alpha: 0.1) : Colors.grey.shade100,
+                  color: isDark
+                      ? AppColors.gray.withValues(alpha: 0.1)
+                      : AppColors.grayLight,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Column(
+                child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.location_searching, size: 36, color: Colors.grey[400]),
-                    const SizedBox(height: 8),
+                    Icon(Icons.location_searching,
+                        size: 36, color: AppColors.gray),
+                    SizedBox(height: 8),
                     Text(
                       AppStrings.waitingDeliveryLocation,
-                      style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                      style: TextStyle(color: AppColors.gray, fontSize: 13),
                     ),
                   ],
                 ),
@@ -882,7 +1025,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                       '${AppConfig.googleMapsPointUrl}=$_deliveryLat,$_deliveryLng',
                     );
                     if (await canLaunchUrl(url)) {
-                      await launchUrl(url, mode: LaunchMode.externalApplication);
+                      await launchUrl(url,
+                          mode: LaunchMode.externalApplication);
                     }
                   },
                 ),
@@ -893,7 +1037,6 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       ),
     );
   }
-
 }
 
 class _UploadProofDialog extends StatefulWidget {
@@ -942,9 +1085,11 @@ class _UploadProofDialogState extends State<_UploadProofDialog> {
                 border: OutlineInputBorder(),
               ),
               items: _methods
-                  .map((m) => DropdownMenuItem(value: m, child: Text(_methodLabel(m))))
+                  .map((m) =>
+                      DropdownMenuItem(value: m, child: Text(_methodLabel(m))))
                   .toList(),
-              onChanged: (v) => setState(() => _selectedMethod = v ?? 'transferencia'),
+              onChanged: (v) =>
+                  setState(() => _selectedMethod = v ?? 'transferencia'),
             ),
             const SizedBox(height: 12),
             TextFormField(

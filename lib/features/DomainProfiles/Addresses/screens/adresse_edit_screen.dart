@@ -4,6 +4,7 @@ import '../models/models.dart';
 import '../api/adresse_service.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:logger/logger.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 final logger = Logger();
 
@@ -11,7 +12,8 @@ class EditAddressScreen extends StatefulWidget {
   final int userId;
   final Address address;
 
-  const EditAddressScreen({super.key, required this.userId, required this.address});
+  const EditAddressScreen(
+      {super.key, required this.userId, required this.address});
 
   @override
   EditAddressScreenState createState() => EditAddressScreenState();
@@ -42,8 +44,9 @@ class EditAddressScreenState extends State<EditAddressScreen> {
   @override
   void initState() {
     super.initState();
-    logger.i('Console log para verificar el userId al inicio...... Recibiendo userId: ${widget.userId}');
-    
+    logger.i(
+        'Console log para verificar el userId al inicio...... Recibiendo userId: ${widget.userId}');
+
     // Pre-llenar los campos con los datos existentes
     _streetController.text = widget.address.street;
     _houseNumberController.text = widget.address.houseNumber;
@@ -76,11 +79,12 @@ class EditAddressScreenState extends State<EditAddressScreen> {
     // Buscar en qué estado está la ciudad
     for (var state in _states) {
       try {
-        final citiesInState = await AddressService().fetchCitiesByState(state.id);
+        final citiesInState =
+            await AddressService().fetchCitiesByState(state.id);
         final targetCityIndex = citiesInState.indexWhere(
           (city) => city.id == widget.address.cityId,
         );
-        
+
         if (targetCityIndex != -1) {
           setState(() {
             _selectedState = state;
@@ -93,7 +97,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
         continue;
       }
     }
-    
+
     // Si no encontramos la ciudad, usar el primer estado y cargar sus ciudades
     if (_states.isNotEmpty) {
       _selectedState = _states.first;
@@ -110,7 +114,8 @@ class EditAddressScreenState extends State<EditAddressScreen> {
       setState(() {
         _countries = countries;
         // Seleccionar el país por defecto (Venezuela)
-        _selectedCountry = countries.firstWhere((country) => country.name == 'Venezuela');
+        _selectedCountry =
+            countries.firstWhere((country) => country.name == 'Venezuela');
       });
     } catch (e) {
       logger.e('Error cargando países: $e');
@@ -119,7 +124,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
 
   Future<void> loadStates() async {
     if (_selectedCountry == null) return;
-    
+
     try {
       final states = await AddressService().fetchStates(_selectedCountry!.id);
       setState(() {
@@ -136,9 +141,10 @@ class EditAddressScreenState extends State<EditAddressScreen> {
 
   Future<void> loadCities() async {
     if (_selectedState == null) return;
-    
+
     try {
-      final cities = await AddressService().fetchCitiesByState(_selectedState!.id);
+      final cities =
+          await AddressService().fetchCitiesByState(_selectedState!.id);
       setState(() {
         _cities = cities;
         // Seleccionar la ciudad por defecto si existe
@@ -188,7 +194,8 @@ class EditAddressScreenState extends State<EditAddressScreen> {
       }
 
       Position position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high),
+        locationSettings:
+            const LocationSettings(accuracy: LocationAccuracy.high),
       );
 
       setState(() {
@@ -240,14 +247,15 @@ class EditAddressScreenState extends State<EditAddressScreen> {
           const SnackBar(
             content: Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.white),
+                Icon(Icons.check_circle, color: AppColors.white),
                 SizedBox(width: 8),
                 Text('Dirección actualizada exitosamente'),
               ],
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.green,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(8))),
           ),
         );
         Navigator.pop(context, updatedAddress);
@@ -258,14 +266,15 @@ class EditAddressScreenState extends State<EditAddressScreen> {
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.error, color: Colors.white),
+                const Icon(Icons.error, color: AppColors.white),
                 const SizedBox(width: 8),
                 Expanded(child: Text('Error: ${e.toString()}')),
               ],
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.red,
             behavior: SnackBarBehavior.floating,
-            shape: const RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(8))),
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.all(Radius.circular(8))),
           ),
         );
       }
@@ -279,11 +288,11 @@ class EditAddressScreenState extends State<EditAddressScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.scaffoldBg(context),
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xFF1976D2),
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.blue,
+        foregroundColor: AppColors.white,
         title: const Text(
           'Editar Dirección',
           style: TextStyle(
@@ -300,7 +309,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
                 ),
               ),
             ),
@@ -309,7 +318,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
       body: _isLoading
           ? const Center(
               child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1976D2)),
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.blue),
               ),
             )
           : SingleChildScrollView(
@@ -334,35 +343,25 @@ class EditAddressScreenState extends State<EditAddressScreen> {
   }
 
   Widget _buildHeader() {
+    final primary = Theme.of(context).colorScheme.primary;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1976D2), Color(0xFF1565C0)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: primary,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF1976D2).withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
+              color: AppColors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),
             ),
             child: const Icon(
               Icons.edit_location_alt,
-              color: Colors.white,
+              color: AppColors.white,
               size: 28,
             ),
           ),
@@ -374,7 +373,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
                 Text(
                   'Editar Ubicación',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
@@ -383,7 +382,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
                 Text(
                   'Actualiza los datos de tu dirección',
                   style: TextStyle(
-                    color: Colors.white70,
+                    color: AppColors.white70,
                     fontSize: 14,
                   ),
                 ),
@@ -400,16 +399,10 @@ class EditAddressScreenState extends State<EditAddressScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBg(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -417,13 +410,13 @@ class EditAddressScreenState extends State<EditAddressScreen> {
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: _isLocationLoading
-                  ? Colors.orange.withValues(alpha: 0.1)
-                  : Colors.green.withValues(alpha: 0.1),
+                  ? AppColors.orange.withValues(alpha: 0.1)
+                  : AppColors.green.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
               _isLocationLoading ? Icons.location_searching : Icons.location_on,
-              color: _isLocationLoading ? Colors.orange : Colors.green,
+              color: _isLocationLoading ? AppColors.orange : AppColors.green,
               size: 20,
             ),
           ),
@@ -436,7 +429,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
                   'Estado de Ubicación',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[600],
+                    color: AppColors.secondaryText(context),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -445,7 +438,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: _isLocationLoading ? Colors.orange : Colors.green,
+                    color: _isLocationLoading ? AppColors.orange : AppColors.green,
                   ),
                 ),
               ],
@@ -455,9 +448,6 @@ class EditAddressScreenState extends State<EditAddressScreen> {
             onPressed: _isLocationLoading ? null : _getCurrentLocation,
             icon: const Icon(Icons.my_location, size: 16),
             label: const Text('Obtener'),
-            style: TextButton.styleFrom(
-              foregroundColor: const Color(0xFF1976D2),
-            ),
           ),
         ],
       ),
@@ -506,10 +496,12 @@ class EditAddressScreenState extends State<EditAddressScreen> {
         _buildDropdown<Country>(
           value: _selectedCountry,
           hint: 'Selecciona un país',
-          items: _countries.map((country) => DropdownMenuItem(
-            value: country,
-            child: Text(country.name),
-          )).toList(),
+          items: _countries
+              .map((country) => DropdownMenuItem(
+                    value: country,
+                    child: Text(country.name),
+                  ))
+              .toList(),
           onChanged: (Country? value) {
             setState(() {
               _selectedCountry = value;
@@ -527,10 +519,12 @@ class EditAddressScreenState extends State<EditAddressScreen> {
         _buildDropdown<StateModel>(
           value: _selectedState,
           hint: 'Selecciona un estado',
-          items: _states.map((state) => DropdownMenuItem(
-            value: state,
-            child: Text(state.name),
-          )).toList(),
+          items: _states
+              .map((state) => DropdownMenuItem(
+                    value: state,
+                    child: Text(state.name),
+                  ))
+              .toList(),
           onChanged: (StateModel? value) {
             setState(() {
               _selectedState = value;
@@ -547,10 +541,12 @@ class EditAddressScreenState extends State<EditAddressScreen> {
         _buildDropdown<City>(
           value: _selectedCity,
           hint: 'Selecciona una ciudad',
-          items: _cities.map((city) => DropdownMenuItem(
-            value: city,
-            child: Text(city.name),
-          )).toList(),
+          items: _cities
+              .map((city) => DropdownMenuItem(
+                    value: city,
+                    child: Text(city.name),
+                  ))
+              .toList(),
           onChanged: (City? value) {
             setState(() {
               _selectedCity = value;
@@ -571,24 +567,19 @@ class EditAddressScreenState extends State<EditAddressScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBg(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
       ),
       child: TextFormField(
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon, color: const Color(0xFF1976D2)),
+          prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
         validator: validator,
       ),
@@ -605,31 +596,27 @@ class EditAddressScreenState extends State<EditAddressScreen> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBg(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
       ),
       child: DropdownButtonFormField<T>(
         initialValue: value,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon, color: const Color(0xFF1976D2)),
+          prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
         hint: Text(hint, overflow: TextOverflow.ellipsis),
         items: items,
         onChanged: onChanged,
         isExpanded: true,
-        dropdownColor: Colors.white,
-        icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF1976D2)),
+        dropdownColor: AppColors.cardBg(context),
+        icon: Icon(Icons.arrow_drop_down,
+            color: Theme.of(context).colorScheme.primary),
         menuMaxHeight: 200,
         validator: (value) {
           if (value == null) {
@@ -648,8 +635,8 @@ class EditAddressScreenState extends State<EditAddressScreen> {
       child: ElevatedButton(
         onPressed: _isSaving ? null : _saveAddress,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF1976D2),
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.blue,
+          foregroundColor: AppColors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -664,7 +651,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
                     ),
                   ),
                   SizedBox(width: 12),
@@ -696,4 +683,4 @@ class EditAddressScreenState extends State<EditAddressScreen> {
     _postalCodeController.dispose();
     super.dispose();
   }
-} 
+}
