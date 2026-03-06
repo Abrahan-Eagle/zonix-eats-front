@@ -70,8 +70,9 @@ class AddressPage extends StatelessWidget {
       create: (_) => AddressModel()..loadAddress(userId),
       child: Consumer<AddressModel>(
         builder: (context, addressModel, child) {
+          final isDark = Theme.of(context).brightness == Brightness.dark;
           return Scaffold(
-            backgroundColor: AppColors.scaffoldBg(context),
+            backgroundColor: isDark ? AppColors.backgroundDark : AppColors.scaffoldBgLight,
             appBar: _buildAppBar(context, addressModel),
             body: _buildBody(context, addressModel, isSmallScreen),
             floatingActionButton:
@@ -86,30 +87,43 @@ class AddressPage extends StatelessWidget {
 
   PreferredSizeWidget _buildAppBar(
       BuildContext context, AddressModel addressModel) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final barBg = isDark ? AppColors.backgroundDark : AppColors.scaffoldBgLight;
+    final fgColor = AppColors.primaryText(context);
     return AppBar(
       elevation: 0,
-      title: const Text(
+      scrolledUnderElevation: 0,
+      backgroundColor: barBg,
+      foregroundColor: fgColor,
+      title: Text(
         'Mi Dirección',
         style: TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 20,
+          color: fgColor,
         ),
       ),
       actions: [
-        if (addressModel.address != null)
+        if (addressModel.address != null) ...[
           IconButton(
             onPressed: () => addressModel.refreshAddress(userId),
             icon: addressModel.isRefreshing
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
+                      valueColor: AlwaysStoppedAnimation<Color>(fgColor),
                     ),
                   )
-                : const Icon(Icons.refresh),
+                : Icon(Icons.refresh, color: fgColor),
           ),
+          IconButton(
+            onPressed: () => _navigateToCreateAddress(context),
+            icon: Icon(Icons.edit_location_alt, color: fgColor),
+            tooltip: 'Editar ubicación',
+          ),
+        ],
       ],
     );
   }
@@ -133,8 +147,7 @@ class AddressPage extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(
-                Theme.of(context).colorScheme.primary),
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.blue),
           ),
           const SizedBox(height: 16),
           Text(
@@ -150,7 +163,6 @@ class AddressPage extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context, bool isSmallScreen) {
-    final primary = Theme.of(context).colorScheme.primary;
     return Center(
       child: Padding(
         padding: EdgeInsets.all(isSmallScreen ? 20.0 : 40.0),
@@ -161,13 +173,13 @@ class AddressPage extends StatelessWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: primary.withValues(alpha: 0.1),
+                color: AppColors.blue.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(60),
               ),
               child: Icon(
                 Icons.location_off_outlined,
                 size: 60,
-                color: primary,
+                color: AppColors.blue,
               ),
             ),
             const SizedBox(height: 24),
@@ -195,6 +207,8 @@ class AddressPage extends StatelessWidget {
               icon: const Icon(Icons.add_location_alt),
               label: const Text('Agregar Dirección'),
               style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.blue,
+                foregroundColor: AppColors.white,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -228,11 +242,26 @@ class AddressPage extends StatelessWidget {
 
   Widget _buildAddressCard(
       BuildContext context, Address address, bool isSmallScreen) {
-    final primary = Theme.of(context).colorScheme.primary;
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
       margin: EdgeInsets.all(isSmallScreen ? 12.0 : 20.0),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg(context),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.slateBorder
+              : AppColors.stitchBorder,
+        ),
+        boxShadow: Theme.of(context).brightness == Brightness.dark
+            ? null
+            : [
+                BoxShadow(
+                  color: AppColors.black.withValues(alpha: 0.06),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+      ),
       child: Padding(
         padding: EdgeInsets.all(isSmallScreen ? 16.0 : 20.0),
         child: Column(
@@ -241,42 +270,55 @@ class AddressPage extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.blue.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
                     Icons.location_on,
-                    color: primary,
-                    size: 20,
+                    color: AppColors.blue,
+                    size: 24,
                   ),
                 ),
                 const SizedBox(width: 12),
-                Text(
-                  'Información de Dirección',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primaryText(context),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Residencial',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryText(context),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Detalles de la ubicación principal',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppColors.secondaryText(context),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            _buildInfoRow(context, 'Dirección', address.street, Icons.home),
-            _buildInfoRow(
-                context, 'Número de Casa', address.houseNumber, Icons.numbers),
-            _buildInfoRow(
-                context, 'Código Postal', address.postalCode, Icons.mail),
-            _buildInfoRow(context, 'País', 'Venezuela', Icons.flag),
-            _buildInfoRow(context, 'Estado', 'Carabobo', Icons.location_city),
-            _buildInfoRow(context, 'Ciudad', 'Valencia', Icons.location_on),
+            _buildInfoRow(context, 'Calle/Av.', address.street, false),
+            _buildInfoRow(context, 'Número', address.houseNumber, false),
+            _buildInfoRow(context, 'Código Postal', address.postalCode, false),
+            _buildInfoRow(context, 'País', address.countryName ?? '—', false),
+            _buildInfoRow(context, 'Estado', address.stateName ?? '—', false),
+            _buildInfoRow(context, 'Ciudad', address.cityName ?? '—', false),
             _buildInfoRow(
                 context,
                 'Coordenadas',
                 '${address.latitude.toStringAsFixed(6)}, ${address.longitude.toStringAsFixed(6)}',
-                Icons.gps_fixed),
+                true),
           ],
         ),
       ),
@@ -284,34 +326,34 @@ class AddressPage extends StatelessWidget {
   }
 
   Widget _buildInfoRow(
-      BuildContext context, String label, String value, IconData icon) {
+      BuildContext context, String label, String value, bool isLink) {
+    final displayValue = value.trim().isEmpty ? '-' : value;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: AppColors.secondaryText(context)),
-          const SizedBox(width: 8),
+          SizedBox(
+            width: 110,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: AppColors.secondaryText(context),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.secondaryText(context),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  value,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.primaryText(context),
-                  ),
-                ),
-              ],
+            child: Text(
+              displayValue,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                color: isLink ? AppColors.blue : AppColors.primaryText(context),
+              ),
+              softWrap: true,
+              overflow: TextOverflow.visible,
             ),
           ),
         ],
@@ -321,70 +363,76 @@ class AddressPage extends StatelessWidget {
 
   Widget _buildMapCard(
       Address address, BuildContext context, bool isSmallScreen) {
+    final borderColor = Theme.of(context).brightness == Brightness.dark
+        ? AppColors.slateBorder
+        : AppColors.stitchBorder;
     return Padding(
       padding: EdgeInsets.all(isSmallScreen ? 16.0 : 24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Mapa usando OpenStreetMap (como en Zonix-Frontend)
           ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(16),
             child: OsmMapWidget(
               center: LatLng(address.latitude, address.longitude),
               zoom: 15.0,
-              height: 200,
+              height: 220,
               markers: [
                 MapMarker.create(
                   point: LatLng(address.latitude, address.longitude),
                   iconData: Icons.location_on,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: AppColors.red,
                 ),
               ],
             ),
           ),
           const SizedBox(height: 12),
-          // Botón para abrir en navegador externo
-          GestureDetector(
-            onTap: () async {
-              final url =
-                  '${AppConfig.openStreetMapViewUrl}/?mlat=${address.latitude}&mlon=${address.longitude}&zoom=15';
-              try {
-                if (await canLaunchUrl(Uri.parse(url))) {
-                  await launchUrl(Uri.parse(url),
-                      mode: LaunchMode.externalApplication);
+            Material(
+            color: AppColors.cardBg(context),
+            borderRadius: BorderRadius.circular(12),
+            child: InkWell(
+              onTap: () async {
+                final url =
+                    '${AppConfig.googleMapsPointUrl}=${address.latitude},${address.longitude}';
+                try {
+                  if (await canLaunchUrl(Uri.parse(url))) {
+                    await launchUrl(Uri.parse(url),
+                        mode: LaunchMode.externalApplication);
+                  }
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('No se pudo abrir el mapa: $e'),
+                        backgroundColor: AppColors.red,
+                      ),
+                    );
+                  }
                 }
-              } catch (e) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('No se pudo abrir el mapa: $e'),
-                      backgroundColor: AppColors.red,
+              },
+              borderRadius: BorderRadius.circular(12),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: borderColor),
+                ),
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.map, color: AppColors.blue, size: 20),
+                    SizedBox(width: 8),
+                    Text(
+                      'Abrir en Google Maps',
+                      style: TextStyle(
+                        color: AppColors.blue,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  );
-                }
-              }
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.open_in_new, color: AppColors.white, size: 20),
-                  SizedBox(width: 8),
-                  Text(
-                    'Abrir en OpenStreetMap',
-                    style: TextStyle(
-                      color: AppColors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -395,14 +443,18 @@ class AddressPage extends StatelessWidget {
 
   Widget _buildFloatingActionButtons(
       BuildContext context, AddressModel addressModel) {
+    final hasAddress = addressModel.address != null;
+    if (hasAddress && !statusId) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (statusId) _buildStatusUpdateButton(context),
-          const SizedBox(height: 16),
-          _buildAddressButton(context, addressModel),
+          if (!hasAddress) ...[
+            if (statusId) const SizedBox(height: 16),
+            _buildAddressButton(context, addressModel),
+          ],
         ],
       ),
     );
@@ -418,16 +470,13 @@ class AddressPage extends StatelessWidget {
   }
 
   Widget _buildAddressButton(BuildContext context, AddressModel addressModel) {
-    final hasAddress = addressModel.address != null;
-
     return FloatingActionButton.extended(
       heroTag: 'adresse_list_create',
       onPressed: () => _navigateToCreateAddress(context),
-      backgroundColor:
-          hasAddress ? AppColors.orange : Theme.of(context).colorScheme.primary,
+      backgroundColor: AppColors.blue,
       foregroundColor: AppColors.white,
-      icon: Icon(hasAddress ? Icons.edit_location : Icons.add_location_alt),
-      label: Text(hasAddress ? 'Editar Ubicación' : 'Agregar Dirección'),
+      icon: const Icon(Icons.add_location_alt),
+      label: const Text('Agregar Dirección'),
     );
   }
 
@@ -445,9 +494,11 @@ class AddressPage extends StatelessWidget {
             address: addressModel.address!,
           ),
         ),
-      ).then((updatedAddress) {
+      ).then((updatedAddress) async {
         if (updatedAddress != null) {
           addressModel.updateAddress(updatedAddress);
+          // Refrescar desde la API para obtener país/estado/ciudad (nombres) actualizados
+          await addressModel.refreshAddress(userId);
         }
       });
     } else {
@@ -457,9 +508,10 @@ class AddressPage extends StatelessWidget {
         MaterialPageRoute(
           builder: (context) => RegisterAddressScreen(userId: userId),
         ),
-      ).then((newAddress) {
+      ).then((newAddress) async {
         if (newAddress != null) {
           addressModel.updateAddress(newAddress);
+          await addressModel.refreshAddress(userId);
         }
       });
     }

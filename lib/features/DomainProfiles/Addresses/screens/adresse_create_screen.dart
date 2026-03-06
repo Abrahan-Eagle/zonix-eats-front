@@ -200,8 +200,9 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBg(context),
+      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.scaffoldBgLight,
       appBar: _buildAppBar(),
       body: _isLoading ? _buildLoadingState() : _buildContent(),
       floatingActionButton: _buildFloatingActionButton(),
@@ -210,33 +211,38 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
   }
 
   PreferredSizeWidget _buildAppBar() {
+    final fgColor = AppColors.primaryText(context);
+    final barBg = Theme.of(context).brightness == Brightness.dark
+        ? AppColors.backgroundDark
+        : AppColors.scaffoldBgLight;
     return AppBar(
       elevation: 0,
-      backgroundColor: AppColors.blue,
-      foregroundColor: AppColors.white,
-      title: const Text(
+      scrolledUnderElevation: 0,
+      backgroundColor: barBg,
+      foregroundColor: fgColor,
+      title: Text(
         'Registrar Dirección',
         style: TextStyle(
           fontWeight: FontWeight.w600,
           fontSize: 20,
+          color: fgColor,
         ),
       ),
       actions: [
-        if (latitude != null && longitude != null)
-          IconButton(
-            onPressed: _captureLocation,
-            icon: _isLocationLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
-                    ),
-                  )
-                : const Icon(Icons.my_location),
-            tooltip: 'Actualizar ubicación',
-          ),
+        IconButton(
+          onPressed: _captureLocation,
+          icon: _isLocationLoading
+              ? SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(fgColor),
+                  ),
+                )
+              : Icon(Icons.my_location, color: fgColor),
+          tooltip: 'Capturar ubicación',
+        ),
       ],
     );
   }
@@ -247,8 +253,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(
-                Theme.of(context).colorScheme.primary),
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.blue),
           ),
           const SizedBox(height: 16),
           Text(
@@ -287,37 +292,36 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
   }
 
   Widget _buildHeader() {
-    final primary = Theme.of(context).colorScheme.primary;
     return Column(
       children: [
         Container(
-          width: 120,
-          height: 120,
+          width: 88,
+          height: 88,
           decoration: BoxDecoration(
-            color: primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(60),
+            color: AppColors.blue.withValues(alpha: 0.15),
+            shape: BoxShape.circle,
           ),
           child: Icon(
             Icons.add_location_alt,
-            size: 60,
-            color: primary,
+            size: 48,
+            color: AppColors.blue,
           ),
         ),
         const SizedBox(height: 16),
         Text(
           'Registra tu nueva dirección',
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 22,
             fontWeight: FontWeight.w600,
-            color: primary,
+            color: AppColors.primaryText(context),
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
         Text(
-          'Completa los datos para registrar tu dirección de entrega',
+          'Ingresa los detalles para tus entregas de Zonix Eats.',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 14,
             color: AppColors.secondaryText(context),
           ),
           textAlign: TextAlign.center,
@@ -327,84 +331,68 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
   }
 
   Widget _buildLocationStatus() {
+    if (latitude != null && longitude != null) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.green.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.green.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.my_location, color: AppColors.green, size: 22),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Ubicación capturada',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.green,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Lat: ${latitude!.toStringAsFixed(4)}, Long: ${longitude!.toStringAsFixed(4)}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.green.withValues(alpha: 0.9),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: latitude != null && longitude != null
-            ? AppColors.green.withValues(alpha: 0.1)
-            : AppColors.orange.withValues(alpha: 0.1),
+        color: AppColors.orange.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: latitude != null && longitude != null
-              ? AppColors.green.withValues(alpha: 0.3)
-              : AppColors.orange.withValues(alpha: 0.3),
-        ),
+        border: Border.all(color: AppColors.orange.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
-          Icon(
-            latitude != null && longitude != null
-                ? Icons.location_on
-                : Icons.location_off,
-            color: latitude != null && longitude != null
-                ? AppColors.green
-                : AppColors.orange,
-            size: 24,
-          ),
+          Icon(Icons.location_off, color: AppColors.orange, size: 24),
           const SizedBox(width: 12),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Estado de Ubicación',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: (latitude != null && longitude != null
-                            ? AppColors.green
-                            : AppColors.orange)
-                        .withValues(alpha: 0.8),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  latitude != null && longitude != null
-                      ? 'Ubicación capturada'
-                      : 'Ubicación no disponible',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: latitude != null && longitude != null
-                        ? AppColors.green
-                        : AppColors.orange,
-                  ),
-                ),
-                if (latitude != null && longitude != null)
-                  Text(
-                    '${latitude!.toStringAsFixed(6)}, ${longitude!.toStringAsFixed(6)}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: AppColors.gray,
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          if (latitude == null || longitude == null)
-            TextButton.icon(
-              onPressed: _captureLocation,
-              icon: _isLocationLoading
-                  ? const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.my_location, size: 16),
-              label: const Text('Capturar'),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.orange,
+            child: Text(
+              'Ubicación no disponible. Usa el ícono de arriba para capturar.',
+              style: TextStyle(
+                fontSize: 14,
+                color: AppColors.orange,
+                fontWeight: FontWeight.w500,
               ),
             ),
+          ),
         ],
       ),
     );
@@ -524,18 +512,23 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
     required IconData icon,
     required String label,
   }) {
+    final borderColor = Theme.of(context).brightness == Brightness.dark
+        ? AppColors.slateBorder
+        : AppColors.stitchBorder;
+    final screenHeight = MediaQuery.of(context).size.height;
+    final menuHeight = (screenHeight * 0.5).clamp(280.0, 400.0);
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.cardBg(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-            color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
+        border: Border.all(color: borderColor),
       ),
       child: DropdownButtonFormField<T>(
         initialValue: value,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
+          prefixIcon: Icon(icon, color: AppColors.blue),
           border: InputBorder.none,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -550,10 +543,10 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
           return null;
         },
         dropdownColor: AppColors.cardBg(context),
-        icon: Icon(Icons.arrow_drop_down,
-            color: Theme.of(context).colorScheme.primary),
+        icon: Icon(Icons.arrow_drop_down, color: AppColors.blue),
         isExpanded: true,
-        menuMaxHeight: 200,
+        menuMaxHeight: menuHeight,
+        borderRadius: BorderRadius.circular(12),
       ),
     );
   }
@@ -566,19 +559,21 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
     int? minLength,
     int? maxLength,
   }) {
+    final borderColor = Theme.of(context).brightness == Brightness.dark
+        ? AppColors.slateBorder
+        : AppColors.stitchBorder;
     return Container(
       decoration: BoxDecoration(
         color: AppColors.cardBg(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-            color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
+        border: Border.all(color: borderColor),
       ),
       child: TextFormField(
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
+          prefixIcon: Icon(icon, color: AppColors.blue),
           border: InputBorder.none,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -598,20 +593,21 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
   }
 
   Widget _buildPostalCodeField() {
+    final borderColor = Theme.of(context).brightness == Brightness.dark
+        ? AppColors.slateBorder
+        : AppColors.stitchBorder;
     return Container(
       decoration: BoxDecoration(
         color: AppColors.cardBg(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-            color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
+        border: Border.all(color: borderColor),
       ),
       child: TextFormField(
         controller: _postalCodeController,
         decoration: InputDecoration(
           labelText: 'Código Postal',
-          hintText: 'Ingresa el código postal',
-          prefixIcon:
-              Icon(Icons.mail, color: Theme.of(context).colorScheme.primary),
+          hintText: '1010',
+          prefixIcon: Icon(Icons.mail, color: AppColors.blue),
           border: InputBorder.none,
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -630,13 +626,12 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
   }
 
   Widget _buildFloatingActionButton() {
-    final primary = Theme.of(context).colorScheme.primary;
     return Container(
       width: MediaQuery.of(context).size.width * 0.9,
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        color: primary,
+        color: AppColors.blue,
       ),
       child: ElevatedButton(
         onPressed: _isSubmitting ? null : _createAddress,

@@ -10,6 +10,10 @@ class Address {
   final int cityId;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  /// Nombres resueltos desde la API (city.state.country) para mostrar en "Mi Dirección"
+  final String? countryName;
+  final String? stateName;
+  final String? cityName;
 
   Address({
     this.id,
@@ -23,9 +27,28 @@ class Address {
     required this.cityId,
     this.createdAt,
     this.updatedAt,
+    this.countryName,
+    this.stateName,
+    this.cityName,
   });
 
   factory Address.fromJson(Map<String, dynamic> json) {
+    String? countryName;
+    String? stateName;
+    String? cityName;
+    final city = json['city'];
+    if (city is Map<String, dynamic>) {
+      cityName = city['name'] as String?;
+      final state = city['state'];
+      if (state is Map<String, dynamic>) {
+        stateName = state['name'] as String?;
+        final country = state['country'];
+        if (country is Map<String, dynamic>) {
+          countryName = country['name'] as String?;
+        }
+      }
+    }
+
     return Address(
       id: json['id'],
       street: json['street'] ?? '',
@@ -36,12 +59,15 @@ class Address {
       status: json['status'] ?? 'notverified',
       profileId: json['profile_id'] ?? 0,
       cityId: json['city_id'] ?? 0,
-      createdAt: json['created_at'] != null 
-          ? DateTime.tryParse(json['created_at']) 
+      createdAt: json['created_at'] != null
+          ? DateTime.tryParse(json['created_at'])
           : null,
-      updatedAt: json['updated_at'] != null 
-          ? DateTime.tryParse(json['updated_at']) 
+      updatedAt: json['updated_at'] != null
+          ? DateTime.tryParse(json['updated_at'])
           : null,
+      countryName: countryName,
+      stateName: stateName,
+      cityName: cityName,
     );
   }
 
@@ -73,6 +99,9 @@ class Address {
     int? cityId,
     DateTime? createdAt,
     DateTime? updatedAt,
+    String? countryName,
+    String? stateName,
+    String? cityName,
   }) {
     return Address(
       id: id ?? this.id,
@@ -86,6 +115,9 @@ class Address {
       cityId: cityId ?? this.cityId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      countryName: countryName ?? this.countryName,
+      stateName: stateName ?? this.stateName,
+      cityName: cityName ?? this.cityName,
     );
   }
 
