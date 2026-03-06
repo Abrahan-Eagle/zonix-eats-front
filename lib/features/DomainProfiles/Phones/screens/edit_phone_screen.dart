@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/phone.dart';
 import '../api/phone_service.dart';
+import 'package:zonix/features/utils/app_colors.dart';
+
 class EditPhoneScreen extends StatefulWidget {
   final Phone phone;
   final int userId;
 
   const EditPhoneScreen({
-    super.key, 
-    required this.phone, 
+    super.key,
+    required this.phone,
     required this.userId,
   });
 
@@ -20,7 +22,7 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
   final _formKey = GlobalKey<FormState>();
   final _numberController = TextEditingController();
   final PhoneService _phoneService = PhoneService();
-  
+
   List<Map<String, dynamic>> _operatorCodes = [];
   int? _selectedOperatorCodeId;
   bool _isPrimary = false;
@@ -39,10 +41,11 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
     _selectedOperatorCodeId = widget.phone.operatorCodeId;
     _isPrimary = widget.phone.isPrimary;
     _isActive = widget.phone.status;
-    
+
     debugPrint('DEBUG: Initializing data for phone: ${widget.phone.id}');
     debugPrint('DEBUG: Original number: ${widget.phone.number}');
-    debugPrint('DEBUG: Original operator code ID: ${widget.phone.operatorCodeId}');
+    debugPrint(
+        'DEBUG: Original operator code ID: ${widget.phone.operatorCodeId}');
     debugPrint('DEBUG: Original is primary: ${widget.phone.isPrimary}');
     debugPrint('DEBUG: Original status: ${widget.phone.status}');
     debugPrint('DEBUG: Controller text: ${_numberController.text}');
@@ -66,7 +69,7 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.red,
         behavior: SnackBarBehavior.fixed,
         duration: const Duration(seconds: 3),
       ),
@@ -77,7 +80,7 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.green,
+        backgroundColor: AppColors.green,
         behavior: SnackBarBehavior.fixed,
         duration: const Duration(seconds: 2),
       ),
@@ -128,10 +131,9 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
     final isSmallScreen = size.width < 600;
 
     return Scaffold(
+      backgroundColor: AppColors.scaffoldBg(context),
       appBar: AppBar(
         title: const Text('Editar Teléfono'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: _isLoading
@@ -150,133 +152,137 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
                     key: _formKey,
                     child: Column(
                       children: [
-                                                        // Código de operador y número
-                                // En pantallas pequeñas, apilar verticalmente
-                                if (MediaQuery.of(context).size.width < 400)
-                                  Column(
-                                    children: [
-                                      DropdownButtonFormField<int>(
-                                        initialValue: _selectedOperatorCodeId,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Código',
-                                          border: OutlineInputBorder(),
-                                          prefixIcon: Icon(Icons.phone_android),
-                                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                                        ),
-                                        items: _operatorCodes.map((code) {
-                                          return DropdownMenuItem<int>(
-                                            value: code['id'],
-                                            child: Text(
-                                              code['name'],
-                                              overflow: TextOverflow.ellipsis,
-                                              style: const TextStyle(fontSize: 14),
-                                            ),
-                                          );
-                                        }).toList(),
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _selectedOperatorCodeId = value;
-                                          });
-                                        },
-                                        validator: (value) {
-                                          if (value == null) {
-                                            return 'Selecciona un código';
-                                          }
-                                          return null;
-                                        },
-                                      ),
-                                      const SizedBox(height: 16.0),
-                                      TextFormField(
-                                        controller: _numberController,
-                                        decoration: const InputDecoration(
-                                          labelText: 'Número de Teléfono',
-                                          border: OutlineInputBorder(),
-                                          prefixIcon: Icon(Icons.phone),
-                                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                                        ),
-                                        keyboardType: TextInputType.number,
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter.digitsOnly,
-                                          LengthLimitingTextInputFormatter(7),
-                                        ],
-                                        validator: (value) {
-                                          if (value == null || value.isEmpty) {
-                                            return 'Ingresa un número';
-                                          } else if (value.length != 7) {
-                                            return 'Debe tener 7 dígitos';
-                                          }
-                                          return null;
-                                        },
-                                      ),
-                                    ],
-                                  )
-                                else
-                                  // En pantallas más grandes, usar Row
-                                  Row(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Flexible(
-                                        flex: 1,
-                                        child: DropdownButtonFormField<int>(
-                                          initialValue: _selectedOperatorCodeId,
-                                          decoration: const InputDecoration(
-                                            labelText: 'Código',
-                                            border: OutlineInputBorder(),
-                                            prefixIcon: Icon(Icons.phone_android),
-                                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                                          ),
-                                          isExpanded: true,
-                                          items: _operatorCodes.map((code) {
-                                            return DropdownMenuItem<int>(
-                                              value: code['id'],
-                                              child: Text(
-                                                code['name'],
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(fontSize: 14),
-                                              ),
-                                            );
-                                          }).toList(),
-                                          onChanged: (value) {
-                                            setState(() {
-                                              _selectedOperatorCodeId = value;
-                                            });
-                                          },
-                                          validator: (value) {
-                                            if (value == null) {
-                                              return 'Selecciona un código';
-                                            }
-                                            return null;
-                                          },
-                                        ),
-                                      ),
-                                      const SizedBox(width: 16.0),
-                                      Flexible(
-                                        flex: 2,
-                                        child: TextFormField(
-                                          controller: _numberController,
-                                          decoration: const InputDecoration(
-                                            labelText: 'Número de Teléfono',
-                                            border: OutlineInputBorder(),
-                                            prefixIcon: Icon(Icons.phone),
-                                            contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-                                          ),
-                                          keyboardType: TextInputType.number,
-                                          inputFormatters: [
-                                            FilteringTextInputFormatter.digitsOnly,
-                                            LengthLimitingTextInputFormatter(7),
-                                          ],
-                                          validator: (value) {
-                                            if (value == null || value.isEmpty) {
-                                              return 'Ingresa un número';
-                                            } else if (value.length != 7) {
-                                              return 'Debe tener 7 dígitos';
-                                            }
-                                            return null;
-                                          },
-                                        ),
-                                      ),
-                                    ],
+                        // Código de operador y número
+                        // En pantallas pequeñas, apilar verticalmente
+                        if (MediaQuery.of(context).size.width < 400)
+                          Column(
+                            children: [
+                              DropdownButtonFormField<int>(
+                                initialValue: _selectedOperatorCodeId,
+                                decoration: const InputDecoration(
+                                  labelText: 'Código',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.phone_android),
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 16),
+                                ),
+                                items: _operatorCodes.map((code) {
+                                  return DropdownMenuItem<int>(
+                                    value: code['id'],
+                                    child: Text(
+                                      code['name'],
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(fontSize: 14),
+                                    ),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedOperatorCodeId = value;
+                                  });
+                                },
+                                validator: (value) {
+                                  if (value == null) {
+                                    return 'Selecciona un código';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16.0),
+                              TextFormField(
+                                controller: _numberController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Número de Teléfono',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.phone),
+                                  contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 16),
+                                ),
+                                keyboardType: TextInputType.number,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(7),
+                                ],
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Ingresa un número';
+                                  } else if (value.length != 7) {
+                                    return 'Debe tener 7 dígitos';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
+                          )
+                        else
+                          // En pantallas más grandes, usar Row
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Flexible(
+                                flex: 1,
+                                child: DropdownButtonFormField<int>(
+                                  initialValue: _selectedOperatorCodeId,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Código',
+                                    border: OutlineInputBorder(),
+                                    prefixIcon: Icon(Icons.phone_android),
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 16),
                                   ),
+                                  isExpanded: true,
+                                  items: _operatorCodes.map((code) {
+                                    return DropdownMenuItem<int>(
+                                      value: code['id'],
+                                      child: Text(
+                                        code['name'],
+                                        overflow: TextOverflow.ellipsis,
+                                        style: const TextStyle(fontSize: 14),
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedOperatorCodeId = value;
+                                    });
+                                  },
+                                  validator: (value) {
+                                    if (value == null) {
+                                      return 'Selecciona un código';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 16.0),
+                              Flexible(
+                                flex: 2,
+                                child: TextFormField(
+                                  controller: _numberController,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Número de Teléfono',
+                                    border: OutlineInputBorder(),
+                                    prefixIcon: Icon(Icons.phone),
+                                    contentPadding: EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 16),
+                                  ),
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                    LengthLimitingTextInputFormatter(7),
+                                  ],
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Ingresa un número';
+                                    } else if (value.length != 7) {
+                                      return 'Debe tener 7 dígitos';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
                         const SizedBox(height: 24.0),
 
                         // Switches para estado principal y activo
@@ -297,19 +303,18 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
               heroTag: 'edit_phone_save',
               onPressed: _isLoading ? null : _updatePhone,
               tooltip: 'Actualizar Teléfono',
-              icon: _isLoading 
+              icon: _isLoading
                   ? const SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
                         strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
                       ),
                     )
                   : const Icon(Icons.save),
-              label: Text(_isLoading ? 'Actualizando...' : 'Actualizar Teléfono'),
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
+              label:
+                  Text(_isLoading ? 'Actualizando...' : 'Actualizar Teléfono'),
             ),
           ),
           const SizedBox(height: 16.0),
@@ -328,15 +333,15 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
+            Row(
               children: [
                 Icon(
                   Icons.phone,
-                  color: Colors.blue,
+                  color: Theme.of(context).colorScheme.primary,
                   size: 24,
                 ),
-                SizedBox(width: 8),
-                Text(
+                const SizedBox(width: 8),
+                const Text(
                   'Teléfono Actual',
                   style: TextStyle(
                     fontSize: 18,
@@ -406,7 +411,7 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
           },
           secondary: Icon(
             Icons.star,
-            color: _isPrimary ? Colors.amber : Colors.grey,
+            color: _isPrimary ? AppColors.amber : AppColors.gray,
           ),
         ),
         const Divider(),
@@ -421,7 +426,7 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
           },
           secondary: Icon(
             Icons.check_circle,
-            color: _isActive ? Colors.green : Colors.grey,
+            color: _isActive ? AppColors.green : AppColors.gray,
           ),
         ),
       ],
@@ -433,4 +438,4 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
     _numberController.dispose();
     super.dispose();
   }
-} 
+}

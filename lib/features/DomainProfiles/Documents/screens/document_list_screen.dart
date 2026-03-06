@@ -1,3 +1,4 @@
+import 'package:zonix/features/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:zonix/features/DomainProfiles/Documents/api/document_service.dart';
 import 'package:zonix/features/DomainProfiles/Documents/models/document.dart';
@@ -158,7 +159,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
       margin: const EdgeInsets.only(bottom: 12),
       child: Card(
         elevation: 4,
-        shadowColor: Colors.black.withValues(alpha: 0.1),
+        shadowColor: AppColors.black.withValues(alpha: 0.1),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
@@ -321,7 +322,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
           Icon(
             Icons.error_outline,
             size: 64,
-            color: Colors.red.withValues(alpha: 0.5),
+            color: AppColors.red.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           const Text(
@@ -331,7 +332,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
           const SizedBox(height: 8),
           Text(
             error,
-            style: const TextStyle(color: Colors.grey),
+            style: const TextStyle(color: AppColors.gray),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -353,7 +354,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
           Icon(
             Icons.folder_open,
             size: 64,
-            color: Colors.grey.withValues(alpha: 0.5),
+            color: AppColors.gray.withValues(alpha: 0.5),
           ),
           const SizedBox(height: 16),
           const Text(
@@ -363,7 +364,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
           const SizedBox(height: 8),
           const Text(
             'Agrega tu primer documento para comenzar',
-            style: TextStyle(color: Colors.grey),
+            style: TextStyle(color: AppColors.gray),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -404,8 +405,8 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
             child: FloatingActionButton(
               heroTag: 'document_list_confirm',
               onPressed: _showConfirmationDialog,
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.green,
+              foregroundColor: AppColors.white,
               child: const Icon(Icons.check),
             ),
           ),
@@ -461,11 +462,11 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Text('Estado actualizado exitosamente'),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.green,
             behavior: SnackBarBehavior.floating,
             action: SnackBarAction(
               label: 'Cerrar',
-              textColor: Colors.white,
+              textColor: AppColors.white,
               onPressed: () {},
             ),
           ),
@@ -477,11 +478,11 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.red,
             behavior: SnackBarBehavior.floating,
             action: SnackBarAction(
               label: 'Cerrar',
-              textColor: Colors.white,
+              textColor: AppColors.white,
               onPressed: () {},
             ),
           ),

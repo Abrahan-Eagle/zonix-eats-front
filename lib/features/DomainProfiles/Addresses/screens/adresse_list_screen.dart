@@ -6,6 +6,7 @@ import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_edit_scr
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zonix/config/app_config.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/widgets/osm_map_widget.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -70,22 +71,23 @@ class AddressPage extends StatelessWidget {
       child: Consumer<AddressModel>(
         builder: (context, addressModel, child) {
           return Scaffold(
-            backgroundColor: const Color(0xFFF8F9FA),
+            backgroundColor: AppColors.scaffoldBg(context),
             appBar: _buildAppBar(context, addressModel),
             body: _buildBody(context, addressModel, isSmallScreen),
-            floatingActionButton: _buildFloatingActionButtons(context, addressModel),
-            floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+            floatingActionButton:
+                _buildFloatingActionButtons(context, addressModel),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerFloat,
           );
         },
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar(BuildContext context, AddressModel addressModel) {
+  PreferredSizeWidget _buildAppBar(
+      BuildContext context, AddressModel addressModel) {
     return AppBar(
       elevation: 0,
-      backgroundColor: const Color(0xFF1976D2),
-      foregroundColor: Colors.white,
       title: const Text(
         'Mi Dirección',
         style: TextStyle(
@@ -103,7 +105,7 @@ class AddressPage extends StatelessWidget {
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
                     ),
                   )
                 : const Icon(Icons.refresh),
@@ -112,9 +114,10 @@ class AddressPage extends StatelessWidget {
     );
   }
 
-  Widget _buildBody(BuildContext context, AddressModel addressModel, bool isSmallScreen) {
+  Widget _buildBody(
+      BuildContext context, AddressModel addressModel, bool isSmallScreen) {
     if (addressModel.isLoading) {
-      return _buildLoadingState();
+      return _buildLoadingState(context);
     }
 
     if (addressModel.address == null) {
@@ -124,20 +127,21 @@ class AddressPage extends StatelessWidget {
     return _buildAddressContent(context, addressModel.address!, isSmallScreen);
   }
 
-  Widget _buildLoadingState() {
-    return const Center(
+  Widget _buildLoadingState(BuildContext context) {
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1976D2)),
+            valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).colorScheme.primary),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
             'Cargando dirección...',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.grey,
+              color: AppColors.secondaryText(context),
             ),
           ),
         ],
@@ -146,6 +150,7 @@ class AddressPage extends StatelessWidget {
   }
 
   Widget _buildEmptyState(BuildContext context, bool isSmallScreen) {
+    final primary = Theme.of(context).colorScheme.primary;
     return Center(
       child: Padding(
         padding: EdgeInsets.all(isSmallScreen ? 20.0 : 40.0),
@@ -156,31 +161,31 @@ class AddressPage extends StatelessWidget {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: const Color(0xFF1976D2).withValues(alpha: 0.1),
+                color: primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(60),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.location_off_outlined,
                 size: 60,
-                color: Color(0xFF1976D2),
+                color: primary,
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'No tienes dirección registrada',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey,
+                color: AppColors.secondaryText(context),
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
-            const Text(
+            Text(
               'Agrega tu primera dirección para comenzar',
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey,
+                color: AppColors.secondaryText(context),
               ),
               textAlign: TextAlign.center,
             ),
@@ -190,9 +195,8 @@ class AddressPage extends StatelessWidget {
               icon: const Icon(Icons.add_location_alt),
               label: const Text('Agregar Dirección'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1976D2),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -204,7 +208,8 @@ class AddressPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAddressContent(BuildContext context, Address address, bool isSmallScreen) {
+  Widget _buildAddressContent(
+      BuildContext context, Address address, bool isSmallScreen) {
     return RefreshIndicator(
       onRefresh: () => context.read<AddressModel>().refreshAddress(userId),
       child: SingleChildScrollView(
@@ -212,7 +217,7 @@ class AddressPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildAddressCard(address, isSmallScreen),
+            _buildAddressCard(context, address, isSmallScreen),
             const SizedBox(height: 12),
             _buildMapCard(address, context, isSmallScreen),
           ],
@@ -221,12 +226,11 @@ class AddressPage extends StatelessWidget {
     );
   }
 
-
-
-  Widget _buildAddressCard(Address address, bool isSmallScreen) {
+  Widget _buildAddressCard(
+      BuildContext context, Address address, bool isSmallScreen) {
+    final primary = Theme.of(context).colorScheme.primary;
     return Card(
       elevation: 4,
-      shadowColor: Colors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       margin: EdgeInsets.all(isSmallScreen ? 12.0 : 20.0),
       child: Padding(
@@ -239,45 +243,53 @@ class AddressPage extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1976D2).withValues(alpha: 0.1),
+                    color: primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.location_on,
-                    color: Color(0xFF1976D2),
+                    color: primary,
                     size: 20,
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
+                Text(
                   'Información de Dirección',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.w600,
+                    color: AppColors.primaryText(context),
                   ),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            _buildInfoRow('Dirección', address.street, Icons.home),
-            _buildInfoRow('Número de Casa', address.houseNumber, Icons.numbers),
-            _buildInfoRow('Código Postal', address.postalCode, Icons.mail),
-            _buildInfoRow('País', 'Venezuela', Icons.flag),
-            _buildInfoRow('Estado', 'Carabobo', Icons.location_city),
-            _buildInfoRow('Ciudad', 'Valencia', Icons.location_on),
-            _buildInfoRow('Coordenadas', '${address.latitude.toStringAsFixed(6)}, ${address.longitude.toStringAsFixed(6)}', Icons.gps_fixed),
+            _buildInfoRow(context, 'Dirección', address.street, Icons.home),
+            _buildInfoRow(
+                context, 'Número de Casa', address.houseNumber, Icons.numbers),
+            _buildInfoRow(
+                context, 'Código Postal', address.postalCode, Icons.mail),
+            _buildInfoRow(context, 'País', 'Venezuela', Icons.flag),
+            _buildInfoRow(context, 'Estado', 'Carabobo', Icons.location_city),
+            _buildInfoRow(context, 'Ciudad', 'Valencia', Icons.location_on),
+            _buildInfoRow(
+                context,
+                'Coordenadas',
+                '${address.latitude.toStringAsFixed(6)}, ${address.longitude.toStringAsFixed(6)}',
+                Icons.gps_fixed),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value, IconData icon) {
+  Widget _buildInfoRow(
+      BuildContext context, String label, String value, IconData icon) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Icon(icon, size: 16, color: Colors.grey[600]),
+          Icon(icon, size: 16, color: AppColors.secondaryText(context)),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -287,15 +299,16 @@ class AddressPage extends StatelessWidget {
                   label,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[600],
+                    color: AppColors.secondaryText(context),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
+                    color: AppColors.primaryText(context),
                   ),
                 ),
               ],
@@ -306,7 +319,8 @@ class AddressPage extends StatelessWidget {
     );
   }
 
-  Widget _buildMapCard(Address address, BuildContext context, bool isSmallScreen) {
+  Widget _buildMapCard(
+      Address address, BuildContext context, bool isSmallScreen) {
     return Padding(
       padding: EdgeInsets.all(isSmallScreen ? 16.0 : 24.0),
       child: Column(
@@ -332,17 +346,19 @@ class AddressPage extends StatelessWidget {
           // Botón para abrir en navegador externo
           GestureDetector(
             onTap: () async {
-              final url = '${AppConfig.openStreetMapViewUrl}/?mlat=${address.latitude}&mlon=${address.longitude}&zoom=15';
+              final url =
+                  '${AppConfig.openStreetMapViewUrl}/?mlat=${address.latitude}&mlon=${address.longitude}&zoom=15';
               try {
                 if (await canLaunchUrl(Uri.parse(url))) {
-                  await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+                  await launchUrl(Uri.parse(url),
+                      mode: LaunchMode.externalApplication);
                 }
               } catch (e) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('No se pudo abrir el mapa: $e'),
-                      backgroundColor: Colors.red,
+                      backgroundColor: AppColors.red,
                     ),
                   );
                 }
@@ -358,12 +374,12 @@ class AddressPage extends StatelessWidget {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.open_in_new, color: Colors.white, size: 20),
+                  Icon(Icons.open_in_new, color: AppColors.white, size: 20),
                   SizedBox(width: 8),
                   Text(
                     'Abrir en OpenStreetMap',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.white,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
@@ -377,7 +393,8 @@ class AddressPage extends StatelessWidget {
     );
   }
 
-  Widget _buildFloatingActionButtons(BuildContext context, AddressModel addressModel) {
+  Widget _buildFloatingActionButtons(
+      BuildContext context, AddressModel addressModel) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 20.0),
       child: Column(
@@ -395,19 +412,20 @@ class AddressPage extends StatelessWidget {
     return FloatingActionButton(
       heroTag: 'adresse_list_status',
       onPressed: () => _showStatusUpdateDialog(context),
-      backgroundColor: Colors.green,
-      child: const Icon(Icons.check, color: Colors.white),
+      backgroundColor: AppColors.green,
+      child: const Icon(Icons.check, color: AppColors.white),
     );
   }
 
   Widget _buildAddressButton(BuildContext context, AddressModel addressModel) {
     final hasAddress = addressModel.address != null;
-    
+
     return FloatingActionButton.extended(
       heroTag: 'adresse_list_create',
       onPressed: () => _navigateToCreateAddress(context),
-      backgroundColor: hasAddress ? Colors.orange : const Color(0xFF1976D2),
-      foregroundColor: Colors.white,
+      backgroundColor:
+          hasAddress ? AppColors.orange : Theme.of(context).colorScheme.primary,
+      foregroundColor: AppColors.white,
       icon: Icon(hasAddress ? Icons.edit_location : Icons.add_location_alt),
       label: Text(hasAddress ? 'Editar Ubicación' : 'Agregar Dirección'),
     );
@@ -416,7 +434,7 @@ class AddressPage extends StatelessWidget {
   void _navigateToCreateAddress(BuildContext context) {
     final addressModel = context.read<AddressModel>();
     final hasAddress = addressModel.address != null;
-    
+
     if (hasAddress) {
       // Navegar a la pantalla de edición
       Navigator.push(
@@ -454,7 +472,7 @@ class AddressPage extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.green),
+            Icon(Icons.check_circle, color: AppColors.green),
             SizedBox(width: 8),
             Text('Confirmar Aprobación'),
           ],
@@ -468,8 +486,8 @@ class AddressPage extends StatelessWidget {
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.green,
+              foregroundColor: AppColors.white,
             ),
             child: const Text('Aprobar'),
           ),
@@ -485,20 +503,21 @@ class AddressPage extends StatelessWidget {
   Future<void> _updateStatus(BuildContext context) async {
     try {
       await AddressService().updateStatusCheckScanner(userId);
-      
+
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: const Row(
               children: [
-                Icon(Icons.check_circle, color: Colors.white),
+                Icon(Icons.check_circle, color: AppColors.white),
                 SizedBox(width: 8),
                 Text('Estado actualizado exitosamente'),
               ],
             ),
-            backgroundColor: Colors.green,
+            backgroundColor: AppColors.green,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         );
         Navigator.of(context).pop();
@@ -509,14 +528,15 @@ class AddressPage extends StatelessWidget {
           SnackBar(
             content: Row(
               children: [
-                const Icon(Icons.error, color: Colors.white),
+                const Icon(Icons.error, color: AppColors.white),
                 const SizedBox(width: 8),
                 Expanded(child: Text('Error: ${e.toString()}')),
               ],
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.red,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         );
       }

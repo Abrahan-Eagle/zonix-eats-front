@@ -1,53 +1,53 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../utils/app_colors.dart';
 
 class DeliveryAgentRegistrationPage extends StatefulWidget {
   final Map<String, dynamic>? initialData;
   final bool isEditing;
-  
-  const DeliveryAgentRegistrationPage({
-    super.key, 
-    this.initialData, 
-    this.isEditing = false
-  });
+
+  const DeliveryAgentRegistrationPage(
+      {super.key, this.initialData, this.isEditing = false});
 
   @override
-  State<DeliveryAgentRegistrationPage> createState() => _DeliveryAgentRegistrationPageState();
+  State<DeliveryAgentRegistrationPage> createState() =>
+      _DeliveryAgentRegistrationPageState();
 }
 
-class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistrationPage>
-    with TickerProviderStateMixin {
+class _DeliveryAgentRegistrationPageState
+    extends State<DeliveryAgentRegistrationPage> with TickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _slideAnimation;
-  
+
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
-  
+
   // Profile controllers
   final _firstNameController = TextEditingController();
   final _lastNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
-  
+
   // Delivery agent specific controllers
   final _vehicleTypeController = TextEditingController();
   final _licenseNumberController = TextEditingController();
-  
+
   bool _isLoading = false;
   String _selectedSex = 'M';
   String _selectedMaritalStatus = 'single';
   String _selectedEstado = 'activo';
   bool _trabajando = false;
   String _selectedCompany = '';
-  
+
   // Lista simulada de empresas de delivery
   final List<Map<String, String>> _companies = [
     {'id': '1', 'name': 'Express Delivery S.A.'},
     {'id': '2', 'name': 'Rapid Transport'},
     {'id': '3', 'name': 'Fast Courier'},
   ];
-  
+
   @override
   void initState() {
     super.initState();
@@ -55,17 +55,17 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-    
+
     _slideAnimation = Tween<double>(begin: 30.0, end: 0.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
     );
-    
+
     _animationController.forward();
-    
+
     // Cargar datos iniciales si es edición
     if (widget.isEditing && widget.initialData != null) {
       _loadInitialData();
@@ -80,7 +80,7 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
     _addressController.text = data['address'] ?? '';
     _selectedSex = data['sex'] ?? 'M';
     _selectedMaritalStatus = data['maritalStatus'] ?? 'single';
-    
+
     // Datos específicos del repartidor
     _vehicleTypeController.text = data['vehicle_type'] ?? '';
     _licenseNumberController.text = data['license_number'] ?? '';
@@ -107,9 +107,9 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
     final size = MediaQuery.of(context).size;
     final isTablet = size.width > 600;
     final isSmallPhone = size.width < 360;
-    
+
     return Scaffold(
-      backgroundColor: const Color(0xFF8E44AD),
+      backgroundColor: AppColors.onboardingDeliveryPurple,
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _animationController,
@@ -125,17 +125,18 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
                     SliverToBoxAdapter(
                       child: _buildHeader(isTablet, isSmallPhone),
                     ),
-                    
+
                     // Form Content
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: EdgeInsets.symmetric(
-                          horizontal: isTablet ? 64.0 : (isSmallPhone ? 16.0 : 20.0),
+                          horizontal:
+                              isTablet ? 64.0 : (isSmallPhone ? 16.0 : 20.0),
                         ),
                         child: _buildFormContent(isTablet, isSmallPhone),
                       ),
                     ),
-                    
+
                     // Bottom spacing
                     const SliverToBoxAdapter(
                       child: SizedBox(height: 100),
@@ -162,26 +163,26 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
             children: [
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                icon: const Icon(Icons.arrow_back_ios, color: AppColors.white),
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.white.withValues(alpha: 0.2),
+                  backgroundColor: AppColors.white.withValues(alpha: 0.2),
                 ),
               ),
             ],
           ),
-          
+
           SizedBox(height: isTablet ? 20 : 12),
-          
+
           // Icon
           Container(
             width: isTablet ? 80 : (isSmallPhone ? 60 : 70),
             height: isTablet ? 80 : (isSmallPhone ? 60 : 70),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: AppColors.black.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -190,32 +191,34 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
             child: Icon(
               Icons.delivery_dining,
               size: isTablet ? 40 : (isSmallPhone ? 30 : 35),
-              color: const Color(0xFF8E44AD),
+              color: AppColors.onboardingDeliveryPurple,
             ),
           ),
-          
+
           SizedBox(height: isTablet ? 24 : 16),
-          
+
           Text(
-            widget.isEditing ? 'Editar Perfil de Repartidor' : 'Registra tu Perfil de Repartidor',
+            widget.isEditing
+                ? 'Editar Perfil de Repartidor'
+                : 'Registra tu Perfil de Repartidor',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: isTablet ? 32 : (isSmallPhone ? 24 : 28),
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppColors.white,
             ),
           ),
-          
+
           SizedBox(height: isTablet ? 12 : 8),
-          
+
           Text(
-            widget.isEditing 
-              ? 'Actualiza tu información de repartidor'
-              : 'Completa tu información para comenzar a trabajar como repartidor',
+            widget.isEditing
+                ? 'Actualiza tu información de repartidor'
+                : 'Completa tu información para comenzar a trabajar como repartidor',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: isTablet ? 16 : (isSmallPhone ? 12 : 14),
-              color: Colors.white.withValues(alpha: 0.9),
+              color: AppColors.white.withValues(alpha: 0.9),
             ),
           ),
         ],
@@ -227,11 +230,11 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
     return Container(
       padding: EdgeInsets.all(isTablet ? 32 : (isSmallPhone ? 20 : 24)),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: AppColors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -245,7 +248,7 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
             // Información personal
             _buildSectionTitle('Información Personal', isTablet, isSmallPhone),
             SizedBox(height: isTablet ? 20 : 16),
-            
+
             Row(
               children: [
                 Expanded(
@@ -254,13 +257,19 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
                     label: 'Nombre',
                     icon: Icons.person_outline,
                     validator: (value) {
-                      if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                      if (value == null || value.trim().isEmpty)
+                        return 'Este campo es obligatorio';
                       if (value.trim().length < 3) return 'Mínimo 3 caracteres';
-                      if (value.trim().length > 100) return 'Máximo 100 caracteres';
-                      if (!RegExp(r'^[a-zA-Z áéíóúÁÉÍÓÚüÜñÑ]+$').hasMatch(value)) return 'Solo letras y espacios';
+                      if (value.trim().length > 100)
+                        return 'Máximo 100 caracteres';
+                      if (!RegExp(r'^[a-zA-Z áéíóúÁÉÍÓÚüÜñÑ]+$')
+                          .hasMatch(value)) return 'Solo letras y espacios';
                       return null;
                     },
-                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z áéíóúÁÉÍÓÚüÜñÑ]'))],
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'[a-zA-Z áéíóúÁÉÍÓÚüÜñÑ]'))
+                    ],
                     isTablet: isTablet,
                     isSmallPhone: isSmallPhone,
                   ),
@@ -272,22 +281,28 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
                     label: 'Apellido',
                     icon: Icons.person_outline,
                     validator: (value) {
-                      if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                      if (value == null || value.trim().isEmpty)
+                        return 'Este campo es obligatorio';
                       if (value.trim().length < 3) return 'Mínimo 3 caracteres';
-                      if (value.trim().length > 100) return 'Máximo 100 caracteres';
-                      if (!RegExp(r'^[a-zA-Z áéíóúÁÉÍÓÚüÜñÑ]+$').hasMatch(value)) return 'Solo letras y espacios';
+                      if (value.trim().length > 100)
+                        return 'Máximo 100 caracteres';
+                      if (!RegExp(r'^[a-zA-Z áéíóúÁÉÍÓÚüÜñÑ]+$')
+                          .hasMatch(value)) return 'Solo letras y espacios';
                       return null;
                     },
-                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z áéíóúÁÉÍÓÚüÜñÑ]'))],
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                          RegExp(r'[a-zA-Z áéíóúÁÉÍÓÚüÜñÑ]'))
+                    ],
                     isTablet: isTablet,
                     isSmallPhone: isSmallPhone,
                   ),
                 ),
               ],
             ),
-            
+
             SizedBox(height: isTablet ? 20 : 16),
-            
+
             _buildTextField(
               controller: _phoneController,
               label: 'Teléfono',
@@ -295,7 +310,8 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
               keyboardType: TextInputType.phone,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               validator: (value) {
-                if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                if (value == null || value.trim().isEmpty)
+                  return 'Este campo es obligatorio';
                 if (value.trim().length < 10) return 'Mínimo 10 dígitos';
                 if (value.trim().length > 15) return 'Máximo 15 dígitos';
                 if (!RegExp(r'^[0-9]+$').hasMatch(value)) return 'Solo números';
@@ -304,21 +320,22 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
-            
+
             SizedBox(height: isTablet ? 20 : 16),
-            
+
             _buildTextField(
               controller: _addressController,
               label: 'Dirección',
               icon: Icons.location_on_outlined,
               maxLines: 3,
-              validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+              validator: (value) =>
+                  value?.isEmpty == true ? 'Este campo es obligatorio' : null,
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
-            
+
             SizedBox(height: isTablet ? 20 : 16),
-            
+
             // Sexo y Estado Civil
             Row(
               children: [
@@ -347,60 +364,66 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
                       {'value': 'divorced', 'label': 'Divorciado'},
                       {'value': 'widowed', 'label': 'Viudo'},
                     ],
-                    onChanged: (value) => setState(() => _selectedMaritalStatus = value!),
+                    onChanged: (value) =>
+                        setState(() => _selectedMaritalStatus = value!),
                     isTablet: isTablet,
                     isSmallPhone: isSmallPhone,
                   ),
                 ),
               ],
             ),
-            
+
             SizedBox(height: isTablet ? 32 : 24),
-            
+
             // Información de repartidor
-            _buildSectionTitle('Información de Repartidor', isTablet, isSmallPhone),
+            _buildSectionTitle(
+                'Información de Repartidor', isTablet, isSmallPhone),
             SizedBox(height: isTablet ? 20 : 16),
-            
+
             _buildDropdownField(
               label: 'Empresa de Delivery',
               value: _selectedCompany,
-              items: _companies.map((company) => {
-                'value': company['id']!,
-                'label': company['name']!,
-              }).toList(),
+              items: _companies
+                  .map((company) => {
+                        'value': company['id']!,
+                        'label': company['name']!,
+                      })
+                  .toList(),
               onChanged: (value) => setState(() => _selectedCompany = value!),
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
-            
+
             SizedBox(height: isTablet ? 20 : 16),
-            
+
             _buildTextField(
               controller: _vehicleTypeController,
               label: 'Tipo de Vehículo',
               icon: Icons.two_wheeler,
-              validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+              validator: (value) =>
+                  value?.isEmpty == true ? 'Este campo es obligatorio' : null,
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
-            
+
             SizedBox(height: isTablet ? 20 : 16),
-            
+
             _buildTextField(
               controller: _licenseNumberController,
               label: 'Número de Licencia',
               icon: Icons.card_membership,
-              validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+              validator: (value) =>
+                  value?.isEmpty == true ? 'Este campo es obligatorio' : null,
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
-            
+
             SizedBox(height: isTablet ? 32 : 24),
-            
+
             // Estado del repartidor
             _buildSectionTitle('Estado del Repartidor', isTablet, isSmallPhone),
             SizedBox(height: isTablet ? 16 : 12),
-            
+
             _buildDropdownField(
               label: 'Estado',
               value: _selectedEstado,
@@ -413,21 +436,21 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
-            
+
             SizedBox(height: isTablet ? 20 : 16),
-            
+
             Container(
               padding: EdgeInsets.all(isTablet ? 16 : 12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8F9FA),
+                color: AppColors.inputBg,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE8E8E8)),
+                border: Border.all(color: AppColors.borderLight),
               ),
               child: Row(
                 children: [
                   Icon(
                     _trabajando ? Icons.check_circle : Icons.cancel,
-                    color: _trabajando ? const Color(0xFF27AE60) : const Color(0xFFE74C3C),
+                    color: _trabajando ? AppColors.green : AppColors.red,
                     size: isTablet ? 24 : 20,
                   ),
                   SizedBox(width: isTablet ? 16 : 12),
@@ -443,7 +466,7 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
                   Switch(
                     value: _trabajando,
                     onChanged: (value) => setState(() => _trabajando = value),
-                    activeThumbColor: const Color(0xFF27AE60),
+                    activeThumbColor: AppColors.green,
                   ),
                 ],
               ),
@@ -460,7 +483,7 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
       style: TextStyle(
         fontSize: isTablet ? 20 : (isSmallPhone ? 16 : 18),
         fontWeight: FontWeight.bold,
-        color: const Color(0xFF2C3E50),
+        color: AppColors.textSecondaryDark,
       ),
     );
   }
@@ -487,17 +510,17 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
       ),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: const Color(0xFF8E44AD)),
+        prefixIcon: Icon(icon, color: AppColors.onboardingDeliveryPurple),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE8E8E8)),
+          borderSide: const BorderSide(color: AppColors.borderLight),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF8E44AD), width: 2),
+          borderSide: const BorderSide(color: AppColors.onboardingDeliveryPurple, width: 2),
         ),
         filled: true,
-        fillColor: const Color(0xFFF8F9FA),
+        fillColor: AppColors.inputBg,
         labelStyle: TextStyle(
           fontSize: isTablet ? 14 : (isSmallPhone ? 12 : 13),
         ),
@@ -521,17 +544,17 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
       ),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: const Icon(Icons.arrow_drop_down, color: Color(0xFF8E44AD)),
+        prefixIcon: const Icon(Icons.arrow_drop_down, color: AppColors.onboardingDeliveryPurple),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE8E8E8)),
+          borderSide: const BorderSide(color: AppColors.borderLight),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF8E44AD), width: 2),
+          borderSide: const BorderSide(color: AppColors.onboardingDeliveryPurple, width: 2),
         ),
         filled: true,
-        fillColor: const Color(0xFFF8F9FA),
+        fillColor: AppColors.inputBg,
         labelStyle: TextStyle(
           fontSize: isTablet ? 14 : (isSmallPhone ? 12 : 13),
         ),
@@ -557,8 +580,8 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
       child: ElevatedButton(
         onPressed: _isLoading ? null : _submitForm,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: const Color(0xFF8E44AD),
+          backgroundColor: AppColors.white,
+          foregroundColor: AppColors.onboardingDeliveryPurple,
           padding: EdgeInsets.symmetric(vertical: isTablet ? 20 : 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
@@ -571,11 +594,13 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
                 width: isTablet ? 24 : 20,
                 child: const CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8E44AD)),
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.onboardingDeliveryPurple),
                 ),
               )
             : Text(
-                widget.isEditing ? 'Actualizar Repartidor' : 'Registrar Repartidor',
+                widget.isEditing
+                    ? 'Actualizar Repartidor'
+                    : 'Registrar Repartidor',
                 style: TextStyle(
                   fontSize: isTablet ? 18 : (isSmallPhone ? 14 : 16),
                   fontWeight: FontWeight.bold,
@@ -591,24 +616,24 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Debes seleccionar una empresa de delivery'),
-            backgroundColor: Color(0xFFE74C3C),
+            backgroundColor: AppColors.red,
           ),
         );
         return;
       }
-      
+
       setState(() => _isLoading = true);
-      
+
       try {
         // Aquí implementarías la lógica para enviar los datos al backend
         await Future.delayed(const Duration(seconds: 2)); // Simulación
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(widget.isEditing 
-              ? 'Repartidor actualizado exitosamente' 
-              : 'Repartidor registrado exitosamente'),
-            backgroundColor: const Color(0xFF27AE60),
+            content: Text(widget.isEditing
+                ? 'Repartidor actualizado exitosamente'
+                : 'Repartidor registrado exitosamente'),
+            backgroundColor: AppColors.green,
           ),
         );
         Navigator.pop(context);
@@ -616,8 +641,9 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error al ${widget.isEditing ? 'actualizar' : 'registrar'}: $e'),
-            backgroundColor: const Color(0xFFE74C3C),
+            content: Text(
+                'Error al ${widget.isEditing ? 'actualizar' : 'registrar'}: $e'),
+            backgroundColor: AppColors.red,
           ),
         );
       } finally {
@@ -625,4 +651,4 @@ class _DeliveryAgentRegistrationPageState extends State<DeliveryAgentRegistratio
       }
     }
   }
-} 
+}

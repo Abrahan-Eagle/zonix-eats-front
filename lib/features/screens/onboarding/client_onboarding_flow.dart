@@ -1,3 +1,4 @@
+import 'package:zonix/features/utils/app_colors.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -1048,7 +1049,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: Colors.red.shade700,
+          backgroundColor: AppColors.red,
         ),
       );
     } finally {
@@ -1251,7 +1252,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(message),
-          backgroundColor: Colors.red.shade700,
+          backgroundColor: AppColors.red,
         ),
       );
     } finally {
@@ -1320,9 +1321,6 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
   }
 
   // Colores Stitch (6) - Datos Personales
-  static const Color _kBackgroundDark = Color(0xFF101922);
-  static const Color _kSurfaceDark = Color(0xFF1A2633);
-  static const Color _kPrimary = Color(0xFF3399FF);
 
   @override
   Widget build(BuildContext context) {
@@ -1330,7 +1328,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     final progress = (_currentStep + 1) / _totalSteps;
 
     return Scaffold(
-      backgroundColor: _kBackgroundDark,
+      backgroundColor: AppColors.backgroundDark,
       body: SafeArea(
         child: Column(
           children: [
@@ -1341,10 +1339,10 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                 children: [
                   IconButton(
                     onPressed: () => Navigator.maybePop(context),
-                    icon: const Icon(Icons.chevron_left, color: Colors.white),
+                    icon: const Icon(Icons.chevron_left, color: AppColors.white),
                     style: IconButton.styleFrom(
-                      backgroundColor: _kSurfaceDark,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AppColors.grayDark,
+                      foregroundColor: AppColors.white,
                     ),
                   ),
                   Expanded(
@@ -1354,7 +1352,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                          color: AppColors.white,
                         ),
                       ),
                     ),
@@ -1376,7 +1374,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                         'Paso ${_currentStep + 1} de $_totalSteps',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 14,
-                          color: Colors.white.withValues(alpha: 0.6),
+                          color: AppColors.white.withValues(alpha: 0.6),
                         ),
                       ),
                       Text(
@@ -1384,7 +1382,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: _kPrimary,
+                          color: AppColors.blue,
                         ),
                       ),
                     ],
@@ -1395,8 +1393,8 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                     child: LinearProgressIndicator(
                       value: progress,
                       minHeight: 8,
-                      backgroundColor: _kSurfaceDark,
-                      valueColor: const AlwaysStoppedAnimation<Color>(_kPrimary),
+                      backgroundColor: AppColors.grayDark,
+                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.blue),
                     ),
                   ),
                 ],
@@ -1430,8 +1428,8 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              _kBackgroundDark.withValues(alpha: 0),
-              _kBackgroundDark,
+              AppColors.backgroundDark.withValues(alpha: 0),
+              AppColors.backgroundDark,
             ],
           ),
         ),
@@ -1441,9 +1439,9 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
           child: ElevatedButton(
             onPressed: _isSubmitting ? null : _handleNext,
             style: ElevatedButton.styleFrom(
-              backgroundColor: _kPrimary,
-              foregroundColor: Colors.white,
-              disabledBackgroundColor: _kPrimary.withValues(alpha: 0.5),
+              backgroundColor: AppColors.blue,
+              foregroundColor: AppColors.white,
+              disabledBackgroundColor: AppColors.blue.withValues(alpha: 0.5),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -1511,10 +1509,10 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                       width: isSmall ? 96 : 112,
                       height: isSmall ? 96 : 112,
                       decoration: BoxDecoration(
-                        color: _kSurfaceDark,
+                        color: AppColors.grayDark,
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.2),
+                          color: AppColors.white.withValues(alpha: 0.2),
                           width: 2,
                         ),
                       ),
@@ -1528,7 +1526,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                           : Icon(
                               Icons.person,
                               size: isSmall ? 40 : 48,
-                              color: Colors.white.withValues(alpha: 0.5),
+                              color: AppColors.white.withValues(alpha: 0.5),
                             ),
                     ),
                     Positioned(
@@ -1537,16 +1535,16 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                       child: Container(
                         padding: EdgeInsets.all(isSmall ? 6 : 8),
                         decoration: BoxDecoration(
-                          color: _kPrimary,
+                          color: AppColors.blue,
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: _kBackgroundDark,
+                            color: AppColors.backgroundDark,
                             width: 4,
                           ),
                         ),
                         child: Icon(
                           Icons.photo_camera,
-                          color: Colors.white,
+                          color: AppColors.white,
                           size: isSmall ? 18 : 20,
                         ),
                       ),
@@ -1563,7 +1561,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.white,
               ),
             ),
             const SizedBox(height: 8),
@@ -1572,7 +1570,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
               textAlign: TextAlign.center,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
-                color: Colors.white.withValues(alpha: 0.6),
+                color: AppColors.white.withValues(alpha: 0.6),
               ),
             ),
             const SizedBox(height: 24),
@@ -1631,7 +1629,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: AppColors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ),
@@ -1643,21 +1641,30 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                       hintText: 'mm/dd/yyyy',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                        borderSide: BorderSide(
+                          color: AppColors.white.withValues(alpha: 0.3),
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                        borderSide: BorderSide(
+                          color: AppColors.white.withValues(alpha: 0.3),
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: _kPrimary, width: 1.5),
+                        borderSide: const BorderSide(
+                          color: AppColors.blue,
+                          width: 1.5,
+                        ),
                       ),
+                      filled: true,
+                      fillColor: AppColors.grayDark,
                       contentPadding: inputPadding,
                       suffixIcon: Icon(
                         Icons.calendar_today,
                         size: 20,
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: AppColors.white.withValues(alpha: 0.5),
                       ),
                     ),
                     child: Text(
@@ -1666,8 +1673,8 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                           : '${_birthDate!.month.toString().padLeft(2, '0')}/${_birthDate!.day.toString().padLeft(2, '0')}/${_birthDate!.year}',
                       style: GoogleFonts.plusJakartaSans(
                         color: _birthDate == null
-                            ? Colors.white.withValues(alpha: 0.5)
-                            : Colors.white,
+                            ? AppColors.white.withValues(alpha: 0.5)
+                            : AppColors.white,
                       ),
                     ),
                   ),
@@ -1686,39 +1693,51 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: AppColors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ),
                 DropdownButtonFormField<String>(
                   initialValue: _selectedSex,
                   isExpanded: true,
-                  dropdownColor: _kSurfaceDark,
-                  icon: Icon(Icons.expand_more, color: Colors.white.withValues(alpha: 0.6)),
+                  dropdownColor: AppColors.grayDark,
+                  icon: Icon(
+                    Icons.expand_more,
+                    color: AppColors.white.withValues(alpha: 0.6),
+                  ),
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                      borderSide: BorderSide(
+                        color: AppColors.white.withValues(alpha: 0.3),
+                      ),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                      borderSide: BorderSide(
+                        color: AppColors.white.withValues(alpha: 0.3),
+                      ),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: _kPrimary, width: 1.5),
+                      borderSide: const BorderSide(
+                        color: AppColors.blue,
+                        width: 1.5,
+                      ),
                     ),
+                    filled: true,
+                    fillColor: AppColors.grayDark,
                     contentPadding: inputPadding,
                   ),
                   hint: Text(
                     'Selecciona tu sexo',
-                    style: GoogleFonts.plusJakartaSans(color: Colors.white.withValues(alpha: 0.5)),
+                    style: GoogleFonts.plusJakartaSans(color: AppColors.white.withValues(alpha: 0.5)),
                   ),
                   items: const [
-                    DropdownMenuItem(value: 'M', child: Text('Masculino', style: TextStyle(color: Colors.white))),
-                    DropdownMenuItem(value: 'F', child: Text('Femenino', style: TextStyle(color: Colors.white))),
-                    DropdownMenuItem(value: 'O', child: Text('Otro', style: TextStyle(color: Colors.white))),
-                    DropdownMenuItem(value: 'X', child: Text('Prefiero no decir', style: TextStyle(color: Colors.white))),
+                    DropdownMenuItem(value: 'M', child: Text('Masculino', style: TextStyle(color: AppColors.white))),
+                    DropdownMenuItem(value: 'F', child: Text('Femenino', style: TextStyle(color: AppColors.white))),
+                    DropdownMenuItem(value: 'O', child: Text('Otro', style: TextStyle(color: AppColors.white))),
+                    DropdownMenuItem(value: 'X', child: Text('Prefiero no decir', style: TextStyle(color: AppColors.white))),
                   ],
                   onChanged: (v) => setState(() => _selectedSex = v),
                   validator: (v) =>
@@ -1739,7 +1758,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: AppColors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ),
@@ -1747,7 +1766,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                   const Center(
                     child: Padding(
                       padding: EdgeInsets.all(24),
-                      child: CircularProgressIndicator(color: _kPrimary),
+                      child: CircularProgressIndicator(color: AppColors.blue),
                     ),
                   )
                 else if (_operatorCodes.isNotEmpty)
@@ -1759,12 +1778,16 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                         child: DropdownButtonFormField<Map<String, dynamic>>(
                           initialValue: _selectedOperator,
                           isExpanded: true,
-                          dropdownColor: _kSurfaceDark,
+                          dropdownColor: AppColors.grayDark,
                           decoration: InputDecoration(
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                              borderSide: BorderSide(
+                                color: AppColors.white.withValues(alpha: 0.3),
+                              ),
                             ),
+                            filled: true,
+                            fillColor: AppColors.grayDark,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 14,
@@ -1776,7 +1799,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                                   value: c,
                                   child: Text(
                                     '0${c['code'] ?? ''}',
-                                    style: const TextStyle(color: Colors.white),
+                                    style: const TextStyle(color: AppColors.white),
                                   ),
                                 ),
                               )
@@ -1794,24 +1817,35 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                             FilteringTextInputFormatter.digitsOnly,
                             LengthLimitingTextInputFormatter(7),
                           ],
-                          style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                          style: GoogleFonts.plusJakartaSans(
+                            color: AppColors.white,
+                          ),
                           decoration: InputDecoration(
                             hintText: '600 000 000',
                             hintStyle: GoogleFonts.plusJakartaSans(
-                              color: Colors.white.withValues(alpha: 0.5),
+                              color: AppColors.white.withValues(alpha: 0.5),
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                              borderSide: BorderSide(
+                                color: AppColors.white.withValues(alpha: 0.3),
+                              ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+                              borderSide: BorderSide(
+                                color: AppColors.white.withValues(alpha: 0.3),
+                              ),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: _kPrimary, width: 1.5),
+                              borderSide: const BorderSide(
+                                color: AppColors.blue,
+                                width: 1.5,
+                              ),
                             ),
+                            filled: true,
+                            fillColor: AppColors.grayDark,
                             contentPadding: inputPadding,
                           ),
                           keyboardType: TextInputType.phone,
@@ -1851,30 +1885,44 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Colors.white.withValues(alpha: 0.9),
+              color: AppColors.white.withValues(alpha: 0.9),
             ),
           ),
         ),
         TextFormField(
           controller: controller,
           onChanged: onChanged,
-          style: GoogleFonts.plusJakartaSans(color: Colors.white),
+          style: GoogleFonts.plusJakartaSans(color: AppColors.white),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white.withValues(alpha: 0.5)),
+            hintStyle: GoogleFonts.plusJakartaSans(
+              color: AppColors.white.withValues(alpha: 0.5),
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+              borderSide: BorderSide(
+                color: AppColors.white.withValues(alpha: 0.3),
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.3)),
+              borderSide: BorderSide(
+                color: AppColors.white.withValues(alpha: 0.3),
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: _kPrimary, width: 1.5),
+              borderSide: const BorderSide(
+                color: AppColors.blue,
+                width: 1.5,
+              ),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            filled: true,
+            fillColor: AppColors.grayDark,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
           ),
           validator: validator,
           autovalidateMode: AutovalidateMode.onUserInteraction,
@@ -1884,8 +1932,8 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
   }
 
   // Colores Stitch (7) - Dirección
-  static const Color _kAddressPrimary = Color(0xFFFFC105);
-  static const Color _kAddressSurface = Color(0xFF252B3B);
+  static const Color _kAddressPrimary = AppColors.addressPrimary;
+  static const Color _kAddressSurface = AppColors.grayDark;
 
   Widget _buildStep2(Size size) {
     final isTablet = size.width > 600;
@@ -1919,7 +1967,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
+                color: AppColors.white,
               ),
             ),
             const SizedBox(height: 8),
@@ -1927,7 +1975,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
               '¿Dónde debemos llevar tu comida?',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
-                color: Colors.white.withValues(alpha: 0.6),
+                color: AppColors.white.withValues(alpha: 0.6),
               ),
             ),
             SizedBox(height: isSmall ? 16 : 24),
@@ -2007,7 +2055,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
+            color: AppColors.black.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -2071,7 +2119,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                       _isLoadingLocation ? 'Obteniendo ubicación...' : 'Esperando ubicación',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: AppColors.white.withValues(alpha: 0.7),
                       ),
                     ),
                   ],
@@ -2087,8 +2135,8 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.transparent,
-                          _kBackgroundDark.withValues(alpha: 0.9),
+                          AppColors.transparent,
+                          AppColors.backgroundDark.withValues(alpha: 0.9),
                         ],
                       ),
                     ),
@@ -2116,7 +2164,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                         ),
                         child: const Icon(
                           Icons.location_on,
-                          color: Color(0xFF1A1F2B),
+                          color: AppColors.grayDark,
                           size: 28,
                         ),
                       ),
@@ -2125,7 +2173,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                         height: 6,
                         margin: const EdgeInsets.only(top: 4),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.4),
+                          color: AppColors.black.withValues(alpha: 0.4),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -2157,28 +2205,28 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: Colors.white.withValues(alpha: 0.7),
+              color: AppColors.white.withValues(alpha: 0.7),
             ),
           ),
         ),
         TextFormField(
           controller: controller,
-          style: GoogleFonts.plusJakartaSans(color: Colors.white),
+          style: GoogleFonts.plusJakartaSans(color: AppColors.white),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white.withValues(alpha: 0.4)),
+            hintStyle: GoogleFonts.plusJakartaSans(color: AppColors.white.withValues(alpha: 0.4)),
             prefixIcon: Icon(
               icon,
               size: 20,
-              color: Colors.white.withValues(alpha: 0.5),
+              color: AppColors.white.withValues(alpha: 0.5),
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+              borderSide: BorderSide(color: AppColors.white.withValues(alpha: 0.2)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+              borderSide: BorderSide(color: AppColors.white.withValues(alpha: 0.2)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -2204,13 +2252,13 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         initialValue: _selectedCountry,
         isExpanded: true,
         dropdownColor: _kAddressSurface,
-        icon: Icon(Icons.expand_more, color: Colors.white.withValues(alpha: 0.6)),
+        icon: Icon(Icons.expand_more, color: AppColors.white.withValues(alpha: 0.6)),
         decoration: _addressInputDecoration(prefixIcon: Icons.public),
         items: _countries
             .map(
               (c) => DropdownMenuItem<Country>(
                 value: c,
-                child: Text(c.name, style: const TextStyle(color: Colors.white)),
+                child: Text(c.name, style: const TextStyle(color: AppColors.white)),
               ),
             )
             .toList(),
@@ -2229,13 +2277,13 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         initialValue: _selectedState,
         isExpanded: true,
         dropdownColor: _kAddressSurface,
-        icon: Icon(Icons.expand_more, color: Colors.white.withValues(alpha: 0.6)),
+        icon: Icon(Icons.expand_more, color: AppColors.white.withValues(alpha: 0.6)),
         decoration: _addressInputDecoration(prefixIcon: Icons.map_outlined),
         items: _states
             .map(
               (s) => DropdownMenuItem<StateModel>(
                 value: s,
-                child: Text(s.name, style: const TextStyle(color: Colors.white)),
+                child: Text(s.name, style: const TextStyle(color: AppColors.white)),
               ),
             )
             .toList(),
@@ -2254,13 +2302,13 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         initialValue: _selectedCity,
         isExpanded: true,
         dropdownColor: _kAddressSurface,
-        icon: Icon(Icons.expand_more, color: Colors.white.withValues(alpha: 0.6)),
+        icon: Icon(Icons.expand_more, color: AppColors.white.withValues(alpha: 0.6)),
         decoration: _addressInputDecoration(prefixIcon: Icons.apartment),
         items: _cities
             .map(
               (c) => DropdownMenuItem<City>(
                 value: c,
-                child: Text(c.name, style: const TextStyle(color: Colors.white)),
+                child: Text(c.name, style: const TextStyle(color: AppColors.white)),
               ),
             )
             .toList(),
@@ -2286,7 +2334,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: Colors.white.withValues(alpha: 0.7),
+              color: AppColors.white.withValues(alpha: 0.7),
             ),
           ),
         ),
@@ -2300,15 +2348,15 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       prefixIcon: Icon(
         prefixIcon,
         size: 20,
-        color: Colors.white.withValues(alpha: 0.5),
+        color: AppColors.white.withValues(alpha: 0.5),
       ),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+        borderSide: BorderSide(color: AppColors.white.withValues(alpha: 0.2)),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.2)),
+        borderSide: BorderSide(color: AppColors.white.withValues(alpha: 0.2)),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -2333,11 +2381,11 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     return TextFormField(
       controller: controller,
       onChanged: onChanged,
-      style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
+      style: GoogleFonts.plusJakartaSans(color: AppColors.white, fontSize: 14),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: GoogleFonts.plusJakartaSans(
-          color: Colors.white.withValues(alpha: 0.5),
+          color: AppColors.white.withValues(alpha: 0.5),
           fontSize: 14,
         ),
         prefixIcon: Padding(
@@ -2345,12 +2393,12 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
           child: Icon(
             icon,
             size: 22,
-            color: Colors.white.withValues(alpha: 0.5),
+            color: AppColors.white.withValues(alpha: 0.5),
           ),
         ),
         prefixIconConstraints: const BoxConstraints(minWidth: 48),
         filled: true,
-        fillColor: _kSurfaceDark,
+        fillColor: AppColors.grayDark,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
@@ -2361,11 +2409,11 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: _kPrimary, width: 2),
+          borderSide: const BorderSide(color: AppColors.blue, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.red.shade400, width: 1),
+          borderSide: const BorderSide(color: AppColors.red, width: 1),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
@@ -2457,7 +2505,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
               Center(
                 child: Padding(
                   padding: const EdgeInsets.all(24),
-                  child: CircularProgressIndicator(color: _kPrimary.withValues(alpha: 0.8)),
+                  child: CircularProgressIndicator(color: AppColors.blue.withValues(alpha: 0.8)),
                 ),
               )
             else if (_operatorCodes.isNotEmpty)
@@ -2469,33 +2517,33 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                     child: DropdownButtonFormField<Map<String, dynamic>>(
                       initialValue: _selectedOperator,
                       isExpanded: true,
-                      dropdownColor: _kSurfaceDark,
-                      icon: Icon(Icons.arrow_drop_down, color: Colors.white.withValues(alpha: 0.6)),
+                      dropdownColor: AppColors.grayDark,
+                      icon: Icon(Icons.arrow_drop_down, color: AppColors.white.withValues(alpha: 0.6)),
                       decoration: InputDecoration(
                         prefixIcon: Padding(
                           padding: const EdgeInsets.only(left: 16, right: 8),
                           child: Icon(
                             Icons.phone_outlined,
                             size: 22,
-                            color: Colors.white.withValues(alpha: 0.5),
+                            color: AppColors.white.withValues(alpha: 0.5),
                           ),
                         ),
                         prefixIconConstraints: const BoxConstraints(minWidth: 44),
                         filled: true,
-                        fillColor: _kSurfaceDark,
+                        fillColor: AppColors.grayDark,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide.none,
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
-                          borderSide: const BorderSide(color: _kPrimary, width: 2),
+                          borderSide: const BorderSide(color: AppColors.blue, width: 2),
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
                       ),
                       hint: Text(
                         'Código',
-                        style: GoogleFonts.plusJakartaSans(color: Colors.white.withValues(alpha: 0.5)),
+                        style: GoogleFonts.plusJakartaSans(color: AppColors.white.withValues(alpha: 0.5)),
                       ),
                       items: _operatorCodes
                           .map(
@@ -2503,7 +2551,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                               value: code,
                               child: Text(
                                 '0${code['code'] ?? ''}',
-                                style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                                style: GoogleFonts.plusJakartaSans(color: AppColors.white),
                               ),
                             ),
                           )
@@ -2543,11 +2591,11 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
               decoration: BoxDecoration(
-                color: _kSurfaceDark,
+                color: AppColors.grayDark,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
+                    color: AppColors.black.withValues(alpha: 0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -2559,10 +2607,10 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: _kPrimary.withValues(alpha: 0.2),
+                      color: AppColors.blue.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: const Icon(Icons.door_front_door_outlined, color: _kPrimary, size: 22),
+                    child: const Icon(Icons.door_front_door_outlined, color: AppColors.blue, size: 22),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -2574,7 +2622,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: Colors.white,
+                            color: AppColors.white,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -2582,7 +2630,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                           'Abierto para recibir pedidos',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
-                            color: Colors.white.withValues(alpha: 0.6),
+                            color: AppColors.white.withValues(alpha: 0.6),
                           ),
                         ),
                       ],
@@ -2591,8 +2639,8 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                   Switch(
                     value: _commerceOpen,
                     onChanged: (v) => setState(() => _commerceOpen = v),
-                    activeThumbColor: _kPrimary,
-                    activeTrackColor: _kPrimary.withValues(alpha: 0.5),
+                    activeThumbColor: AppColors.blue,
+                    activeTrackColor: AppColors.blue.withValues(alpha: 0.5),
                   ),
                 ],
               ),
@@ -2600,33 +2648,33 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             SizedBox(height: isSmall ? 12 : 16),
             // Sección: Horarios de atención (expandable estilo Stitch 8)
             Theme(
-              data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+              data: Theme.of(context).copyWith(dividerColor: AppColors.transparent),
               child: ExpansionTile(
                 tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                backgroundColor: _kSurfaceDark,
-                collapsedBackgroundColor: _kSurfaceDark,
+                backgroundColor: AppColors.grayDark,
+                collapsedBackgroundColor: AppColors.grayDark,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 leading: Container(
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
+                    color: AppColors.white.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Icon(Icons.schedule, color: Colors.white.withValues(alpha: 0.7), size: 22),
+                  child: Icon(Icons.schedule, color: AppColors.white.withValues(alpha: 0.7), size: 22),
                 ),
                 title: Text(
                   'Horarios de atención',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: AppColors.white,
                   ),
                 ),
                 trailing: Icon(
                   Icons.expand_more,
-                  color: Colors.white.withValues(alpha: 0.6),
+                  color: AppColors.white.withValues(alpha: 0.6),
                 ),
                 children: [
                   Padding(
@@ -2637,7 +2685,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                           'Edita el horario en el siguiente paso o desde tu panel de comercio.',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
-                            color: Colors.white.withValues(alpha: 0.6),
+                            color: AppColors.white.withValues(alpha: 0.6),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -2646,8 +2694,8 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                           child: TextButton(
                             onPressed: () {},
                             style: TextButton.styleFrom(
-                              backgroundColor: _kPrimary.withValues(alpha: 0.15),
-                              foregroundColor: _kPrimary,
+                              backgroundColor: AppColors.blue.withValues(alpha: 0.15),
+                              foregroundColor: AppColors.blue,
                               padding: const EdgeInsets.symmetric(vertical: 12),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
@@ -2675,28 +2723,28 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Colors.white.withValues(alpha: 0.8),
+                color: AppColors.white.withValues(alpha: 0.8),
               ),
             ),
             const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: _kPrimary.withValues(alpha: 0.1),
+                color: AppColors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: _kPrimary.withValues(alpha: 0.2)),
+                border: Border.all(color: AppColors.blue.withValues(alpha: 0.2)),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.verified_user_outlined, color: _kPrimary, size: 24),
+                  const Icon(Icons.verified_user_outlined, color: AppColors.blue, size: 24),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Tus datos bancarios están protegidos. Usamos encriptación de grado bancario para todas las transacciones.',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
-                        color: Colors.white.withValues(alpha: 0.7),
+                        color: AppColors.white.withValues(alpha: 0.7),
                         height: 1.5,
                       ),
                     ),
@@ -2742,7 +2790,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             _buildSectionHeader(
               icon: Icons.public,
               label: 'UBICACIÓN REGIONAL',
-              color: _kPrimary,
+              color: AppColors.blue,
               darkStyle: true,
             ),
             const SizedBox(height: 12),
@@ -2763,7 +2811,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             _buildSectionHeader(
               icon: Icons.location_on_outlined,
               label: 'DETALLES DE LA DIRECCIÓN',
-              color: _kPrimary,
+              color: AppColors.blue,
               darkStyle: true,
             ),
             const SizedBox(height: 12),
@@ -2824,7 +2872,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: AppColors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -2910,7 +2958,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                       width: 16,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.25),
+                        color: AppColors.black.withValues(alpha: 0.25),
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -2924,9 +2972,9 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.9),
+                  color: AppColors.white.withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.7)),
+                  border: Border.all(color: AppColors.white.withValues(alpha: 0.7)),
                 ),
                 child: const Text(
                   'Ubicación del PIN',
@@ -2941,7 +2989,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
               bottom: 12,
               right: 12,
               child: Material(
-                color: Colors.white,
+                color: AppColors.white,
                 elevation: 3,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),
@@ -2982,7 +3030,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             fontSize: 13,
             fontWeight: FontWeight.w700,
             letterSpacing: 0.8,
-            color: darkStyle ? Colors.white.withValues(alpha: 0.85) : const Color(0xFF1B1B1F),
+            color: darkStyle ? AppColors.white.withValues(alpha: 0.85) : AppColors.grayDark,
           ),
         ),
       ],
@@ -2992,16 +3040,16 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
   InputDecoration _commerceDropdownDecoration(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: GoogleFonts.plusJakartaSans(color: Colors.white.withValues(alpha: 0.6)),
+      labelStyle: GoogleFonts.plusJakartaSans(color: AppColors.white.withValues(alpha: 0.6)),
       filled: true,
-      fillColor: _kSurfaceDark,
+      fillColor: AppColors.grayDark,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide.none,
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(color: _kPrimary, width: 2),
+        borderSide: const BorderSide(color: AppColors.blue, width: 2),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
@@ -3011,16 +3059,16 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     return DropdownButtonFormField<Country>(
       initialValue: _selectedCountry,
       isExpanded: true,
-      dropdownColor: _kSurfaceDark,
+      dropdownColor: AppColors.grayDark,
       decoration: _commerceDropdownDecoration('País'),
-      icon: Icon(Icons.arrow_drop_down, color: Colors.white.withValues(alpha: 0.6)),
+      icon: Icon(Icons.arrow_drop_down, color: AppColors.white.withValues(alpha: 0.6)),
       items: _countries
           .map(
             (c) => DropdownMenuItem<Country>(
               value: c,
               child: Text(
                 c.name,
-                style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                style: GoogleFonts.plusJakartaSans(color: AppColors.white),
               ),
             ),
           )
@@ -3034,16 +3082,16 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     return DropdownButtonFormField<StateModel>(
       initialValue: _selectedState,
       isExpanded: true,
-      dropdownColor: _kSurfaceDark,
+      dropdownColor: AppColors.grayDark,
       decoration: _commerceDropdownDecoration('Estado'),
-      icon: Icon(Icons.arrow_drop_down, color: Colors.white.withValues(alpha: 0.6)),
+      icon: Icon(Icons.arrow_drop_down, color: AppColors.white.withValues(alpha: 0.6)),
       items: _states
           .map(
             (s) => DropdownMenuItem<StateModel>(
               value: s,
               child: Text(
                 s.name,
-                style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                style: GoogleFonts.plusJakartaSans(color: AppColors.white),
               ),
             ),
           )
@@ -3057,16 +3105,16 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     return DropdownButtonFormField<City>(
       initialValue: _selectedCity,
       isExpanded: true,
-      dropdownColor: _kSurfaceDark,
+      dropdownColor: AppColors.grayDark,
       decoration: _commerceDropdownDecoration('Ciudad'),
-      icon: Icon(Icons.arrow_drop_down, color: Colors.white.withValues(alpha: 0.6)),
+      icon: Icon(Icons.arrow_drop_down, color: AppColors.white.withValues(alpha: 0.6)),
       items: _cities
           .map(
             (c) => DropdownMenuItem<City>(
               value: c,
               child: Text(
                 c.name,
-                style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                style: GoogleFonts.plusJakartaSans(color: AppColors.white),
               ),
             ),
           )

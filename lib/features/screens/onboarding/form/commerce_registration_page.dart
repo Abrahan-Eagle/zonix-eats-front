@@ -1,5 +1,7 @@
+// ignore_for_file: curly_braces_in_flow_control_structures
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../../../utils/app_colors.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/screens/onboarding/onboarding_service.dart';
@@ -11,7 +13,8 @@ class CommerceRegistrationPage extends StatefulWidget {
   const CommerceRegistrationPage({super.key});
 
   @override
-  State<CommerceRegistrationPage> createState() => _CommerceRegistrationPageState();
+  State<CommerceRegistrationPage> createState() =>
+      _CommerceRegistrationPageState();
 }
 
 class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
@@ -19,10 +22,10 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _slideAnimation;
-  
+
   final _formKey = GlobalKey<FormState>();
   final _scrollController = ScrollController();
-  
+
   // Form controllers
   final _nombreLocalController = TextEditingController();
   final _direccionController = TextEditingController();
@@ -30,10 +33,10 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
   final _pagoMovilBancoController = TextEditingController();
   final _pagoMovilCedulaController = TextEditingController();
   final _pagoMovilTelefonoController = TextEditingController();
-  
+
   bool _isLoading = false;
   bool _abierto = false;
-  
+
   // Horario de trabajo
   final Map<String, Map<String, String>> _horario = {
     'lunes': {'inicio': '', 'fin': '', 'cerrado': 'false'},
@@ -52,15 +55,15 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
       duration: const Duration(milliseconds: 1000),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-    
+
     _slideAnimation = Tween<double>(begin: 30.0, end: 0.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic),
     );
-    
+
     _animationController.forward();
 
     // Prefill de dirección con la misma dirección capturada en el formulario 2
@@ -106,9 +109,9 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
     final size = MediaQuery.of(context).size;
     final isTablet = size.width > 600;
     final isSmallPhone = size.width < 360;
-    
+
     return Scaffold(
-      backgroundColor: const Color(0xFF27AE60),
+      backgroundColor: AppColors.green,
       body: SafeArea(
         child: AnimatedBuilder(
           animation: _animationController,
@@ -124,17 +127,18 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
                     SliverToBoxAdapter(
                       child: _buildHeader(isTablet, isSmallPhone),
                     ),
-                    
+
                     // Form Content
                     SliverToBoxAdapter(
                       child: Padding(
                         padding: EdgeInsets.symmetric(
-                          horizontal: isTablet ? 64.0 : (isSmallPhone ? 16.0 : 20.0),
+                          horizontal:
+                              isTablet ? 64.0 : (isSmallPhone ? 16.0 : 20.0),
                         ),
                         child: _buildFormContent(isTablet, isSmallPhone),
                       ),
                     ),
-                    
+
                     // Bottom spacing
                     const SliverToBoxAdapter(
                       child: SizedBox(height: 100),
@@ -161,26 +165,26 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
             children: [
               IconButton(
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                icon: const Icon(Icons.arrow_back_ios, color: AppColors.white),
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.white.withValues(alpha: 0.2),
+                  backgroundColor: AppColors.white.withValues(alpha: 0.2),
                 ),
               ),
             ],
           ),
-          
+
           SizedBox(height: isTablet ? 20 : 12),
-          
+
           // Icon
           Container(
             width: isTablet ? 80 : (isSmallPhone ? 60 : 70),
             height: isTablet ? 80 : (isSmallPhone ? 60 : 70),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AppColors.white,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: AppColors.black.withValues(alpha: 0.1),
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -189,30 +193,30 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
             child: Icon(
               Icons.store,
               size: isTablet ? 40 : (isSmallPhone ? 30 : 35),
-              color: const Color(0xFF27AE60),
+              color: AppColors.green,
             ),
           ),
-          
+
           SizedBox(height: isTablet ? 24 : 16),
-          
+
           Text(
             'Registra tu Comercio',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: isTablet ? 32 : (isSmallPhone ? 24 : 28),
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppColors.white,
             ),
           ),
-          
+
           SizedBox(height: isTablet ? 12 : 8),
-          
+
           Text(
             'Completa la información de tu negocio para comenzar a vender',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: isTablet ? 16 : (isSmallPhone ? 12 : 14),
-              color: Colors.white.withValues(alpha: 0.9),
+              color: AppColors.white.withValues(alpha: 0.9),
             ),
           ),
         ],
@@ -224,11 +228,11 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
     return Container(
       padding: EdgeInsets.all(isTablet ? 32 : (isSmallPhone ? 20 : 24)),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: AppColors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -242,32 +246,38 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
             // Información del local
             _buildSectionTitle('Información del Local', isTablet, isSmallPhone),
             SizedBox(height: isTablet ? 20 : 16),
-            
+
             _buildTextField(
               controller: _nombreLocalController,
               label: 'Nombre del Local',
               icon: Icons.store_outlined,
               validator: (value) {
-                if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                if (value == null || value.trim().isEmpty)
+                  return 'Este campo es obligatorio';
                 if (value.trim().length < 3) return 'Mínimo 3 caracteres';
                 if (value.trim().length > 100) return 'Máximo 100 caracteres';
-                if (!RegExp(r'^[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ.,-]+$').hasMatch(value)) return 'Solo letras, números y espacios';
+                if (!RegExp(r'^[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ.,-]+$')
+                    .hasMatch(value)) return 'Solo letras, números y espacios';
                 return null;
               },
-              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ.,-]'))],
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(
+                    RegExp(r'[a-zA-Z0-9 áéíóúÁÉÍÓÚüÜñÑ.,-]'))
+              ],
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
-            
+
             SizedBox(height: isTablet ? 20 : 16),
-            
+
             _buildTextField(
               controller: _direccionController,
               label: 'Dirección',
               icon: Icons.location_on_outlined,
               maxLines: 3,
               validator: (value) {
-                if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                if (value == null || value.trim().isEmpty)
+                  return 'Este campo es obligatorio';
                 if (value.trim().length < 5) return 'Mínimo 5 caracteres';
                 if (value.trim().length > 200) return 'Máximo 200 caracteres';
                 return null;
@@ -275,9 +285,9 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
-            
+
             SizedBox(height: isTablet ? 20 : 16),
-            
+
             _buildTextField(
               controller: _telefonoController,
               label: 'Teléfono',
@@ -285,7 +295,8 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
               keyboardType: TextInputType.phone,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
               validator: (value) {
-                if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
+                if (value == null || value.trim().isEmpty)
+                  return 'Este campo es obligatorio';
                 if (value.trim().length < 10) return 'Mínimo 10 dígitos';
                 if (value.trim().length > 15) return 'Máximo 15 dígitos';
                 if (!RegExp(r'^[0-9]+$').hasMatch(value)) return 'Solo números';
@@ -294,25 +305,25 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
-            
+
             SizedBox(height: isTablet ? 32 : 24),
-            
+
             // Estado del local
             _buildSectionTitle('Estado del Local', isTablet, isSmallPhone),
             SizedBox(height: isTablet ? 16 : 12),
-            
+
             Container(
               padding: EdgeInsets.all(isTablet ? 16 : 12),
               decoration: BoxDecoration(
-                color: const Color(0xFFF8F9FA),
+                color: AppColors.inputBg,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE8E8E8)),
+                border: Border.all(color: AppColors.borderLight),
               ),
               child: Row(
                 children: [
                   Icon(
                     _abierto ? Icons.check_circle : Icons.cancel,
-                    color: _abierto ? const Color(0xFF27AE60) : const Color(0xFFE74C3C),
+                    color: _abierto ? AppColors.green : AppColors.red,
                     size: isTablet ? 24 : 20,
                   ),
                   SizedBox(width: isTablet ? 16 : 12),
@@ -328,29 +339,30 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
                   Switch(
                     value: _abierto,
                     onChanged: (value) => setState(() => _abierto = value),
-                    activeThumbColor: const Color(0xFF27AE60),
+                    activeThumbColor: AppColors.green,
                   ),
                 ],
               ),
             ),
-            
+
             SizedBox(height: isTablet ? 32 : 24),
-            
+
             // Información de Pago Móvil
             _buildSectionTitle('Pago Móvil', isTablet, isSmallPhone),
             SizedBox(height: isTablet ? 20 : 16),
-            
+
             _buildTextField(
               controller: _pagoMovilBancoController,
               label: 'Banco',
               icon: Icons.account_balance_outlined,
-              validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+              validator: (value) =>
+                  value?.isEmpty == true ? 'Este campo es obligatorio' : null,
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
-            
+
             SizedBox(height: isTablet ? 20 : 16),
-            
+
             _buildTextField(
               controller: _pagoMovilCedulaController,
               label: 'Cédula de Identidad (CI)',
@@ -361,33 +373,36 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
                 LengthLimitingTextInputFormatter(10),
               ],
               validator: (value) {
-                if (value == null || value.trim().isEmpty) return 'Este campo es obligatorio';
-                if (!RegExp(r'^[vVeE][0-9]{7,9}$').hasMatch(value.trim())) return 'Formato válido: V12345678 o E12345678';
+                if (value == null || value.trim().isEmpty)
+                  return 'Este campo es obligatorio';
+                if (!RegExp(r'^[vVeE][0-9]{7,9}$').hasMatch(value.trim()))
+                  return 'Formato válido: V12345678 o E12345678';
                 return null;
               },
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
-            
+
             SizedBox(height: isTablet ? 20 : 16),
-            
+
             _buildTextField(
               controller: _pagoMovilTelefonoController,
               label: 'Teléfono de Pago Móvil',
               icon: Icons.smartphone_outlined,
               keyboardType: TextInputType.phone,
               inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              validator: (value) => value?.isEmpty == true ? 'Este campo es obligatorio' : null,
+              validator: (value) =>
+                  value?.isEmpty == true ? 'Este campo es obligatorio' : null,
               isTablet: isTablet,
               isSmallPhone: isSmallPhone,
             ),
-            
+
             SizedBox(height: isTablet ? 32 : 24),
-            
+
             // Horario de atención
             _buildSectionTitle('Horario de Atención', isTablet, isSmallPhone),
             SizedBox(height: isTablet ? 20 : 16),
-            
+
             _buildScheduleSection(isTablet, isSmallPhone),
           ],
         ),
@@ -401,7 +416,7 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
       style: TextStyle(
         fontSize: isTablet ? 20 : (isSmallPhone ? 16 : 18),
         fontWeight: FontWeight.bold,
-        color: const Color(0xFF2C3E50),
+        color: AppColors.textSecondaryDark,
       ),
     );
   }
@@ -428,17 +443,17 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
       ),
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: const Color(0xFF27AE60)),
+        prefixIcon: Icon(icon, color: AppColors.green),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFE8E8E8)),
+          borderSide: const BorderSide(color: AppColors.borderLight),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF27AE60), width: 2),
+          borderSide: const BorderSide(color: AppColors.green, width: 2),
         ),
         filled: true,
-        fillColor: const Color(0xFFF8F9FA),
+        fillColor: AppColors.inputBg,
         labelStyle: TextStyle(
           fontSize: isTablet ? 14 : (isSmallPhone ? 12 : 13),
         ),
@@ -453,9 +468,9 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
           margin: EdgeInsets.only(bottom: isTablet ? 16 : 12),
           padding: EdgeInsets.all(isTablet ? 16 : 12),
           decoration: BoxDecoration(
-            color: const Color(0xFFF8F9FA),
+            color: AppColors.inputBg,
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFFE8E8E8)),
+            border: Border.all(color: AppColors.borderLight),
           ),
           child: Row(
             children: [
@@ -466,11 +481,10 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
                   style: TextStyle(
                     fontSize: isTablet ? 14 : (isSmallPhone ? 11 : 12),
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2C3E50),
+                    color: AppColors.textSecondaryDark,
                   ),
                 ),
               ),
-              
               if (_horario[dia]!['cerrado'] == 'false') ...[
                 Expanded(
                   flex: 2,
@@ -482,9 +496,7 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
                     isSmallPhone,
                   ),
                 ),
-                
                 SizedBox(width: isTablet ? 12 : 8),
-                
                 Expanded(
                   flex: 2,
                   child: _buildTimeField(
@@ -505,15 +517,13 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: isTablet ? 14 : (isSmallPhone ? 11 : 12),
-                        color: const Color(0xFFE74C3C),
+                        color: AppColors.red,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                 ),
-              
               SizedBox(width: isTablet ? 12 : 8),
-              
               Switch(
                 value: _horario[dia]!['cerrado'] == 'false',
                 onChanged: (value) {
@@ -525,7 +535,7 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
                     }
                   });
                 },
-                activeThumbColor: const Color(0xFF27AE60),
+                activeThumbColor: AppColors.green,
               ),
             ],
           ),
@@ -548,7 +558,8 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
           initialTime: TimeOfDay.now(),
         );
         if (time != null) {
-          onChanged('${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}');
+          onChanged(
+              '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}');
         }
       },
       child: Container(
@@ -557,9 +568,9 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
           horizontal: isTablet ? 12 : 8,
         ),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFE8E8E8)),
+          border: Border.all(color: AppColors.borderLight),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -568,13 +579,13 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
               value.isEmpty ? hint : value,
               style: TextStyle(
                 fontSize: isTablet ? 12 : (isSmallPhone ? 10 : 11),
-                color: value.isEmpty ? Colors.grey : const Color(0xFF2C3E50),
+                color: value.isEmpty ? AppColors.gray : AppColors.textSecondaryDark,
               ),
             ),
             Icon(
               Icons.access_time,
               size: isTablet ? 16 : 14,
-              color: Colors.grey,
+              color: AppColors.gray,
             ),
           ],
         ),
@@ -589,8 +600,8 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
       child: ElevatedButton(
         onPressed: _isLoading ? null : _submitForm,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: const Color(0xFF27AE60),
+          backgroundColor: AppColors.white,
+          foregroundColor: AppColors.green,
           padding: EdgeInsets.symmetric(vertical: isTablet ? 20 : 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
@@ -603,7 +614,7 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
                 width: isTablet ? 24 : 20,
                 child: const CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF27AE60)),
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.green),
                 ),
               )
             : Text(
@@ -620,7 +631,7 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
-      
+
       try {
         final userProvider = Provider.of<UserProvider>(context, listen: false);
         final userId = userProvider.userId;
@@ -628,8 +639,9 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
         if (userId <= 0) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('No se pudo identificar tu cuenta. Cierra sesión e inicia de nuevo.'),
-              backgroundColor: Color(0xFFE74C3C),
+              content: Text(
+                  'No se pudo identificar tu cuenta. Cierra sesión e inicia de nuevo.'),
+              backgroundColor: AppColors.red,
             ),
           );
           return;
@@ -651,7 +663,8 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
         });
 
         if (commerceResult['success'] != true) {
-          throw Exception(commerceResult['message'] ?? 'No se pudo registrar el comercio');
+          throw Exception(
+              commerceResult['message'] ?? 'No se pudo registrar el comercio');
         }
 
         final onboardingService = OnboardingService();
@@ -660,7 +673,8 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
 
         // Actualizar estado global de onboarding y rol
         if (!context.mounted) return;
-        final onboardingProvider = Provider.of<OnboardingProvider>(context, listen: false);
+        final onboardingProvider =
+            Provider.of<OnboardingProvider>(context, listen: false);
         onboardingProvider.setRole('commerce');
 
         // Marcar onboarding completado localmente para que no se vuelva a mostrar
@@ -671,7 +685,7 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Comercio registrado y onboarding completado'),
-            backgroundColor: Color(0xFF27AE60),
+            backgroundColor: AppColors.green,
           ),
         );
 
@@ -683,7 +697,7 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al registrar: $e'),
-            backgroundColor: const Color(0xFFE74C3C),
+            backgroundColor: AppColors.red,
           ),
         );
       } finally {

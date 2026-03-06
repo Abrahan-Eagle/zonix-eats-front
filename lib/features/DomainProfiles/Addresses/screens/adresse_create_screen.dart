@@ -6,6 +6,7 @@ import 'location_module.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter/services.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 final logger = Logger();
 
@@ -47,24 +48,26 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
   @override
   void initState() {
     super.initState();
-    logger.i('Console log para verificar el userId al inicio...... Recibiendo userId: ${widget.userId}');
-    
+    logger.i(
+        'Console log para verificar el userId al inicio...... Recibiendo userId: ${widget.userId}');
+
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 800),
       vsync: this,
     );
-    
+
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.3),
       end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOutCubic));
-    
+    ).animate(CurvedAnimation(
+        parent: _animationController, curve: Curves.easeOutCubic));
+
     _animationController.forward();
-    
+
     _loadInitialData();
   }
 
@@ -79,7 +82,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
 
   Future<void> _loadInitialData() async {
     setState(() => _isLoading = true);
-    
+
     try {
       await loadCountries();
       await _captureLocation();
@@ -145,12 +148,12 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.error, color: Colors.white),
+            const Icon(Icons.error, color: AppColors.white),
             const SizedBox(width: 8),
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.red,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
@@ -162,12 +165,12 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle, color: Colors.white),
+            const Icon(Icons.check_circle, color: AppColors.white),
             const SizedBox(width: 8),
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: Colors.green,
+        backgroundColor: AppColors.green,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
@@ -176,7 +179,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
 
   Future<void> _captureLocation() async {
     setState(() => _isLocationLoading = true);
-    
+
     try {
       Position? position = await _locationModule.getCurrentLocation(context);
       if (position != null) {
@@ -198,11 +201,9 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AppColors.scaffoldBg(context),
       appBar: _buildAppBar(),
-      body: _isLoading
-          ? _buildLoadingState()
-          : _buildContent(),
+      body: _isLoading ? _buildLoadingState() : _buildContent(),
       floatingActionButton: _buildFloatingActionButton(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
@@ -211,8 +212,8 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
       elevation: 0,
-      backgroundColor: const Color(0xFF1976D2),
-      foregroundColor: Colors.white,
+      backgroundColor: AppColors.blue,
+      foregroundColor: AppColors.white,
       title: const Text(
         'Registrar Dirección',
         style: TextStyle(
@@ -230,7 +231,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
                     ),
                   )
                 : const Icon(Icons.my_location),
@@ -241,19 +242,20 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
   }
 
   Widget _buildLoadingState() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1976D2)),
+            valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).colorScheme.primary),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
             'Cargando formulario...',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.grey,
+              color: AppColors.secondaryText(context),
             ),
           ),
         ],
@@ -285,37 +287,38 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
   }
 
   Widget _buildHeader() {
+    final primary = Theme.of(context).colorScheme.primary;
     return Column(
       children: [
         Container(
           width: 120,
           height: 120,
           decoration: BoxDecoration(
-            color: const Color(0xFF1976D2).withValues(alpha: 0.1),
+            color: primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(60),
           ),
-          child: const Icon(
+          child: Icon(
             Icons.add_location_alt,
             size: 60,
-            color: Color(0xFF1976D2),
+            color: primary,
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
+        Text(
           'Registra tu nueva dirección',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF1976D2),
+            color: primary,
           ),
           textAlign: TextAlign.center,
         ),
         const SizedBox(height: 8),
-        const Text(
+        Text(
           'Completa los datos para registrar tu dirección de entrega',
           style: TextStyle(
             fontSize: 16,
-            color: Colors.grey,
+            color: AppColors.secondaryText(context),
           ),
           textAlign: TextAlign.center,
         ),
@@ -328,13 +331,13 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: latitude != null && longitude != null
-            ? Colors.green.withValues(alpha: 0.1)
-            : Colors.orange.withValues(alpha: 0.1),
+            ? AppColors.green.withValues(alpha: 0.1)
+            : AppColors.orange.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: latitude != null && longitude != null
-              ? Colors.green.withValues(alpha: 0.3)
-              : Colors.orange.withValues(alpha: 0.3),
+              ? AppColors.green.withValues(alpha: 0.3)
+              : AppColors.orange.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
@@ -344,8 +347,8 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
                 ? Icons.location_on
                 : Icons.location_off,
             color: latitude != null && longitude != null
-                ? Colors.green
-                : Colors.orange,
+                ? AppColors.green
+                : AppColors.orange,
             size: 24,
           ),
           const SizedBox(width: 12),
@@ -358,8 +361,9 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
                   style: TextStyle(
                     fontSize: 12,
                     color: (latitude != null && longitude != null
-                        ? Colors.green
-                        : Colors.orange).withValues(alpha: 0.8),
+                            ? AppColors.green
+                            : AppColors.orange)
+                        .withValues(alpha: 0.8),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -371,8 +375,8 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: latitude != null && longitude != null
-                        ? Colors.green
-                        : Colors.orange,
+                        ? AppColors.green
+                        : AppColors.orange,
                   ),
                 ),
                 if (latitude != null && longitude != null)
@@ -380,7 +384,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
                     '${latitude!.toStringAsFixed(6)}, ${longitude!.toStringAsFixed(6)}',
                     style: const TextStyle(
                       fontSize: 12,
-                      color: Colors.grey,
+                      color: AppColors.gray,
                     ),
                   ),
               ],
@@ -398,7 +402,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
                   : const Icon(Icons.my_location, size: 16),
               label: const Text('Capturar'),
               style: TextButton.styleFrom(
-                foregroundColor: Colors.orange,
+                foregroundColor: AppColors.orange,
               ),
             ),
         ],
@@ -522,24 +526,19 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBg(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
       ),
       child: DropdownButtonFormField<T>(
         initialValue: value,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon, color: const Color(0xFF1976D2)),
+          prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
         hint: Text(hint),
         items: items,
@@ -550,8 +549,9 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
           }
           return null;
         },
-        dropdownColor: Colors.white,
-        icon: const Icon(Icons.arrow_drop_down, color: Color(0xFF1976D2)),
+        dropdownColor: AppColors.cardBg(context),
+        icon: Icon(Icons.arrow_drop_down,
+            color: Theme.of(context).colorScheme.primary),
         isExpanded: true,
         menuMaxHeight: 200,
       ),
@@ -568,25 +568,20 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBg(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
       ),
       child: TextFormField(
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          prefixIcon: Icon(icon, color: const Color(0xFF1976D2)),
+          prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
         maxLength: maxLength,
         validator: (value) {
@@ -605,25 +600,21 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
   Widget _buildPostalCodeField() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.cardBg(context),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.3)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(
+            color: Theme.of(context).dividerColor.withValues(alpha: 0.3)),
       ),
       child: TextFormField(
         controller: _postalCodeController,
-        decoration: const InputDecoration(
+        decoration: InputDecoration(
           labelText: 'Código Postal',
           hintText: 'Ingresa el código postal',
-          prefixIcon: Icon(Icons.mail, color: Color(0xFF1976D2)),
+          prefixIcon:
+              Icon(Icons.mail, color: Theme.of(context).colorScheme.primary),
           border: InputBorder.none,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -639,27 +630,19 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
   }
 
   Widget _buildFloatingActionButton() {
+    final primary = Theme.of(context).colorScheme.primary;
     return Container(
       width: MediaQuery.of(context).size.width * 0.9,
       height: 56,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(28),
-        gradient: const LinearGradient(
-          colors: [Color(0xFF1976D2), Color(0xFF1565C0)],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFF1976D2).withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        color: primary,
       ),
       child: ElevatedButton(
         onPressed: _isSubmitting ? null : _createAddress,
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shadowColor: Colors.transparent,
+          backgroundColor: AppColors.transparent,
+          shadowColor: AppColors.transparent,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(28),
           ),
@@ -673,7 +656,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
                     ),
                   ),
                   SizedBox(width: 12),
@@ -682,7 +665,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppColors.white,
                     ),
                   ),
                 ],
@@ -692,7 +675,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
                 children: [
                   Icon(
                     Icons.add_location_alt,
-                    color: Colors.white,
+                    color: AppColors.white,
                     size: 24,
                   ),
                   SizedBox(width: 8),
@@ -701,7 +684,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.white,
+                      color: AppColors.white,
                     ),
                   ),
                 ],
@@ -741,7 +724,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
       );
 
       await _addressService.createAddress(address, widget.userId);
-      
+
       if (mounted) {
         _showSuccess('Dirección registrada exitosamente');
         Navigator.of(context).pop(address);

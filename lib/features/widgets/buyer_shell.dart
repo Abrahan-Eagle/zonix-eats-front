@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/screens/location/location_search_page.dart';
@@ -12,6 +13,7 @@ import 'package:zonix/features/utils/search_radius_provider.dart';
 /// Soporta tema light y dark.
 class BuyerShell extends StatefulWidget {
   final Widget child;
+
   /// Si false, no muestra el bottom nav (usa el de main.dart)
   final bool showBottomNav;
   final int currentIndex;
@@ -33,12 +35,10 @@ class _BuyerShellState extends State<BuyerShell> {
   int _addressReloadKey = 0;
   int _unreadNotifications = 0;
 
-  static const Color _primary = Color(0xFF3399FF);
-  static const Color _navActive = Color(0xFF3299FF);
-  static const Color _navBg = Color(0xFF1A2E46);
-  static const Color _bgLight = Color(0xFFF5F7F8);
-  static const Color _bgDark = Color(0xFF0F1923);
-  static const Color _badgeRed = Color(0xFFE53935);
+  static const Color _primary = AppColors.blue;
+  static const Color _bgLight = AppColors.grayLight;
+  static const Color _bgDark = AppColors.backgroundDark;
+  static const Color _badgeRed = AppColors.red;
 
   final LocationService _locationService = LocationService();
   final NotificationService _notificationService = NotificationService();
@@ -68,7 +68,9 @@ class _BuyerShellState extends State<BuyerShell> {
       if (!mounted) return;
       final label = loc['address'] as String?;
       if (label != null && label.isNotEmpty) {
-        await context.read<SearchRadiusProvider>().setDeliveryAddressLabel(label);
+        await context
+            .read<SearchRadiusProvider>()
+            .setDeliveryAddressLabel(label);
       }
     } catch (_) {
       // Silenciar fallo de ubicación
@@ -112,7 +114,8 @@ class _BuyerShellState extends State<BuyerShell> {
 
   Widget _buildHeader(BuildContext context, bool isDark) {
     final radiusProvider = context.watch<SearchRadiusProvider>();
-    final addressLabel = radiusProvider.deliveryAddressLabel ?? 'Cargando ubicación...';
+    final addressLabel =
+        radiusProvider.deliveryAddressLabel ?? 'Cargando ubicación...';
 
     return Container(
       padding: EdgeInsets.only(
@@ -147,7 +150,8 @@ class _BuyerShellState extends State<BuyerShell> {
                           color: _primary.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.location_on, color: _primary, size: 22),
+                        child: const Icon(Icons.location_on,
+                            color: _primary, size: 22),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -158,7 +162,7 @@ class _BuyerShellState extends State<BuyerShell> {
                               'Entregando a',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: isDark ? Colors.white54 : Colors.black54,
+                                color: isDark ? AppColors.white54 : AppColors.black54,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -167,7 +171,9 @@ class _BuyerShellState extends State<BuyerShell> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : const Color(0xFF0F1923),
+                                color: isDark
+                                    ? AppColors.white
+                                    : AppColors.backgroundDark,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -186,10 +192,11 @@ class _BuyerShellState extends State<BuyerShell> {
                   IconButton(
                     onPressed: _onNotificationTap,
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                    constraints:
+                        const BoxConstraints(minWidth: 40, minHeight: 40),
                     icon: Icon(
                       Icons.notifications_none,
-                      color: isDark ? Colors.white70 : Colors.black54,
+                      color: isDark ? AppColors.white70 : AppColors.black54,
                       size: 26,
                     ),
                   ),
@@ -199,19 +206,27 @@ class _BuyerShellState extends State<BuyerShell> {
                       right: 6,
                       child: Container(
                         padding: _unreadNotifications > 9
-                            ? const EdgeInsets.symmetric(horizontal: 5, vertical: 2)
+                            ? const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 2)
                             : const EdgeInsets.all(4),
-                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                        constraints:
+                            const BoxConstraints(minWidth: 16, minHeight: 16),
                         decoration: BoxDecoration(
                           color: _badgeRed,
-                          shape: _unreadNotifications > 9 ? BoxShape.rectangle : BoxShape.circle,
-                          borderRadius: _unreadNotifications > 9 ? BorderRadius.circular(10) : null,
+                          shape: _unreadNotifications > 9
+                              ? BoxShape.rectangle
+                              : BoxShape.circle,
+                          borderRadius: _unreadNotifications > 9
+                              ? BorderRadius.circular(10)
+                              : null,
                         ),
                         alignment: Alignment.center,
                         child: Text(
-                          _unreadNotifications > 99 ? '99+' : '$_unreadNotifications',
+                          _unreadNotifications > 99
+                              ? '99+'
+                              : '$_unreadNotifications',
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.white,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                           ),
@@ -239,10 +254,10 @@ class _BuyerShellState extends State<BuyerShell> {
 
     return Container(
       decoration: BoxDecoration(
-        color: isDark ? _navBg.withValues(alpha: 0.95) : Colors.white,
+        color: AppColors.cardBg(context),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
+            color: AppColors.black.withValues(alpha: isDark ? 0.3 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -261,29 +276,38 @@ class _BuyerShellState extends State<BuyerShell> {
               return InkWell(
                 onTap: () {
                   if (isConfig) {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage2()));
+                    Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const SettingsPage2()));
                   } else {
                     widget.onNavTap?.call(i);
                   }
                 },
                 borderRadius: BorderRadius.circular(12),
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         item.icon,
                         size: 24,
-                        color: selected ? _navActive : (isDark ? Colors.white54 : Colors.black45),
+                        color: selected
+                            ? AppColors.blue
+                            : AppColors.secondaryText(context),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         item.label,
                         style: TextStyle(
                           fontSize: 10,
-                          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                          color: selected ? _navActive : (isDark ? Colors.white54 : Colors.black45),
+                          fontWeight:
+                              selected ? FontWeight.w600 : FontWeight.w500,
+                          color: selected
+                              ? AppColors.blue
+                              : AppColors.secondaryText(context),
                         ),
                       ),
                     ],

@@ -3,6 +3,7 @@ import 'package:zonix/config/app_config.dart';
 import '../../../models/cart_item.dart';
 import '../../../features/services/cart_service.dart';
 import '../../../features/services/order_service.dart';
+import '../../../features/utils/app_colors.dart';
 
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
@@ -52,7 +53,8 @@ class _CartPageState extends State<CartPage> {
   }
 
   void _calculateTotals() {
-    _subtotal = _cartItems.fold(0.0, (sum, item) => sum + ((item.precio ?? 0.0) * item.quantity));
+    _subtotal = _cartItems.fold(
+        0.0, (sum, item) => sum + ((item.precio ?? 0.0) * item.quantity));
     _deliveryFee = _subtotal > 0 ? AppConfig.defaultDeliveryFee : 0.0;
     _tax = _subtotal * 0.12; // 12% tax
     _total = _subtotal + _deliveryFee + _tax;
@@ -72,7 +74,7 @@ class _CartPageState extends State<CartPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error al actualizar cantidad: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.red,
         ),
       );
     }
@@ -86,7 +88,7 @@ class _CartPageState extends State<CartPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Producto removido del carrito'),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.green,
         ),
       );
     } catch (e) {
@@ -94,7 +96,7 @@ class _CartPageState extends State<CartPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error al remover producto: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.red,
         ),
       );
     }
@@ -108,7 +110,7 @@ class _CartPageState extends State<CartPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Carrito limpiado'),
-          backgroundColor: Colors.green,
+          backgroundColor: AppColors.green,
         ),
       );
     } catch (e) {
@@ -116,7 +118,7 @@ class _CartPageState extends State<CartPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error al limpiar carrito: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.red,
         ),
       );
     }
@@ -127,7 +129,7 @@ class _CartPageState extends State<CartPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('El carrito está vacío'),
-          backgroundColor: Colors.orange,
+          backgroundColor: AppColors.orange,
         ),
       );
       return;
@@ -143,14 +145,15 @@ class _CartPageState extends State<CartPage> {
         deliveryType: 'pickup',
       );
       if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/order-confirmation', arguments: order);
+        Navigator.of(context)
+            .pushReplacementNamed('/order-confirmation', arguments: order);
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al crear orden: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.red,
           ),
         );
       }
@@ -168,8 +171,8 @@ class _CartPageState extends State<CartPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Carrito de Compras'),
-        backgroundColor: Colors.orange,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.orange,
+        foregroundColor: AppColors.white,
         actions: [
           if (_cartItems.isNotEmpty)
             IconButton(
@@ -197,7 +200,7 @@ class _CartPageState extends State<CartPage> {
           const Icon(
             Icons.error_outline,
             size: 64,
-            color: Colors.red,
+            color: AppColors.red,
           ),
           const SizedBox(height: 16),
           Text(
@@ -207,7 +210,10 @@ class _CartPageState extends State<CartPage> {
           const SizedBox(height: 8),
           Text(
             _error!,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: AppColors.gray),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -228,7 +234,7 @@ class _CartPageState extends State<CartPage> {
           const Icon(
             Icons.shopping_cart_outlined,
             size: 100,
-            color: Colors.grey,
+            color: AppColors.gray,
           ),
           const SizedBox(height: 16),
           Text(
@@ -238,14 +244,18 @@ class _CartPageState extends State<CartPage> {
           const SizedBox(height: 8),
           Text(
             'Agrega algunos productos para comenzar',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: AppColors.gray),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: () => Navigator.of(context).pushReplacementNamed('/restaurants'),
+            onPressed: () =>
+                Navigator.of(context).pushReplacementNamed('/restaurants'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.orange,
+              foregroundColor: AppColors.white,
             ),
             child: const Text('Explorar Restaurantes'),
           ),
@@ -282,16 +292,18 @@ class _CartPageState extends State<CartPage> {
                                   return Container(
                                     width: 80,
                                     height: 80,
-                                    color: Colors.grey[300],
-                                    child: const Icon(Icons.fastfood, color: Colors.grey),
+                                    color: AppColors.borderLight,
+                                    child: const Icon(Icons.fastfood,
+                                        color: AppColors.gray),
                                   );
                                 },
                               )
                             : Container(
                                 width: 80,
                                 height: 80,
-                                color: Colors.grey[300],
-                                child: const Icon(Icons.fastfood, color: Colors.grey),
+                                color: AppColors.borderLight,
+                                child: const Icon(Icons.fastfood,
+                                    color: AppColors.gray),
                               ),
                       ),
                       const SizedBox(width: 12),
@@ -312,7 +324,7 @@ class _CartPageState extends State<CartPage> {
                               '\$${(item.precio ?? 0.0).toStringAsFixed(2)}',
                               style: const TextStyle(
                                 fontSize: 14,
-                                color: Colors.green,
+                                color: AppColors.green,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -321,9 +333,10 @@ class _CartPageState extends State<CartPage> {
                             Row(
                               children: [
                                 IconButton(
-                                  onPressed: () => _updateQuantity(item, item.quantity - 1),
+                                  onPressed: () =>
+                                      _updateQuantity(item, item.quantity - 1),
                                   icon: const Icon(Icons.remove_circle_outline),
-                                  color: Colors.orange,
+                                  color: AppColors.orange,
                                 ),
                                 Text(
                                   '${item.quantity}',
@@ -333,15 +346,16 @@ class _CartPageState extends State<CartPage> {
                                   ),
                                 ),
                                 IconButton(
-                                  onPressed: () => _updateQuantity(item, item.quantity + 1),
+                                  onPressed: () =>
+                                      _updateQuantity(item, item.quantity + 1),
                                   icon: const Icon(Icons.add_circle_outline),
-                                  color: Colors.orange,
+                                  color: AppColors.orange,
                                 ),
                                 const Spacer(),
                                 IconButton(
                                   onPressed: () => _removeItem(item),
                                   icon: const Icon(Icons.delete_outline),
-                                  color: Colors.red,
+                                  color: AppColors.red,
                                 ),
                               ],
                             ),
@@ -359,10 +373,10 @@ class _CartPageState extends State<CartPage> {
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AppColors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withValues(alpha: 0.2),
+                color: AppColors.gray.withValues(alpha: 0.2),
                 spreadRadius: 1,
                 blurRadius: 5,
                 offset: const Offset(0, -2),
@@ -383,14 +397,16 @@ class _CartPageState extends State<CartPage> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _proceedToCheckout,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.orange,
+                    foregroundColor: AppColors.white,
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? const CircularProgressIndicator(
+                          color: AppColors.white)
                       : const Text(
                           'Proceder al Pago',
-                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                 ),
               ),
@@ -419,7 +435,7 @@ class _CartPageState extends State<CartPage> {
             style: TextStyle(
               fontSize: isTotal ? 18 : 16,
               fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              color: isTotal ? Colors.orange : null,
+              color: isTotal ? AppColors.orange : null,
             ),
           ),
         ],
