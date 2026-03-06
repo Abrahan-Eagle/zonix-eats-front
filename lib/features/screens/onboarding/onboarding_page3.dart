@@ -1,3 +1,4 @@
+import 'package:zonix/features/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -5,13 +6,6 @@ import './form/commerce_registration_page.dart';
 import 'onboarding_provider.dart';
 import 'client_onboarding_flow.dart';
 import 'commerce_onboarding_flow.dart';
-
-// Colores del template Stitch (Onboarding - Selección de rol)
-const Color _kBackgroundDark = Color(0xFF101922);
-const Color _kPrimary = Color(0xFF3399FF);
-const Color _kSurfaceDark = Color(0xFF1A2633);
-const Color _kSurfaceHighlight = Color(0xFF233040);
-const Color _kPurple = Color(0xFFA78BFA);
 
 class OnboardingPage3 extends StatefulWidget {
   const OnboardingPage3({super.key});
@@ -36,7 +30,10 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
         SafeArea(
           child: SingleChildScrollView(
             child: ConstrainedBox(
-              constraints: BoxConstraints(minHeight: h - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom),
+              constraints: BoxConstraints(
+                  minHeight: h -
+                      MediaQuery.of(context).padding.top -
+                      MediaQuery.of(context).padding.bottom),
               child: Padding(
                 padding: EdgeInsets.symmetric(
                   horizontal: isSmall ? 20 : (isTablet ? 32 : 24),
@@ -54,7 +51,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
                       title: 'Soy Cliente',
                       subtitle: 'Quiero pedir comida deliciosa',
                       icon: Icons.shopping_bag_outlined,
-                      iconColor: _kPrimary,
+                      iconColor: AppColors.blue,
                     ),
                     const SizedBox(height: 16),
                     _buildRoleCard(
@@ -62,7 +59,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
                       title: 'Tengo un Comercio',
                       subtitle: 'Quiero vender mis productos',
                       icon: Icons.storefront_outlined,
-                      iconColor: _kPurple,
+                      iconColor: AppColors.onboardingPurpleAccent,
                     ),
                     const SizedBox(height: 24),
                     // ZONIX EATS UNIVERSE
@@ -72,7 +69,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: Colors.white.withValues(alpha: 0.4),
+                          color: AppColors.white.withValues(alpha: 0.4),
                           letterSpacing: 2,
                         ),
                       ),
@@ -88,7 +85,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
                         '¿Necesitas ayuda para decidir?',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 14,
-                          color: Colors.white.withValues(alpha: 0.5),
+                          color: AppColors.white.withValues(alpha: 0.5),
                         ),
                       ),
                     ),
@@ -109,7 +106,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [_kBackgroundDark, Color(0xFF0D1218)],
+          colors: [AppColors.backgroundDark, AppColors.backgroundDarker],
         ),
       ),
       child: Stack(
@@ -126,7 +123,10 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [_kPrimary.withValues(alpha: 0.2), Colors.transparent],
+                  colors: [
+                    AppColors.blue.withValues(alpha: 0.2),
+                    AppColors.transparent
+                  ],
                 ),
               ),
             ),
@@ -141,7 +141,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
-                  colors: [_kPurple.withValues(alpha: 0.1), Colors.transparent],
+                  colors: [AppColors.onboardingPurpleAccent.withValues(alpha: 0.1), AppColors.transparent],
                 ),
               ),
             ),
@@ -169,7 +169,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
           width: 2,
           height: 2,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.15),
+            color: AppColors.white.withValues(alpha: 0.15),
             shape: BoxShape.circle,
           ),
         ),
@@ -185,11 +185,12 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: _kSurfaceDark.withValues(alpha: 0.5),
+            color: AppColors.grayDark.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+            border: Border.all(color: AppColors.white.withValues(alpha: 0.05)),
           ),
-          child: const Icon(Icons.rocket_launch, color: _kPrimary, size: 32),
+          child:
+              const Icon(Icons.rocket_launch, color: AppColors.blue, size: 32),
         ),
         const SizedBox(height: 16),
         Text(
@@ -199,7 +200,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
             fontSize: titleSize,
             fontWeight: FontWeight.w800,
             height: 1.2,
-            color: Colors.white,
+            color: AppColors.white,
           ),
         ),
         const SizedBox(height: 12),
@@ -209,7 +210,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
           style: GoogleFonts.plusJakartaSans(
             fontSize: isSmall ? 14 : 16,
             fontWeight: FontWeight.w500,
-            color: Colors.white.withValues(alpha: 0.6),
+            color: AppColors.white.withValues(alpha: 0.6),
           ),
         ),
       ],
@@ -234,14 +235,19 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
         duration: const Duration(milliseconds: 300),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: isSelected ? _kSurfaceHighlight : _kSurfaceDark,
+          color: isSelected ? AppColors.surfaceHighlight : AppColors.grayDark,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? _kPrimary : Colors.transparent,
+            color: isSelected ? AppColors.blue : AppColors.transparent,
             width: 2,
           ),
           boxShadow: isSelected
-              ? [BoxShadow(color: _kPrimary.withValues(alpha: 0.15), blurRadius: 30, spreadRadius: 0)]
+              ? [
+                  BoxShadow(
+                      color: AppColors.blue.withValues(alpha: 0.15),
+                      blurRadius: 30,
+                      spreadRadius: 0)
+                ]
               : null,
         ),
         child: Row(
@@ -274,7 +280,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: AppColors.white,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -282,7 +288,7 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
                     subtitle,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
-                      color: Colors.white.withValues(alpha: 0.6),
+                      color: AppColors.white.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -294,14 +300,16 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
               height: 24,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: isSelected ? _kPrimary : Colors.transparent,
+                color: isSelected ? AppColors.blue : AppColors.transparent,
                 border: Border.all(
-                  color: isSelected ? _kPrimary : Colors.white.withValues(alpha: 0.3),
+                  color: isSelected
+                      ? AppColors.blue
+                      : AppColors.white.withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),
               child: isSelected
-                  ? const Icon(Icons.check, size: 16, color: Colors.white)
+                  ? const Icon(Icons.check, size: 16, color: AppColors.white)
                   : null,
             ),
           ],
@@ -320,19 +328,22 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
         onPressed: enabled
             ? () async {
                 if (selectedRole == null) return;
-                final onboardingProvider = Provider.of<OnboardingProvider>(context, listen: false);
+                final onboardingProvider =
+                    Provider.of<OnboardingProvider>(context, listen: false);
 
                 if (selectedRole == 'users') {
                   onboardingProvider.setRole('users');
                   await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const ClientOnboardingFlow()),
+                    MaterialPageRoute(
+                        builder: (context) => const ClientOnboardingFlow()),
                   );
                 } else if (selectedRole == 'commerce') {
                   onboardingProvider.setRole('commerce');
                   await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const CommerceOnboardingFlow()),
+                    MaterialPageRoute(
+                        builder: (context) => const CommerceOnboardingFlow()),
                   );
                 } else {
                   _navigateToRegistration(selectedRole!);
@@ -340,13 +351,15 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
               }
             : null,
         style: ElevatedButton.styleFrom(
-          backgroundColor: enabled ? _kPrimary : _kPrimary.withValues(alpha: 0.4),
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: _kPrimary.withValues(alpha: 0.3),
-          disabledForegroundColor: Colors.white70,
+          backgroundColor:
+              enabled ? AppColors.blue : AppColors.blue.withValues(alpha: 0.4),
+          foregroundColor: AppColors.white,
+          disabledBackgroundColor: AppColors.blue.withValues(alpha: 0.3),
+          disabledForegroundColor: AppColors.white70,
           elevation: enabled ? 4 : 0,
-          shadowColor: _kPrimary.withValues(alpha: 0.4),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shadowColor: AppColors.blue.withValues(alpha: 0.4),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -370,20 +383,21 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('Navegando al registro para ${_getRoleTitle(role)}'),
-        backgroundColor: _kPrimary,
+        backgroundColor: AppColors.blue,
         duration: const Duration(seconds: 1),
       ),
     );
     if (role == 'commerce') {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const CommerceRegistrationPage()),
+        MaterialPageRoute(
+            builder: (context) => const CommerceRegistrationPage()),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Rol no reconocido'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.red,
         ),
       );
     }

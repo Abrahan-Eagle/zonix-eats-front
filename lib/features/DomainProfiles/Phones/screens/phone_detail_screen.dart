@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/phone.dart';
 import '../api/phone_service.dart';
 import 'edit_phone_screen.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 class PhoneDetailScreen extends StatefulWidget {
   final Phone phone;
@@ -20,7 +21,7 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.red,
         behavior: SnackBarBehavior.fixed,
         duration: const Duration(seconds: 3),
       ),
@@ -31,7 +32,7 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.green,
+        backgroundColor: AppColors.green,
         behavior: SnackBarBehavior.fixed,
         duration: const Duration(seconds: 2),
       ),
@@ -43,7 +44,8 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar eliminación'),
-        content: Text('¿Estás seguro de que quieres eliminar el teléfono ${widget.phone.fullNumber}?'),
+        content: Text(
+            '¿Estás seguro de que quieres eliminar el teléfono ${widget.phone.fullNumber}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -51,7 +53,7 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppColors.red),
             child: const Text('Eliminar'),
           ),
         ],
@@ -83,10 +85,9 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.scaffoldBg(context),
       appBar: AppBar(
         title: const Text('Detalle del Teléfono'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           if (_isLoading)
@@ -97,7 +98,7 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
                 height: 20,
                 child: CircularProgressIndicator(
                   strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
                 ),
               ),
             ),
@@ -113,11 +114,11 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
                   // Header con información principal
                   _buildMainInfoCard(),
                   const SizedBox(height: 20),
-                  
+
                   // Información detallada
                   _buildDetailInfoCard(),
                   const SizedBox(height: 20),
-                  
+
                   // Botones de acción
                   _buildActionButtons(),
                 ],
@@ -127,6 +128,7 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
   }
 
   Widget _buildMainInfoCard() {
+    final primary = Theme.of(context).colorScheme.primary;
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -135,14 +137,7 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Colors.blue.shade50,
-              Colors.blue.shade100,
-            ],
-          ),
+          color: primary,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,12 +147,12 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.blue,
+                    color: AppColors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
                     Icons.phone,
-                    color: Colors.white,
+                    color: AppColors.white,
                     size: 28,
                   ),
                 ),
@@ -170,7 +165,7 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
                         'Número de Teléfono',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey,
+                          color: AppColors.white70,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -180,7 +175,7 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Colors.black87,
+                          color: AppColors.white,
                         ),
                       ),
                     ],
@@ -217,16 +212,17 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Información Detallada',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: AppColors.primaryText(context),
               ),
             ),
             const SizedBox(height: 16),
-            _buildDetailItem('Código de Operador', widget.phone.operatorCodeName),
+            _buildDetailItem(
+                'Código de Operador', widget.phone.operatorCodeName),
             _buildDetailItem('Número', widget.phone.number),
             _buildDetailItem('Tipo', widget.phone.typeText),
             _buildDetailItem('Estado', widget.phone.statusText),
@@ -249,20 +245,20 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
             width: 120,
             child: Text(
               '$label:',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
-                color: Colors.grey,
+                color: AppColors.secondaryText(context),
               ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Colors.black87,
+                color: AppColors.primaryText(context),
               ),
             ),
           ),
@@ -300,8 +296,6 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
             icon: const Icon(Icons.edit),
             label: const Text('Editar Teléfono'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -317,8 +311,8 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
             icon: const Icon(Icons.delete),
             label: const Text('Eliminar Teléfono'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.red,
+              foregroundColor: AppColors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),

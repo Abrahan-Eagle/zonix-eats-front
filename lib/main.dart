@@ -125,15 +125,15 @@ void initialization() async {
   FlutterNativeSplash.remove();
 }
 
-// Paleta Stitch (template)
-const Color _stitchPrimary = Color(0xFF3399FF);
-const Color _stitchBgLight = Color(0xFFF5F7F8);
-const Color _stitchBgDark = Color(0xFF0F1923);
-const Color _stitchSurfaceDark = Color(0xFF1A2733);
-const Color _stitchCardCream = Color(0xFFF9F0E0);
-const Color _stitchNavBg = Color(0xFF1A2E46);
-const Color _stitchNavActive = Color(0xFF3299FF);
-const Color _stitchSlate400 = Color(0xFF94A3B8);
+// Paleta Stitch (template) — centralizada en AppColors
+const Color _stitchPrimary = AppColors.blue;
+const Color _stitchBgLight = AppColors.scaffoldBgLight;
+const Color _stitchBgDark = AppColors.backgroundDark;
+const Color _stitchSurfaceDark = AppColors.grayDark;
+const Color _stitchCardCream = AppColors.stitchCardCream;
+const Color _stitchNavBg = AppColors.stitchNavBg;
+const Color _stitchNavActive = AppColors.blue;
+const Color _stitchSlate400 = AppColors.stitchSlate400;
 
 ThemeData _buildStitchLightTheme() {
   return ThemeData(
@@ -144,23 +144,23 @@ ThemeData _buildStitchLightTheme() {
     scaffoldBackgroundColor: _stitchBgLight,
     appBarTheme: AppBarTheme(
       backgroundColor: _stitchPrimary,
-      foregroundColor: Colors.white,
+      foregroundColor: AppColors.white,
       elevation: 0,
       centerTitle: false,
       titleTextStyle: GoogleFonts.plusJakartaSans(
-        color: Colors.white,
+        color: AppColors.white,
         fontWeight: FontWeight.bold,
         fontSize: 22,
       ),
-      iconTheme: const IconThemeData(color: Colors.white),
+      iconTheme: const IconThemeData(color: AppColors.white),
     ),
     colorScheme: const ColorScheme.light(
       primary: _stitchPrimary,
       secondary: AppColors.orange,
       error: AppColors.red,
       surface: _stitchBgLight,
-      onPrimary: Colors.white,
-      onSurface: Color(0xFF0F172A),
+      onPrimary: AppColors.white,
+      onSurface: AppColors.stitchTextDark,
     ),
     cardColor: _stitchCardCream,
     cardTheme: CardThemeData(
@@ -171,7 +171,7 @@ ThemeData _buildStitchLightTheme() {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: _stitchPrimary,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     ),
@@ -180,7 +180,7 @@ ThemeData _buildStitchLightTheme() {
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Colors.white,
+      fillColor: AppColors.white,
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     ),
@@ -202,23 +202,23 @@ ThemeData _buildStitchDarkTheme() {
     scaffoldBackgroundColor: _stitchBgDark,
     appBarTheme: AppBarTheme(
       backgroundColor: _stitchBgDark,
-      foregroundColor: Colors.white,
+      foregroundColor: AppColors.white,
       elevation: 0,
       centerTitle: false,
       titleTextStyle: GoogleFonts.plusJakartaSans(
-        color: Colors.white,
+        color: AppColors.white,
         fontWeight: FontWeight.bold,
         fontSize: 22,
       ),
-      iconTheme: const IconThemeData(color: Colors.white),
+      iconTheme: const IconThemeData(color: AppColors.white),
     ),
     colorScheme: const ColorScheme.dark(
       primary: _stitchPrimary,
       secondary: AppColors.orangeCoral,
       error: AppColors.red,
       surface: _stitchSurfaceDark,
-      onPrimary: Colors.white,
-      onSurface: Colors.white,
+      onPrimary: AppColors.white,
+      onSurface: AppColors.white,
     ),
     cardColor: _stitchSurfaceDark,
     cardTheme: CardThemeData(
@@ -229,7 +229,7 @@ ThemeData _buildStitchDarkTheme() {
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: _stitchPrimary,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     ),

@@ -4,6 +4,7 @@ import '../api/phone_service.dart';
 import '../screens/create_phone_screen.dart';
 import '../screens/edit_phone_screen.dart';
 import '../screens/phone_detail_screen.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 class PhoneScreen extends StatefulWidget {
   final int userId;
@@ -32,7 +33,7 @@ class PhoneScreenState extends State<PhoneScreen> {
       debugPrint('Loading phones for user: ${widget.userId}');
       final phones = await _phoneService.fetchPhones(widget.userId);
       debugPrint('Fetched ${phones.length} phones');
-      
+
       if (mounted) {
         setState(() {
           _phones = phones;
@@ -55,7 +56,7 @@ class PhoneScreenState extends State<PhoneScreen> {
     setState(() {
       _refreshing = true;
     });
-    
+
     try {
       final phones = await _phoneService.fetchPhones(widget.userId);
       setState(() {
@@ -76,20 +77,19 @@ class PhoneScreenState extends State<PhoneScreen> {
       setState(() {
         if (isPrimary) {
           _phones = _phones.map((p) {
-            return p.id == phone.id 
-                ? p.copyWith(isPrimary: true) 
+            return p.id == phone.id
+                ? p.copyWith(isPrimary: true)
                 : p.copyWith(isPrimary: false);
           }).toList();
         } else {
           _phones = _phones.map((p) {
-            return p.id == phone.id 
-                ? p.copyWith(isPrimary: false) 
-                : p;
+            return p.id == phone.id ? p.copyWith(isPrimary: false) : p;
           }).toList();
         }
       });
 
-      await _phoneService.updatePrimaryStatus(phone.id, isPrimary, widget.userId);
+      await _phoneService.updatePrimaryStatus(
+          phone.id, isPrimary, widget.userId);
       _showSuccessSnackBar('Estado actualizado exitosamente');
     } catch (e) {
       // Revertir cambios si hay error
@@ -103,7 +103,8 @@ class PhoneScreenState extends State<PhoneScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirmar eliminación'),
-        content: Text('¿Estás seguro de que quieres eliminar el teléfono ${phone.fullNumber}?'),
+        content: Text(
+            '¿Estás seguro de que quieres eliminar el teléfono ${phone.fullNumber}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -111,7 +112,7 @@ class PhoneScreenState extends State<PhoneScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppColors.red),
             child: const Text('Eliminar'),
           ),
         ],
@@ -133,7 +134,7 @@ class PhoneScreenState extends State<PhoneScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.red,
         behavior: SnackBarBehavior.fixed,
         duration: const Duration(seconds: 3),
       ),
@@ -144,7 +145,7 @@ class PhoneScreenState extends State<PhoneScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.green,
+        backgroundColor: AppColors.green,
         behavior: SnackBarBehavior.fixed,
         duration: const Duration(seconds: 2),
       ),
@@ -154,10 +155,9 @@ class PhoneScreenState extends State<PhoneScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppColors.scaffoldBg(context),
       appBar: AppBar(
         title: const Text('Mis Teléfonos'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
         elevation: 0,
         actions: [
           if (_phones.isNotEmpty)
@@ -189,21 +189,30 @@ class PhoneScreenState extends State<PhoneScreen> {
   }
 
   Widget _buildEmptyState() {
+    final primary = Theme.of(context).colorScheme.primary;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.phone_disabled,
-            size: 80,
-            color: Colors.grey[400],
+          Container(
+            width: 120,
+            height: 120,
+            decoration: BoxDecoration(
+              color: primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(60),
+            ),
+            child: Icon(
+              Icons.phone_disabled,
+              size: 60,
+              color: primary,
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Text(
             'No hay teléfonos registrados',
             style: TextStyle(
               fontSize: 18,
-              color: Colors.grey[600],
+              color: AppColors.secondaryText(context),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -212,7 +221,7 @@ class PhoneScreenState extends State<PhoneScreen> {
             'Agrega tu primer número de teléfono',
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey[500],
+              color: AppColors.secondaryText(context),
             ),
           ),
           const SizedBox(height: 24),
@@ -221,8 +230,6 @@ class PhoneScreenState extends State<PhoneScreen> {
             icon: const Icon(Icons.add),
             label: const Text('Agregar Teléfono'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
           ),
@@ -260,12 +267,15 @@ class PhoneScreenState extends State<PhoneScreen> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.phone,
-                      color: Colors.blue,
+                      color: Theme.of(context).colorScheme.primary,
                       size: 24,
                     ),
                   ),
@@ -315,9 +325,10 @@ class PhoneScreenState extends State<PhoneScreen> {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, size: 20, color: Colors.red),
+                            Icon(Icons.delete, size: 20, color: AppColors.red),
                             SizedBox(width: 8),
-                            Text('Eliminar', style: TextStyle(color: Colors.red)),
+                            Text('Eliminar',
+                                style: TextStyle(color: AppColors.red)),
                           ],
                         ),
                       ),
@@ -361,19 +372,15 @@ class PhoneScreenState extends State<PhoneScreen> {
   Widget _buildFloatingActionButtons() {
     return Stack(
       children: [
-        // Botón de agregar teléfono
         Positioned(
           right: 10,
           bottom: 20,
           child: FloatingActionButton(
             heroTag: 'phone_list_new',
             onPressed: _navigateToCreatePhone,
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
             child: const Icon(Icons.add),
           ),
         ),
-        // Botón de confirmación solo si statusId es true
         if (widget.statusId)
           Positioned(
             right: 10,
@@ -381,8 +388,8 @@ class PhoneScreenState extends State<PhoneScreen> {
             child: FloatingActionButton(
               heroTag: 'phone_list_confirm',
               onPressed: _handleStatusConfirmation,
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.green,
+              foregroundColor: AppColors.white,
               child: const Icon(Icons.check),
             ),
           ),

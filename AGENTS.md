@@ -17,10 +17,11 @@
 | **Servicios**            | 49                                       |
 | **Tests**                | 214 pasaron ✅, 0 fallaron               |
 | **Plataformas**          | Android + iOS                            |
-| **Última actualización** | 11 Febrero 2026                          |
+| **Última actualización** | 4 Marzo 2026                             |
 
 ### Cambios recientes (documentar aquí los avances)
 
+- **4 Mar 2026:** Colores centralizados en `AppColors`: eliminado hardcode en vistas de usuario y onboarding (onboarding, checkout, detalle de orden/delivery, restaurantes). Paleta alineada con logo y psicología del color (marketplace comida rápida). En vistas de usuario y onboarding usar solo `AppColors` o `Theme.of(context).colorScheme`.
 - **11 Feb 2026:** Cupón: validación envía `code` y `order_amount`; mensajes de error del backend (422/404/400) mostrados al usuario. Configuración desde `.env` (AppConfig, Pusher, timeouts). Auth Pusher con `shared_secret`.
 
 ---
@@ -331,6 +332,7 @@ class Order {
 4. **SIEMPRE `Consumer<Service>`** para rebuilds reactivos
 5. **Pusher SOLAMENTE** para tiempo real (NO WebSocket)
 6. **`flutter_secure_storage`** para tokens, `shared_preferences` para preferencias
+7. **Colores:** En vistas de usuario y onboarding no usar `Colors.*` ni `Color(0x...)` hardcodeados; usar `AppColors` (`lib/features/utils/app_colors.dart`) o `Theme.of(context).colorScheme`
 
 ---
 
@@ -683,4 +685,4 @@ FORMATO DE SALIDA:
 
 **Documentación completa:** Ver `README.md`
 **Backend API:** Ver `zonix-eats-back/AGENTS.md`
-**Última actualización:** 11 Febrero 2026
+**Última actualización:** 4 Marzo 2026

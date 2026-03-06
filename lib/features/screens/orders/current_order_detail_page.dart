@@ -37,8 +37,8 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
   bool _trackingSubscribed = false;
   Map<String, dynamic>? _deliveryAgent;
 
-  static const Color _primary = Color(0xFF3399FF);
-  static const Color _accent = Color(0xFFFFC107);
+  static const Color _primary = AppColors.blue;
+  static const Color _accent = AppColors.amber;
 
   @override
   void initState() {
@@ -46,21 +46,29 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     _order = widget.order;
     _subscribeToTracking();
     _loadInitialTracking();
-    if (_isTrackableStatus(widget.order.status)) _loadDeliveryAgent();
+    if (_isTrackableStatus(widget.order.status)) {
+      _loadDeliveryAgent();
+    }
   }
 
   @override
   void dispose() {
     if (_trackingSubscribed) {
-      PusherService.instance.unsubscribeFromChannel('private-orders.${widget.orderId}');
+      PusherService.instance
+          .unsubscribeFromChannel('private-orders.${widget.orderId}');
     }
     super.dispose();
   }
 
   void _subscribeToTracking() {
-    if (_order == null || _trackingSubscribed) return;
+    if (_order == null || _trackingSubscribed) {
+      return;
+    }
     final s = _order!.status;
-    if (s == 'shipped' || s == 'out_for_delivery' || s == 'processing' || s == 'paid') {
+    if (s == 'shipped' ||
+        s == 'out_for_delivery' ||
+        s == 'processing' ||
+        s == 'paid') {
       PusherService.instance.subscribeToOrderChat(
         widget.orderId,
         onNewMessage: (eventName, data) {
@@ -84,38 +92,75 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
   }
 
   Future<void> _loadInitialTracking() async {
-    if (_order == null || !_isTrackableStatus(_order!.status)) return;
+    if (_order == null || !_isTrackableStatus(_order!.status)) {
+      return;
+    }
     try {
       final data = await OrderService().getOrderTracking(widget.orderId);
-      final lat = data['latitude'] is double ? data['latitude'] as double : (data['latitude'] != null ? double.tryParse(data['latitude'].toString()) : null);
-      final lng = data['longitude'] is double ? data['longitude'] as double : (data['longitude'] != null ? double.tryParse(data['longitude'].toString()) : null);
-      final clat = data['customer_latitude'] is double ? data['customer_latitude'] as double : (data['customer_latitude'] != null ? double.tryParse(data['customer_latitude'].toString()) : null);
-      final clng = data['customer_longitude'] is double ? data['customer_longitude'] as double : (data['customer_longitude'] != null ? double.tryParse(data['customer_longitude'].toString()) : null);
+      final lat = data['latitude'] is double
+          ? data['latitude'] as double
+          : (data['latitude'] != null
+              ? double.tryParse(data['latitude'].toString())
+              : null);
+      final lng = data['longitude'] is double
+          ? data['longitude'] as double
+          : (data['longitude'] != null
+              ? double.tryParse(data['longitude'].toString())
+              : null);
+      final clat = data['customer_latitude'] is double
+          ? data['customer_latitude'] as double
+          : (data['customer_latitude'] != null
+              ? double.tryParse(data['customer_latitude'].toString())
+              : null);
+      final clng = data['customer_longitude'] is double
+          ? data['customer_longitude'] as double
+          : (data['customer_longitude'] != null
+              ? double.tryParse(data['customer_longitude'].toString())
+              : null);
       List<LatLng> route = [];
       final routeRaw = data['route_to_customer'];
       if (routeRaw is List) {
         for (final p in routeRaw) {
           if (p is Map) {
-            final plat = (p['lat'] is num) ? (p['lat'] as num).toDouble() : double.tryParse(p['lat']?.toString() ?? '');
-            final plng = (p['lng'] is num) ? (p['lng'] as num).toDouble() : double.tryParse(p['lng']?.toString() ?? '');
-            if (plat != null && plng != null) route.add(LatLng(plat, plng));
+            final plat = (p['lat'] is num)
+                ? (p['lat'] as num).toDouble()
+                : double.tryParse(p['lat']?.toString() ?? '');
+            final plng = (p['lng'] is num)
+                ? (p['lng'] as num).toDouble()
+                : double.tryParse(p['lng']?.toString() ?? '');
+            if (plat != null && plng != null) {
+              route.add(LatLng(plat, plng));
+            }
           }
         }
       }
       if (mounted) {
         setState(() {
-          if (lat != null) _deliveryLat = lat;
-          if (lng != null) _deliveryLng = lng;
-          if (clat != null) _customerLat = clat;
-          if (clng != null) _customerLng = clng;
-          if (route.isNotEmpty) _routePoints = route;
+          if (lat != null) {
+            _deliveryLat = lat;
+          }
+          if (lng != null) {
+            _deliveryLng = lng;
+          }
+          if (clat != null) {
+            _customerLat = clat;
+          }
+          if (clng != null) {
+            _customerLng = clng;
+          }
+          if (route.isNotEmpty) {
+            _routePoints = route;
+          }
         });
       }
     } catch (_) {}
   }
 
   bool _isTrackableStatus(String s) =>
-      s == 'shipped' || s == 'out_for_delivery' || s == 'processing' || s == 'paid';
+      s == 'shipped' ||
+      s == 'out_for_delivery' ||
+      s == 'processing' ||
+      s == 'paid';
 
   Future<void> _refreshOrder() async {
     try {
@@ -131,8 +176,11 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
 
   Future<void> _loadDeliveryAgent() async {
     try {
-      final data = await OrderService().getDeliveryAgentForOrder(widget.orderId);
-      if (mounted) setState(() => _deliveryAgent = data);
+      final data =
+          await OrderService().getDeliveryAgentForOrder(widget.orderId);
+      if (mounted) {
+        setState(() => _deliveryAgent = data);
+      }
     } catch (_) {}
   }
 
@@ -155,9 +203,19 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
         return 3;
       default:
         // Fallback por si el backend envía otro valor (ej. "en camino")
-        if (s.contains('camino') || s.contains('shipped') || s.contains('delivery')) return 2;
-        if (s.contains('prepar') || s.contains('process') || s.contains('ready')) return 1;
-        if (s.contains('entreg') || s.contains('delivered')) return 3;
+        if (s.contains('camino') ||
+            s.contains('shipped') ||
+            s.contains('delivery')) {
+          return 2;
+        }
+        if (s.contains('prepar') ||
+            s.contains('process') ||
+            s.contains('ready')) {
+          return 1;
+        }
+        if (s.contains('entreg') || s.contains('delivered')) {
+          return 3;
+        }
         return 0;
     }
   }
@@ -178,8 +236,12 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
   }
 
   String _imageUrl(String? path) {
-    if (path == null || path.isEmpty) return '';
-    if (path.startsWith('http')) return path;
+    if (path == null || path.isEmpty) {
+      return '';
+    }
+    if (path.startsWith('http')) {
+      return path;
+    }
     final base = AppConfig.apiUrl.replaceAll('/api', '');
     return path.startsWith('/') ? '$base$path' : '$base/storage/$path';
   }
@@ -188,22 +250,26 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final surfaceColor = isDark ? AppColors.cardBg(context) : Colors.white;
+    final surfaceColor = isDark ? AppColors.cardBg(context) : AppColors.white;
     final primary = isDark ? AppColors.accentButton(context) : _primary;
-    final borderColor = isDark ? Colors.white.withValues(alpha: 0.08) : const Color(0xFFE2E8F0);
-    final backgroundLight = isDark ? const Color(0xFF0f1923) : const Color(0xFFf5f7f8);
-    final textPrimary = isDark ? Colors.white : const Color(0xFF0F172A);
-    final textSecondary = isDark ? Colors.white70 : const Color(0xFF64748B);
+    final borderColor =
+        isDark ? AppColors.white.withValues(alpha: 0.08) : AppColors.grayLight;
+    final backgroundLight =
+        isDark ? AppColors.backgroundDark : AppColors.grayLight;
+    final textPrimary = AppColors.primaryText(context);
+    final textSecondary = AppColors.secondaryText(context);
 
     final order = _order ?? widget.order;
-    final orderNumber = order.orderNumber.isNotEmpty ? order.orderNumber : '${order.id}';
+    final orderNumber =
+        order.orderNumber.isNotEmpty ? order.orderNumber : '${order.id}';
 
     return Scaffold(
       backgroundColor: backgroundLight,
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(context, orderNumber, primary, textPrimary, textSecondary),
+            _buildHeader(
+                context, orderNumber, primary, textPrimary, textSecondary),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: _refreshOrder,
@@ -213,11 +279,16 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      _buildStatusSection(order, surfaceColor, borderColor, primary, textPrimary, textSecondary),
-                      _buildMapSection(order, primary, surfaceColor, borderColor, isDark),
-                      _buildDeliveryPersonCard(surfaceColor, borderColor, primary, textPrimary, textSecondary),
-                      _buildAddressCard(order, surfaceColor, borderColor, textPrimary, textSecondary),
-                      _buildOrderSummary(order, surfaceColor, borderColor, primary, textPrimary, textSecondary),
+                      _buildStatusSection(order, surfaceColor, borderColor,
+                          primary, textPrimary, textSecondary),
+                      _buildMapSection(
+                          order, primary, surfaceColor, borderColor, isDark),
+                      _buildDeliveryPersonCard(surfaceColor, borderColor,
+                          primary, textPrimary, textSecondary),
+                      _buildAddressCard(order, surfaceColor, borderColor,
+                          textPrimary, textSecondary),
+                      _buildOrderSummary(order, surfaceColor, borderColor,
+                          primary, textPrimary, textSecondary),
                     ],
                   ),
                 ),
@@ -229,12 +300,16 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, String orderNumber, Color primary, Color textPrimary, Color textSecondary) {
+  Widget _buildHeader(BuildContext context, String orderNumber, Color primary,
+      Color textPrimary, Color textSecondary) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? Colors.black26 : Colors.white.withValues(alpha: 0.9),
-        border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.black26
+            : AppColors.white.withValues(alpha: 0.9),
+        border: Border(
+            bottom: BorderSide(color: AppColors.white.withValues(alpha: 0.1))),
       ),
       child: Row(
         children: [
@@ -248,11 +323,15 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
               children: [
                 Text(
                   'Detalle del Pedido',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary),
+                  style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: textPrimary),
                 ),
                 Text(
                   'Orden #$orderNumber',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: textSecondary),
+                  style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12, color: textSecondary),
                 ),
               ],
             ),
@@ -268,7 +347,8 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     );
   }
 
-  Widget _buildStatusSection(Order order, Color surfaceColor, Color borderColor, Color primary, Color textPrimary, Color textSecondary) {
+  Widget _buildStatusSection(Order order, Color surfaceColor, Color borderColor,
+      Color primary, Color textPrimary, Color textSecondary) {
     final step = _progressStep(order);
     return Container(
       width: double.infinity,
@@ -288,25 +368,35 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: _accent.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
                         order.statusText.toUpperCase(),
-                        style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: _accent),
+                        style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: _accent),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      step >= 2 ? '¡Ya casi llega!' : (step == 1 ? 'En preparación' : 'Recibido'),
-                      style: GoogleFonts.plusJakartaSans(fontSize: 22, fontWeight: FontWeight.bold, color: textPrimary),
+                      step >= 2
+                          ? '¡Ya casi llega!'
+                          : (step == 1 ? 'En preparación' : 'Recibido'),
+                      style: GoogleFonts.plusJakartaSans(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: textPrimary),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       _etaMessage(order),
-                      style: GoogleFonts.plusJakartaSans(fontSize: 14, color: textSecondary),
+                      style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14, color: textSecondary),
                     ),
                   ],
                 ),
@@ -316,11 +406,18 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                 children: [
                   Text(
                     _etaTime(order),
-                    style: GoogleFonts.plusJakartaSans(fontSize: 28, fontWeight: FontWeight.bold, color: primary),
+                    style: GoogleFonts.plusJakartaSans(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: primary),
                   ),
                   Text(
                     'LLEGADA EST.',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: textSecondary, letterSpacing: 1),
+                    style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: textSecondary,
+                        letterSpacing: 1),
                   ),
                 ],
               ),
@@ -335,7 +432,12 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
 
   Widget _buildProgressBar(int currentStep, Color primary, Color textMuted) {
     const labels = ['RECIBIDO', 'PREPARACIÓN', 'EN CAMINO', 'ENTREGADO'];
-    const icons = [Icons.check, Icons.restaurant, Icons.two_wheeler, Icons.inventory_2];
+    const icons = [
+      Icons.check,
+      Icons.restaurant,
+      Icons.two_wheeler,
+      Icons.inventory_2
+    ];
     Widget circle(int i) {
       final done = i < currentStep;
       final active = i == currentStep;
@@ -345,32 +447,93 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
         decoration: BoxDecoration(
           color: done || active ? primary : textMuted.withValues(alpha: 0.2),
           shape: BoxShape.circle,
-          boxShadow: active ? [BoxShadow(color: primary.withValues(alpha: 0.3), blurRadius: 8)] : null,
+          boxShadow: active
+              ? [
+                  BoxShadow(
+                      color: primary.withValues(alpha: 0.3), blurRadius: 8)
+                ]
+              : null,
         ),
-        child: Icon(icons[i], size: active ? 20 : 16, color: (done || active) ? Colors.white : textMuted),
+        child: Icon(icons[i],
+            size: active ? 20 : 16,
+            color: (done || active) ? AppColors.white : textMuted),
       );
     }
+
     // Etiquetas: completados y activo en primary; pendientes en textMuted
     Color labelColor(int i) => (i <= currentStep) ? primary : textMuted;
     return Row(
       children: [
-        Column(children: [circle(0), const SizedBox(height: 6), Text(labels[0], style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.bold, color: labelColor(0)))]),
-        Expanded(child: Center(child: Container(height: 2, color: currentStep > 0 ? primary : textMuted.withValues(alpha: 0.3)))),
-        Column(children: [circle(1), const SizedBox(height: 6), Text(labels[1], style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.bold, color: labelColor(1)))]),
-        Expanded(child: Center(child: Container(height: 2, color: currentStep > 1 ? primary : textMuted.withValues(alpha: 0.3)))),
-        Column(children: [circle(2), const SizedBox(height: 6), Text(labels[2], style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.bold, color: labelColor(2)))]),
-        Expanded(child: Center(child: Container(height: 2, color: currentStep > 2 ? primary : textMuted.withValues(alpha: 0.3)))),
-        Column(children: [circle(3), const SizedBox(height: 6), Text(labels[3], style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.bold, color: labelColor(3)))]),
+        Column(children: [
+          circle(0),
+          const SizedBox(height: 6),
+          Text(labels[0],
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  color: labelColor(0)))
+        ]),
+        Expanded(
+            child: Center(
+                child: Container(
+                    height: 2,
+                    color: currentStep > 0
+                        ? primary
+                        : textMuted.withValues(alpha: 0.3)))),
+        Column(children: [
+          circle(1),
+          const SizedBox(height: 6),
+          Text(labels[1],
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  color: labelColor(1)))
+        ]),
+        Expanded(
+            child: Center(
+                child: Container(
+                    height: 2,
+                    color: currentStep > 1
+                        ? primary
+                        : textMuted.withValues(alpha: 0.3)))),
+        Column(children: [
+          circle(2),
+          const SizedBox(height: 6),
+          Text(labels[2],
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  color: labelColor(2)))
+        ]),
+        Expanded(
+            child: Center(
+                child: Container(
+                    height: 2,
+                    color: currentStep > 2
+                        ? primary
+                        : textMuted.withValues(alpha: 0.3)))),
+        Column(children: [
+          circle(3),
+          const SizedBox(height: 6),
+          Text(labels[3],
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 9,
+                  fontWeight: FontWeight.bold,
+                  color: labelColor(3)))
+        ]),
       ],
     );
   }
 
-  Widget _buildMapSection(Order order, Color primary, Color surfaceColor, Color borderColor, bool isDark) {
+  Widget _buildMapSection(Order order, Color primary, Color surfaceColor,
+      Color borderColor, bool isDark) {
     final hasLocation = _deliveryLat != null && _deliveryLng != null;
     final hasDestination = _customerLat != null && _customerLng != null;
     final center = hasLocation
         ? LatLng(_deliveryLat!, _deliveryLng!)
-        : (hasDestination ? LatLng(_customerLat!, _customerLng!) : const LatLng(19.4326, -99.1332));
+        : (hasDestination
+            ? LatLng(_customerLat!, _customerLng!)
+            : const LatLng(19.4326, -99.1332));
     final markers = <Marker>[];
     if (hasLocation) {
       markers.add(MapMarker.create(
@@ -384,7 +547,7 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
       markers.add(MapMarker.create(
         point: LatLng(_customerLat!, _customerLng!),
         iconData: Icons.location_on,
-        color: Colors.green,
+        color: AppColors.green,
         size: 32,
       ));
     }
@@ -392,7 +555,10 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     if (_routePoints.isNotEmpty) {
       polyline = _routePoints;
     } else if (hasLocation && hasDestination) {
-      polyline = [LatLng(_deliveryLat!, _deliveryLng!), LatLng(_customerLat!, _customerLng!)];
+      polyline = [
+        LatLng(_deliveryLat!, _deliveryLng!),
+        LatLng(_customerLat!, _customerLng!)
+      ];
     }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -401,7 +567,7 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
         child: Container(
           height: 220,
           decoration: BoxDecoration(
-            color: isDark ? Colors.grey.shade900 : Colors.grey.shade200,
+            color: isDark ? AppColors.grayDark : AppColors.grayLight,
             border: Border.all(color: borderColor),
           ),
           child: hasLocation
@@ -422,15 +588,19 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                       top: 12,
                       child: Center(
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
                             color: surfaceColor,
                             borderRadius: BorderRadius.circular(8),
-                            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8)],
+                            boxShadow: const [
+                              BoxShadow(color: AppColors.black26, blurRadius: 8)
+                            ],
                           ),
                           child: Text(
                             'Tu repartidor está cerca',
-                            style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.bold),
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12, fontWeight: FontWeight.bold),
                           ),
                         ),
                       ),
@@ -441,11 +611,13 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.map_outlined, size: 48, color: primary.withValues(alpha: 0.6)),
+                      Icon(Icons.map_outlined,
+                          size: 48, color: primary.withValues(alpha: 0.6)),
                       const SizedBox(height: 8),
                       Text(
                         'Esperando ubicación del repartidor...',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.grey.shade600),
+                        style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12, color: AppColors.gray),
                       ),
                     ],
                   ),
@@ -456,7 +628,8 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
   }
 
   /// Botón para ir a la pantalla "Tu repartidor" (vista separada). No duplica contenido.
-  Widget _buildDeliveryPersonCard(Color surfaceColor, Color borderColor, Color primary, Color textPrimary, Color textSecondary) {
+  Widget _buildDeliveryPersonCard(Color surfaceColor, Color borderColor,
+      Color primary, Color textPrimary, Color textSecondary) {
     final order = _order ?? widget.order;
     final commerceName = order.commerce?['name']?.toString() ?? 'Comercio';
 
@@ -490,10 +663,14 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                     const SizedBox(width: 12),
                     Text(
                       'Ver tu repartidor',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w600, color: textPrimary),
+                      style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: textPrimary),
                     ),
                     const Spacer(),
-                    Icon(Icons.arrow_forward_ios, size: 16, color: textSecondary),
+                    Icon(Icons.arrow_forward_ios,
+                        size: 16, color: textSecondary),
                   ],
                 ),
               ),
@@ -509,7 +686,9 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                   ),
                 );
               },
-              style: IconButton.styleFrom(backgroundColor: primary.withValues(alpha: 0.15), foregroundColor: primary),
+              style: IconButton.styleFrom(
+                  backgroundColor: primary.withValues(alpha: 0.15),
+                  foregroundColor: primary),
               icon: const Icon(Icons.chat_bubble_outline, size: 22),
             ),
           ],
@@ -518,7 +697,8 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     );
   }
 
-  Widget _buildAddressCard(Order order, Color surfaceColor, Color borderColor, Color textPrimary, Color textSecondary) {
+  Widget _buildAddressCard(Order order, Color surfaceColor, Color borderColor,
+      Color textPrimary, Color textSecondary) {
     final address = order.deliveryAddress.isEmpty ? '—' : order.deliveryAddress;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
@@ -534,7 +714,9 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Theme.of(context).brightness == Brightness.dark ? Colors.grey.shade800 : Colors.grey.shade100,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? AppColors.grayDark
+                  : AppColors.grayLight,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(Icons.location_on, color: textSecondary, size: 22),
@@ -546,12 +728,19 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
               children: [
                 Text(
                   'DIRECCIÓN DE ENTREGA',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.bold, color: textSecondary, letterSpacing: 0.5),
+                  style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: textSecondary,
+                      letterSpacing: 0.5),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   address,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w600, color: textPrimary),
+                  style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: textPrimary),
                 ),
               ],
             ),
@@ -561,7 +750,8 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     );
   }
 
-  Widget _buildOrderSummary(Order order, Color surfaceColor, Color borderColor, Color primary, Color textPrimary, Color textSecondary) {
+  Widget _buildOrderSummary(Order order, Color surfaceColor, Color borderColor,
+      Color primary, Color textPrimary, Color textSecondary) {
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       decoration: BoxDecoration(
@@ -576,12 +766,17 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
             child: Text(
               'Resumen de la Orden',
-              style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary),
+              style: GoogleFonts.plusJakartaSans(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: textPrimary),
             ),
           ),
           const Divider(height: 1),
           ...order.items.map((item) {
-            final img = item.productImage.isNotEmpty ? _imageUrl(item.productImage) : null;
+            final img = item.productImage.isNotEmpty
+                ? _imageUrl(item.productImage)
+                : null;
             return Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
               child: Row(
@@ -589,7 +784,11 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(8),
                     child: img != null
-                        ? Image.network(img, width: 56, height: 56, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _placeholder(56))
+                        ? Image.network(img,
+                            width: 56,
+                            height: 56,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _placeholder(56))
                         : _placeholder(56),
                   ),
                   const SizedBox(width: 14),
@@ -599,19 +798,27 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                       children: [
                         Text(
                           '${item.quantity}x ${item.productName}',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.bold, color: textPrimary),
+                          style: GoogleFonts.plusJakartaSans(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: textPrimary),
                         ),
-                        if (item.specialInstructions != null && item.specialInstructions!.isNotEmpty)
+                        if (item.specialInstructions != null &&
+                            item.specialInstructions!.isNotEmpty)
                           Text(
                             item.specialInstructions!,
-                            style: GoogleFonts.plusJakartaSans(fontSize: 13, color: textSecondary),
+                            style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13, color: textSecondary),
                           ),
                       ],
                     ),
                   ),
                   Text(
                     '\$${item.total.toStringAsFixed(2)}',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w600, color: textPrimary),
+                    style: GoogleFonts.plusJakartaSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: textPrimary),
                   ),
                 ],
               ),
@@ -619,7 +826,9 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
           }),
           Container(
             padding: const EdgeInsets.all(20),
-            color: Theme.of(context).brightness == Brightness.dark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.shade50,
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.white.withValues(alpha: 0.05)
+                : AppColors.grayLight,
             child: Column(
               children: [
                 _summaryRow('Subtotal', order.subtotal, textSecondary),
@@ -629,8 +838,16 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('Total', style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary)),
-                    Text('\$${order.total.toStringAsFixed(2)}', style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.bold, color: primary)),
+                    Text('Total',
+                        style: GoogleFonts.plusJakartaSans(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: textPrimary)),
+                    Text('\$${order.total.toStringAsFixed(2)}',
+                        style: GoogleFonts.plusJakartaSans(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: primary)),
                   ],
                 ),
               ],
@@ -645,8 +862,12 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: GoogleFonts.plusJakartaSans(fontSize: 15, color: textSecondary)),
-        Text('\$${value.toStringAsFixed(2)}', style: GoogleFonts.plusJakartaSans(fontSize: 15, color: textSecondary)),
+        Text(label,
+            style: GoogleFonts.plusJakartaSans(
+                fontSize: 15, color: textSecondary)),
+        Text('\$${value.toStringAsFixed(2)}',
+            style: GoogleFonts.plusJakartaSans(
+                fontSize: 15, color: textSecondary)),
       ],
     );
   }
@@ -655,8 +876,8 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     return Container(
       width: size,
       height: size,
-      color: Colors.grey.shade300,
-      child: Icon(Icons.restaurant, color: Colors.grey.shade600, size: size * 0.5),
+      color: AppColors.borderLight,
+      child: Icon(Icons.person, color: AppColors.gray, size: size * 0.5),
     );
   }
 }

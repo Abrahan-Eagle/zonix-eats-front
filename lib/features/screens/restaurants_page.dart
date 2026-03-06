@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import '../../../models/restaurant.dart';
 import '../../../features/services/restaurant_service.dart';
 import 'restaurants/restaurant_details_page.dart';
+import 'package:zonix/features/utils/app_colors.dart';
+
+// Lints de rendimiento opcionales para este archivo
+// (muchos widgets usan Theme.of(context), por eso no todos pueden ser const)
+// ignore_for_file: prefer_const_constructors
 
 class RestaurantsPage extends StatefulWidget {
   const RestaurantsPage({super.key});
@@ -122,7 +127,8 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
         _filteredRestaurants.sort((a, b) => a.distance.compareTo(b.distance));
         break;
       case 'delivery_time':
-        _filteredRestaurants.sort((a, b) => a.deliveryTime.compareTo(b.deliveryTime));
+        _filteredRestaurants
+            .sort((a, b) => a.deliveryTime.compareTo(b.deliveryTime));
         break;
     }
   }
@@ -132,8 +138,8 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Restaurantes'),
-        backgroundColor: Colors.orange,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.yellow,
+        foregroundColor: AppColors.blueDark,
         elevation: 2,
         actions: [
           IconButton(
@@ -165,10 +171,10 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.error_outline,
             size: 64,
-            color: Colors.red,
+            color: AppColors.red,
           ),
           const SizedBox(height: 16),
           Text(
@@ -178,7 +184,10 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
           const SizedBox(height: 8),
           Text(
             _error!,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: AppColors.gray),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -196,10 +205,10 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.restaurant_outlined,
             size: 100,
-            color: Colors.grey,
+            color: AppColors.gray,
           ),
           const SizedBox(height: 16),
           Text(
@@ -209,7 +218,10 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
           const SizedBox(height: 8),
           Text(
             'Intenta ajustar los filtros de búsqueda',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey),
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(color: AppColors.gray),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
@@ -222,8 +234,8 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
               });
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.yellow,
+              foregroundColor: AppColors.blueDark,
             ),
             child: const Text('Limpiar Filtros'),
           ),
@@ -247,7 +259,8 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (context) => RestaurantDetailsPage.fromRestaurant(restaurant),
+                    builder: (context) =>
+                        RestaurantDetailsPage.fromRestaurant(restaurant),
                   ),
                 );
               },
@@ -268,16 +281,18 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                                 return Container(
                                   width: 80,
                                   height: 80,
-                                  color: Colors.grey[300],
-                                  child: const Icon(Icons.restaurant, color: Colors.grey),
+                                  color: AppColors.borderLight,
+                                  child: const Icon(Icons.restaurant,
+                                      color: AppColors.gray),
                                 );
                               },
                             )
                           : Container(
                               width: 80,
                               height: 80,
-                              color: Colors.grey[300],
-                              child: const Icon(Icons.restaurant, color: Colors.grey),
+                              color: AppColors.borderLight,
+                              child: const Icon(Icons.restaurant,
+                                  color: AppColors.gray),
                             ),
                     ),
                     const SizedBox(width: 12),
@@ -299,15 +314,16 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                               ),
                               if (restaurant.isOpen)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(
-                                    color: Colors.green,
+                                    color: AppColors.green,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: const Text(
                                     'Abierto',
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: AppColors.white,
                                       fontSize: 10,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -320,24 +336,26 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                             restaurant.cuisine,
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey[600],
+                              color: AppColors.gray,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              const Icon(Icons.star, color: Colors.amber, size: 16),
+                              const Icon(Icons.star,
+                                  color: AppColors.amber, size: 16),
                               const SizedBox(width: 4),
                               Text(
                                 restaurant.rating.toString(),
-                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(width: 8),
                               Text(
                                 '(${restaurant.reviewCount} reseñas)',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.grey[600],
+                                  color: AppColors.gray,
                                 ),
                               ),
                             ],
@@ -345,23 +363,25 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(Icons.access_time, color: Colors.grey[600], size: 16),
+                              Icon(Icons.access_time,
+                                  color: AppColors.gray, size: 16),
                               const SizedBox(width: 4),
                               Text(
                                 '${restaurant.deliveryTime} min',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.grey[600],
+                                  color: AppColors.gray,
                                 ),
                               ),
                               const SizedBox(width: 16),
-                              Icon(Icons.delivery_dining, color: Colors.grey[600], size: 16),
+                              Icon(Icons.delivery_dining,
+                                  color: AppColors.gray, size: 16),
                               const SizedBox(width: 4),
                               Text(
                                 '\$${restaurant.deliveryFee.toStringAsFixed(2)}',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.grey[600],
+                                  color: AppColors.gray,
                                 ),
                               ),
                             ],
@@ -369,7 +389,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                         ],
                       ),
                     ),
-                    const Icon(Icons.chevron_right, color: Colors.grey),
+                    const Icon(Icons.chevron_right, color: AppColors.gray),
                   ],
                 ),
               ),
@@ -429,7 +449,8 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Category Filter
-              const Text('Categoría:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Categoría:',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: _selectedCategory,
@@ -450,7 +471,8 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
               ),
               const SizedBox(height: 16),
               // Sort Filter
-              const Text('Ordenar por:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Ordenar por:',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               DropdownButtonFormField<String>(
                 initialValue: _sortBy,

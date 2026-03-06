@@ -4,6 +4,7 @@ import '../models/phone.dart';
 import '../api/phone_service.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 class CreatePhoneScreen extends StatefulWidget {
   final int userId;
@@ -18,7 +19,7 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
   final _formKey = GlobalKey<FormState>();
   final _numberController = TextEditingController();
   final PhoneService _phoneService = PhoneService();
-  
+
   List<Map<String, dynamic>> _operatorCodes = [];
   int? _selectedOperatorCodeId;
   bool _isLoading = false;
@@ -45,7 +46,7 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.red,
         behavior: SnackBarBehavior.fixed,
         duration: const Duration(seconds: 3),
       ),
@@ -56,7 +57,7 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: Colors.green,
+        backgroundColor: AppColors.green,
         behavior: SnackBarBehavior.fixed,
         duration: const Duration(seconds: 2),
       ),
@@ -75,8 +76,8 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
         id: 0,
         profileId: widget.userId,
         operatorCodeId: _selectedOperatorCodeId!,
-        operatorCodeName: _operatorCodes
-            .firstWhere((code) => code['id'] == _selectedOperatorCodeId)['name'],
+        operatorCodeName: _operatorCodes.firstWhere(
+            (code) => code['id'] == _selectedOperatorCodeId)['name'],
         number: _numberController.text,
         isPrimary: _isPrimary,
         status: true,
@@ -105,10 +106,9 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
     final isSmallScreen = size.width < 600;
 
     return Scaffold(
+      backgroundColor: AppColors.scaffoldBg(context),
       appBar: AppBar(
         title: const Text('Registrar Teléfono'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: _isLoading
@@ -143,34 +143,35 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
   }
 
   Widget _buildHeader() {
+    final primary = Theme.of(context).colorScheme.primary;
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: const Padding(
-        padding: EdgeInsets.all(16.0),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             Icon(
               Icons.add_call,
               size: 48,
-              color: Colors.blue,
+              color: primary,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
               'Registra tu nuevo número de teléfono',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: AppColors.primaryText(context),
               ),
               textAlign: TextAlign.center,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               'Completa la información para agregar un nuevo teléfono a tu perfil',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey,
+                color: AppColors.secondaryText(context),
               ),
               textAlign: TextAlign.center,
             ),
@@ -321,7 +322,7 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: AppColors.black87,
               ),
             ),
             const SizedBox(height: 12),
@@ -336,7 +337,7 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
               },
               secondary: Icon(
                 Icons.star,
-                color: _isPrimary ? Colors.amber : Colors.grey,
+                color: _isPrimary ? AppColors.amber : AppColors.gray,
               ),
             ),
           ],
@@ -355,19 +356,17 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
             heroTag: 'create_phone_save',
             onPressed: _isLoading ? null : _createPhone,
             tooltip: 'Registrar Teléfono',
-            icon: _isLoading 
+            icon: _isLoading
                 ? const SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
                     ),
                   )
                 : const Icon(Icons.phone),
             label: Text(_isLoading ? 'Creando...' : 'Registrar Teléfono'),
-            backgroundColor: Colors.blue,
-            foregroundColor: Colors.white,
           ),
         ),
         const SizedBox(height: 16.0),

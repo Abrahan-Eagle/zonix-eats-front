@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 import '../../services/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -56,7 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(result['message'] ?? 'Login failed'),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.red,
             ),
           );
         }
@@ -67,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.red,
           ),
         );
       }
@@ -85,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Login'),
-        backgroundColor: Colors.orange,
+        backgroundColor: AppColors.orange,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -97,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
               const Icon(
                 Icons.restaurant,
                 size: 100,
-                color: Colors.orange,
+                color: AppColors.orange,
               ),
               const SizedBox(height: 32),
               const Text(
@@ -105,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 style: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
-                  color: Colors.orange,
+                  color: AppColors.orange,
                 ),
               ),
               const SizedBox(height: 32),
@@ -153,11 +154,11 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _login,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.orange,
+                    foregroundColor: AppColors.white,
                   ),
                   child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
+                      ? const CircularProgressIndicator(color: AppColors.white)
                       : const Text(
                           'Iniciar Sesión',
                           style: TextStyle(fontSize: 18),
@@ -169,7 +170,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 'Credenciales de prueba:\nEmail: test@test.com\nContraseña: 123456',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.grey,
+                  color: AppColors.gray,
                   fontSize: 12,
                 ),
               ),

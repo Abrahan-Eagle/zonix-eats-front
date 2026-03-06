@@ -6,6 +6,7 @@ import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/features/services/promotion_service.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -43,12 +44,15 @@ class _CheckoutPageState extends State<CheckoutPage> {
       if (!mounted) return;
       setState(() {
         _addresses = list;
-        if (_addresses.isNotEmpty && _selectedAddress == null && !_isUsingCurrentLocation) {
+        if (_addresses.isNotEmpty &&
+            _selectedAddress == null &&
+            !_isUsingCurrentLocation) {
           final defaultAddr = _addresses.firstWhere(
             (a) => a['is_default'] == true,
             orElse: () => _addresses.first,
           );
-          _selectedAddress = (defaultAddr['formatted_address'] as String?) ?? _formatAddressFromMap(defaultAddr);
+          _selectedAddress = (defaultAddr['formatted_address'] as String?) ??
+              _formatAddressFromMap(defaultAddr);
           _selectedDeliveryLat = _latFromMap(defaultAddr);
           _selectedDeliveryLng = _lngFromMap(defaultAddr);
         }
@@ -69,7 +73,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
       final lng = location['longitude'] as num?;
       final addressText = address?.trim().isNotEmpty == true
           ? address!
-          : (lat != null && lng != null ? '${lat.toStringAsFixed(6)}, ${lng.toStringAsFixed(6)}' : null);
+          : (lat != null && lng != null
+              ? '${lat.toStringAsFixed(6)}, ${lng.toStringAsFixed(6)}'
+              : null);
       setState(() {
         _loadingCurrentLocation = false;
         _isUsingCurrentLocation = true;
@@ -81,7 +87,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
       if (!mounted) return;
       setState(() {
         _loadingCurrentLocation = false;
-        _error = 'No se pudo obtener la ubicación. Revisa permisos o usa una dirección guardada.';
+        _error =
+            'No se pudo obtener la ubicación. Revisa permisos o usa una dirección guardada.';
       });
     }
   }
@@ -92,6 +99,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     if (v is num) return v.toDouble();
     return double.tryParse(v.toString());
   }
+
   double? _lngFromMap(Map<String, dynamic> m) {
     final v = m['longitude'];
     if (v == null) return null;
@@ -101,14 +109,25 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
   String _formatAddressFromMap(Map<String, dynamic> addr) {
     final parts = <String>[];
-    if (addr['address_line_1'] != null) parts.add(addr['address_line_1'].toString());
-    if (addr['address_line_2'] != null && addr['address_line_2'].toString().isNotEmpty) {
+    if (addr['address_line_1'] != null) {
+      parts.add(addr['address_line_1'].toString());
+    }
+    if (addr['address_line_2'] != null &&
+        addr['address_line_2'].toString().isNotEmpty) {
       parts.add(addr['address_line_2'].toString());
     }
-    if (addr['city'] != null) parts.add(addr['city'].toString());
-    if (addr['state'] != null) parts.add(addr['state'].toString());
-    if (addr['postal_code'] != null) parts.add(addr['postal_code'].toString());
-    if (addr['country'] != null) parts.add(addr['country'].toString());
+    if (addr['city'] != null) {
+      parts.add(addr['city'].toString());
+    }
+    if (addr['state'] != null) {
+      parts.add(addr['state'].toString());
+    }
+    if (addr['postal_code'] != null) {
+      parts.add(addr['postal_code'].toString());
+    }
+    if (addr['country'] != null) {
+      parts.add(addr['country'].toString());
+    }
     return parts.join(', ');
   }
 
@@ -132,13 +151,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
           return;
         }
       }
-      final deliveryFee = _deliveryType == 'delivery' ? AppConfig.defaultDeliveryFee : 0.0;
+      final deliveryFee =
+          _deliveryType == 'delivery' ? AppConfig.defaultDeliveryFee : 0.0;
       final order = await orderService.createOrder(
         cartService.items.toList(),
         deliveryType: _deliveryType,
         deliveryAddress: deliveryAddress,
-        deliveryLatitude: _deliveryType == 'delivery' ? _selectedDeliveryLat : null,
-        deliveryLongitude: _deliveryType == 'delivery' ? _selectedDeliveryLng : null,
+        deliveryLatitude:
+            _deliveryType == 'delivery' ? _selectedDeliveryLat : null,
+        deliveryLongitude:
+            _deliveryType == 'delivery' ? _selectedDeliveryLng : null,
         deliveryFee: deliveryFee,
       );
       if (_appliedCoupon != null) {
@@ -146,7 +168,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
         if (cid != null) {
           final couponId = cid is int ? cid : int.tryParse(cid.toString());
           if (couponId != null) {
-            await _promotionService.applyCouponToOrder(couponId: couponId, orderId: order.id);
+            await _promotionService.applyCouponToOrder(
+                couponId: couponId, orderId: order.id);
           }
         }
       }
@@ -169,76 +192,97 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Widget build(BuildContext context) {
     final cartService = Provider.of<CartService>(context);
     final cartItems = cartService.items;
-    final totalItems = cartItems.fold<int>(0, (sum, item) => sum + item.quantity);
-    final subtotal = cartItems.fold<double>(0, (sum, item) => sum + (item.precio ?? 0) * item.quantity);
+    final totalItems =
+        cartItems.fold<int>(0, (sum, item) => sum + item.quantity);
+    final subtotal = cartItems.fold<double>(
+        0, (sum, item) => sum + (item.precio ?? 0) * item.quantity);
     const tax = 0.0;
-    final delivery = _deliveryType == 'delivery' ? AppConfig.defaultDeliveryFee : 0.0;
-    final totalPayment = (subtotal + tax + delivery - _couponDiscount).clamp(0.0, double.infinity);
+    final delivery =
+        _deliveryType == 'delivery' ? AppConfig.defaultDeliveryFee : 0.0;
+    final totalPayment = (subtotal + tax + delivery - _couponDiscount)
+        .clamp(0.0, double.infinity);
     return Scaffold(
       appBar: AppBar(title: const Text('Checkout')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            const Text('Resumen de compra', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            const Text(
+              'Resumen de compra',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             ...cartService.items.map((item) => Card(
-              margin: const EdgeInsets.symmetric(vertical: 6),
-              child: ListTile(
-                title: Text(item.nombre),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (item.notes != null && item.notes!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text('Notas: ${item.notes}', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                      ),
-                    Row(
+                  margin: const EdgeInsets.symmetric(vertical: 6),
+                  child: ListTile(
+                    title: Text(item.nombre),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        IconButton(
-                          icon: const Icon(Icons.remove),
-                          onPressed: item.quantity > 1
-                              ? () => cartService.decrementQuantity(item)
-                              : null,
-                        ),
-                        Text('${item.quantity}'),
-                        IconButton(
-                          icon: const Icon(Icons.add),
-                          onPressed: () => cartService.incrementQuantity(item),
+                        if (item.notes != null && item.notes!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text('Notas: ${item.notes}',
+                                style: const TextStyle(
+                                    fontSize: 12, color: AppColors.gray)),
+                          ),
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.remove),
+                              onPressed: item.quantity > 1
+                                  ? () => cartService.decrementQuantity(item)
+                                  : null,
+                            ),
+                            Text('${item.quantity}'),
+                            IconButton(
+                              icon: const Icon(Icons.add),
+                              onPressed: () =>
+                                  cartService.incrementQuantity(item),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ],
-                ),
-                trailing: Text('\$${((item.precio ?? 0) * item.quantity).toStringAsFixed(2)}'),
-              ),
-            )),
+                    trailing: Text(
+                        '\$${((item.precio ?? 0) * item.quantity).toStringAsFixed(2)}'),
+                  ),
+                )),
             const SizedBox(height: 16),
-            const Text('Tipo de entrega', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const Text(
+              'Tipo de entrega',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text('Recoger'),
-                    value: 'pickup',
-                    groupValue: _deliveryType, // ignore: deprecated_member_use
-                    onChanged: (v) => setState(() => _deliveryType = v ?? 'pickup'), // ignore: deprecated_member_use
+            RadioGroup<String>(
+              groupValue: _deliveryType,
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() => _deliveryType = value);
+                }
+              },
+              child: const Row(
+                children: [
+                  Expanded(
+                    child: RadioListTile<String>(
+                      title: Text('Recoger'),
+                      value: 'pickup',
+                    ),
                   ),
-                ),
-                Expanded(
-                  child: RadioListTile<String>(
-                    title: const Text('Envío'),
-                    value: 'delivery',
-                    groupValue: _deliveryType, // ignore: deprecated_member_use
-                    onChanged: (v) => setState(() => _deliveryType = v ?? 'delivery'), // ignore: deprecated_member_use
+                  Expanded(
+                    child: RadioListTile<String>(
+                      title: Text('Envío'),
+                      value: 'delivery',
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
             const SizedBox(height: 16),
-            const Text('Cupón de descuento', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const Text(
+              'Cupón de descuento',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 8),
             Row(
               children: [
@@ -270,7 +314,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       ? null
                       : () => _validateCoupon(subtotal),
                   child: _validatingCoupon
-                      ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2))
                       : Text(_appliedCoupon != null ? 'Aplicado' : 'Aplicar'),
                 ),
               ],
@@ -280,18 +327,21 @@ class _CheckoutPageState extends State<CheckoutPage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.green.withValues(alpha: 0.1),
+                  color: AppColors.green.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+                  border:
+                      Border.all(color: AppColors.green.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                    const Icon(Icons.check_circle,
+                        color: AppColors.green, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Cupón aplicado: -\$${_couponDiscount.toStringAsFixed(2)}',
-                        style: const TextStyle(color: Colors.green, fontWeight: FontWeight.w600),
+                        style: const TextStyle(
+                            color: AppColors.green, fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
@@ -300,16 +350,27 @@ class _CheckoutPageState extends State<CheckoutPage> {
             ],
             if (_deliveryType == 'delivery') ...[
               const SizedBox(height: 8),
-              const Text('Dirección de entrega', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              const Text(
+                'Dirección de entrega',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 6),
-              const Text('Elige una opción: GPS del dispositivo, tu casa o otra ubicación.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+              const Text(
+                'Elige una opción: GPS del dispositivo, tu casa o otra ubicación.',
+                style: TextStyle(fontSize: 12, color: AppColors.gray),
+              ),
               const SizedBox(height: 8),
               // Opción 1: Ubicación GPS del dispositivo
               Card(
-                color: _isUsingCurrentLocation ? Theme.of(context).colorScheme.primaryContainer : null,
+                color: _isUsingCurrentLocation
+                    ? Theme.of(context).colorScheme.primaryContainer
+                    : null,
                 child: ListTile(
                   leading: _loadingCurrentLocation
-                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2))
                       : const Icon(Icons.my_location),
                   title: const Text('Ubicación GPS del dispositivo'),
                   subtitle: Text(
@@ -317,8 +378,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         ? _selectedAddress!
                         : 'Usar mi ubicación actual ahora',
                   ),
-                  trailing: _isUsingCurrentLocation ? const Icon(Icons.check_circle) : null,
-                  onTap: _loadingCurrentLocation ? null : _useCurrentDeviceLocation,
+                  trailing: _isUsingCurrentLocation
+                      ? const Icon(Icons.check_circle)
+                      : null,
+                  onTap: _loadingCurrentLocation
+                      ? null
+                      : _useCurrentDeviceLocation,
                 ),
               ),
               const SizedBox(height: 6),
@@ -327,21 +392,29 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 const Card(
                   child: Padding(
                     padding: EdgeInsets.all(16),
-                    child: Text('No tienes direcciones guardadas. Usa "Ubicación GPS del dispositivo" o agrega una en tu perfil.'),
+                    child: Text(
+                        'No tienes direcciones guardadas. Usa "Ubicación GPS del dispositivo" o agrega una en tu perfil.'),
                   ),
                 )
               else
                 ..._addresses.map((addr) {
-                  final formatted = addr['formatted_address'] as String? ?? _formatAddressFromMap(addr);
+                  final formatted = addr['formatted_address'] as String? ??
+                      _formatAddressFromMap(addr);
                   final isDefault = addr['is_default'] == true;
-                  final isSelected = !_isUsingCurrentLocation && _selectedAddress == formatted;
+                  final isSelected =
+                      !_isUsingCurrentLocation && _selectedAddress == formatted;
                   return Card(
-                    color: isSelected ? Theme.of(context).colorScheme.primaryContainer : null,
+                    color: isSelected
+                        ? Theme.of(context).colorScheme.primaryContainer
+                        : null,
                     child: ListTile(
                       leading: Icon(isDefault ? Icons.home : Icons.location_on),
-                      title: Text(isDefault ? 'Mi casa' : (addr['name']?.toString() ?? 'Otra ubicación')),
+                      title: Text(isDefault
+                          ? 'Mi casa'
+                          : (addr['name']?.toString() ?? 'Otra ubicación')),
                       subtitle: Text(formatted),
-                      trailing: isSelected ? const Icon(Icons.check_circle) : null,
+                      trailing:
+                          isSelected ? const Icon(Icons.check_circle) : null,
                       onTap: () => setState(() {
                         _selectedAddress = formatted;
                         _isUsingCurrentLocation = false;
@@ -358,30 +431,41 @@ class _CheckoutPageState extends State<CheckoutPage> {
               child: Column(
                 children: [
                   _buildSummaryRow('Total de productos:', '$totalItems'),
-                  _buildSummaryRow('Subtotal', '\$${subtotal.toStringAsFixed(2)}'),
-                  if (tax > 0) _buildSummaryRow('Impuesto', '\$${tax.toStringAsFixed(2)}'),
+                  _buildSummaryRow(
+                      'Subtotal', '\$${subtotal.toStringAsFixed(2)}'),
+                  if (tax > 0)
+                    _buildSummaryRow('Impuesto', '\$${tax.toStringAsFixed(2)}'),
                   _buildSummaryRow('Envío', '\$${delivery.toStringAsFixed(2)}'),
                   if (_couponDiscount > 0)
-                    _buildSummaryRow('Descuento cupón', '-\$${_couponDiscount.toStringAsFixed(2)}', isDiscount: true),
+                    _buildSummaryRow('Descuento cupón',
+                        '-\$${_couponDiscount.toStringAsFixed(2)}',
+                        isDiscount: true),
                   const Divider(height: 24, thickness: 1),
-                  _buildSummaryRow('Total a pagar:', '\$${totalPayment.toStringAsFixed(2)}', isTotal: true),
+                  _buildSummaryRow(
+                      'Total a pagar:', '\$${totalPayment.toStringAsFixed(2)}',
+                      isTotal: true),
                 ],
               ),
             ),
             if (_error != null) ...[
               const SizedBox(height: 8),
-              Text(_error!, style: const TextStyle(color: Colors.red)),
+              Text(_error!, style: const TextStyle(color: AppColors.red)),
             ],
             if (_success != null) ...[
               const SizedBox(height: 8),
-              Text(_success!, style: const TextStyle(color: Colors.green)),
+              Text(_success!, style: const TextStyle(color: AppColors.green)),
             ],
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: _loading ? null : _handleCheckout,
-                child: _loading ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2)) : const Text('Confirmar compra'),
+                child: _loading
+                    ? const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Text('Confirmar compra'),
               ),
             ),
           ],
@@ -397,7 +481,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
     setState(() => _validatingCoupon = true);
     try {
       final cartService = Provider.of<CartService>(context, listen: false);
-      final commerceId = cartService.items.isNotEmpty ? cartService.items.first.commerceId : null;
+      final commerceId = cartService.items.isNotEmpty
+          ? cartService.items.first.commerceId
+          : null;
       final result = await _promotionService.validateCoupon(
         couponCode: code,
         orderAmount: subtotal,
@@ -411,7 +497,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.toString().replaceFirst('Exception: ', '')), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text(e.toString().replaceFirst('Exception: ', '')),
+              backgroundColor: AppColors.red),
         );
       }
     } finally {
@@ -419,16 +507,32 @@ class _CheckoutPageState extends State<CheckoutPage> {
     }
   }
 
-  Widget _buildSummaryRow(String label, String value, {bool isTotal = false, bool isDiscount = false}) {
-    final color = isTotal ? Colors.green : (isDiscount ? Colors.orange : null);
+  Widget _buildSummaryRow(String label, String value,
+      {bool isTotal = false, bool isDiscount = false}) {
+    final color =
+        isTotal ? AppColors.green : (isDiscount ? AppColors.red : null);
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         children: [
           Expanded(
-            child: Text(label, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: color)),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
           ),
-          Text(value, style: TextStyle(fontSize: 17, fontWeight: FontWeight.w500, color: color)),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w500,
+              color: color,
+            ),
+          ),
         ],
       ),
     );

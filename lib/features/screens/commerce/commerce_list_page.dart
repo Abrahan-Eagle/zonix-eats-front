@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:zonix/features/utils/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zonix/features/services/commerce_list_service.dart';
 import 'package:zonix/models/my_commerce.dart';
@@ -10,13 +11,14 @@ import 'package:zonix/features/screens/commerce/commerce_detail_page.dart';
 /// Diseño Stitch: cards con icono, badge Principal, stats en pills, botones Ver|Editar|Eliminar.
 /// Si [embedded] es true, solo muestra el contenido sin Scaffold/AppBar (para Mi Perfil).
 
-// Colores del template Stitch (code.html)
-const Color _stitchPrimary = Color(0xFF3399FF);
-const Color _stitchSurfaceDark = Color(0xFF182430);
-const Color _stitchSurfaceLighter = Color(0xFF21303E);
-const Color _stitchYellow400 = Color(0xFFFACC15);   // star
-const Color _stitchGreen400 = Color(0xFF4ADE80);   // shopping_bag
-const Color _stitchPurple400 = Color(0xFFA78BFA);  // inventory_2
+// Colores del template Stitch (code.html) centralizados en AppColors
+const Color _stitchPrimary = AppColors.blue;
+const Color _stitchSurfaceDark = AppColors.grayDark;
+const Color _stitchSurfaceLighter = AppColors.stitchSurfaceLighter;
+const Color _stitchYellow400 = AppColors.amber; // star
+const Color _stitchGreen400 = AppColors.green; // shopping_bag
+const Color _stitchPurple400 = AppColors.purple; // inventory_2
+
 class CommerceListPage extends StatefulWidget {
   const CommerceListPage({super.key, this.embedded = false});
 
@@ -68,7 +70,9 @@ class _CommerceListPageState extends State<CommerceListPage> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error: ${e.toString().replaceAll('Exception: ', '')}')),
+            SnackBar(
+                content: Text(
+                    'Error: ${e.toString().replaceAll('Exception: ', '')}')),
           );
         }
         return;
@@ -132,7 +136,9 @@ class _CommerceListPageState extends State<CommerceListPage> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: Text('Mis Comercios', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text('Mis Comercios',
+            style: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.bold, fontSize: 18)),
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         foregroundColor: Theme.of(context).colorScheme.onSurface,
         elevation: 0,
@@ -152,7 +158,12 @@ class _CommerceListPageState extends State<CommerceListPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
+              Icon(
+                Icons.error_outline,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.white54
+                    : Colors.grey.shade300,
+              ),
               const SizedBox(height: 16),
               Text(_error!, textAlign: TextAlign.center),
               const SizedBox(height: 16),
@@ -173,7 +184,8 @@ class _CommerceListPageState extends State<CommerceListPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.store_outlined, size: 80, color: _stitchPrimary.withValues(alpha: 0.4)),
+              Icon(Icons.store_outlined,
+                  size: 80, color: _stitchPrimary.withValues(alpha: 0.4)),
               const SizedBox(height: 24),
               Text(
                 'No tienes restaurantes registrados',
@@ -187,7 +199,8 @@ class _CommerceListPageState extends State<CommerceListPage> {
               const SizedBox(height: 8),
               Text(
                 'Agrega tu primer restaurante con el botón de abajo',
-                style: TextStyle(fontSize: 14, color: theme.colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                    fontSize: 14, color: theme.colorScheme.onSurfaceVariant),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 32),
@@ -216,7 +229,8 @@ class _CommerceListPageState extends State<CommerceListPage> {
               (context, index) {
                 final c = _commerces[index];
                 return Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 0, 24, 16), // gap-4 template
+                  padding: const EdgeInsets.fromLTRB(
+                      24, 0, 24, 16), // gap-4 template
                   child: _CommerceCard(
                     commerce: c,
                     index: index,
@@ -237,7 +251,8 @@ class _CommerceListPageState extends State<CommerceListPage> {
 
   Widget _buildAddButton() {
     return Container(
-      margin: const EdgeInsets.only(bottom: 24), // mb-6: misma separación con las cards
+      margin: const EdgeInsets.only(
+          bottom: 24), // mb-6: misma separación con las cards
       child: Material(
         color: Colors.transparent,
         child: InkWell(
@@ -248,7 +263,8 @@ class _CommerceListPageState extends State<CommerceListPage> {
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
             decoration: BoxDecoration(
               color: _stitchPrimary,
-              borderRadius: BorderRadius.circular(24), // puntas bien redondeadas
+              borderRadius:
+                  BorderRadius.circular(24), // puntas bien redondeadas
               boxShadow: [
                 BoxShadow(
                   color: _stitchPrimary.withValues(alpha: 0.2),
@@ -300,18 +316,24 @@ class _CommerceCard extends StatelessWidget {
   Color _iconColorForIndex(int i) {
     switch (i % 3) {
       case 0:
-        return const Color(0xFF60A5FA); // blue-400
+        return AppColors.blue; // blue-400
       case 1:
-        return const Color(0xFFFB923C); // orange-400
+        return AppColors.orange; // orange-400
       default:
-        return const Color(0xFFF472B6); // pink-400
+        return AppColors.stitchPink400; // pink-400
     }
   }
 
   IconData _iconForCommerce(MyCommerce c) {
     final name = (c.businessName.toLowerCase());
-    if (name.contains('pizza')) return Icons.local_pizza;
-    if (name.contains('shake') || name.contains('helado') || name.contains('ice')) return Icons.icecream;
+    if (name.contains('pizza')) {
+      return Icons.local_pizza;
+    }
+    if (name.contains('shake') ||
+        name.contains('helado') ||
+        name.contains('ice')) {
+      return Icons.icecream;
+    }
     return Icons.store;
   }
 
@@ -320,9 +342,13 @@ class _CommerceCard extends StatelessWidget {
     final c = commerce;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final surfaceColor = isDark ? _stitchSurfaceDark : theme.colorScheme.surface;
-    final surfaceLighter = isDark ? _stitchSurfaceLighter : theme.colorScheme.surfaceContainerLow;
-    final borderColor = isDark ? Colors.white.withValues(alpha: 0.05) : theme.colorScheme.outline.withValues(alpha: 0.2);
+    final surfaceColor =
+        isDark ? _stitchSurfaceDark : theme.colorScheme.surface;
+    final surfaceLighter =
+        isDark ? _stitchSurfaceLighter : theme.colorScheme.surfaceContainerLow;
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.05)
+        : theme.colorScheme.outline.withValues(alpha: 0.2);
     final iconColor = _iconColorForIndex(index);
     final iconData = _iconForCommerce(c);
 
@@ -357,7 +383,8 @@ class _CommerceCard extends StatelessWidget {
                           child: Image.network(
                             c.image!,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Icon(iconData, color: iconColor, size: 32),
+                            errorBuilder: (_, __, ___) =>
+                                Icon(iconData, color: iconColor, size: 32),
                           ),
                         )
                       : Icon(iconData, color: iconColor, size: 32),
@@ -382,11 +409,14 @@ class _CommerceCard extends StatelessWidget {
                           ),
                           if (c.isPrimary)
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
                                 color: _stitchPrimary.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: _stitchPrimary.withValues(alpha: 0.2)),
+                                border: Border.all(
+                                    color:
+                                        _stitchPrimary.withValues(alpha: 0.2)),
                               ),
                               child: Text(
                                 'Principal',
@@ -404,14 +434,19 @@ class _CommerceCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           'RIF: ${c.taxId}',
-                          style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant),
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: theme.colorScheme.onSurfaceVariant),
                         ),
                       ],
                       if (c.address != null && c.address!.isNotEmpty) ...[
                         const SizedBox(height: 2),
                         Text(
                           c.address!,
-                          style: TextStyle(fontSize: 12, color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.8)),
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: theme.colorScheme.onSurfaceVariant
+                                  .withValues(alpha: 0.8)),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -504,7 +539,8 @@ class _CommerceCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Material(
-                    color: Colors.red.withValues(alpha: 0.1), // bg-red-500/10
+                    color:
+                        AppColors.red.withValues(alpha: 0.1), // bg-red-500/10
                     borderRadius: BorderRadius.circular(12), // rounded-xl
                     child: InkWell(
                       onTap: onEliminar,
@@ -517,7 +553,7 @@ class _CommerceCard extends StatelessWidget {
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Colors.red,
+                              color: AppColors.red,
                             ),
                           ),
                         ),

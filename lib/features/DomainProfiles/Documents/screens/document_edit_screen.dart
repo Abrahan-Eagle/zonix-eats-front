@@ -1,3 +1,4 @@
+import 'package:zonix/features/utils/app_colors.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:zonix/features/DomainProfiles/Documents/api/document_service.dart';
@@ -123,7 +124,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
       _showCustomSnackBar(
         context,
         'Error al escanear el documento',
-        Colors.red,
+        AppColors.red,
       );
     }
   }
@@ -193,7 +194,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
   ) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(color: Colors.white)),
+        content: Text(message, style: const TextStyle(color: AppColors.white)),
         backgroundColor: backgroundColor,
       ),
     );
@@ -258,7 +259,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     
     return Card(
       elevation: 4,
-      shadowColor: Colors.black.withValues(alpha: 0.1),
+      shadowColor: AppColors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -270,8 +271,8 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              Colors.orange.withValues(alpha: 0.1),
-              Colors.orange.withValues(alpha: 0.05),
+              AppColors.orange.withValues(alpha: 0.1),
+              AppColors.orange.withValues(alpha: 0.05),
             ],
           ),
         ),
@@ -283,12 +284,12 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withValues(alpha: 0.2),
+                    color: AppColors.orange.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
                     Icons.edit,
-                    color: Colors.orange,
+                    color: AppColors.orange,
                     size: 24,
                   ),
                 ),
@@ -333,7 +334,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
 
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.05),
+      shadowColor: AppColors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -441,7 +442,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.05),
+      shadowColor: AppColors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -521,7 +522,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
               children: [
                 const Icon(
                   Icons.check_circle,
-                  color: Colors.green,
+                  color: AppColors.green,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
@@ -529,7 +530,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
                   child: Text(
                     'QR escaneado correctamente',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.green,
+                      color: AppColors.green,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -695,7 +696,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.05),
+      shadowColor: AppColors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -734,9 +735,9 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
-                            color: Colors.grey[300],
+                            color: AppColors.gray,
                             child: const Center(
-                              child: Icon(Icons.error_outline, size: 64, color: Colors.grey),
+                              child: Icon(Icons.error_outline, size: 64, color: AppColors.gray),
                             ),
                           );
                         },
@@ -753,21 +754,21 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
+                color: AppColors.green.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
                   const Icon(
                     Icons.check_circle,
-                    color: Colors.green,
+                    color: AppColors.green,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Imagen disponible',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.green,
+                      color: AppColors.green,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -805,8 +806,8 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
           child: FloatingActionButton.extended(
             heroTag: 'document_edit_save',
             onPressed: _updateDocument,
-            backgroundColor: Colors.green,
-            foregroundColor: Colors.white,
+            backgroundColor: AppColors.green,
+            foregroundColor: AppColors.white,
             icon: const Icon(Icons.save),
             label: const Text('Guardar'),
           ),
@@ -897,7 +898,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
           _showCustomSnackBar(
             context,
             'Documento actualizado exitosamente',
-            Colors.green,
+            AppColors.green,
           );
           Navigator.of(context).pop(true); // Return to previous screen with success
         }
@@ -908,7 +909,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
         _showCustomSnackBar(
           context,
           'Error al actualizar el documento: $e',
-          Colors.red,
+          AppColors.red,
         );
       }
     }

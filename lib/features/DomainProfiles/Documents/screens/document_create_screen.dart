@@ -1,3 +1,4 @@
+import 'package:zonix/features/utils/app_colors.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:zonix/features/DomainProfiles/Documents/api/document_service.dart';
@@ -94,7 +95,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
       _showCustomSnackBar(
         context,
         'Error al escanear el documento',
-        Colors.red,
+        AppColors.red,
       );
     }
   }
@@ -172,7 +173,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
   ) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message, style: const TextStyle(color: Colors.white)),
+        content: Text(message, style: const TextStyle(color: AppColors.white)),
         backgroundColor: backgroundColor,
       ),
     );
@@ -237,7 +238,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     
     return Card(
       elevation: 4,
-      shadowColor: Colors.black.withValues(alpha: 0.1),
+      shadowColor: AppColors.black.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -312,7 +313,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
 
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.05),
+      shadowColor: AppColors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -462,7 +463,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.05),
+      shadowColor: AppColors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -542,7 +543,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
               children: [
                 const Icon(
                   Icons.check_circle,
-                  color: Colors.green,
+                  color: AppColors.green,
                   size: 20,
                 ),
                 const SizedBox(width: 8),
@@ -550,7 +551,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
                   child: Text(
                     'QR escaneado correctamente',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.green,
+                      color: AppColors.green,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -718,7 +719,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     
     return Card(
       elevation: 2,
-      shadowColor: Colors.black.withValues(alpha: 0.05),
+      shadowColor: AppColors.black.withValues(alpha: 0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
@@ -761,21 +762,21 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.green.withValues(alpha: 0.1),
+                color: AppColors.green.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
                   const Icon(
                     Icons.check_circle,
-                    color: Colors.green,
+                    color: AppColors.green,
                     size: 20,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'Imagen escaneada correctamente',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.green,
+                      color: AppColors.green,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -813,8 +814,8 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
           child: FloatingActionButton.extended(
             heroTag: 'document_create_save',
             onPressed: _saveDocument,
-            backgroundColor: Colors.green,
-            foregroundColor: Colors.white,
+            backgroundColor: AppColors.green,
+            foregroundColor: AppColors.white,
             icon: const Icon(Icons.save),
             label: const Text('Guardar'),
           ),
@@ -913,7 +914,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
                 ? 'Límite alcanzado. Puedes avanzar al siguiente paso.'
                 : 'Documento guardado exitosamente.';
 
-            final color = _saveCounter == 3 ? Colors.blue : Colors.green;
+            final color = _saveCounter == 3 ? AppColors.blue : AppColors.green;
 
             _showCustomSnackBar(context, message, color);
 
@@ -927,7 +928,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
           _showCustomSnackBar(
             context,
             'La imagen frontal supera los 2 MB.',
-            Colors.orange,
+            AppColors.orange,
           );
         }
       } catch (e) {
@@ -937,7 +938,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
         _showCustomSnackBar(
           context,
           'Error al guardar el documento: $e',
-          Colors.red,
+          AppColors.red,
         );
       }
     }
