@@ -27,6 +27,7 @@
 
 ### Cambios recientes (documentar aquí los avances)
 
+- **6 Mar 2026:** Módulo Documentos: DocumentService usa AuthHelper (getAuthHeaders/getToken) para evitar 401 tras escáner; pantalla editar RIF muestra y permite editar Domicilio fiscal (controller + TextFormField); modelo Document acepta `tax_domicile` del backend como fallback.
 - **6 Mar 2026:** Módulo Documents: solo CI y RIF; formato al escribir (CI: V-12.345.678, RIF: J-19217553-0) con `document_input_formatters.dart`; formato al mostrar con `rif_formatter.dart` y `formattedRifNumber`; estado Verificado/Pendiente en lista y detalle (`approved`). Requisito de documento para método de pago pago móvil (comercio). Tests: rif_formatter y Document model.
 - **6 Mar 2026:** Documentado en AGENTS.md: Profile como entidad principal; uso de getMyProfile() y fetchMyPhones/fetchMyDocuments cuando el API es por usuario autenticado.
 - **4 Mar 2026:** Colores centralizados en `AppColors`: eliminado hardcode en vistas de usuario y onboarding (onboarding, checkout, detalle de orden/delivery, restaurantes). Paleta alineada con logo y psicología del color (marketplace comida rápida). En vistas de usuario y onboarding usar solo `AppColors` o `Theme.of(context).colorScheme`.

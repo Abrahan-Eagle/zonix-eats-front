@@ -35,7 +35,7 @@ class Document {
       type: json['type']?.toString(),
       numberCi: json['type'] == 'ci' ? json['number_ci']?.toString() : null,
       rifNumber: json['rif_number']?.toString(),
-      taxDomicile: json['taxDomicile'],
+      taxDomicile: json['taxDomicile'] ?? json['tax_domicile'],
       frontImage: json['front_image'],
       issuedAt: json['issued_at'] != null ? DateTime.parse(json['issued_at']) : null,
       expiresAt: json['expires_at'] != null ? DateTime.parse(json['expires_at']) : null,
