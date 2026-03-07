@@ -194,198 +194,213 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
+    final surfaceBg = _surfaceBg(context);
+    final primaryTextColor = AppColors.primaryText(context);
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: surfaceBg,
       appBar: AppBar(
         title: Text(
           'Editar Documento',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface,
+            fontSize: 18,
+            color: primaryTextColor,
           ),
         ),
         elevation: 0,
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
+        backgroundColor: AppColors.cardBg(context),
+        foregroundColor: primaryTextColor,
+        iconTheme: IconThemeData(color: primaryTextColor, size: 24),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header con información
               _buildHeaderCard(context),
-              
               const SizedBox(height: 24),
-              
-              // Tipo de documento (no editable)
-              _buildTypeCard(),
-              
+              _buildTypeCard(context),
               const SizedBox(height: 24),
-              
-              // Campos específicos según el tipo
-              _buildFieldsByType(),
-              
+              _buildFieldsByType(context),
               const SizedBox(height: 24),
-              
-              // Imagen escaneada
-              if (_frontImage != null) _buildImagePreview(),
-              
+              if (_frontImage != null) _buildImagePreview(context),
+              const SizedBox(height: 16),
+              _buildInfoNote(),
               const SizedBox(height: 32),
             ],
           ),
         ),
       ),
-      floatingActionButton: _buildFloatingActionButtons(context),
+      bottomNavigationBar: _buildBottomBar(context),
+    );
+  }
+
+  static const double _cardRadius = 12;
+
+  Color _surfaceBg(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? AppColors.backgroundDark : AppColors.scaffoldBgLight;
+
+  Color _cardBorder(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? AppColors.slateBorder : AppColors.borderLight;
+
+  Widget _buildInfoNote() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.blue.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(_cardRadius),
+        border: Border.all(color: AppColors.blue.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.info_outline, color: AppColors.blue, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'Asegúrese de que todos los datos coincidan exactamente con el documento físico para evitar retrasos en la validación.',
+              style: TextStyle(color: AppColors.blue.withValues(alpha: 0.9), fontSize: 12, height: 1.4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomBar(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 12 + MediaQuery.of(context).padding.bottom),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg(context),
+        border: Border(top: BorderSide(color: _cardBorder(context))),
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          height: 48,
+          width: double.infinity,
+          child: FilledButton(
+            onPressed: _updateDocument,
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.blue,
+              foregroundColor: AppColors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_cardRadius)),
+            ),
+            child: const Text('Guardar cambios', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ),
+      ),
     );
   }
 
   Widget _buildHeaderCard(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
-    return Card(
-      elevation: 4,
-      shadowColor: AppColors.black.withValues(alpha: 0.1),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg(context),
+        borderRadius: BorderRadius.circular(_cardRadius),
+        border: Border.all(color: _cardBorder(context)),
       ),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              AppColors.orange.withValues(alpha: 0.1),
-              AppColors.orange.withValues(alpha: 0.05),
-            ],
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppColors.blue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(_cardRadius),
+            ),
+            child: const Icon(Icons.edit, color: AppColors.blue, size: 28),
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.orange.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(
-                    Icons.edit,
-                    color: AppColors.orange,
-                    size: 24,
+                Text(
+                  'Editar Documento',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: AppColors.primaryText(context),
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Editar Documento',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                      Text(
-                        'Modifica la información del documento',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.7),
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 4),
+                Text(
+                  'Modifica la información del documento',
+                  style: TextStyle(color: AppColors.secondaryText(context), fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTypeCard(BuildContext context) {
+    final Map<String, String> typeTranslations = {
+      'ci': 'Cédula de Identidad',
+      'rif': 'RIF',
+    };
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg(context),
+        borderRadius: BorderRadius.circular(_cardRadius),
+        border: Border.all(color: _cardBorder(context)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Tipo de Documento',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primaryText(context)),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: AppColors.secondaryText(context).withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(_cardRadius),
+              border: Border.all(color: _cardBorder(context)),
+            ),
+            child: Row(
+              children: [
+                Icon(_getDocumentTypeIcon(_selectedType), color: AppColors.blue, size: 20),
+                const SizedBox(width: 12),
+                Text(
+                  typeTranslations[_selectedType] ?? 'Desconocido',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w500,
+                    fontSize: 16,
+                    color: AppColors.primaryText(context),
                   ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildTypeCard() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
-    final Map<String, String> typeTranslations = {
-      // Solo CI y RIF según regla de negocio
-      'ci': 'Cédula de Identidad',
-      'rif': 'RIF',
-    };
-
-    return Card(
-      elevation: 2,
-      shadowColor: AppColors.black.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Tipo de Documento',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    _getDocumentTypeIcon(_selectedType),
-                    color: colorScheme.primary,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    typeTranslations[_selectedType] ?? 'Desconocido',
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFieldsByType() {
+  Widget _buildFieldsByType(BuildContext context) {
     switch (_selectedType) {
       case 'ci':
-        return _buildCIFields();
+        return _buildCIFields(context);
       case 'rif':
-        return _buildRIFFields();
+        return _buildRIFFields(context);
       default:
         return const SizedBox.shrink();
     }
   }
 
-  Widget _buildCIFields() {
+  Widget _buildCIFields(BuildContext context) {
     return _buildFieldsCard(
+      context,
       'Información de Cédula',
       Icons.badge,
       [
@@ -396,8 +411,9 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     );
   }
 
-  Widget _buildRIFFields() {
+  Widget _buildRIFFields(BuildContext context) {
     return _buildFieldsCard(
+      context,
       'Información de RIF',
       Icons.business,
       [
@@ -424,49 +440,41 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
           },
         ),
         const SizedBox(height: 20),
-        _buildTextField('Domicilio Fiscal', (value) => _taxDomicile = value),
+        _buildDomicilioFiscalField(),
         const SizedBox(height: 20),
         _buildCommonFields(),
       ],
     );
   }
 
-  Widget _buildFieldsCard(String title, IconData icon, List<Widget> children) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
-    return Card(
-      elevation: 2,
-      shadowColor: AppColors.black.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+  Widget _buildFieldsCard(BuildContext context, String title, IconData icon, List<Widget> children) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg(context),
+        borderRadius: BorderRadius.circular(_cardRadius),
+        border: Border.all(color: _cardBorder(context)),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  icon,
-                  color: colorScheme.primary,
-                  size: 24,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: AppColors.blue, size: 24),
+              const SizedBox(width: 12),
+              Text(
+                title,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: AppColors.primaryText(context),
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            ...children,
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          ...children,
+        ],
       ),
     );
   }
@@ -523,26 +531,18 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     );
   }
 
-  Widget _buildTextField(
-    String label,
-    FormFieldSetter<String> onSaved, {
-    List<TextInputFormatter>? inputFormatters,
-    TextInputType? keyboardType,
-  }) {
+  /// Domicilio fiscal: editable, valor inicial cargado desde el documento.
+  Widget _buildDomicilioFiscalField() {
     return TextFormField(
+      controller: _taxDomicileController,
       decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
+        labelText: 'Domicilio Fiscal',
+        hintText: 'Ej: Av. Principal, Edificio X',
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
-      onSaved: onSaved,
-      inputFormatters: inputFormatters,
-      keyboardType: keyboardType,
+      onSaved: (value) => _taxDomicile = value?.trim(),
+      maxLines: 2,
     );
   }
 
@@ -577,41 +577,34 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     );
   }
 
-  Widget _buildImagePreview() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
-    return Card(
-      elevation: 2,
-      shadowColor: AppColors.black.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+  Widget _buildImagePreview(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg(context),
+        borderRadius: BorderRadius.circular(_cardRadius),
+        border: Border.all(color: _cardBorder(context)),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.photo,
-                  color: colorScheme.primary,
-                  size: 24,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.photo, color: AppColors.blue, size: 24),
+              const SizedBox(width: 12),
+              Text(
+                'Documento Digitalizado',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                  color: AppColors.primaryText(context),
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  'Imagen del Documento',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(_cardRadius),
               child: AspectRatio(
                 aspectRatio: 16 / 10,
                 child: _frontImage!.startsWith('http')
@@ -622,9 +615,9 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
-                            color: AppColors.gray,
-                            child: const Center(
-                              child: Icon(Icons.error_outline, size: 64, color: AppColors.gray),
+                            color: AppColors.secondaryText(context).withValues(alpha: 0.2),
+                            child: Center(
+                              child: Icon(Icons.error_outline, size: 64, color: AppColors.secondaryText(context)),
                             ),
                           );
                         },
@@ -637,69 +630,22 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
                       ),
               ),
             ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.green.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+          const SizedBox(height: 12),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              onPressed: _scanDocument,
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.blue,
+                padding: EdgeInsets.zero,
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.check_circle,
-                    color: AppColors.green,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Imagen disponible',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.green,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
+              child: const Text('Cambiar imagen', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
-
-  Widget _buildFloatingActionButtons(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    
-    return Stack(
-      children: [
-        // Botón para escanear documento
-        Positioned(
-          right: 0,
-          bottom: 80,
-          child: FloatingActionButton.extended(
-            heroTag: 'document_edit_scan',
-            onPressed: _scanDocument,
-            backgroundColor: colorScheme.primary,
-            foregroundColor: colorScheme.onPrimary,
-            icon: const Icon(Icons.camera_alt),
-            label: const Text('Escanear'),
-          ),
-        ),
-        // Botón para guardar cambios
-        Positioned(
-          right: 0,
-          bottom: 0,
-          child: FloatingActionButton.extended(
-            heroTag: 'document_edit_save',
-            onPressed: _updateDocument,
-            backgroundColor: AppColors.green,
-            foregroundColor: AppColors.white,
-            icon: const Icon(Icons.save),
-            label: const Text('Guardar'),
-          ),
-        ),
-      ],
     );
   }
 

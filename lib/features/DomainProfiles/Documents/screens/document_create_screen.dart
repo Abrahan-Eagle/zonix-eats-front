@@ -200,130 +200,106 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
+    final surfaceBg = _surfaceBg(context);
+    final primaryTextColor = AppColors.primaryText(context);
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: surfaceBg,
       appBar: AppBar(
         title: Text(
           'Crear Documento',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: colorScheme.onSurface,
+            fontSize: 18,
+            color: primaryTextColor,
           ),
         ),
         elevation: 0,
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
+        backgroundColor: surfaceBg,
+        foregroundColor: primaryTextColor,
+        iconTheme: IconThemeData(color: primaryTextColor, size: 24),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 140),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header con información
               _buildHeaderCard(context),
-              
               const SizedBox(height: 24),
-              
-              // Tipo de documento
               _buildTypeDropdown(),
-              
               const SizedBox(height: 24),
-              
-              // Campos específicos según el tipo
-              if (_selectedType != null) _buildFieldsByType(),
-              
+              if (_selectedType != null) _buildFieldsByType(context),
               const SizedBox(height: 24),
-              
-              // Imagen escaneada
-              if (_frontImage != null) _buildImagePreview(),
-              
+              if (_frontImage != null) _buildImagePreview(context),
               const SizedBox(height: 32),
             ],
           ),
         ),
       ),
-      floatingActionButton: _buildFloatingActionButtons(context),
+      bottomSheet: _buildFloatingActionButtons(context),
     );
   }
 
+  static const double _cardRadius = 12;
+
+  Color _surfaceBg(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? AppColors.backgroundDark : AppColors.scaffoldBgLight;
+
+  Color _cardBorder(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? AppColors.slateBorder : AppColors.borderLight;
+
   Widget _buildHeaderCard(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
-    return Card(
-      elevation: 4,
-      shadowColor: AppColors.black.withValues(alpha: 0.1),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg(context),
+        borderRadius: BorderRadius.circular(_cardRadius),
+        border: Border.all(color: _cardBorder(context)),
+        boxShadow: [BoxShadow(color: AppColors.black12, blurRadius: 2, offset: const Offset(0, 1))],
       ),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              colorScheme.primary.withValues(alpha: 0.1),
-              colorScheme.primary.withValues(alpha: 0.05),
-            ],
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppColors.blue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(_cardRadius),
+            ),
+            child: const Icon(Icons.description, color: AppColors.blue, size: 28),
           ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: colorScheme.primary.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.description,
-                    color: colorScheme.primary,
-                    size: 24,
+                Text(
+                  'Nuevo Documento',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: AppColors.primaryText(context),
                   ),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Nuevo Documento',
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: colorScheme.onSurface,
-                        ),
-                      ),
-                      Text(
-                        'Agrega un nuevo documento a tu perfil',
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurface.withValues(alpha: 0.7),
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 4),
+                Text(
+                  'Agrega un nuevo documento a tu perfil',
+                  style: TextStyle(
+                    color: AppColors.secondaryText(context),
+                    fontSize: 14,
                   ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildTypeDropdown() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     // Solo CI y RIF; cada tipo es único por perfil (no mostrar los ya registrados).
     const Map<String, String> typeTranslations = {
       'ci': 'Cédula de Identidad',
@@ -333,121 +309,121 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
         .where((e) => !_registeredTypes.contains(e.key))
         .toList();
 
+    final cardBg = AppColors.cardBg(context);
+    final primaryTextColor = AppColors.primaryText(context);
+    final secondaryTextColor = AppColors.secondaryText(context);
+    final borderColor = _cardBorder(context);
+
     if (_loadingTypes) {
-      return Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: const Padding(
-          padding: EdgeInsets.all(20),
-          child: Row(
-            children: [
-              SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)),
-              SizedBox(width: 16),
-              Text('Cargando documentos registrados...'),
-            ],
-          ),
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(_cardRadius),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
+          children: [
+            const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.blue)),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                'Cargando documentos registrados...',
+                style: TextStyle(color: secondaryTextColor),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
       );
     }
 
     if (availableEntries.isEmpty) {
-      return Card(
-        elevation: 2,
-        shadowColor: AppColors.black.withValues(alpha: 0.05),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Tipo de Documento',
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Ya tienes registrados todos los documentos (Cédula y RIF). Cada uno es único por perfil.',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Card(
-      elevation: 2,
-      shadowColor: AppColors.black.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
+      return Container(
         padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: cardBg,
+          borderRadius: BorderRadius.circular(_cardRadius),
+          border: Border.all(color: borderColor),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Tipo de Documento',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.onSurface,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: primaryTextColor),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 12),
             Text(
-              'Cédula (identidad) y RIF (fiscal) se usan para verificación en pagos y métodos de pago. Uno de cada tipo por perfil.',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              value: _selectedType != null && availableEntries.any((e) => e.key == _selectedType)
-                  ? _selectedType
-                  : null,
-              items: availableEntries
-                  .map(
-                    (entry) => DropdownMenuItem(
-                      value: entry.key,
-                      child: Row(
-                        children: [
-                          Icon(
-                            _getDocumentTypeIcon(entry.key),
-                            color: colorScheme.primary,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 12),
-                          Text(entry.value),
-                        ],
-                      ),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedType = value ?? _selectedType;
-                  _clearFields();
-                  if (_selectedType == 'ci') _numberCiController.text = 'V-';
-                });
-              },
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
-              validator: (value) => value == null ? 'Seleccione un tipo' : null,
+              'Ya tienes registrados todos los documentos (Cédula y RIF). Cada uno es único por perfil.',
+              style: TextStyle(color: secondaryTextColor, fontSize: 14),
             ),
           ],
         ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(_cardRadius),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Tipo de Documento',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: primaryTextColor),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Cédula (identidad) y RIF (fiscal) se usan para verificación en pagos. Uno de cada tipo por perfil.',
+            style: TextStyle(color: secondaryTextColor, fontSize: 12),
+          ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<String>(
+            value: _selectedType != null && availableEntries.any((e) => e.key == _selectedType)
+                ? _selectedType
+                : null,
+            items: availableEntries
+                .map(
+                  (entry) => DropdownMenuItem(
+                    value: entry.key,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(_getDocumentTypeIcon(entry.key), color: AppColors.blue, size: 20),
+                        const SizedBox(width: 12),
+                        Flexible(
+                          child: Text(
+                            entry.value,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) {
+              setState(() {
+                _selectedType = value ?? _selectedType;
+                _clearFields();
+                if (_selectedType == 'ci') _numberCiController.text = 'V-';
+              });
+            },
+            decoration: InputDecoration(
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(_cardRadius)),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              filled: true,
+              fillColor: AppColors.cardBg(context),
+            ),
+            validator: (value) => value == null ? 'Seleccione un tipo' : null,
+          ),
+        ],
       ),
     );
   }
@@ -473,19 +449,20 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     });
   }
 
-  Widget _buildFieldsByType() {
+  Widget _buildFieldsByType(BuildContext context) {
     switch (_selectedType) {
       case 'ci':
-        return _buildCIFields();
+        return _buildCIFields(context);
       case 'rif':
-        return _buildRIFFields();
+        return _buildRIFFields(context);
       default:
         return const SizedBox.shrink();
     }
   }
 
-  Widget _buildCIFields() {
+  Widget _buildCIFields(BuildContext context) {
     return _buildFieldsCard(
+      context,
       'Información de Cédula',
       Icons.badge,
       [
@@ -496,8 +473,9 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     );
   }
 
-  Widget _buildRIFFields() {
+  Widget _buildRIFFields(BuildContext context) {
     return _buildFieldsCard(
+      context,
       'Información de RIF',
       Icons.business,
       [
@@ -532,42 +510,38 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
 
 
 
-  Widget _buildFieldsCard(String title, IconData icon, List<Widget> children) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
-    return Card(
-      elevation: 2,
-      shadowColor: AppColors.black.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+  Widget _buildFieldsCard(BuildContext context, String title, IconData icon, List<Widget> children) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg(context),
+        borderRadius: BorderRadius.circular(_cardRadius),
+        border: Border.all(color: _cardBorder(context)),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  icon,
-                  color: colorScheme.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Text(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: AppColors.blue, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
                   title,
-                  style: theme.textTheme.titleMedium?.copyWith(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
+                    fontSize: 16,
+                    color: AppColors.primaryText(context),
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            ...children,
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          ...children,
+        ],
       ),
     );
   }
@@ -679,78 +653,49 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     );
   }
 
-  Widget _buildImagePreview() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
-    return Card(
-      elevation: 2,
-      shadowColor: AppColors.black.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+  Widget _buildImagePreview(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg(context),
+        borderRadius: BorderRadius.circular(_cardRadius),
+        border: Border.all(color: _cardBorder(context)),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.photo,
-                  color: colorScheme.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Text(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.photo, color: AppColors.blue, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
                   'Imagen del Documento',
-                  style: theme.textTheme.titleMedium?.copyWith(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
+                    fontSize: 16,
+                    color: AppColors.primaryText(context),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: AspectRatio(
-                aspectRatio: 16 / 10,
-                child: Image.file(
-                  File(_frontImage!),
-                  width: double.infinity,
-                  height: double.infinity,
-                  fit: BoxFit.cover,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.green.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.check_circle,
-                    color: AppColors.green,
-                    size: 20,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Imagen escaneada correctamente',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.green,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
+            ],
+          ),
+          const SizedBox(height: 16),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(_cardRadius),
+            child: AspectRatio(
+              aspectRatio: 16 / 10,
+              child: Image.file(
+                File(_frontImage!),
+                width: double.infinity,
+                height: double.infinity,
+                fit: BoxFit.cover,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -759,37 +704,42 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
     if (_registeredTypes.length >= 2) {
       return const SizedBox.shrink();
     }
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Stack(
-      children: [
-        // Botón para escanear documento
-        Positioned(
-          right: 0,
-          bottom: 80,
-          child: FloatingActionButton.extended(
-            heroTag: 'document_create_scan',
-            onPressed: _scanDocument,
-            backgroundColor: colorScheme.primary,
-            foregroundColor: colorScheme.onPrimary,
-            icon: const Icon(Icons.camera_alt),
-            label: const Text('Escanear'),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: OutlinedButton.icon(
+              onPressed: _scanDocument,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.blue,
+                side: const BorderSide(color: AppColors.blue),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_cardRadius)),
+              ),
+              icon: const Icon(Icons.camera_alt, size: 20),
+              label: const Text('Escanear documento'),
+            ),
           ),
-        ),
-        // Botón para guardar documento
-        Positioned(
-          right: 0,
-          bottom: 0,
-          child: FloatingActionButton.extended(
-            heroTag: 'document_create_save',
-            onPressed: _saveDocument,
-            backgroundColor: AppColors.green,
-            foregroundColor: AppColors.white,
-            icon: const Icon(Icons.save),
-            label: const Text('Guardar'),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: FilledButton.icon(
+              onPressed: _saveDocument,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.blue,
+                foregroundColor: AppColors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(_cardRadius)),
+              ),
+              icon: const Icon(Icons.check_circle, size: 20),
+              label: const Text('Guardar'),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

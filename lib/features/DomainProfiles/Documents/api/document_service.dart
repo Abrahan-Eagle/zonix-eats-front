@@ -1,30 +1,23 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/DomainProfiles/Addresses/api/adresse_service.dart';
+import 'package:zonix/helpers/auth_helper.dart';
 import 'package:zonix/features/utils/rif_formatter.dart';
 import '../models/document.dart';
 
 final logger = Logger();
 
 class DocumentService {
-  final _storage = const FlutterSecureStorage();
-
-  Future<String?> _getToken() async {
-    return await _storage.read(key: 'token');
-  }
-
   /// Lista los documentos del usuario autenticado (GET /api/documents/).
   Future<List<Document>> fetchMyDocuments() async {
-    final token = await _getToken();
     try {
-      if (token == null) throw Exception('Token not found.');
+      final headers = await AuthHelper.getAuthHeaders();
       final response = await http.get(
         Uri.parse('${AppConfig.apiUrl}/api/documents'),
-        headers: {'Authorization': 'Bearer $token'},
+        headers: headers,
       );
       if (response.statusCode == 200) {
         final List<dynamic> jsonResponse = json.decode(response.body);
@@ -43,12 +36,11 @@ class DocumentService {
   /// El backend interpreta el id como user_id para buscar el perfil.
   Future<List<Document>> fetchDocumentsByUserId(int userId) async {
     logger.i('Fetching documents for user ID: $userId');
-    final token = await _getToken();
     try {
-      if (token == null) throw Exception('Token not found.');
+      final headers = await AuthHelper.getAuthHeaders();
       final response = await http.get(
         Uri.parse('${AppConfig.apiUrl}/api/documents/$userId'),
-        headers: {'Authorization': 'Bearer $token'},
+        headers: headers,
       );
       if (response.statusCode == 200) {
         final List<dynamic> jsonResponse = json.decode(response.body);
@@ -80,7 +72,7 @@ class DocumentService {
     logger.i('Creating document for profile ID: $userId');
 
     try {
-      final token = await _getToken();
+      final token = await AuthHelper.getToken();
       if (token == null) throw Exception('Token not found.');
 
       final request = http.MultipartRequest(
@@ -88,8 +80,9 @@ class DocumentService {
         Uri.parse('${AppConfig.apiUrl}/api/documents'),
       );
 
-      // Configure headers and basic fields
+      // Headers: no Content-Type (multipart sets boundary); Auth + Accept
       request.headers['Authorization'] = 'Bearer $token';
+      request.headers['Accept'] = 'application/json';
       request.fields['profile_id'] = userId.toString();
       request.fields['type'] = document.type ?? '';
       request.fields['issued_at'] = document.issuedAt?.toIso8601String() ?? '';
@@ -143,7 +136,7 @@ class DocumentService {
     logger.i('Updating document ID: ${document.id} for profile ID: $userId');
 
     try {
-      final token = await _getToken();
+      final token = await AuthHelper.getToken();
       if (token == null) throw Exception('Token not found.');
 
       final request = http.MultipartRequest(
@@ -151,8 +144,8 @@ class DocumentService {
         Uri.parse('${AppConfig.apiUrl}/api/documents/${document.id}'),
       );
 
-      // Configure headers and basic fields
       request.headers['Authorization'] = 'Bearer $token';
+      request.headers['Accept'] = 'application/json';
       request.fields['_method'] = 'PUT'; // Laravel method override
       request.fields['profile_id'] = userId.toString();
       request.fields['type'] = document.type ?? '';
@@ -207,19 +200,11 @@ class DocumentService {
   }
 
   Future<void> updateStatusCheckScanner(int userId) async {
-    String? token = await _getToken();
-    if (token == null) {
-      logger.e('Token no encontrado');
-      throw Exception('Token no encontrado. Por favor, inicia sesión.');
-    }
-
     try {
+      final headers = await AuthHelper.getAuthHeaders();
       final response = await http.post(
         Uri.parse('${AppConfig.apiUrl}/api/data-verification/$userId/update-status-check-scanner/documents'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Content-Type': 'application/json',
-        },
+        headers: headers,
         // Si necesitas enviar un cuerpo, puedes descomentar lo siguiente:
         // body: json.encode({'user_id': userId}),
       ).timeout(const Duration(seconds: 10));

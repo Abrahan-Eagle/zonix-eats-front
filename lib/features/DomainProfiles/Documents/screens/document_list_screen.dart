@@ -8,8 +8,15 @@ import 'package:zonix/features/DomainProfiles/Documents/screens/document_detail_
 class DocumentListScreen extends StatefulWidget {
   final int userId;
   final bool statusId;
+  /// Nombre del titular (ej. del perfil) para mostrarlo en el detalle. Opcional.
+  final String? holderName;
 
-  const DocumentListScreen({super.key, required this.userId, this.statusId = false});
+  const DocumentListScreen({
+    super.key,
+    required this.userId,
+    this.statusId = false,
+    this.holderName,
+  });
 
   @override
   State<DocumentListScreen> createState() => _DocumentListScreenState();
@@ -79,21 +86,37 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
     return documents;
   }
 
+  static const double _cardRadius = 12;
+  static const double _iconBoxSize = 44;
+  static const double _chipRadius = 8;
+
+  Color _surfaceBg(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? AppColors.backgroundDark : AppColors.scaffoldBgLight;
+
+  Color _cardBorder(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark ? AppColors.slateBorder : AppColors.borderLight;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
+    final surfaceBg = _surfaceBg(context);
+    final primaryTextColor = AppColors.primaryText(context);
+
     return Scaffold(
-      backgroundColor: colorScheme.surface,
+      backgroundColor: surfaceBg,
       appBar: AppBar(
-        title: const Text(
+        title: Text(
           'Mis Documentos',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: primaryTextColor,
+          ),
         ),
         elevation: 0,
-        backgroundColor: colorScheme.surface,
-        foregroundColor: colorScheme.onSurface,
+        backgroundColor: surfaceBg,
+        foregroundColor: primaryTextColor,
+        iconTheme: IconThemeData(color: primaryTextColor, size: 24),
         actions: [
           IconButton(
             icon: const Icon(Icons.info_outline),
@@ -105,11 +128,11 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
         future: _documentsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting && !_isRefreshing) {
-            return _buildLoadingState();
+            return _buildLoadingState(context);
           } else if (snapshot.hasError) {
-            return _buildErrorState(snapshot.error.toString());
+            return _buildErrorState(context, snapshot.error.toString());
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return _buildEmptyState();
+            return _buildEmptyState(context);
           }
 
           final documents = snapshot.data!;
@@ -119,7 +142,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
             onRefresh: _refreshDocuments,
             child: FadeTransition(
               opacity: _fadeAnimation,
-              child: _buildDocumentsList(filteredDocuments, theme),
+              child: _buildDocumentsList(context, filteredDocuments, theme),
             ),
           );
         },
@@ -130,7 +153,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
 
 
 
-  Widget _buildDocumentsList(List<Document> documents, ThemeData theme) {
+  Widget _buildDocumentsList(BuildContext context, List<Document> documents, ThemeData theme) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       itemCount: documents.length,
@@ -143,7 +166,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
               offset: Offset(0, 50 * (1 - _fadeAnimation.value)),
               child: Opacity(
                 opacity: _fadeAnimation.value,
-                child: _buildDocumentCard(document, theme, index),
+                child: _buildDocumentCard(context, document, theme, index),
               ),
             );
           },
@@ -152,146 +175,100 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
     );
   }
 
-  Widget _buildDocumentCard(Document document, ThemeData theme, int index) {
-    
-    
+  Widget _buildDocumentCard(BuildContext context, Document document, ThemeData theme, int index) {
+    final cardBg = AppColors.cardBg(context);
+    final primaryTextColor = AppColors.primaryText(context);
+    final secondaryTextColor = AppColors.secondaryText(context);
+    final borderColor = _cardBorder(context);
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Card(
-        elevation: 4,
-        shadowColor: AppColors.black.withValues(alpha: 0.1),
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Material(
+        color: cardBg,
+        elevation: 0,
+        shadowColor: AppColors.black12,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(_cardRadius),
+          side: BorderSide(color: borderColor, width: 1),
         ),
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(_cardRadius),
           onTap: () => _navigateToDocumentDetail(document),
-          child: Container(
-            padding: const EdgeInsets.all(20),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header con tipo y estado
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Icono del tipo de documento
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Icon(
-                        _getDocumentTypeIcon(document.type ?? ''),
-                        color: theme.colorScheme.primary,
-                        size: 24,
+                    SizedBox(
+                      width: _iconBoxSize,
+                      height: _iconBoxSize,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.blue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(_cardRadius),
+                        ),
+                        child: Icon(
+                          _getDocumentTypeIcon(document.type ?? ''),
+                          color: AppColors.blue,
+                          size: 24,
+                        ),
                       ),
                     ),
-                    
                     const SizedBox(width: 16),
-                    
-                    // Información principal
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            translateDocumentType(document.type ?? 'Desconocido'),
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(minWidth: 0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              translateDocumentType(document.type ?? 'Desconocido'),
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                                color: primaryTextColor,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Nº ${getDocumentNumber(document)}',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                            const SizedBox(height: 4),
+                            Text(
+                              getDocumentNumber(document),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: secondaryTextColor,
+                                fontSize: 14,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                    // Estado: Verificado / Pendiente de verificación
-                    _buildStatusChip(context, document.approved),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      fit: FlexFit.loose,
+                      child: _buildStatusChip(context, document.approved),
+                    ),
                   ],
                 ),
-                
-                const SizedBox(height: 16),
-                
-                // Información adicional
-                if (document.issuedAt != null || document.expiresAt != null)
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Wrap(
-                      spacing: 16,
-                      runSpacing: 8,
-                      children: [
-                        if (document.issuedAt != null)
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.calendar_today,
-                                size: 16,
-                                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                              ),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  'Emitido: ${_formatDate(document.issuedAt!)}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                        if (document.expiresAt != null)
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.event_busy,
-                                size: 16,
-                                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                              ),
-                              const SizedBox(width: 4),
-                              Flexible(
-                                child: Text(
-                                  'Vence: ${_formatDate(document.expiresAt!)}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                            ],
-                          ),
-                      ],
-                    ),
-                  ),
-                
                 const SizedBox(height: 12),
-                
-                // Acciones
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton.icon(
-                      onPressed: () => _navigateToDocumentDetail(document),
-                      icon: const Icon(Icons.visibility, size: 16),
-                      label: const Text('Ver detalles'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: theme.colorScheme.primary,
-                      ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => _navigateToDocumentDetail(document),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppColors.blue,
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                  ],
+                    child: const Text('Ver detalles', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  ),
                 ),
               ],
             ),
@@ -301,79 +278,93 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
     );
   }
 
-  Widget _buildLoadingState() {
-    return const Center(
+  Widget _buildLoadingState(BuildContext context) {
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(),
-          SizedBox(height: 16),
-          Text('Cargando documentos...'),
+          const CircularProgressIndicator(color: AppColors.blue),
+          const SizedBox(height: 16),
+          Text('Cargando documentos...', style: TextStyle(color: AppColors.secondaryText(context))),
         ],
       ),
     );
   }
 
-  Widget _buildErrorState(String error) {
+  Widget _buildErrorState(BuildContext context, String error) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: 64,
-            color: AppColors.red.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'Error al cargar documentos',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            error,
-            style: const TextStyle(color: AppColors.gray),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: _refreshDocuments,
-            icon: const Icon(Icons.refresh),
-            label: const Text('Reintentar'),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.error_outline, size: 64, color: AppColors.error(context).withValues(alpha: 0.6)),
+            const SizedBox(height: 16),
+            Text(
+              'Error al cargar documentos',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryText(context)),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              error,
+              style: TextStyle(color: AppColors.secondaryText(context), fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: _refreshDocuments,
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.blue,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              icon: const Icon(Icons.refresh, size: 20),
+              label: const Text('Reintentar'),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
+    final primaryTextColor = AppColors.primaryText(context);
+    final secondaryTextColor = AppColors.secondaryText(context);
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.folder_open,
-            size: 64,
-            color: AppColors.gray.withValues(alpha: 0.5),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'No tienes documentos',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'Agrega tu primer documento para comenzar',
-            style: TextStyle(color: AppColors.gray),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
-            onPressed: () => _navigateToCreateDocument(context),
-            icon: const Icon(Icons.add),
-            label: const Text('Agregar documento'),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.folder_open, size: 64, color: secondaryTextColor.withValues(alpha: 0.5)),
+            const SizedBox(height: 16),
+            Text(
+              'No tienes documentos',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: primaryTextColor),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Agrega tu primer documento para comenzar',
+              style: TextStyle(color: secondaryTextColor, fontSize: 14),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 20),
+            FilledButton.icon(
+              onPressed: () => _navigateToCreateDocument(context),
+              style: FilledButton.styleFrom(
+                backgroundColor: AppColors.blue,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              icon: const Icon(Icons.add, size: 20),
+              label: const Text('Agregar documento'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -383,25 +374,42 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
   Widget _buildFloatingActionButtons() {
     return Stack(
       children: [
-        // Botón de creación de documentos
         Positioned(
-          right: 10,
-          bottom: 20,
-          child: FloatingActionButton.extended(
-            heroTag: 'document_list_new',
-            onPressed: () => _navigateToCreateDocument(context),
-            icon: const Icon(Icons.add),
-            label: const Text('Nuevo'),
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+          right: 24,
+          bottom: 24,
+          child: Material(
+            color: AppColors.blue,
+            borderRadius: BorderRadius.circular(_cardRadius),
+            elevation: 2,
+            shadowColor: AppColors.blue.withValues(alpha: 0.3),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(_cardRadius),
+              onTap: () => _navigateToCreateDocument(context),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.add, color: AppColors.white, size: 22),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Nuevo',
+                      style: TextStyle(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
-        
-        // Botón de confirmación solo si statusId es true
         if (widget.statusId)
           Positioned(
-            right: 10,
-            bottom: 85,
+            right: 24,
+            bottom: 90,
             child: FloatingActionButton(
               heroTag: 'document_list_confirm',
               onPressed: _showConfirmationDialog,
@@ -418,7 +426,11 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DocumentDetailScreen(document: document, userId: widget.userId),
+        builder: (context) => DocumentDetailScreen(
+          document: document,
+          userId: widget.userId,
+          holderName: widget.holderName,
+        ),
       ),
     );
     
@@ -513,28 +525,23 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
     );
   }
 
-  // Métodos auxiliares
   Widget _buildStatusChip(BuildContext context, bool approved) {
     final theme = Theme.of(context);
     final isVerified = approved;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: isVerified
             ? AppColors.green.withValues(alpha: 0.15)
             : AppColors.orange.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isVerified ? AppColors.green : AppColors.orange,
-          width: 1,
-        ),
+        borderRadius: BorderRadius.circular(_chipRadius),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             isVerified ? Icons.check_circle : Icons.schedule,
-            size: 14,
+            size: 16,
             color: isVerified ? AppColors.green : AppColors.orange,
           ),
           const SizedBox(width: 4),
@@ -542,6 +549,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
             isVerified ? 'Verificado' : 'Pendiente',
             style: theme.textTheme.labelSmall?.copyWith(
               fontWeight: FontWeight.w600,
+              fontSize: 12,
               color: isVerified ? AppColors.green : AppColors.orange,
             ),
           ),
@@ -581,11 +589,5 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
       default:
         return Icons.description;
     }
-  }
-
-
-
-  String _formatDate(DateTime date) {
-    return '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
   }
 }

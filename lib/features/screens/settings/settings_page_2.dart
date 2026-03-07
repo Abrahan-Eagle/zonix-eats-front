@@ -1003,7 +1003,12 @@ class _SettingsPage2State extends State<SettingsPage2> {
           onTap: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => DocumentListScreen(userId: userProvider.userId),
+                builder: (_) => DocumentListScreen(
+                  userId: userProvider.userId,
+                  holderName: _profile is Profile
+                      ? '${(_profile as Profile).firstName} ${(_profile as Profile).lastName}'.trim()
+                      : null,
+                ),
               )),
         ),
         const SizedBox(height: 20),
