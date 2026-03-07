@@ -13,6 +13,7 @@ import 'package:zonix/features/screens/auth/sign_in_screen.dart';
 import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_list_screen.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
+import 'package:zonix/features/DomainProfiles/Documents/screens/document_list_screen.dart';
 import 'package:zonix/features/screens/about/about_page.dart';
 import 'package:zonix/features/screens/help/help_and_faq_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
@@ -990,6 +991,21 @@ class _SettingsPage2State extends State<SettingsPage2> {
                 builder: (_) => PhoneScreen(userId: userProvider.userId),
               )),
         ),
+        const SizedBox(height: 12),
+        _buildStitchTile(
+          context: context,
+          theme: theme,
+          icon: Icons.badge_outlined,
+          iconColor: AppColors.orange,
+          title: 'Documentos',
+          surfaceColor: surfaceColor,
+          borderColor: borderColor,
+          onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => DocumentListScreen(userId: userProvider.userId),
+              )),
+        ),
         const SizedBox(height: 20),
         _buildPersonalInfoCard(theme, isTablet),
         if (isCommerce) ...[
@@ -1573,9 +1589,10 @@ class _SettingsPage2State extends State<SettingsPage2> {
 
   Widget _buildMasContent(
       BuildContext context, ThemeData theme, bool isTablet) {
-    final isCommerce =
-        Provider.of<UserProvider>(context, listen: false).userRole ==
-            'commerce';
+    final role = Provider.of<UserProvider>(context, listen: false).userRole;
+    final isCommerce = role == 'commerce';
+    final isDelivery = role == 'delivery' || role == 'delivery_agent';
+    final isDeliveryCompany = role == 'delivery_company';
     final isDark = theme.brightness == Brightness.dark;
     final surfaceColor =
         isDark ? _stitchSurfaceDark : theme.colorScheme.surface;
@@ -1625,6 +1642,27 @@ class _SettingsPage2State extends State<SettingsPage2> {
             ),
           ],
         ),
+        if (isDelivery || isDeliveryCompany) ...[
+          const SizedBox(height: 24),
+          _buildMasSection(
+            context: context,
+            theme: theme,
+            title: isDeliveryCompany ? 'CONFIGURACIÓN DE EMPRESA' : 'PAGOS',
+            surfaceColor: surfaceColor,
+            borderColor: borderColor,
+            tiles: [
+              _MasTile(
+                icon: Icons.payments,
+                iconColor: AppColors.green,
+                title: 'Métodos de pago',
+                subtitle: 'Cuentas para recibir pagos',
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const CommercePaymentMethodsPage()))),
+            ],
+          ),
+        ],
         if (isCommerce) ...[
           const SizedBox(height: 24),
           _buildMasSection(

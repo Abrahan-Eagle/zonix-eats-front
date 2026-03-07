@@ -1,13 +1,14 @@
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:zonix/features/DomainProfiles/Documents/models/document.dart';
 import 'document_edit_screen.dart';
 
 class DocumentDetailScreen extends StatelessWidget {
   final Document document;
+  /// user_id del dueño del perfil (para DocumentEditScreen y servicios que usan user_id).
+  final int userId;
 
-  const DocumentDetailScreen({super.key, required this.document});
+  const DocumentDetailScreen({super.key, required this.document, required this.userId});
 
   @override
   Widget build(BuildContext context) {
@@ -156,11 +157,34 @@ class DocumentDetailScreen extends StatelessWidget {
                 letterSpacing: 1.2,
               ),
             ),
-            
-
+            const SizedBox(height: 16),
+            // Estado: Verificado / Pendiente de verificación
+            _buildStatusRow(context),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildStatusRow(BuildContext context) {
+    final theme = Theme.of(context);
+    final isVerified = document.approved;
+    return Row(
+      children: [
+        Icon(
+          isVerified ? Icons.check_circle : Icons.schedule,
+          size: 20,
+          color: isVerified ? AppColors.green : AppColors.orange,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          isVerified ? 'Documento verificado' : 'Pendiente de verificación',
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: isVerified ? AppColors.green : AppColors.orange,
+          ),
+        ),
+      ],
     );
   }
 
@@ -200,12 +224,8 @@ class DocumentDetailScreen extends StatelessWidget {
     switch (document.type) {
       case 'ci':
         return _buildInfoRow('Cédula de Identidad', 'Documento Nacional de Identidad', Icons.badge);
-      case 'passport':
-        return _buildInfoRow('Pasaporte', 'Documento de Viaje Internacional', Icons.flight_takeoff);
       case 'rif':
         return _buildInfoRow('RIF', 'Registro de Información Fiscal', Icons.business);
-      case 'neighborhood_association':
-        return _buildInfoRow('Asociación de Vecinos', 'Documento Comunitario', Icons.people);
       default:
         return _buildInfoRow('Documento', 'Tipo no especificado', Icons.description);
     }
@@ -344,17 +364,8 @@ class DocumentDetailScreen extends StatelessWidget {
   Widget _buildSpecificFields(BuildContext context) {
     List<Widget> fields = [];
 
-    switch (document.type) {
-      case 'rif':
-        if (document.taxDomicile != null) {
-          fields.add(_buildTaxDomicileCard(context));
-        }
-        break;
-      case 'neighborhood_association':
-        if (document.communityRif != null) {
-          fields.add(_buildCommunityRifCard(context));
-        }
-        break;
+    if (document.type == 'rif' && document.taxDomicile != null) {
+      fields.add(_buildTaxDomicileCard(context));
     }
 
     if (fields.isEmpty) {
@@ -408,100 +419,6 @@ class DocumentDetailScreen extends StatelessWidget {
               ),
             ),
             
-            if (document.rifUrl != null && document.rifUrl!.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.qr_code,
-                      color: AppColors.orange,
-                      size: 24,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'QR RIF',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurface.withValues(alpha: 0.7),
-                            ),
-                          ),
-                          Text(
-                            'Ver código QR',
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              color: AppColors.orange,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => _launchURL(document.rifUrl!),
-                      icon: const Icon(
-                        Icons.open_in_new,
-                        color: AppColors.orange,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCommunityRifCard(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
-    return Card(
-      elevation: 2,
-      shadowColor: AppColors.black.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.people,
-                  color: colorScheme.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'RIF de la Comunidad',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: colorScheme.onSurface,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              document.communityRif ?? 'No disponible',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurface,
-                fontWeight: FontWeight.w500,
-                fontSize: 18,
-              ),
-            ),
           ],
         ),
       ),
@@ -549,7 +466,7 @@ class DocumentDetailScreen extends StatelessWidget {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DocumentEditScreen(document: document),
+        builder: (context) => DocumentEditScreen(document: document, userId: userId),
       ),
     );
     if (!context.mounted) return;
@@ -569,28 +486,18 @@ class DocumentDetailScreen extends StatelessWidget {
       case 'ci':
         return 'Cédula de Identidad';
       case 'rif':
-        return 'Registro de Información Fiscal';
-      case 'neighborhood_association':
-        return 'Asociación de Vecinos';
-      case 'passport':
-        return 'Pasaporte';
+        return 'RIF';
       default:
         return 'Documento';
     }
   }
 
-
-
   IconData _getDocumentTypeIcon(String type) {
     switch (type) {
       case 'ci':
         return Icons.badge;
-      case 'passport':
-        return Icons.flight_takeoff;
       case 'rif':
         return Icons.business;
-      case 'neighborhood_association':
-        return Icons.people;
       default:
         return Icons.description;
     }
@@ -600,23 +507,10 @@ class DocumentDetailScreen extends StatelessWidget {
     switch (document.type) {
       case 'ci':
         return document.numberCi ?? 'N/A';
-      case 'passport':
-        return document.receiptN?.toString() ?? 'N/A';
       case 'rif':
-        return document.sky?.toString() ?? 'N/A';
-      case 'neighborhood_association':
-        return document.communeRegister ?? 'N/A';
+        return document.formattedRifNumber ?? document.rifNumber?.trim() ?? 'N/A';
       default:
         return 'N/A';
-    }
-  }
-
-  void _launchURL(String url) async {
-    final uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      throw 'No se pudo abrir el enlace: $url';
     }
   }
 

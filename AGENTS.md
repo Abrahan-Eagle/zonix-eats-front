@@ -4,6 +4,12 @@
 > Para documentación detallada, ver `README.md`.
 > **Para reglas de mantenimiento y coherencia de skills, ver [MAINTENANCE_SKILLS.md](MAINTENANCE_SKILLS.md).**
 
+## Contexto de sesión
+
+**Al iniciar o retomar trabajo:** Leer [docs/active_context.md](docs/active_context.md) si existe, para recuperar el estado de la última sesión (cambios recientes, áreas tocadas, próximos pasos). Así la IA mantiene contexto sin que el usuario tenga que pedirlo.
+
+---
+
 ## Project Overview
 
 | Métrica                  | Valor                                    |
@@ -17,10 +23,12 @@
 | **Servicios**            | 49                                       |
 | **Tests**                | 214 pasaron ✅, 0 fallaron               |
 | **Plataformas**          | Android + iOS                            |
-| **Última actualización** | 4 Marzo 2026                             |
+| **Última actualización** | 6 Marzo 2026                             |
 
 ### Cambios recientes (documentar aquí los avances)
 
+- **6 Mar 2026:** Módulo Documents: solo CI y RIF; formato al escribir (CI: V-12.345.678, RIF: J-19217553-0) con `document_input_formatters.dart`; formato al mostrar con `rif_formatter.dart` y `formattedRifNumber`; estado Verificado/Pendiente en lista y detalle (`approved`). Requisito de documento para método de pago pago móvil (comercio). Tests: rif_formatter y Document model.
+- **6 Mar 2026:** Documentado en AGENTS.md: Profile como entidad principal; uso de getMyProfile() y fetchMyPhones/fetchMyDocuments cuando el API es por usuario autenticado.
 - **4 Mar 2026:** Colores centralizados en `AppColors`: eliminado hardcode en vistas de usuario y onboarding (onboarding, checkout, detalle de orden/delivery, restaurantes). Paleta alineada con logo y psicología del color (marketplace comida rápida). En vistas de usuario y onboarding usar solo `AppColors` o `Theme.of(context).colorScheme`.
 - **11 Feb 2026:** Cupón: validación envía `code` y `order_amount`; mensajes de error del backend (422/404/400) mostrados al usuario. Configuración desde `.env` (AppConfig, Pusher, timeouts). Auth Pusher con `shared_secret`.
 
@@ -70,6 +78,13 @@ flutter clean && flutter pub get     # Reset completo
 
 ---
 
+## Modelo de datos: Profile como entidad principal
+
+- En el backend, **Profile** es la entidad principal: teléfonos, documentos y direcciones pertenecen al perfil (`profile_id`). **Users** es 1:1 con Profile (cuenta de login).
+- En la app: al cargar “mis” datos (teléfonos, documentos), usar `ProfileService().getMyProfile()` y luego `profile.id` cuando el API espere `profile_id`, o `profile.userId` cuando el API use `user_id` por compatibilidad. Servicios como `fetchMyPhones()` / `fetchMyDocuments()` ya resuelven al usuario autenticado sin pasar id.
+
+---
+
 ## Available Skills
 
 | Skill                     | Descripción                                 | Ruta                                                                                               |
@@ -96,6 +111,8 @@ flutter clean && flutter pub get     # Reset completo
 | `zonix-order-lifecycle` | Estados de orden, transiciones      | [.agents/skills/zonix-order-lifecycle/SKILL.md](.agents/skills/zonix-order-lifecycle/SKILL.md) |
 | `zonix-realtime-events` | Pusher, FCM, notificaciones push    | [.agents/skills/zonix-realtime-events/SKILL.md](.agents/skills/zonix-realtime-events/SKILL.md) |
 | `zonix-ui-design`       | Paleta, cards, layouts, componentes | [.agents/skills/zonix-ui-design/SKILL.md](.agents/skills/zonix-ui-design/SKILL.md)             |
+| `context-updater`       | Resumir sesión en docs/active_context  | [.agents/skills/context-updater/SKILL.md](.agents/skills/context-updater/SKILL.md)             |
+| `documentar-avances`   | Proponer texto para Cambios recientes | [.agents/skills/documentar-avances/SKILL.md](.agents/skills/documentar-avances/SKILL.md)     |
 
 ---
 
@@ -119,6 +136,8 @@ flutter clean && flutter pub get     # Reset completo
 | Implementar Pusher o notificaciones    | `zonix-realtime-events` (custom) |
 | Diseñar/construir UI o componentes     | `zonix-ui-design` (custom)       |
 | Crear nuevas skills para el proyecto   | `skill-creator`                  |
+| Cerrar sesión con cambios relevantes  | `context-updater` (actualizar docs/active_context.md) |
+| Finalizar tarea y documentar avances | `documentar-avances` (proponer Cambios recientes)     |
 
 ---
 

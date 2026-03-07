@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/phone.dart';
 import '../api/phone_service.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/utils/app_colors.dart';
@@ -72,9 +73,17 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
     });
 
     try {
+      final profile = await ProfileService().getMyProfile();
+      if (profile == null) {
+        if (!context.mounted) return;
+        _showErrorSnackBar('No se pudo obtener el perfil. Inicia sesión de nuevo.');
+        setState(() => _isLoading = false);
+        return;
+      }
+
       final phone = Phone(
         id: 0,
-        profileId: widget.userId,
+        profileId: profile.id,
         operatorCodeId: _selectedOperatorCodeId!,
         operatorCodeName: _operatorCodes.firstWhere(
             (code) => code['id'] == _selectedOperatorCodeId)['name'],
@@ -83,7 +92,7 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
         status: true,
       );
 
-      await _phoneService.createPhone(phone, widget.userId);
+      await _phoneService.createPhone(phone, profile.userId);
 
       if (!context.mounted) return;
       final c = context;

@@ -31,7 +31,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
   @override
   void initState() {
     super.initState();
-    _documentsFuture = _documentService.fetchDocuments(widget.userId);
+    _documentsFuture = _documentService.fetchMyDocuments();
     
     // Inicializar animaciones
     _animationController = AnimationController(
@@ -59,7 +59,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
     await Future.delayed(const Duration(milliseconds: 500));
     
     setState(() {
-      _documentsFuture = _documentService.fetchDocuments(widget.userId);
+      _documentsFuture = _documentService.fetchMyDocuments();
       _isRefreshing = false;
     });
   }
@@ -212,8 +212,8 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
                         ],
                       ),
                     ),
-                    
-
+                    // Estado: Verificado / Pendiente de verificación
+                    _buildStatusChip(context, document.approved),
                   ],
                 ),
                 
@@ -418,7 +418,7 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => DocumentDetailScreen(document: document),
+        builder: (context) => DocumentDetailScreen(document: document, userId: widget.userId),
       ),
     );
     
@@ -514,18 +514,50 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
   }
 
   // Métodos auxiliares
+  Widget _buildStatusChip(BuildContext context, bool approved) {
+    final theme = Theme.of(context);
+    final isVerified = approved;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: isVerified
+            ? AppColors.green.withValues(alpha: 0.15)
+            : AppColors.orange.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isVerified ? AppColors.green : AppColors.orange,
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            isVerified ? Icons.check_circle : Icons.schedule,
+            size: 14,
+            color: isVerified ? AppColors.green : AppColors.orange,
+          ),
+          const SizedBox(width: 4),
+          Text(
+            isVerified ? 'Verificado' : 'Pendiente',
+            style: theme.textTheme.labelSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: isVerified ? AppColors.green : AppColors.orange,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   String getDocumentNumber(Document document) {
     switch (document.type) {
       case 'ci':
         return document.numberCi ?? 'N/A';
-      case 'passport':
-        return document.receiptN?.toString() ?? 'N/A';
       case 'rif':
-        return document.sky?.toString() ?? 'N/A';
-      case 'neighborhood_association':
-        return document.communeRegister ?? 'N/A';
+        return document.formattedRifNumber ?? document.rifNumber?.trim() ?? 'N/A';
       default:
-        return 'Desconocido';
+        return 'N/A';
     }
   }
 
@@ -535,10 +567,6 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
         return 'Cédula de Identidad';
       case 'rif':
         return 'RIF';
-      case 'neighborhood_association':
-        return 'Asociación de Vecinos';
-      case 'passport':
-        return 'Pasaporte';
       default:
         return 'Documento';
     }
@@ -550,10 +578,6 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
         return Icons.badge;
       case 'rif':
         return Icons.business;
-      case 'neighborhood_association':
-        return Icons.people;
-      case 'passport':
-        return Icons.flight_takeoff;
       default:
         return Icons.description;
     }
