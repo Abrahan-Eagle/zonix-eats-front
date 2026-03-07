@@ -7,6 +7,23 @@ import '../../helpers/auth_helper.dart';
 class PaymentService extends ChangeNotifier {
   static String get baseUrl => AppConfig.apiUrl;
 
+  /// Extrae mensaje de error del body (422/400) para mostrar al usuario.
+  static String _errorMessage(http.Response response) {
+    try {
+      final data = jsonDecode(response.body) as Map<String, dynamic>?;
+      if (data == null) return 'Error ${response.statusCode}';
+      final msg = data['message'] as String?;
+      if (msg != null && msg.isNotEmpty) return msg;
+      final errors = data['errors'] as Map<String, dynamic>?;
+      if (errors != null && errors.isNotEmpty) {
+        final first = errors.values.first;
+        if (first is List && first.isNotEmpty) return first.first.toString();
+        if (first is String) return first;
+      }
+    } catch (_) {}
+    return 'Error ${response.statusCode}';
+  }
+
   // Get payment methods
   Future<List<Map<String, dynamic>>> getPaymentMethods() async {
     try {
@@ -52,9 +69,8 @@ class PaymentService extends ChangeNotifier {
           return data['data'] as Map<String, dynamic>;
         }
         throw Exception('Error adding payment method: Invalid response');
-      } else {
-        throw Exception('Error al agregar método de pago: ${response.statusCode}');
       }
+      throw Exception(_errorMessage(response));
     } catch (e) {
       rethrow;
     }
@@ -74,14 +90,12 @@ class PaymentService extends ChangeNotifier {
         if (data['success'] == true && data['data'] != null) {
           return data['data'] as Map<String, dynamic>;
         }
-        // Try alternative format
         if (data['data'] != null) {
           return data['data'] as Map<String, dynamic>;
         }
         throw Exception('Error updating payment method: Invalid response');
-      } else {
-        throw Exception('Error al actualizar método de pago: ${response.statusCode}');
       }
+      throw Exception(_errorMessage(response));
     } catch (e) {
       rethrow;
     }
@@ -97,9 +111,8 @@ class PaymentService extends ChangeNotifier {
 
       if (response.statusCode == 200 || response.statusCode == 204) {
         return;
-      } else {
-        throw Exception('Error al eliminar método de pago: ${response.statusCode}');
       }
+      throw Exception(_errorMessage(response));
     } catch (e) {
       rethrow;
     }
@@ -115,9 +128,8 @@ class PaymentService extends ChangeNotifier {
 
       if (response.statusCode == 200) {
         return;
-      } else {
-        throw Exception('Error al establecer método predeterminado: ${response.statusCode}');
       }
+      throw Exception(_errorMessage(response));
     } catch (e) {
       rethrow;
     }

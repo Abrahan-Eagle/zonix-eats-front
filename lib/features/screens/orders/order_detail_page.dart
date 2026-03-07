@@ -160,10 +160,16 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     String? paymentMethod;
     String? referenceNumber;
 
+    List<Map<String, dynamic>> availableMethods = [];
+    try {
+      availableMethods = await OrderService().getAvailablePaymentMethodsForOrder(widget.orderId);
+    } catch (_) {}
+    if (!mounted) return;
+
     final result = await showDialog<Map<String, String>>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => const _UploadProofDialog(),
+      builder: (_) => _UploadProofDialog(paymentMethods: availableMethods),
     );
     if (result == null || !mounted) {
       return;
@@ -1040,7 +1046,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 }
 
 class _UploadProofDialog extends StatefulWidget {
-  const _UploadProofDialog();
+  const _UploadProofDialog({this.paymentMethods = const []});
+
+  final List<Map<String, dynamic>> paymentMethods;
 
   @override
   State<_UploadProofDialog> createState() => _UploadProofDialogState();
@@ -1048,15 +1056,25 @@ class _UploadProofDialog extends StatefulWidget {
 
 class _UploadProofDialogState extends State<_UploadProofDialog> {
   final _refController = TextEditingController();
-  String _selectedMethod = 'transferencia';
+  late String _selectedMethod;
 
-  static const List<String> _methods = [
+  static const List<String> _fallbackMethods = [
     'efectivo',
     'transferencia',
     'tarjeta',
     'pago_movil',
     'otro',
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.paymentMethods.isNotEmpty) {
+      _selectedMethod = (widget.paymentMethods.first['type'] ?? 'other') as String;
+    } else {
+      _selectedMethod = 'transferencia';
+    }
+  }
 
   @override
   void dispose() {
@@ -1066,6 +1084,18 @@ class _UploadProofDialogState extends State<_UploadProofDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final useCommerceMethods = widget.paymentMethods.isNotEmpty;
+    final items = useCommerceMethods
+        ? widget.paymentMethods
+            .map((m) => DropdownMenuItem<String>(
+                  value: (m['type'] ?? 'other') as String,
+                  child: Text((m['label'] ?? m['type'] ?? '—').toString()),
+                ))
+            .toList()
+        : _fallbackMethods
+            .map((m) => DropdownMenuItem(value: m, child: Text(_methodLabel(m))))
+            .toList();
+
     return AlertDialog(
       title: const Text('Subir comprobante'),
       content: SingleChildScrollView(
@@ -1073,23 +1103,24 @@ class _UploadProofDialogState extends State<_UploadProofDialog> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              'Ingresa los datos del pago realizado:',
-              style: TextStyle(fontSize: 14),
+            Text(
+              useCommerceMethods
+                  ? 'Elige el método con el que pagaste (configurado por el comercio):'
+                  : 'Ingresa los datos del pago realizado:',
+              style: const TextStyle(fontSize: 14),
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<String>(
-              initialValue: _selectedMethod,
+              initialValue: items.any((e) => e.value == _selectedMethod)
+                  ? _selectedMethod
+                  : (items.isNotEmpty ? items.first.value : null),
               decoration: const InputDecoration(
                 labelText: 'Método de pago',
                 border: OutlineInputBorder(),
               ),
-              items: _methods
-                  .map((m) =>
-                      DropdownMenuItem(value: m, child: Text(_methodLabel(m))))
-                  .toList(),
+              items: items,
               onChanged: (v) =>
-                  setState(() => _selectedMethod = v ?? 'transferencia'),
+                  setState(() => _selectedMethod = v ?? _selectedMethod),
             ),
             const SizedBox(height: 12),
             TextFormField(

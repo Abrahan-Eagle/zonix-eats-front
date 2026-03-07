@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:zonix/features/services/commerce_data_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
-import 'package:flutter/services.dart'; // Added for FilteringTextInputFormatter
 
 class CommercePaymentPage extends StatefulWidget {
   const CommercePaymentPage({super.key});
@@ -14,7 +14,7 @@ class _CommercePaymentPageState extends State<CommercePaymentPage> {
   final _formKey = GlobalKey<FormState>();
   final _paymentIdController = TextEditingController();
   final _paymentPhoneController = TextEditingController();
-  
+
   String? _bank;
   bool _loading = false;
   bool _initialLoading = true;
@@ -58,7 +58,7 @@ class _CommercePaymentPageState extends State<CommercePaymentPage> {
       });
 
       final data = await CommerceDataService.getCommerceData();
-      
+
       setState(() {
         _bank = data['mobile_payment_bank'];
         _paymentIdController.text = data['mobile_payment_id'] ?? '';
@@ -75,11 +75,11 @@ class _CommercePaymentPageState extends State<CommercePaymentPage> {
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
-    
-    setState(() { 
-      _loading = true; 
-      _error = null; 
-      _success = null; 
+
+    setState(() {
+      _loading = true;
+      _error = null;
+      _success = null;
     });
 
     try {
@@ -90,19 +90,14 @@ class _CommercePaymentPageState extends State<CommercePaymentPage> {
       };
 
       await CommerceDataService.updatePaymentData(data);
-      
+
       setState(() {
         _loading = false;
         _success = 'Datos de pago móvil actualizados correctamente.';
       });
 
-      // Limpiar mensaje de éxito después de 3 segundos
       Future.delayed(const Duration(seconds: 3), () {
-        if (mounted) {
-          setState(() {
-            _success = null;
-          });
-        }
+        if (mounted) setState(() => _success = null);
       });
     } catch (e) {
       setState(() {
@@ -114,207 +109,144 @@ class _CommercePaymentPageState extends State<CommercePaymentPage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? AppColors.backgroundDark : AppColors.scaffoldBgLight;
+    final primaryText = AppColors.primaryText(context);
+    final cardBg = AppColors.cardBg(context);
+    final secondaryText = AppColors.secondaryText(context);
+    final borderColor = isDark ? AppColors.stitchSurfaceLighter : AppColors.stitchBorder;
+    final inputBg = isDark ? AppColors.grayDark : AppColors.stitchBgCard;
+
     if (_initialLoading) {
       return Scaffold(
+        backgroundColor: bg,
         appBar: AppBar(
           title: const Text('Datos de pago móvil'),
-          backgroundColor: AppColors.purple,
-          foregroundColor: Colors.white,
+          backgroundColor: AppColors.stitchNavBg,
+          foregroundColor: AppColors.white,
+          elevation: 0,
         ),
-        body: const Center(child: CircularProgressIndicator()),
+        body: const Center(
+          child: CircularProgressIndicator(color: AppColors.blue),
+        ),
       );
     }
 
     return Scaffold(
+      backgroundColor: bg,
       appBar: AppBar(
         title: const Text('Datos de pago móvil'),
-        backgroundColor: AppColors.purple,
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.stitchNavBg,
+        foregroundColor: AppColors.white,
+        elevation: 0,
+        scrolledUnderElevation: 0,
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Información del banco
-              Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Información del Banco',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      DropdownButtonFormField<String>(
-                        decoration: const InputDecoration(
-                          labelText: 'Banco *',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.account_balance),
+              if (_success != null) _banner(true, _success!, primaryText),
+              if (_error != null) _banner(false, _error!, primaryText),
+              if (_success != null || _error != null) const SizedBox(height: 16),
+              _card(
+                context,
+                cardBg,
+                borderColor,
+                primaryText,
+                secondaryText,
+                'Información del Banco',
+                Icons.account_balance,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Banco', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: secondaryText)),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<String>(
+                      initialValue: _bank,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: inputBg,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: borderColor),
                         ),
-                        initialValue: _bank,
-                        items: _banks.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
-                        onChanged: (v) => setState(() => _bank = v),
-                        validator: (v) => v == null || v.isEmpty ? 'Seleccione un banco' : null,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        constraints: const BoxConstraints(minHeight: 48),
                       ),
-                    ],
-                  ),
+                      hint: Text('Seleccionar banco', style: TextStyle(color: secondaryText)),
+                      items: _banks.map((b) => DropdownMenuItem(value: b, child: Text(b))).toList(),
+                      onChanged: (v) => setState(() => _bank = v),
+                      validator: (v) => v == null || v.isEmpty ? 'Seleccione un banco' : null,
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
-
-              // Información de pago móvil
-              Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Datos de Pago Móvil',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _paymentIdController,
-                        decoration: const InputDecoration(
-                          labelText: 'ID de pago móvil *',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.credit_card),
-                          hintText: 'Ej: 12345678',
-                        ),
-                        validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
-                        keyboardType: TextInputType.number,
-                      ),
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _paymentPhoneController,
-                        decoration: const InputDecoration(
-                          labelText: 'Teléfono de pago móvil *',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.phone_android),
-                          hintText: 'Ej: 04121234567',
-                        ),
-                        validator: (v) {
-                          if (v == null || v.isEmpty) return 'Campo requerido';
-                          final regex = RegExp(r'^\d{11}$');
-                          if (!regex.hasMatch(v.replaceAll(RegExp(r'\D'), ''))) {
-                            return 'Debe tener 11 dígitos';
-                          }
-                          return null;
-                        },
-                        keyboardType: TextInputType.phone,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      ),
-                    ],
-                  ),
+              _card(
+                context,
+                cardBg,
+                borderColor,
+                primaryText,
+                secondaryText,
+                'Datos de Pago Móvil',
+                Icons.contactless,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('ID de pago móvil *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: secondaryText)),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _paymentIdController,
+                      decoration: _inputDecorationWithIcon(inputBg, borderColor, secondaryText, 'Ej: 12345678', Icons.badge),
+                      validator: (v) => v == null || v.isEmpty ? 'Campo requerido' : null,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    ),
+                    const SizedBox(height: 16),
+                    Text('Teléfono de pago móvil *', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: secondaryText)),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: _paymentPhoneController,
+                      decoration: _inputDecorationWithIcon(inputBg, borderColor, secondaryText, 'Ej: 04121234567', Icons.phone_android),
+                      validator: (v) {
+                        if (v == null || v.isEmpty) return 'Campo requerido';
+                        final digits = v.replaceAll(RegExp(r'\D'), '');
+                        if (digits.length != 11) return 'Debe tener 11 dígitos';
+                        return null;
+                      },
+                      keyboardType: TextInputType.phone,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
-
-              // Información adicional
-              Card(
-                elevation: 2,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                child: const Padding(
-                  padding: EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.info_outline, color: AppColors.blue),
-                          SizedBox(width: 8),
-                          Text(
-                            'Información Importante',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        '• Los datos de pago móvil se utilizan para recibir pagos de los clientes\n'
-                        '• Asegúrate de que el número de teléfono esté activo\n'
-                        '• El ID de pago móvil debe ser el mismo registrado en tu banco\n'
-                        '• Estos datos son confidenciales y seguros',
-                        style: TextStyle(fontSize: 14, color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+              _infoCard(cardBg, borderColor, primaryText, secondaryText),
               const SizedBox(height: 24),
-
-              // Mensajes de estado
-              if (_error != null)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade200),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error, color: Colors.red),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(_error!, style: const TextStyle(color: Colors.red))),
-                    ],
-                  ),
-                ),
-              
-              if (_success != null)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.green.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.green.shade200),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.check_circle, color: Colors.green),
-                      const SizedBox(width: 8),
-                      Expanded(child: Text(_success!, style: const TextStyle(color: Colors.green))),
-                    ],
-                  ),
-                ),
-
-              const SizedBox(height: 24),
-
-              // Botón de guardar
               SizedBox(
                 width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
+                height: 56,
+                child: FilledButton(
                   onPressed: _loading ? null : _submit,
-                  icon: _loading 
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                      )
-                    : const Icon(Icons.save),
-                  label: Text(
-                    _loading ? 'Guardando...' : 'Guardar cambios',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  style: ElevatedButton.styleFrom(
+                  style: FilledButton.styleFrom(
                     backgroundColor: AppColors.purple,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+                    foregroundColor: AppColors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 2,
+                    shadowColor: AppColors.purple.withValues(alpha: 0.3),
                   ),
+                  child: _loading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
+                        )
+                      : const Text('Guardar cambios', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
               ),
-              
-              // Espacio adicional para evitar overflow
               const SizedBox(height: 32),
             ],
           ),
@@ -322,4 +254,148 @@ class _CommercePaymentPageState extends State<CommercePaymentPage> {
       ),
     );
   }
-} 
+
+  Widget _banner(bool isSuccess, String message, Color primaryText) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isSuccess ? AppColors.green.withValues(alpha: 0.1) : AppColors.red.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isSuccess ? AppColors.green.withValues(alpha: 0.3) : AppColors.red.withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isSuccess ? Icons.check_circle : Icons.error,
+            color: isSuccess ? AppColors.green : AppColors.red,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: TextStyle(fontSize: 14, color: primaryText),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _card(
+    BuildContext context,
+    Color cardBg,
+    Color borderColor,
+    Color primaryText,
+    Color secondaryText,
+    String title,
+    IconData titleIcon,
+    Widget child,
+  ) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 1))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(titleIcon, color: AppColors.purple, size: 22),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryText),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          child,
+        ],
+      ),
+    );
+  }
+
+  Widget _infoCard(Color cardBg, Color borderColor, Color primaryText, Color secondaryText) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 4, offset: const Offset(0, 1))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.info_outline, color: AppColors.blue, size: 22),
+              const SizedBox(width: 8),
+              Text(
+                'Información Importante',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryText),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          _bullet(secondaryText, 'Los datos de pago móvil se utilizan para recibir pagos de los clientes.'),
+          _bullet(secondaryText, 'Asegúrate de que el número de teléfono esté activo.'),
+          _bullet(secondaryText, 'El ID debe ser el mismo registrado en tu banco.'),
+          _bullet(secondaryText, 'Estos datos son confidenciales y seguros.'),
+        ],
+      ),
+    );
+  }
+
+  Widget _bullet(Color color, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 6),
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: AppColors.blue,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(child: Text(text, style: TextStyle(fontSize: 14, color: color, height: 1.4))),
+        ],
+      ),
+    );
+  }
+
+  InputDecoration _inputDecorationWithIcon(Color fillColor, Color borderColor, Color iconColor, String hint, IconData icon) {
+    return InputDecoration(
+      hintText: hint,
+      filled: true,
+      fillColor: fillColor,
+      prefixIcon: Icon(icon, size: 22, color: iconColor),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: borderColor),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: borderColor),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.purple, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      constraints: const BoxConstraints(minHeight: 48),
+    );
+  }
+}

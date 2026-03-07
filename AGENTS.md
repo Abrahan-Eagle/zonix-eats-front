@@ -4,6 +4,12 @@
 > Para documentación detallada, ver `README.md`.
 > **Para reglas de mantenimiento y coherencia de skills, ver [MAINTENANCE_SKILLS.md](MAINTENANCE_SKILLS.md).**
 
+## Contexto de sesión
+
+**Al iniciar o retomar trabajo:** Leer [docs/active_context.md](docs/active_context.md) si existe, para recuperar el estado de la última sesión (cambios recientes, áreas tocadas, próximos pasos). Así la IA mantiene contexto sin que el usuario tenga que pedirlo.
+
+---
+
 ## Project Overview
 
 | Métrica                  | Valor                                    |
@@ -96,6 +102,8 @@ flutter clean && flutter pub get     # Reset completo
 | `zonix-order-lifecycle` | Estados de orden, transiciones      | [.agents/skills/zonix-order-lifecycle/SKILL.md](.agents/skills/zonix-order-lifecycle/SKILL.md) |
 | `zonix-realtime-events` | Pusher, FCM, notificaciones push    | [.agents/skills/zonix-realtime-events/SKILL.md](.agents/skills/zonix-realtime-events/SKILL.md) |
 | `zonix-ui-design`       | Paleta, cards, layouts, componentes | [.agents/skills/zonix-ui-design/SKILL.md](.agents/skills/zonix-ui-design/SKILL.md)             |
+| `context-updater`       | Resumir sesión en docs/active_context  | [.agents/skills/context-updater/SKILL.md](.agents/skills/context-updater/SKILL.md)             |
+| `documentar-avances`   | Proponer texto para Cambios recientes | [.agents/skills/documentar-avances/SKILL.md](.agents/skills/documentar-avances/SKILL.md)     |
 
 ---
 
@@ -119,6 +127,8 @@ flutter clean && flutter pub get     # Reset completo
 | Implementar Pusher o notificaciones    | `zonix-realtime-events` (custom) |
 | Diseñar/construir UI o componentes     | `zonix-ui-design` (custom)       |
 | Crear nuevas skills para el proyecto   | `skill-creator`                  |
+| Cerrar sesión con cambios relevantes  | `context-updater` (actualizar docs/active_context.md) |
+| Finalizar tarea y documentar avances | `documentar-avances` (proponer Cambios recientes)     |
 
 ---
 

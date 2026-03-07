@@ -1573,9 +1573,10 @@ class _SettingsPage2State extends State<SettingsPage2> {
 
   Widget _buildMasContent(
       BuildContext context, ThemeData theme, bool isTablet) {
-    final isCommerce =
-        Provider.of<UserProvider>(context, listen: false).userRole ==
-            'commerce';
+    final role = Provider.of<UserProvider>(context, listen: false).userRole;
+    final isCommerce = role == 'commerce';
+    final isDelivery = role == 'delivery' || role == 'delivery_agent';
+    final isDeliveryCompany = role == 'delivery_company';
     final isDark = theme.brightness == Brightness.dark;
     final surfaceColor =
         isDark ? _stitchSurfaceDark : theme.colorScheme.surface;
@@ -1625,6 +1626,27 @@ class _SettingsPage2State extends State<SettingsPage2> {
             ),
           ],
         ),
+        if (isDelivery || isDeliveryCompany) ...[
+          const SizedBox(height: 24),
+          _buildMasSection(
+            context: context,
+            theme: theme,
+            title: isDeliveryCompany ? 'CONFIGURACIÓN DE EMPRESA' : 'PAGOS',
+            surfaceColor: surfaceColor,
+            borderColor: borderColor,
+            tiles: [
+              _MasTile(
+                icon: Icons.payments,
+                iconColor: AppColors.green,
+                title: 'Métodos de pago',
+                subtitle: 'Cuentas para recibir pagos',
+                onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const CommercePaymentMethodsPage()))),
+            ],
+          ),
+        ],
         if (isCommerce) ...[
           const SizedBox(height: 24),
           _buildMasSection(

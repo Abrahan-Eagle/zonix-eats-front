@@ -96,6 +96,22 @@ class OrderService extends ChangeNotifier {
     }
   }
 
+  /// Métodos de pago del comercio de esta orden (para elegir al subir comprobante).
+  /// GET /api/buyer/orders/{id}/available-payment-methods
+  Future<List<Map<String, dynamic>>> getAvailablePaymentMethodsForOrder(int orderId) async {
+    final headers = await AuthHelper.getAuthHeaders();
+    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/available-payment-methods');
+    final response = await http.get(url, headers: headers);
+    if (response.statusCode != 200) {
+      return [];
+    }
+    final data = jsonDecode(response.body);
+    if (data is! Map || data['success'] != true || data['data'] is! List) {
+      return [];
+    }
+    return List<Map<String, dynamic>>.from(data['data'] as List);
+  }
+
   // GET /api/buyer/orders - Listar órdenes del usuario
   Future<List<Order>> fetchOrders() async {
     final headers = await AuthHelper.getAuthHeaders();
