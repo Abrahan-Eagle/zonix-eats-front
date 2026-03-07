@@ -7,6 +7,12 @@ import '../../../config/app_config.dart';
 import '../../../helpers/auth_helper.dart';
 import 'package:zonix/features/services/payment_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
+import 'package:zonix/features/DomainProfiles/Phones/api/phone_service.dart';
+import 'package:zonix/features/DomainProfiles/Phones/models/phone.dart';
+import 'package:zonix/features/DomainProfiles/Documents/api/document_service.dart';
+import 'package:zonix/features/DomainProfiles/Documents/models/document.dart';
+import 'package:zonix/features/utils/rif_formatter.dart';
 
 class CommercePaymentMethodFormPage extends StatefulWidget {
   const CommercePaymentMethodFormPage({
@@ -48,8 +54,96 @@ class _CommercePaymentMethodFormPageState
   List<Map<String, dynamic>> _banks = [];
   int? _selectedBankId;
 
+  List<Phone> _phones = [];
+  List<Document> _documents = [];
+  String? _selectedPhoneValue;
+  String? _selectedDocumentOwnerId;
+  bool _useManualDocument = false;
+  String _documentPrefix = 'V';
+  bool _loadingPhonesDocs = false;
+
   static const List<String> _walletPlatforms = ['PayPal', 'Zelle', 'Binance Pay', 'Otro'];
   static const List<String> _cardBrands = ['Visa', 'Mastercard', 'American Express', 'Otro'];
+
+  static String _formatDocDisplay(Document doc) {
+    if (doc.type == 'ci' && doc.numberCi != null && doc.numberCi!.isNotEmpty) {
+      final digits = doc.numberCi!.replaceAll(RegExp(r'\D'), '');
+      return 'V-${_addDots(digits)}';
+    }
+    if (doc.type == 'rif') {
+      return doc.formattedRifNumber ?? 'RIF no indicado';
+    }
+    return doc.numberCi ?? 'Doc #${doc.id}';
+  }
+
+  static String _addDots(String digits) {
+    if (digits.length <= 3) return digits;
+    final buf = StringBuffer();
+    for (int i = 0; i < digits.length; i++) {
+      if (i > 0 && (digits.length - i) % 3 == 0) buf.write('.');
+      buf.write(digits[i]);
+    }
+    return buf.toString();
+  }
+
+  static String _formatOwnerIdFromDoc(Document doc) {
+    if (doc.type == 'ci' && doc.numberCi != null && doc.numberCi!.isNotEmpty) {
+      final digits = doc.numberCi!.replaceAll(RegExp(r'\D'), '');
+      return 'V-${_addDots(digits)}';
+    }
+    if (doc.type == 'rif') {
+      return doc.formattedRifNumber ?? '';
+    }
+    return doc.numberCi ?? '';
+  }
+
+  /// Formatea RIF a J-19217553-0 / V-19217553-0; deja CI u otros valores como están.
+  static String? _formatOwnerIdForPayload(String raw) {
+    final t = raw.trim();
+    if (t.isEmpty) return null;
+    return formatRifDisplay(t) ?? t;
+  }
+
+  Future<void> _loadPhonesAndDocuments() async {
+    final profile = await ProfileService().getMyProfile();
+    if (profile == null || !mounted) return;
+    setState(() => _loadingPhonesDocs = true);
+    try {
+      final phoneService = PhoneService();
+      final documentService = DocumentService();
+      final phones = await phoneService.fetchPhones(profile.userId);
+      final documents = await documentService.fetchMyDocuments();
+      if (mounted) {
+        setState(() {
+          _phones = phones;
+          _documents = documents.where((d) => d.type == 'ci' || d.type == 'rif').toList();
+          _loadingPhonesDocs = false;
+          if (_phones.isNotEmpty && _phoneController.text.trim().isNotEmpty) {
+            final current = _phoneController.text.trim().replaceAll(RegExp(r'\D'), '');
+            final matchList = _phones.where((p) {
+              final full = '${p.operatorCodeName.replaceAll(RegExp(r'\D'), '')}${p.number}';
+              return full == current || full.endsWith(p.number);
+            }).toList();
+            if (matchList.isNotEmpty) {
+              final p = matchList.first;
+              _selectedPhoneValue = '${p.operatorCodeName.replaceAll(RegExp(r'\D'), '')}${p.number}';
+            }
+          }
+          if (_documents.isEmpty || _documentController.text.trim().isNotEmpty) {
+            _useManualDocument = true;
+            final t = _documentController.text.trim();
+            if (t.startsWith('J')) _documentPrefix = 'J';
+          } else {
+            final current = _documentController.text.trim();
+            final docList = _documents.where((d) => _formatOwnerIdFromDoc(d) == current).toList();
+            if (docList.isNotEmpty) _selectedDocumentOwnerId = _formatOwnerIdFromDoc(docList.first);
+          }
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loadingPhonesDocs = false);
+    }
+  }
 
   @override
   void initState() {
@@ -68,7 +162,8 @@ class _CommercePaymentMethodFormPageState
     _aliasController.text = (ref['alias'] ?? '') as String;
     _notesController.text = (ref['notes'] ?? '') as String;
     _holderNameController.text = (m?['owner_name'] ?? '') as String;
-    _documentController.text = (m?['owner_id'] ?? '') as String;
+    final ownerId = (m?['owner_id'] ?? '') as String;
+    _documentController.text = _formatOwnerIdForPayload(ownerId) ?? ownerId;
     _phoneController.text = (m?['phone'] ?? '') as String;
     _accountController.text = (m?['account_number'] ?? '') as String;
     _currencyController.text = (ref['currency'] ?? 'VES') as String;
@@ -81,6 +176,7 @@ class _CommercePaymentMethodFormPageState
     _brandController.text = (m?['brand'] ?? 'Visa') as String;
     if (m?['bank_id'] != null) _selectedBankId = m!['bank_id'] as int?;
     _loadBanks();
+    _loadPhonesAndDocuments();
   }
 
   Future<void> _loadBanks() async {
@@ -124,14 +220,35 @@ class _CommercePaymentMethodFormPageState
 
   Future<void> _save() async {
     if (!_formKey.currentState!.validate() || _saving) return;
+    if (_type == 'mobile_payment') {
+      final phoneVal = _selectedPhoneValue ?? _phoneController.text.trim();
+      if (phoneVal.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ingresa o selecciona el teléfono de pago móvil'), backgroundColor: AppColors.red),
+        );
+        return;
+      }
+      final docVal = _selectedDocumentOwnerId ?? _documentController.text.trim();
+      if (docVal.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Selecciona o ingresa Cédula/RIF (Ajustes > Documentos si aún no tienes)'),
+            backgroundColor: AppColors.red,
+            duration: Duration(seconds: 4),
+          ),
+        );
+        return;
+      }
+    }
 
     setState(() => _saving = true);
 
     try {
+      final currency = _type == 'mobile_payment' ? 'VES' : _currencyController.text.trim();
       final referenceInfo = <String, dynamic>{
         'alias': _aliasController.text.trim(),
         'notes': _notesController.text.trim(),
-        'currency': _currencyController.text.trim(),
+        'currency': currency,
       };
       if (_type == 'digital_wallet') {
         referenceInfo['display_type'] = 'digital_wallet';
@@ -154,9 +271,7 @@ class _CommercePaymentMethodFormPageState
         'owner_name': _holderNameController.text.trim().isEmpty
             ? null
             : _holderNameController.text.trim(),
-        'owner_id': _documentController.text.trim().isEmpty
-            ? null
-            : _documentController.text.trim(),
+        'owner_id': _formatOwnerIdForPayload(_selectedDocumentOwnerId ?? _documentController.text.trim()),
         'is_default': _isDefault,
         'is_active': _isActive,
         'reference_info': referenceInfo,
@@ -165,8 +280,8 @@ class _CommercePaymentMethodFormPageState
       if (_selectedBankId != null) payload['bank_id'] = _selectedBankId;
 
       if (_type == 'mobile_payment') {
-        payload['phone'] =
-            _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim();
+        final phoneVal = _selectedPhoneValue ?? _phoneController.text.trim();
+        payload['phone'] = phoneVal.isEmpty ? null : phoneVal.replaceAll(RegExp(r'\D'), '');
       }
 
       if (_type == 'bank_transfer') {
@@ -253,39 +368,40 @@ class _CommercePaymentMethodFormPageState
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
-            _card(
-              context,
-              cardBg,
-              borderColor,
-              primaryText,
-              secondaryText,
-              inputBg,
-              'Tipo de método',
-              DropdownButtonFormField<String>(
-                initialValue: _type,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: inputBg,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: borderColor),
+            if (!isEdit || _type != 'mobile_payment')
+              _card(
+                context,
+                cardBg,
+                borderColor,
+                primaryText,
+                secondaryText,
+                inputBg,
+                'Tipo de método',
+                DropdownButtonFormField<String>(
+                  initialValue: _type,
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: inputBg,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: borderColor),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  items: const [
+                    DropdownMenuItem(value: 'card', child: Text('Tarjeta')),
+                    DropdownMenuItem(value: 'mobile_payment', child: Text('Pago móvil')),
+                    DropdownMenuItem(value: 'bank_transfer', child: Text('Transferencia bancaria')),
+                    DropdownMenuItem(value: 'digital_wallet', child: Text('Billetera digital')),
+                    DropdownMenuItem(value: 'other', child: Text('Otro')),
+                  ],
+                  onChanged: (v) {
+                    if (v == null) return;
+                    setState(() => _type = v);
+                  },
                 ),
-                items: const [
-                  DropdownMenuItem(value: 'card', child: Text('Tarjeta')),
-                  DropdownMenuItem(value: 'mobile_payment', child: Text('Pago móvil')),
-                  DropdownMenuItem(value: 'bank_transfer', child: Text('Transferencia bancaria')),
-                  DropdownMenuItem(value: 'digital_wallet', child: Text('Billetera digital')),
-                  DropdownMenuItem(value: 'other', child: Text('Otro')),
-                ],
-                onChanged: (v) {
-                  if (v == null) return;
-                  setState(() => _type = v);
-                },
               ),
-            ),
-            const SizedBox(height: 12),
+            if (!isEdit || _type != 'mobile_payment') const SizedBox(height: 12),
             _card(
               context,
               cardBg,
@@ -324,9 +440,90 @@ class _CommercePaymentMethodFormPageState
               secondaryText,
               inputBg,
               'Cédula/RIF',
-              TextFormField(
-                controller: _documentController,
-                decoration: _inputDecoration(inputBg, borderColor, 'V-12345678-9'),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Text('Tipo:', style: TextStyle(fontSize: 12, color: secondaryText)),
+                      const SizedBox(width: 8),
+                      DropdownButton<String>(
+                        value: _documentPrefix,
+                        isExpanded: false,
+                        underline: const SizedBox(),
+                        items: const [
+                          DropdownMenuItem(value: 'V', child: Text('V (Cédula)')),
+                          DropdownMenuItem(value: 'J', child: Text('J (RIF)')),
+                        ],
+                        onChanged: (v) {
+                          if (v != null) setState(() => _documentPrefix = v);
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (_documents.isNotEmpty && !_useManualDocument)
+                    DropdownButtonFormField<String>(
+                      value: _selectedDocumentOwnerId,
+                      decoration: InputDecoration(
+                        filled: true,
+                        fillColor: inputBg,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: borderColor),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      ),
+                      hint: const Text('Seleccionar documento'),
+                      items: [
+                        ..._documents.map((d) {
+                          final id = _formatOwnerIdFromDoc(d);
+                          return DropdownMenuItem<String>(
+                            value: id,
+                            child: Text(_formatDocDisplay(d), overflow: TextOverflow.ellipsis),
+                          );
+                        }),
+                        const DropdownMenuItem<String>(
+                          value: '__manual__',
+                          child: Text('Ingresar manualmente'),
+                        ),
+                      ],
+                      onChanged: (v) {
+                        setState(() {
+                          if (v == '__manual__') {
+                            _useManualDocument = true;
+                            _selectedDocumentOwnerId = null;
+                          } else {
+                            _selectedDocumentOwnerId = v;
+                            _useManualDocument = false;
+                            _documentController.text = v ?? '';
+                          }
+                        });
+                      },
+                    )
+                  else
+                    TextFormField(
+                      controller: _documentController,
+                      decoration: _inputDecoration(
+                        inputBg,
+                        borderColor,
+                        _documentPrefix == 'V' ? 'V-19.217.553' : 'J-19.217.553-0',
+                      ),
+                    ),
+                  if (_documents.isNotEmpty && _useManualDocument)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: TextButton.icon(
+                        onPressed: () => setState(() {
+                          _useManualDocument = false;
+                          _selectedDocumentOwnerId = _documents.isNotEmpty ? _formatOwnerIdFromDoc(_documents.first) : null;
+                          _documentController.text = _selectedDocumentOwnerId ?? '';
+                        }),
+                        icon: const Icon(Icons.list, size: 18),
+                        label: const Text('Elegir de mis documentos'),
+                      ),
+                    ),
+                ],
               ),
             ),
             if (_type == 'mobile_payment' || _type == 'bank_transfer') ...[
@@ -355,7 +552,8 @@ class _CommercePaymentMethodFormPageState
                         ? _selectedBankId
                         : null;
                     return DropdownButtonFormField<int?>(
-                      initialValue: effectiveBankValue,
+                      value: effectiveBankValue,
+                      isExpanded: true,
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: inputBg,
@@ -368,9 +566,12 @@ class _CommercePaymentMethodFormPageState
                       items: [
                         const DropdownMenuItem<int?>(value: null, child: Text('Seleccionar banco')),
                         ...bankItems.map((b) {
-                          final id = b['id'] is int ? b['id'] as int : (b['id'] is num ? (b['id'] as num).toInt() : null);
+                          final id = b['id'] is int ? b['id'] as int : (b['id'] as num).toInt();
                           final name = (b['name'] ?? '') as String;
-                          return DropdownMenuItem<int?>(value: id, child: Text(name));
+                          return DropdownMenuItem<int?>(
+                            value: id,
+                            child: Text(name, overflow: TextOverflow.ellipsis, maxLines: 1),
+                          );
                         }),
                       ],
                       onChanged: (v) => setState(() => _selectedBankId = v),
@@ -389,16 +590,68 @@ class _CommercePaymentMethodFormPageState
                 secondaryText,
                 inputBg,
                 'Teléfono de pago móvil *',
-                TextFormField(
-                  controller: _phoneController,
-                  keyboardType: TextInputType.phone,
-                  decoration: _inputDecoration(inputBg, borderColor, 'Ej: 04121234567'),
-                  validator: (v) {
-                    if (_type != 'mobile_payment') return null;
-                    if (v == null || v.trim().isEmpty) return 'Ingresa el teléfono de pago móvil';
-                    return null;
-                  },
-                ),
+                _loadingPhonesDocs
+                    ? const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator()))
+                    : _phones.isNotEmpty
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              DropdownButtonFormField<String>(
+                                value: _selectedPhoneValue == null && _phoneController.text.trim().isNotEmpty
+                                    ? '__manual__'
+                                    : (_selectedPhoneValue != null && _selectedPhoneValue!.isNotEmpty ? _selectedPhoneValue : null),
+                                isExpanded: true,
+                                decoration: InputDecoration(
+                                  filled: true,
+                                  fillColor: inputBg,
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(color: borderColor),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                ),
+                                hint: const Text('Seleccionar teléfono'),
+                                items: [
+                                  ..._phones.map((p) {
+                                    final full = '${p.operatorCodeName.replaceAll(RegExp(r'\D'), '')}${p.number}';
+                                    return DropdownMenuItem<String>(
+                                      value: full,
+                                      child: Text(p.fullNumber, overflow: TextOverflow.ellipsis),
+                                    );
+                                  }),
+                                  const DropdownMenuItem<String>(
+                                    value: '__manual__',
+                                    child: Text('Ingresar otro número'),
+                                  ),
+                                ],
+                                onChanged: (v) {
+                                  setState(() {
+                                    _selectedPhoneValue = (v == null || v == '__manual__') ? null : v;
+                                    if (v != '__manual__' && v != null) _phoneController.text = v;
+                                  });
+                                },
+                              ),
+                              if (_selectedPhoneValue == null && _phones.isNotEmpty && _phoneController.text.trim().isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: TextFormField(
+                                    controller: _phoneController,
+                                    keyboardType: TextInputType.phone,
+                                    decoration: _inputDecoration(inputBg, borderColor, 'Ej: 04121234567'),
+                                  ),
+                                ),
+                            ],
+                          )
+                        : TextFormField(
+                            controller: _phoneController,
+                            keyboardType: TextInputType.phone,
+                            decoration: _inputDecoration(inputBg, borderColor, 'Ej: 04121234567'),
+                            validator: (v) {
+                              if (_type != 'mobile_payment') return null;
+                              if (v == null || v.trim().isEmpty) return 'Ingresa el teléfono de pago móvil';
+                              return null;
+                            },
+                          ),
               ),
             ],
             if (_type == 'card') ...[
@@ -611,10 +864,20 @@ class _CommercePaymentMethodFormPageState
               secondaryText,
               inputBg,
               'Moneda principal (Bs / ref. USD)',
-              TextFormField(
-                controller: _currencyController,
-                decoration: _inputDecoration(inputBg, borderColor, 'VES'),
-              ),
+              _type == 'mobile_payment'
+                  ? Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      decoration: BoxDecoration(
+                        color: inputBg,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: borderColor),
+                      ),
+                      child: Text('Bs (VES)', style: TextStyle(fontSize: 16, color: primaryText)),
+                    )
+                  : TextFormField(
+                      controller: _currencyController,
+                      decoration: _inputDecoration(inputBg, borderColor, 'VES'),
+                    ),
             ),
             const SizedBox(height: 12),
             _card(

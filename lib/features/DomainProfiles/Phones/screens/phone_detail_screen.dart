@@ -6,8 +6,10 @@ import 'package:zonix/features/utils/app_colors.dart';
 
 class PhoneDetailScreen extends StatefulWidget {
   final Phone phone;
+  /// user_id del dueño del perfil (para EditPhoneScreen y servicios que usan user_id).
+  final int userId;
 
-  const PhoneDetailScreen({super.key, required this.phone});
+  const PhoneDetailScreen({super.key, required this.phone, required this.userId});
 
   @override
   PhoneDetailScreenState createState() => PhoneDetailScreenState();
@@ -330,7 +332,7 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
       MaterialPageRoute(
         builder: (context) => EditPhoneScreen(
           phone: widget.phone,
-          userId: widget.phone.profileId,
+          userId: widget.userId,
         ),
       ),
     );

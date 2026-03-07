@@ -13,6 +13,7 @@ import 'package:zonix/features/screens/auth/sign_in_screen.dart';
 import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_list_screen.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
+import 'package:zonix/features/DomainProfiles/Documents/screens/document_list_screen.dart';
 import 'package:zonix/features/screens/about/about_page.dart';
 import 'package:zonix/features/screens/help/help_and_faq_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
@@ -988,6 +989,21 @@ class _SettingsPage2State extends State<SettingsPage2> {
               context,
               MaterialPageRoute(
                 builder: (_) => PhoneScreen(userId: userProvider.userId),
+              )),
+        ),
+        const SizedBox(height: 12),
+        _buildStitchTile(
+          context: context,
+          theme: theme,
+          icon: Icons.badge_outlined,
+          iconColor: AppColors.orange,
+          title: 'Documentos',
+          surfaceColor: surfaceColor,
+          borderColor: borderColor,
+          onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => DocumentListScreen(userId: userProvider.userId),
               )),
         ),
         const SizedBox(height: 20),

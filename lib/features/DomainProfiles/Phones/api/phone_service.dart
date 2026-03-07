@@ -14,16 +14,16 @@ class PhoneService {
     return await _storage.read(key: 'token');
   }
 
-  // Mejorado: Obtener teléfonos con mejor manejo de errores
-  Future<List<Phone>> fetchPhones(int id) async {
+  /// Lista los teléfonos del usuario autenticado (GET /api/phones/).
+  /// No requiere pasar id; usa el token para identificar al usuario.
+  Future<List<Phone>> fetchMyPhones() async {
     try {
       final token = await _getToken();
       if (token == null) throw Exception('Token no encontrado.');
 
-      logger.i('Fetching phones for user: $id');
-      
+      logger.i('Fetching my phones (index)');
       final response = await http.get(
-        Uri.parse('${AppConfig.apiUrl}/api/phones/$id'),
+        Uri.parse('${AppConfig.apiUrl}/api/phones'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -38,7 +38,7 @@ class PhoneService {
         logger.i('Fetched ${phones.length} phones');
         return phones;
       } else if (response.statusCode == 404) {
-        logger.w('No phones found for user: $id');
+        logger.w('No profile or phones');
         return [];
       } else {
         logger.e('Error fetching phones: ${response.statusCode} - ${response.body}');
@@ -51,6 +51,51 @@ class PhoneService {
       }
       throw Exception('Error al obtener teléfonos: $e');
     }
+  }
+
+  /// Lista los teléfonos de un usuario por su user_id (GET /api/phones/{user_id}).
+  /// El backend interpreta el id como user_id para buscar el perfil.
+  Future<List<Phone>> fetchPhonesByUserId(int userId) async {
+    try {
+      final token = await _getToken();
+      if (token == null) throw Exception('Token no encontrado.');
+
+      logger.i('Fetching phones for user: $userId');
+      final response = await http.get(
+        Uri.parse('${AppConfig.apiUrl}/api/phones/$userId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      ).timeout(const Duration(seconds: 10));
+
+      logger.i('Response status: ${response.statusCode}');
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        final phones = data.map((e) => Phone.fromJson(e)).toList();
+        logger.i('Fetched ${phones.length} phones');
+        return phones;
+      } else if (response.statusCode == 404) {
+        logger.w('No phones found for user: $userId');
+        return [];
+      } else {
+        logger.e('Error fetching phones: ${response.statusCode} - ${response.body}');
+        throw Exception('Error al obtener teléfonos: ${response.statusCode}');
+      }
+    } catch (e) {
+      logger.e('Exception fetching phones: $e');
+      if (e.toString().contains('timeout')) {
+        throw Exception('Tiempo de espera agotado. Verifica tu conexión.');
+      }
+      throw Exception('Error al obtener teléfonos: $e');
+    }
+  }
+
+  /// @deprecated Use [fetchMyPhones] or [fetchPhonesByUserId]. Kept for compatibility.
+  /// Si tienes el user_id del usuario, usa [fetchPhonesByUserId].
+  Future<List<Phone>> fetchPhones(int id) async {
+    return fetchPhonesByUserId(id);
   }
 
   // Mejorado: Crear teléfono con validaciones
@@ -138,8 +183,11 @@ class PhoneService {
       logger.i('Update phone response: ${response.statusCode}');
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final updatedPhone = Phone.fromJson(data);
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final phoneJson = data['phone'];
+        final updatedPhone = phoneJson != null
+            ? Phone.fromJson(Map<String, dynamic>.from(phoneJson as Map))
+            : Phone.fromJson(data);
         logger.i('Phone updated successfully');
         return updatedPhone;
       } else {

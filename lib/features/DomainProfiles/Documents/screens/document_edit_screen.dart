@@ -2,9 +2,10 @@ import 'package:zonix/features/utils/app_colors.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:zonix/features/DomainProfiles/Documents/api/document_service.dart';
-import 'package:zonix/features/DomainProfiles/Documents/widgets/mobile_scanner_xz.dart';
 import '../models/document.dart';
 import 'package:flutter/services.dart';
+import 'package:zonix/features/utils/document_input_formatters.dart';
+import 'package:zonix/features/utils/rif_formatter.dart';
 import 'package:logger/logger.dart';
 import 'package:image/image.dart' as img;
 import 'package:zonix/features/utils/user_provider.dart';
@@ -34,19 +35,15 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
   late String _selectedType;
   int? _numberCi;
   String? _frontImage;
-  String? _rifUrl;
+  String? _rifNumber;
   String? _taxDomicile;
-  int? _sky;
   DateTime? _issuedAt;
   DateTime? _expiresAt;
-  int? _receiptN;
 
   // Controllers
   final TextEditingController _numberCiController = TextEditingController();
+  final TextEditingController _rifNumberController = TextEditingController();
   final TextEditingController _taxDomicileController = TextEditingController();
-  final TextEditingController _rifUrlController = TextEditingController();
-  final TextEditingController _receiptNController = TextEditingController();
-  final TextEditingController _skyController = TextEditingController();
 
   DocumentScanner? _documentScanner;
   DocumentScanningResult? _result;
@@ -61,19 +58,14 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     _selectedType = widget.document.type ?? 'ci';
     _numberCi = int.tryParse(widget.document.numberCi ?? '');
     _frontImage = widget.document.frontImage;
-    _rifUrl = widget.document.rifUrl;
+    _rifNumber = widget.document.rifNumber;
     _taxDomicile = widget.document.taxDomicile;
-    _sky = widget.document.sky;
     _issuedAt = widget.document.issuedAt;
     _expiresAt = widget.document.expiresAt;
-    _receiptN = widget.document.receiptN;
 
-    // Initialize controllers
-    _numberCiController.text = _numberCi?.toString() ?? '';
+    _numberCiController.text = formatCiForDisplay(_numberCi);
+    _rifNumberController.text = formatRifDisplay(_rifNumber) ?? _rifNumber ?? '';
     _taxDomicileController.text = _taxDomicile ?? '';
-    _rifUrlController.text = _rifUrl ?? '';
-    _receiptNController.text = _receiptN?.toString() ?? '';
-    _skyController.text = _sky?.toString() ?? '';
   }
 
   @override
@@ -327,8 +319,8 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     final colorScheme = theme.colorScheme;
     
     final Map<String, String> typeTranslations = {
+      // Solo CI y RIF según regla de negocio
       'ci': 'Cédula de Identidad',
-      'passport': 'Pasaporte',
       'rif': 'RIF',
     };
 
@@ -385,8 +377,6 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     switch (_selectedType) {
       case 'ci':
         return _buildCIFields();
-      case 'passport':
-        return _buildPassportFields();
       case 'rif':
         return _buildRIFFields();
       default:
@@ -406,28 +396,33 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     );
   }
 
-  Widget _buildPassportFields() {
-    return _buildFieldsCard(
-      'Información de Pasaporte',
-      Icons.flight_takeoff,
-      [
-        _buildReceiptNField(),
-        const SizedBox(height: 20),
-        _buildCommonFields(),
-      ],
-    );
-  }
-
   Widget _buildRIFFields() {
     return _buildFieldsCard(
       'Información de RIF',
       Icons.business,
       [
-        _buildSkyField(),
-        const SizedBox(height: 20),
-        _buildReceiptNField(),
-        const SizedBox(height: 20),
-        _buildQRScannerField(),
+        TextFormField(
+          controller: _rifNumberController,
+          decoration: InputDecoration(
+            labelText: 'Número RIF',
+            hintText: 'Ej: J-19217553-0',
+            prefixIcon: const Icon(Icons.numbers),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+          textCapitalization: TextCapitalization.characters,
+          inputFormatters: [RifVenezuelaInputFormatter()],
+          onSaved: (v) => _rifNumber = v?.trim(),
+          validator: (v) {
+            if (_selectedType != 'rif') return null;
+            final s = v?.trim() ?? '';
+            if (s.isEmpty) return 'Requerido para RIF';
+            final n = s.replaceAll(RegExp(r'[\s\-]'), '').toUpperCase();
+            if (!RegExp(r'^[VEJGP]\d{9}$').hasMatch(n)) {
+              return 'Formato: letra (V/E/J/G/P) + 8 dígitos + 1 dígito. Ej: J-19217553-0';
+            }
+            return null;
+          },
+        ),
         const SizedBox(height: 20),
         _buildTextField('Domicilio Fiscal', (value) => _taxDomicile = value),
         const SizedBox(height: 20),
@@ -476,73 +471,6 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     );
   }
 
-  Widget _buildQRScannerField() {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'QR RIF',
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-            color: colorScheme.onSurface,
-          ),
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            onPressed: _scanQRCode,
-            icon: const Icon(Icons.qr_code_scanner, size: 24),
-            label: const Text(
-              'Escanear QR RIF',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-            ),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colorScheme.primary,
-              foregroundColor: colorScheme.onPrimary,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ),
-        if (_rifUrl != null) ...[
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              children: [
-                const Icon(
-                  Icons.check_circle,
-                  color: AppColors.green,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'QR escaneado correctamente',
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: AppColors.green,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ],
-    );
-  }
-
   Widget _buildCommonFields() {
     return Column(
       children: [
@@ -565,7 +493,8 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     return TextFormField(
       controller: _numberCiController,
       decoration: InputDecoration(
-        labelText: 'Número de Documento',
+        labelText: 'Número de Cédula',
+        hintText: 'Ej: V-12.345.678',
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -574,62 +503,20 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
           vertical: 12,
         ),
       ),
-      onSaved: (value) => _numberCi = int.tryParse(value ?? ''),
+      onSaved: (value) {
+        final digits = (value ?? '').replaceAll(RegExp(r'[^0-9]'), '');
+        _numberCi = digits.isEmpty ? null : int.tryParse(digits);
+      },
       inputFormatters: [
-        FilteringTextInputFormatter.digitsOnly,
-        LengthLimitingTextInputFormatter(8),
+        CiVenezuelaInputFormatter(),
+        LengthLimitingTextInputFormatter(12),
       ],
       keyboardType: TextInputType.number,
       validator: (value) {
-        if (value == null || value.length < 7 || value.length > 8) {
-          return 'Por favor, ingrese un número entre 7 y 8 dígitos';
-        }
-        return null;
-      },
-    );
-  }
-
-  Widget _buildReceiptNField() {
-    return TextFormField(
-      controller: _receiptNController,
-      decoration: InputDecoration(
-        labelText: 'Número de Comprobante',
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
-      ),
-      onSaved: (value) => _receiptN = int.tryParse(value ?? ''),
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      keyboardType: TextInputType.number,
-    );
-  }
-
-  Widget _buildSkyField() {
-    return TextFormField(
-      controller: _skyController,
-      decoration: InputDecoration(
-        labelText: 'Número Sky',
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
-      ),
-      onSaved: (value) => _sky = int.tryParse(value ?? ''),
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      keyboardType: TextInputType.number,
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Este campo es obligatorio';
-        }
-        if (value.length < 9 || value.length > 11) {
-          return 'El número debe tener entre 9 y 11 dígitos';
+        final digits = (value ?? '').replaceAll(RegExp(r'[^0-9]'), '');
+        if (digits.isEmpty) return 'Requerido para cédula';
+        if (digits.length < 6 || digits.length > 9) {
+          return 'Entre 6 y 9 dígitos (ej. V-12.345.678)';
         }
         return null;
       },
@@ -820,8 +707,6 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     switch (type) {
       case 'ci':
         return Icons.badge;
-      case 'passport':
-        return Icons.flight_takeoff;
       case 'rif':
         return Icons.business;
       default:
@@ -833,25 +718,6 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
     if (path == null || path.isEmpty) return null;
     if (path.startsWith('http')) return null; // Skip network images
     return File(path);
-  }
-
-  Future<void> _scanQRCode() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const QRScannerScreen()),
-    );
-
-    if (result != null && result is String) {
-      setState(() {
-        _rifUrl = result;
-      });
-    } else {
-      logger.e('Escaneo cancelado o fallido.');
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Escaneo cancelado o fallido.')),
-      );
-    }
   }
 
   Future<void> _updateDocument() async {
@@ -874,12 +740,8 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
           id: widget.document.id,
           type: _selectedType,
           numberCi: _numberCi?.toString(),
-          receiptN: _receiptN,
-          rifUrl: _rifUrl,
+          rifNumber: _rifNumber?.trim().isEmpty == true ? null : _rifNumber?.trim(),
           taxDomicile: _taxDomicile,
-          sky: _sky,
-          communeRegister: null,
-          communityRif: null,
           frontImage: _frontImage,
           issuedAt: _issuedAt,
           expiresAt: _expiresAt,

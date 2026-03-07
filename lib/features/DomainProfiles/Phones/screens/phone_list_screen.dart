@@ -447,7 +447,7 @@ class PhoneScreenState extends State<PhoneScreen> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => PhoneDetailScreen(phone: phone),
+        builder: (context) => PhoneDetailScreen(phone: phone, userId: widget.userId),
       ),
     );
     if (!context.mounted) return;

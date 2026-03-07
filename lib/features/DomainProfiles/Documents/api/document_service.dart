@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/DomainProfiles/Addresses/api/adresse_service.dart';
+import 'package:zonix/features/utils/rif_formatter.dart';
 import '../models/document.dart';
 
 final logger = Logger();
@@ -16,33 +17,59 @@ class DocumentService {
     return await _storage.read(key: 'token');
   }
 
-  Future<List<Document>> fetchDocuments(int id) async {
-    logger.i('Fetching documents for profile ID: $id');
+  /// Lista los documentos del usuario autenticado (GET /api/documents/).
+  Future<List<Document>> fetchMyDocuments() async {
     final token = await _getToken();
-
     try {
       if (token == null) throw Exception('Token not found.');
-      
       final response = await http.get(
-        Uri.parse('${AppConfig.apiUrl}/api/documents/$id'),
+        Uri.parse('${AppConfig.apiUrl}/api/documents'),
         headers: {'Authorization': 'Bearer $token'},
       );
-
       if (response.statusCode == 200) {
         final List<dynamic> jsonResponse = json.decode(response.body);
-        logger.i('Documents fetched successfully: ${jsonResponse.length} documents found.');
+        logger.i('Documents fetched (index): ${jsonResponse.length} documents found.');
+        return jsonResponse.map((doc) => Document.fromJson(doc)).toList();
+      }
+      logger.w('fetchMyDocuments: ${response.statusCode}');
+      return [];
+    } catch (e) {
+      logger.e('Error during fetchMyDocuments: $e');
+      throw Exception('Error fetching documents: $e');
+    }
+  }
+
+  /// Lista los documentos de un usuario por su user_id (GET /api/documents/{user_id}).
+  /// El backend interpreta el id como user_id para buscar el perfil.
+  Future<List<Document>> fetchDocumentsByUserId(int userId) async {
+    logger.i('Fetching documents for user ID: $userId');
+    final token = await _getToken();
+    try {
+      if (token == null) throw Exception('Token not found.');
+      final response = await http.get(
+        Uri.parse('${AppConfig.apiUrl}/api/documents/$userId'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> jsonResponse = json.decode(response.body);
+        logger.i('Documents fetched: ${jsonResponse.length} documents found.');
         return jsonResponse.map((doc) => Document.fromJson(doc)).toList();
       } else if (response.statusCode == 404) {
-        logger.w('No documents found for profile ID: $id');
-        return []; // Return an empty list if no documents are found
+        logger.w('No documents found for user ID: $userId');
+        return [];
       } else {
         logger.e('Unexpected error: ${response.statusCode} - ${response.body}');
         throw Exception('Error fetching documents: ${response.statusCode}');
       }
     } catch (e) {
-      logger.e('Error during fetchDocuments execution: $e');
+      logger.e('Error during fetchDocumentsByUserId: $e');
       throw Exception('Error fetching documents: $e');
     }
+  }
+
+  /// @deprecated Use [fetchMyDocuments] or [fetchDocumentsByUserId].
+  Future<List<Document>> fetchDocuments(int id) async {
+    return fetchDocumentsByUserId(id);
   }
 
   Future<void> createDocument(
@@ -68,23 +95,17 @@ class DocumentService {
       request.fields['issued_at'] = document.issuedAt?.toIso8601String() ?? '';
       request.fields['expires_at'] = document.expiresAt?.toIso8601String() ?? '';
 
-      // Configure additional fields based on type
+      // Solo CI y RIF según regla de negocio
       switch (document.type) {
         case 'ci':
           request.fields['number_ci'] = document.numberCi?.toString() ?? '';
           break;
-        case 'passport':
-          request.fields['RECEIPT_N'] = document.receiptN?.toString() ?? '';
-          break;
         case 'rif':
-          request.fields['sky'] = document.sky?.toString() ?? '';
-          request.fields['RECEIPT_N'] = document.receiptN?.toString() ?? '';
-          request.fields['rif_url'] = document.rifUrl ?? '';
+          if (document.rifNumber != null && document.rifNumber!.trim().isNotEmpty) {
+            final raw = document.rifNumber!.trim();
+            request.fields['rif_number'] = formatRifDisplay(raw) ?? raw;
+          }
           request.fields['taxDomicile'] = document.taxDomicile ?? '';
-          break;
-        case 'neighborhood_association':
-          request.fields['commune_register'] = document.communeRegister ?? '';
-          request.fields['community_rif'] = document.communityRif ?? '';
           break;
         default:
           logger.w('Unrecognized document type: ${document.type}');
@@ -113,7 +134,8 @@ class DocumentService {
     }
   }
 
-  Future<void> updateDocument(
+  /// Actualiza un documento. Devuelve el documento actualizado si la respuesta lo incluye.
+  Future<Document?> updateDocument(
     Document document,
     int userId, {
     File? frontImageFile,
@@ -137,23 +159,17 @@ class DocumentService {
       request.fields['issued_at'] = document.issuedAt?.toIso8601String() ?? '';
       request.fields['expires_at'] = document.expiresAt?.toIso8601String() ?? '';
 
-      // Configure additional fields based on type
+      // Solo CI y RIF según regla de negocio
       switch (document.type) {
         case 'ci':
           request.fields['number_ci'] = document.numberCi?.toString() ?? '';
           break;
-        case 'passport':
-          request.fields['RECEIPT_N'] = document.receiptN?.toString() ?? '';
-          break;
         case 'rif':
-          request.fields['sky'] = document.sky?.toString() ?? '';
-          request.fields['RECEIPT_N'] = document.receiptN?.toString() ?? '';
-          request.fields['rif_url'] = document.rifUrl ?? '';
+          if (document.rifNumber != null && document.rifNumber!.trim().isNotEmpty) {
+            final raw = document.rifNumber!.trim();
+            request.fields['rif_number'] = formatRifDisplay(raw) ?? raw;
+          }
           request.fields['taxDomicile'] = document.taxDomicile ?? '';
-          break;
-        case 'neighborhood_association':
-          request.fields['commune_register'] = document.communeRegister ?? '';
-          request.fields['community_rif'] = document.communityRif ?? '';
           break;
         default:
           logger.w('Unrecognized document type: ${document.type}');
@@ -168,11 +184,19 @@ class DocumentService {
 
       // Send the request
       final response = await request.send();
+      final responseBody = await response.stream.bytesToString();
 
       if (response.statusCode == 200) {
         logger.i('Document updated successfully.');
+        try {
+          final data = json.decode(responseBody) as Map<String, dynamic>;
+          final docJson = data['document'];
+          if (docJson != null) {
+            return Document.fromJson(Map<String, dynamic>.from(docJson as Map));
+          }
+        } catch (_) {}
+        return null;
       } else {
-        final responseBody = await response.stream.bytesToString();
         logger.e('Error updating document: ${response.statusCode} - $responseBody');
         throw Exception('Error updating document: $responseBody');
       }

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:zonix/features/screens/commerce/commerce_payment_method_form_page.dart';
 import 'package:zonix/features/services/payment_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/rif_formatter.dart';
 
 /// Pantalla de detalle de un método de pago. Muestra una vista distinta según el tipo
 /// (tarjeta, pago móvil, billetera, transferencia, otro). Efectivo no se configura aquí.
@@ -30,6 +31,11 @@ class PaymentMethodDetailPage extends StatelessWidget {
 
   bool _isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
+
+  String _formatOwnerIdDisplay(String value) {
+    if (value == '—' || value.isEmpty) return value;
+    return formatRifDisplay(value) ?? value;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -322,7 +328,7 @@ class PaymentMethodDetailPage extends StatelessWidget {
           [
             _InfoRow('Banco', (ref['bank'] ?? method['bank'] ?? '—').toString(), Icons.account_balance, ''),
             _InfoRow('Número de Teléfono', (method['phone'] ?? '—').toString(), Icons.smartphone, ''),
-            _InfoRow('Documento (RIF/CI)', (method['owner_id'] ?? '—').toString(), Icons.badge, ''),
+            _InfoRow('Documento (RIF/CI)', _formatOwnerIdDisplay((method['owner_id'] ?? '—').toString()), Icons.badge, ''),
             _InfoRow('Alias del método', alias.toString(), Icons.label, ''),
           ],
         ),
@@ -505,7 +511,7 @@ class PaymentMethodDetailPage extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(child: _detailCol('Titular', holder.toString(), primaryText, secondaryText)),
-                        Expanded(child: _detailCol('RIF / Cédula', rif.toString(), primaryText, secondaryText)),
+                        Expanded(child: _detailCol('RIF / Cédula', _formatOwnerIdDisplay(rif.toString()), primaryText, secondaryText)),
                       ],
                     ),
                   ],
