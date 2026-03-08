@@ -21,12 +21,13 @@
 | **Archivos Dart**        | 173                                      |
 | **Pantallas**            | 69                                       |
 | **Servicios**            | 49                                       |
-| **Tests**                | 214 pasaron ✅, 0 fallaron               |
+| **Tests**                | 235 pasaron ✅, 0 fallaron               |
 | **Plataformas**          | Android + iOS                            |
 | **Última actualización** | 6 Marzo 2026                             |
 
 ### Cambios recientes (documentar aquí los avances)
 
+- **6 Mar 2026:** Bottom nav: persistencia por rol (clave `bottomNavIndex_$role`), sin doble "Saved 0" al cargar rol; nivel por defecto y niveles permitidos por rol (level 0 = users, 1 = commerce, etc.). Lógica extraída a `lib/features/utils/bottom_nav_persistence.dart` (bottomNavStorageKey, defaultLevelForRole, levelsForRole). Tests en `test/features/utils/bottom_nav_persistence_test.dart` (21 tests: claves, niveles, SharedPreferences).
 - **6 Mar 2026:** Onboarding: dropdown código de operador (paso 1 y paso 3 comercio) con fallback si no hay carga, hint "Código", y formato de visualización (0412, no 00412) vía `_formatOperatorCodeDisplay` en `client_onboarding_flow.dart`.
 - **6 Mar 2026:** Módulo Documentos: DocumentService usa AuthHelper (getAuthHeaders/getToken) para evitar 401 tras escáner; pantalla editar RIF muestra y permite editar Domicilio fiscal (controller + TextFormField); modelo Document acepta `tax_domicile` del backend como fallback.
 - **6 Mar 2026:** Módulo Documents: solo CI y RIF; formato al escribir (CI: V-12.345.678, RIF: J-19217553-0) con `document_input_formatters.dart`; formato al mostrar con `rif_formatter.dart` y `formattedRifNumber`; estado Verificado/Pendiente en lista y detalle (`approved`). Requisito de documento para método de pago pago móvil (comercio). Tests: rif_formatter y Document model.
@@ -706,4 +707,4 @@ FORMATO DE SALIDA:
 
 **Documentación completa:** Ver `README.md`
 **Backend API:** Ver `zonix-eats-back/AGENTS.md`
-**Última actualización:** 4 Marzo 2026
+**Última actualización:** 6 Marzo 2026

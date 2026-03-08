@@ -4,7 +4,7 @@
 
 Frontend de la aplicación Zonix Eats desarrollado en Flutter. Aplicación móvil multi-plataforma para sistema de delivery de comida con soporte para múltiples roles de usuario.
 
-## 📊 Estado del Proyecto (Actualizado: 12 Feb 2026)
+## 📊 Estado del Proyecto (Actualizado: 6 Mar 2026)
 
 | Métrica           | Valor                                          |
 | ----------------- | ---------------------------------------------- |
@@ -13,7 +13,7 @@ Frontend de la aplicación Zonix Eats desarrollado en Flutter. Aplicación móvi
 | **Archivos Dart** | 173                                            |
 | **Pantallas**     | 69                                             |
 | **Servicios**     | 49 (2 legacy eliminados)                       |
-| **Tests**         | 214 pasaron ✅, 0 fallaron                     |
+| **Tests**         | 235 pasaron ✅, 0 fallaron                     |
 | **Roles**         | 4 (Standard: Buyer, Commerce, Delivery, Admin) |
 
 ### Terminología Estándar de Roles
@@ -25,8 +25,9 @@ Frontend de la aplicación Zonix Eats desarrollado en Flutter. Aplicación móvi
 | 2     | `delivery`   | **Delivery**    | Delivery Agent, Repartidor |
 | 3     | `admin`      | **Admin**       | Administrador              |
 
-### Cambios Recientes (Feb 2026)
+### Cambios Recientes (Mar 2026)
 
+- ✅ Bottom nav: persistencia por rol (`bottomNavIndex_$role`), helper `bottom_nav_persistence.dart` y 21 tests (claves, niveles, SharedPreferences).
 - ✅ Eliminada mock data de 11 servicios (~700 líneas) - errores de API ahora se muestran correctamente
 - ✅ Subida de imágenes para commerce implementada (ImagePicker + MultipartRequest)
 - ✅ Navegación admin dashboard corregida (4 botones funcionales)

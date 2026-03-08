@@ -11,6 +11,7 @@ import 'package:zonix/features/services/auth/api_service.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/utils/search_radius_provider.dart';
+import 'package:zonix/features/utils/bottom_nav_persistence.dart';
 import 'package:flutter/services.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -339,6 +340,8 @@ class MainRouterState extends State<MainRouter> {
   int _bottomNavIndex = 0;
   List<int> _allowedLevels = [];
   String? _lastRole;
+  /// Rol para el que ya se cargó la posición guardada (evita recargas).
+  String? _positionLoadedForRole;
 
   @override
   void initState() {
@@ -358,68 +361,37 @@ class MainRouterState extends State<MainRouter> {
     }
 
   Future<void> _loadLastPosition() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    // Sin rol aún: dejamos índice en 0; la posición por rol se carga en build() cuando haya rol.
     if (!mounted) return;
     setState(() {
-      _bottomNavIndex = prefs.getInt('bottomNavIndex') ?? 0;
-      logger.i(
-        'Loaded last position - bottomNavIndex: $_bottomNavIndex',
-      );
+      _bottomNavIndex = 0;
+      logger.i('Loaded last position - bottomNavIndex: 0 (sin rol aún)');
     });
   }
 
-  Future<void> _saveLastPosition() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('bottomNavIndex', _bottomNavIndex);
+  /// Carga la última posición guardada para [role] (clave bottomNavIndex_$role).
+  Future<void> _loadPositionForRole(String role) async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = bottomNavStorageKey(role);
+    final value = prefs.getInt(key) ?? 0;
     if (!mounted) return;
-    logger.i(
-      'Saved last position - bottomNavIndex: $_bottomNavIndex',
-    );
+    setState(() {
+      _bottomNavIndex = value;
+      _positionLoadedForRole = role;
+      logger.i('Loaded last position for $role - bottomNavIndex: $value');
+    });
   }
 
-  int _defaultLevelForRole(String role) {
-    switch (role) {
-      case 'commerce':
-        return 1;
-      case 'delivery_agent':
-      case 'delivery':
-        return 2;
-      case 'delivery_company':
-        return 3;
-      case 'admin':
-        return 4;
-      case 'users':
-      default:
-        return 0;
-    }
-  }
-
-  List<int> _levelsForRole(String role) {
-    // Mapeo de niveles según rol:
-    // 0: Comprador
-    // 1: Comercio
-    // 2: Delivery Rider (motorizado / conductor)
-    // 3: Delivery Company
-    // 4: Admin
-    switch (role) {
-      case 'commerce':
-        // Comercio SOLO usa su propio nivel (no debe ver comprador)
-        return [1];
-      case 'delivery_agent':
-      case 'delivery':
-        // Riders: SOLO su propio nivel (2), no ven comprador
-        return [2];
-      case 'delivery_company':
-        // Empresas de delivery: solo su propio nivel (3)
-        return [3];
-      case 'admin':
-        // Admin SOLO usa su nivel (4)
-        return [4];
-      case 'users':
-      default:
-        // Comprador normal
-        return [0];
-    }
+  /// Guarda el índice de la bottom nav por rol. Si [index] se pasa, se guarda ese valor.
+  /// [role] si no se pasa se toma del UserProvider (debe estar disponible en build/tap).
+  Future<void> _saveLastPosition([int? index, String? role]) async {
+    final valueToSave = index ?? _bottomNavIndex;
+    final r = role ?? Provider.of<UserProvider>(context, listen: false).userRole;
+    final key = bottomNavStorageKey(r);
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(key, valueToSave);
+    if (!mounted) return;
+    logger.i('Saved last position for ${r.isEmpty ? 'users' : r} - bottomNavIndex: $valueToSave');
   }
 
   String _labelForLevel(int level) {
@@ -488,7 +460,7 @@ class MainRouterState extends State<MainRouter> {
                     setState(() {
                       _selectedLevel = level;
                       _bottomNavIndex = 0;
-                      _saveLastPosition();
+                      _saveLastPosition(0, _lastRole ?? 'users');
                     });
                     Navigator.pop(context);
                   },
@@ -652,7 +624,7 @@ class MainRouterState extends State<MainRouter> {
       setState(() {
         _bottomNavIndex = index; // Actualiza el índice seleccionado
         logger.i('Bottom nav index changed to: $_bottomNavIndex');
-        _saveLastPosition();
+        _saveLastPosition(index); // Guardar el índice actual para no pisarlo en async
       });
     }
   }
@@ -662,25 +634,33 @@ class MainRouterState extends State<MainRouter> {
     final userProvider = Provider.of<UserProvider>(context);
 
     // Calcular niveles permitidos según el rol del usuario
-    var role = userProvider.userRole;
-    if (role.isEmpty) {
-      role = 'users';
-    }
+    final rawRole = userProvider.userRole;
+    final role = rawRole.isEmpty ? 'users' : rawRole;
 
-    // Si el rol cambió (ej. después de login), forzamos el nivel por defecto de ese rol
-    if (_lastRole != role) {
+    // Solo sincronizar _lastRole cuando tenemos un rol real del backend (no vacío).
+    // Si userRole está vacío estamos en carga y no debemos guardar 'users' como _lastRole,
+    // o en el siguiente build pensaremos que el rol "cambió" y resetearemos la pestaña a 0.
+    if (rawRole.isNotEmpty && _lastRole != role) {
+      final wasUnset = _lastRole?.isEmpty ?? true;
       _lastRole = role;
-      _allowedLevels = _levelsForRole(role);
-      _selectedLevel = _defaultLevelForRole(role);
-      _bottomNavIndex = 0;
-      _saveLastPosition();
+      _positionLoadedForRole = null; // cargar de nuevo para este rol
+      _allowedLevels = levelsForRole(role);
+      _selectedLevel = defaultLevelForRole(role);
+      if (!wasUnset) {
+        _bottomNavIndex = 0;
+        _saveLastPosition(0, role);
+      }
+      _loadPositionForRole(role);
+    } else if (rawRole.isNotEmpty && _positionLoadedForRole != role) {
+      // Primera vez que tenemos rol en esta sesión: cargar posición guardada para este rol
+      _loadPositionForRole(role);
     } else if (_allowedLevels.isEmpty) {
       // Primera vez que se calculan los niveles permitidos
-      _allowedLevels = _levelsForRole(role);
+      _allowedLevels = levelsForRole(role);
       if (!_allowedLevels.contains(_selectedLevel)) {
-        _selectedLevel = _defaultLevelForRole(role);
+        _selectedLevel = defaultLevelForRole(role);
         _bottomNavIndex = 0;
-        _saveLastPosition();
+        _saveLastPosition(0, role);
       }
     }
 
@@ -758,7 +738,7 @@ class MainRouterState extends State<MainRouter> {
                 logger.i('Role fetched: $role');
 
                 // Forzar SIEMPRE el nivel según el rol para evitar que quede en 0 por defecto
-                _selectedLevel = _defaultLevelForRole(role);
+                _selectedLevel = defaultLevelForRole(role);
 
                 // Nivel 0: Comprador - BuyerShell (header Delivering to + search) + nav original
                 if (_selectedLevel == 0) {
