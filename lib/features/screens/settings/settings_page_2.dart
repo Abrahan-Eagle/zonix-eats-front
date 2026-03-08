@@ -26,9 +26,7 @@ import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/screens/settings/commerce_data_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:zonix/config/app_config.dart';
-import 'package:zonix/features/screens/settings/commerce_payment_page.dart';
 import 'package:zonix/features/screens/settings/commerce_schedule_page.dart';
-import 'package:zonix/features/screens/settings/commerce_open_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_promotions_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_zones_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
@@ -958,28 +956,26 @@ class _SettingsPage2State extends State<SettingsPage2> {
                 builder: (_) => AddressPage(userId: userProvider.userId),
               )),
         ),
-        const SizedBox(height: 12),
-        _buildStitchTile(
-          context: context,
-          theme: theme,
-          icon: Icons.credit_card,
-          iconColor: AppColors.amber,
-          title: 'Métodos de pago',
-          surfaceColor: surfaceColor,
-          borderColor: borderColor,
-          onTap: () {
-            // Reutilizamos la lógica existente: si es comercio, abrimos métodos de pago del comercio;
-            // si es usuario normal, por ahora mostramos la misma pantalla (se puede afinar luego).
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => isCommerce
-                    ? const CommercePaymentMethodsPage()
-                    : const CommercePaymentMethodsPage(),
-              ),
-            );
-          },
-        ),
+        if (!isCommerce) ...[
+          const SizedBox(height: 12),
+          _buildStitchTile(
+            context: context,
+            theme: theme,
+            icon: Icons.credit_card,
+            iconColor: AppColors.amber,
+            title: 'Métodos de pago',
+            surfaceColor: surfaceColor,
+            borderColor: borderColor,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const CommercePaymentMethodsPage(),
+                ),
+              );
+            },
+          ),
+        ],
         const SizedBox(height: 12),
         _buildStitchTile(
           context: context,
@@ -1628,13 +1624,14 @@ class _SettingsPage2State extends State<SettingsPage2> {
                   MaterialPageRoute(
                       builder: (_) => const ActivityHistoryPage())),
             ),
-            _MasTile(
-              icon: Icons.download_rounded,
-              iconColor: AppColors.green,
-              title: 'Exportar datos',
-              onTap: () => Navigator.push(context,
-                  MaterialPageRoute(builder: (_) => const DataExportPage())),
-            ),
+            if (role != 'users')
+              _MasTile(
+                icon: Icons.download_rounded,
+                iconColor: AppColors.green,
+                title: 'Exportar datos',
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const DataExportPage())),
+              ),
             _MasTile(
               icon: Icons.privacy_tip_outlined,
               iconColor: AppColors.amber,
@@ -1721,17 +1718,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
               _MasTile(
                   icon: Icons.campaign,
                   iconColor: AppColors.amber,
-                  title: 'Crear promo',
-                  subtitle: 'Impulsa tus ventas',
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const CommercePromotionsPage()))),
-              _MasTile(
-                  icon: Icons.local_activity,
-                  iconColor: AppColors.amber,
-                  title: 'Cupones',
-                  subtitle: 'Gestionar descuentos',
+                  title: 'Promociones y cupones',
+                  subtitle: 'Crear promos y gestionar descuentos',
                   onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -1747,29 +1735,14 @@ class _SettingsPage2State extends State<SettingsPage2> {
             borderColor: borderColor,
             tiles: [
               _MasTile(
-                  icon: Icons.toggle_on_rounded,
-                  iconColor: AppColors.red,
-                  title: 'Estado abierto/cerrado',
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const CommerceOpenPage()))),
-              _MasTile(
                   icon: Icons.map_outlined,
                   iconColor: AppColors.brown,
                   title: 'Zonas de delivery',
+                  subtitle: 'Áreas de entrega',
                   onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (_) => const CommerceZonesPage()))),
-              _MasTile(
-                  icon: Icons.payment_rounded,
-                  iconColor: AppColors.green,
-                  title: 'Datos de pago móvil',
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const CommercePaymentPage()))),
               _MasTile(
                   icon: Icons.notifications_outlined,
                   iconColor: AppColors.amber,

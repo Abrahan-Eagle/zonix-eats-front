@@ -4,6 +4,7 @@ import 'package:zonix/models/commerce_product.dart';
 import 'package:zonix/features/services/commerce_product_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
+import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
 
 class CommerceProductsPage extends StatefulWidget {
   const CommerceProductsPage({super.key});
@@ -152,6 +153,15 @@ class _CommerceProductsPageState extends State<CommerceProductsPage> {
       appBar: AppBar(
         title: const Text('Productos'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const CommerceNotificationsPage(),
+              ),
+            ),
+          ),
           IconButton(
             icon: Icon(
               _filterAvailableOnly ? Icons.filter_list : Icons.filter_list_off,

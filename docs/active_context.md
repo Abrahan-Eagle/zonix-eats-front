@@ -9,10 +9,10 @@
 
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
-- **Fecha:** —
-- **Resumen:** —
-- **Áreas tocadas:** —
-- **Próximos pasos sugeridos:** —
+- **Fecha:** 6 Mar 2026
+- **Resumen:** Módulo Ayuda y Soporte dado por terminado (UI mejorada, analyzer corregido, documentación y library directives).
+- **Áreas tocadas:** `lib/features/screens/help/help_and_faq_page.dart`, `lib/features/utils/bottom_nav_persistence.dart`, `AGENTS.md`.
+- **Próximos pasos sugeridos:** Elegir siguiente módulo (p. ej. i18n, optimización de imágenes, error handling centralizado, tests de widgets, offline/caché, o tarea de negocio que indiques).
 
 ---
 

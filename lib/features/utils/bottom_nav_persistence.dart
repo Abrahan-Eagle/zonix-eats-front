@@ -1,6 +1,7 @@
 /// Helpers para persistencia del índice de la bottom nav por rol.
 /// Usado por [MainRouter] en main.dart.
 /// level 0 = users, 1 = commerce, 2 = delivery/delivery_agent, 3 = delivery_company, 4 = admin.
+library bottom_nav_persistence;
 
 /// Clave de SharedPreferences para guardar el índice de la bottom nav de un rol.
 /// Rol vacío se normaliza a 'users'.

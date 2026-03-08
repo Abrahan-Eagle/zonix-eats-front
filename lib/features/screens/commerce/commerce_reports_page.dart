@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/services/commerce_analytics_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
 
 class CommerceReportsPage extends StatefulWidget {
   const CommerceReportsPage({super.key});
@@ -85,6 +86,15 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
       appBar: AppBar(
         title: const Text('Reportes'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const CommerceNotificationsPage(),
+              ),
+            ),
+          ),
           DropdownButton<String>(
             value: _period,
             items: const [

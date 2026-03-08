@@ -27,6 +27,7 @@ Frontend de la aplicación Zonix Eats desarrollado en Flutter. Aplicación móvi
 
 ### Cambios Recientes (Mar 2026)
 
+- ✅ Módulo Ayuda y Soporte cerrado: contenido por rol, búsqueda FAQs, temas populares, acordeón "Ver todas", contacto Chat/Correo; mejoras UI y correcciones analyzer (library directives, prefer_const_constructors).
 - ✅ Bottom nav: persistencia por rol (`bottomNavIndex_$role`), helper `bottom_nav_persistence.dart` y 21 tests (claves, niveles, SharedPreferences).
 - ✅ Eliminada mock data de 11 servicios (~700 líneas) - errores de API ahora se muestran correctamente
 - ✅ Subida de imágenes para commerce implementada (ImagePicker + MultipartRequest)

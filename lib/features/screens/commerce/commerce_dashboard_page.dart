@@ -5,6 +5,8 @@ import 'package:zonix/features/services/commerce_order_service.dart';
 import 'package:zonix/features/services/commerce_data_service.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/screens/commerce/commerce_promotions_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
 
 class CommerceDashboardPage extends StatefulWidget {
   const CommerceDashboardPage({
@@ -181,22 +183,37 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
       );
     }
 
-    return RefreshIndicator(
-      onRefresh: _loadData,
-      child: SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _commerceOpen ? 'Comercio abierto' : 'Comercio cerrado',
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Dashboard'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_outlined),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const CommerceNotificationsPage(),
+              ),
+            ),
+          ),
+        ],
+      ),
+      body: RefreshIndicator(
+        onRefresh: _loadData,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _commerceOpen ? 'Comercio abierto' : 'Comercio cerrado',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: _commerceOpen ? AppColors.green : AppColors.red,
                       ),
@@ -323,26 +340,6 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
               children: [
                 Expanded(
                   child: _QuickActionButton(
-                    icon: Icons.receipt,
-                    label: 'Ver Órdenes',
-                    onTap: () => Navigator.pushNamed(context, '/commerce/orders'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _QuickActionButton(
-                    icon: Icons.inventory,
-                    label: 'Productos',
-                    onTap: () => Navigator.pushNamed(context, '/commerce/products'),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: _QuickActionButton(
                     icon: Icons.chat,
                     label: 'Chat',
                     onTap: () => Navigator.pushNamed(context, '/commerce/chat'),
@@ -352,33 +349,27 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
                 Expanded(
                   child: _QuickActionButton(
                     icon: Icons.person,
-                    label: 'Perfil',
-                    onTap: () => Navigator.pushNamed(context, '/commerce/profile'),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: _QuickActionButton(
-                    icon: Icons.person,
-                    label: 'Mi Perfil',
+                    label: 'Mi perfil',
                     onTap: () => Navigator.pushNamed(context, '/commerce/profile'),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: _QuickActionButton(
-                    icon: Icons.analytics,
-                    label: 'Reportes',
-                    onTap: () => Navigator.pushNamed(context, '/commerce/reports'),
+                    icon: Icons.campaign,
+                    label: 'Promociones',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CommercePromotionsPage(),
+                      ),
+                    ),
                   ),
                 ),
               ],
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );
