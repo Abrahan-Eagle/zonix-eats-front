@@ -36,6 +36,20 @@ Cursor lee `AGENTS.md` automáticamente. Toda la información de desarrollo est�
 6. **El usuario prueba primero** y da la orden cuando está seguro
 7. **Documentar avances:** Usar la skill **documentar-avances**: al finalizar una tarea relevante, proponer el párrafo para "Cambios recientes" (AGENTS.md/README); el usuario aprueba antes de escribir. Al cerrar una sesión con cambios relevantes, usar la skill **context-updater** para actualizar `docs/active_context.md`. Si el cambio afecta una skill de dominio, actualizar la skill y su fecha.
 
+### Cierre de módulo y subida a GitHub
+
+**La decisión de subir actualizaciones a GitHub la toma siempre el usuario.** La IA no hace commit/push/merge sin que el usuario lo autorice.
+
+**Documentar siempre los cambios antes de hacer commit y push**, para que la documentación se guarde en el mismo commit (AGENTS.md, README, `docs/active_context.md`, skills si aplica).
+
+Cuando se termine un módulo o tarea:
+
+1. **Documentar:** Proponer y escribir (con aprobación del usuario) "Cambios recientes" en AGENTS.md/README, actualizar `docs/active_context.md` si la sesión lo amerita, y actualizar skills de dominio si aplica. Así el commit incluirá código + documentación.
+2. **Ejecutar tests** del proyecto (ej. `flutter test` en frontend).
+3. **Si los tests pasan:** Preguntar al usuario: *"Los tests pasaron. ¿Quieres que haga commit y push a la rama [ej. dev]?"* Solo si el usuario dice que sí, hacer commit y push a esa rama (incluyendo los archivos de documentación ya actualizados).
+4. **Después de actualizar la rama:** Preguntar: *"¿Quieres actualizar la rama main? (sí/no)"*. Si dice **sí**, hacer merge de la rama actual en `main` y push de `main`. Si dice **no**, no tocar `main`.
+5. Nunca asumir que debe subir o actualizar main; siempre preguntar y actuar según la respuesta del usuario.
+
 ### Convención de Respuesta
 
 ```
