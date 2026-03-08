@@ -71,7 +71,7 @@ class RifVenezuelaInputFormatter extends TextInputFormatter {
       if (text.length == 1 && _allowedLetters.contains(text)) {
         return TextEditingValue(
           text: '$text-',
-          selection: TextSelection.collapsed(offset: 2),
+          selection: const TextSelection.collapsed(offset: 2),
         );
       }
       if (text.isEmpty) {
@@ -92,13 +92,13 @@ class RifVenezuelaInputFormatter extends TextInputFormatter {
       if (text.length == 1 && text == letter) {
         return TextEditingValue(
           text: '$letter-',
-          selection: TextSelection.collapsed(offset: 2),
+          selection: const TextSelection.collapsed(offset: 2),
         );
       }
       if (text.startsWith(letter) && !text.startsWith('$letter-')) {
         return TextEditingValue(
           text: '$letter-',
-          selection: TextSelection.collapsed(offset: 2),
+          selection: const TextSelection.collapsed(offset: 2),
         );
       }
     }

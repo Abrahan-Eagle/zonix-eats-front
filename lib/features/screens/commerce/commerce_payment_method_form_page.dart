@@ -464,7 +464,7 @@ class _CommercePaymentMethodFormPageState
                   const SizedBox(height: 8),
                   if (_documents.isNotEmpty && !_useManualDocument)
                     DropdownButtonFormField<String>(
-                      value: _selectedDocumentOwnerId,
+                      initialValue: _selectedDocumentOwnerId,
                       decoration: InputDecoration(
                         filled: true,
                         fillColor: inputBg,
@@ -552,7 +552,7 @@ class _CommercePaymentMethodFormPageState
                         ? _selectedBankId
                         : null;
                     return DropdownButtonFormField<int?>(
-                      value: effectiveBankValue,
+                      initialValue: effectiveBankValue,
                       isExpanded: true,
                       decoration: InputDecoration(
                         filled: true,
@@ -597,7 +597,7 @@ class _CommercePaymentMethodFormPageState
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               DropdownButtonFormField<String>(
-                                value: _selectedPhoneValue == null && _phoneController.text.trim().isNotEmpty
+                                initialValue: _selectedPhoneValue == null && _phoneController.text.trim().isNotEmpty
                                     ? '__manual__'
                                     : (_selectedPhoneValue != null && _selectedPhoneValue!.isNotEmpty ? _selectedPhoneValue : null),
                                 isExpanded: true,
@@ -616,7 +616,7 @@ class _CommercePaymentMethodFormPageState
                                     final full = '${p.operatorCodeName.replaceAll(RegExp(r'\D'), '')}${p.number}';
                                     return DropdownMenuItem<String>(
                                       value: full,
-                                      child: Text(p.fullNumber, overflow: TextOverflow.ellipsis),
+                                      child: Text(p.fullNumberDisplay, overflow: TextOverflow.ellipsis),
                                     );
                                   }),
                                   const DropdownMenuItem<String>(

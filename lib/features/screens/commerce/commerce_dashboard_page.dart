@@ -139,6 +139,13 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
     return map[status] ?? status;
   }
 
+  /// Acepta total desde API como num o String (JSON suele devolver números como string).
+  num _parseNum(dynamic value) {
+    if (value == null) return 0;
+    if (value is num) return value;
+    return num.tryParse(value.toString()) ?? 0;
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -231,7 +238,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
                 Expanded(
                   child: _StatCard(
                     label: 'Ingresos hoy',
-                    value: '\$${((_stats['today_revenue'] ?? 0.0) as num).toStringAsFixed(2)}',
+                    value: '\$${_parseNum(_stats['today_revenue']).toStringAsFixed(2)}',
                     icon: Icons.attach_money,
                     color: AppColors.green,
                   ),
@@ -284,7 +291,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
                       style: const TextStyle(fontWeight: FontWeight.w500),
                     ),
                     subtitle: Text(
-                      '\$${((order['total'] ?? 0) as num).toStringAsFixed(2)} · ${_statusText(order['status'] ?? '')}',
+                      '\$${_parseNum(order['total']).toStringAsFixed(2)} · ${_statusText(order['status'] ?? '')}',
                     ),
                     trailing: Chip(
                       label: Text(
@@ -294,10 +301,11 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
                       backgroundColor: _statusColor(order['status'] ?? ''),
                       labelStyle: const TextStyle(color: Colors.white),
                     ),
-                    onTap: () {
+                    onTap: () async {
                       final id = order['id'];
                       if (id != null) {
-                        Navigator.pushNamed(context, '/commerce/order/$id');
+                        await Navigator.pushNamed(context, '/commerce/order/$id');
+                        if (mounted) _loadData();
                       }
                     },
                   ),

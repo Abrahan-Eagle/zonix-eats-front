@@ -252,7 +252,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
+          const CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.blue),
           ),
           const SizedBox(height: 16),
@@ -301,7 +301,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
             color: AppColors.blue.withValues(alpha: 0.15),
             shape: BoxShape.circle,
           ),
-          child: Icon(
+          child: const Icon(
             Icons.add_location_alt,
             size: 48,
             color: AppColors.blue,
@@ -342,13 +342,13 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
         ),
         child: Row(
           children: [
-            Icon(Icons.my_location, color: AppColors.green, size: 22),
+            const Icon(Icons.my_location, color: AppColors.green, size: 22),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     'Ubicación capturada',
                     style: TextStyle(
                       fontSize: 14,
@@ -379,10 +379,10 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.orange.withValues(alpha: 0.3)),
       ),
-      child: Row(
+      child: const Row(
         children: [
           Icon(Icons.location_off, color: AppColors.orange, size: 24),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Text(
               'Ubicación no disponible. Usa el ícono de arriba para capturar.',
@@ -543,7 +543,7 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
           return null;
         },
         dropdownColor: AppColors.cardBg(context),
-        icon: Icon(Icons.arrow_drop_down, color: AppColors.blue),
+        icon: const Icon(Icons.arrow_drop_down, color: AppColors.blue),
         isExpanded: true,
         menuMaxHeight: menuHeight,
         borderRadius: BorderRadius.circular(12),
@@ -604,13 +604,13 @@ class RegisterAddressScreenState extends State<RegisterAddressScreen>
       ),
       child: TextFormField(
         controller: _postalCodeController,
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           labelText: 'Código Postal',
           hintText: '1010',
           prefixIcon: Icon(Icons.mail, color: AppColors.blue),
           border: InputBorder.none,
           contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
         keyboardType: TextInputType.number,
         inputFormatters: [FilteringTextInputFormatter.digitsOnly],

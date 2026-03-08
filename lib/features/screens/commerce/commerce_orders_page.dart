@@ -174,11 +174,14 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
                 backgroundColor: _statusColor(order.status),
                 labelStyle: const TextStyle(color: Colors.white),
               ),
-              onTap: () => Navigator.pushNamed(
-                context,
-                '/commerce/order/${order.id}',
-                arguments: order,
-              ),
+              onTap: () async {
+                await Navigator.pushNamed(
+                  context,
+                  '/commerce/order/${order.id}',
+                  arguments: order,
+                );
+                if (mounted) _loadOrders();
+              },
             ),
           );
         },

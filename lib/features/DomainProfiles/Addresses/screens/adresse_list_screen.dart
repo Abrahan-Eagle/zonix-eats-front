@@ -146,7 +146,7 @@ class AddressPage extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
+          const CircularProgressIndicator(
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.blue),
           ),
           const SizedBox(height: 16),
@@ -176,7 +176,7 @@ class AddressPage extends StatelessWidget {
                 color: AppColors.blue.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(60),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.location_off_outlined,
                 size: 60,
                 color: AppColors.blue,
@@ -275,7 +275,7 @@ class AddressPage extends StatelessWidget {
                     color: AppColors.blue.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.location_on,
                     color: AppColors.blue,
                     size: 24,

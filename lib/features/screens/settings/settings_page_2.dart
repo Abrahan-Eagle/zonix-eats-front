@@ -178,6 +178,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
         imageQuality: 85,
       );
       if (pickedFile == null || !mounted) return;
+      final path = pickedFile.path;
+      if (path.isEmpty) return;
       bool dialogShown = false;
       if (mounted) {
         showDialog(
@@ -189,7 +191,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
       }
       try {
         await ProfileService().updateProfile(profile.id, profile,
-            imageFile: File(pickedFile.path));
+            imageFile: File(path));
         if (!mounted) return;
         if (dialogShown) Navigator.of(context).pop();
         await _loadProfile();
@@ -224,6 +226,8 @@ class _SettingsPage2State extends State<SettingsPage2> {
         imageQuality: 85,
       );
       if (pickedFile == null || !mounted) return;
+      final path = pickedFile.path;
+      if (path.isEmpty) return;
       bool dialogShown = false;
       if (mounted) {
         showDialog(
@@ -235,7 +239,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
       }
       try {
         await ProfileService().updateProfile(profile.id, profile,
-            imageFile: File(pickedFile.path));
+            imageFile: File(path));
         if (!mounted) return;
         if (dialogShown) Navigator.of(context).pop();
         await _loadProfile();

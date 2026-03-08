@@ -385,14 +385,14 @@ class _DocumentListScreenState extends State<DocumentListScreen> with TickerProv
             child: InkWell(
               borderRadius: BorderRadius.circular(_cardRadius),
               onTap: () => _navigateToCreateDocument(context),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.add, color: AppColors.white, size: 22),
-                    const SizedBox(width: 8),
-                    const Text(
+                    Icon(Icons.add, color: AppColors.white, size: 22),
+                    SizedBox(width: 8),
+                    Text(
                       'Nuevo',
                       style: TextStyle(
                         color: AppColors.white,

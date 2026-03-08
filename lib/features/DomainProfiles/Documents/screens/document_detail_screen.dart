@@ -109,7 +109,7 @@ class DocumentDetailScreen extends StatelessWidget {
         color: cardBg,
         borderRadius: BorderRadius.circular(_cardRadius),
         border: Border.all(color: borderColor),
-        boxShadow: [BoxShadow(color: AppColors.black12, blurRadius: 2, offset: const Offset(0, 1))],
+        boxShadow: const [BoxShadow(color: AppColors.black12, blurRadius: 2, offset: Offset(0, 1))],
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -243,7 +243,7 @@ class DocumentDetailScreen extends StatelessWidget {
         color: AppColors.cardBg(context),
         borderRadius: BorderRadius.circular(_cardRadius),
         border: Border.all(color: _cardBorder(context)),
-        boxShadow: [BoxShadow(color: AppColors.black12, blurRadius: 2, offset: const Offset(0, 1))],
+        boxShadow: const [BoxShadow(color: AppColors.black12, blurRadius: 2, offset: Offset(0, 1))],
       ),
       child: child,
     );

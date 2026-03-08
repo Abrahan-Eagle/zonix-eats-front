@@ -176,7 +176,7 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
           ),
         ),
         DropdownButtonFormField<String>(
-          value: allowed.contains(_context) ? _context : (allowed.isNotEmpty ? allowed.first : null),
+          initialValue: allowed.contains(_context) ? _context : (allowed.isNotEmpty ? allowed.first : null),
           decoration: InputDecoration(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -202,7 +202,7 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
         if (_context == PhoneContext.commerce) ...[
           const SizedBox(height: 16),
           DropdownButtonFormField<int>(
-            value: _selectedCommerceId,
+            initialValue: _selectedCommerceId,
             decoration: InputDecoration(
               labelText: 'Comercio',
               border: OutlineInputBorder(
@@ -371,7 +371,7 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
             Flexible(
               flex: 1,
               child: DropdownButtonFormField<int>(
-                value: _selectedOperatorCodeId,
+                initialValue: _selectedOperatorCodeId,
                 decoration: inputDecoration.copyWith(labelText: 'Código'),
                 items: _operatorCodes.map((code) {
                   return DropdownMenuItem<int>(

@@ -256,7 +256,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.info_outline, color: AppColors.blue, size: 20),
+          const Icon(Icons.info_outline, color: AppColors.blue, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(

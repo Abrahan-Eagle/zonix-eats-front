@@ -176,12 +176,14 @@ class EditAddressScreenState extends State<EditAddressScreen> {
       });
     } catch (e) {
       logger.e('Error cargando estados: $e');
-      if (mounted) setState(() {
+      if (mounted) {
+        setState(() {
         _states = [];
         _selectedState = null;
         _cities = [];
         _selectedCity = null;
       });
+      }
     }
   }
 
@@ -196,10 +198,12 @@ class EditAddressScreenState extends State<EditAddressScreen> {
       });
     } catch (e) {
       logger.e('Error cargando ciudades: $e');
-      if (mounted) setState(() {
+      if (mounted) {
+        setState(() {
         _cities = [];
         _selectedCity = null;
       });
+      }
     }
   }
 
@@ -567,7 +571,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
         ],
       ),
       body: _isLoading
-          ? Center(
+          ? const Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(AppColors.blue),
               ),
@@ -610,7 +614,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
               color: AppColors.blue.withValues(alpha: 0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(
+            child: const Icon(
               Icons.edit_location_alt,
               size: 40,
               color: AppColors.blue,
@@ -707,7 +711,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.location_on,
                     color: AppColors.red,
                     size: 46,
@@ -758,10 +762,10 @@ class EditAddressScreenState extends State<EditAddressScreen> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.green.withValues(alpha: 0.3)),
       ),
-      child: Row(
+      child: const Row(
         children: [
           Icon(Icons.check_circle, color: AppColors.green, size: 24),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Text(
             'Ubicación capturada',
             style: TextStyle(
@@ -790,7 +794,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
       ),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.location_on,
             color: AppColors.blue,
             size: 24,
@@ -825,8 +829,8 @@ class EditAddressScreenState extends State<EditAddressScreen> {
             child: InkWell(
               onTap: _isLocationLoading ? null : _getCurrentLocation,
               borderRadius: BorderRadius.circular(8),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 child: Text(
                   'Obtener',
                   style: TextStyle(
@@ -847,7 +851,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'UBICACIÓN REGIONAL',
           style: TextStyle(
             fontSize: 12,
@@ -926,7 +930,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
           label: 'Ciudad',
         ),
         const SizedBox(height: 24),
-        Text(
+        const Text(
           'DETALLES DE LA DIRECCIÓN',
           style: TextStyle(
             fontSize: 12,
@@ -1041,7 +1045,7 @@ class EditAddressScreenState extends State<EditAddressScreen> {
         onChanged: onChanged,
         isExpanded: true,
         dropdownColor: AppColors.cardBg(context),
-        icon: Icon(Icons.arrow_drop_down, color: AppColors.blue),
+        icon: const Icon(Icons.arrow_drop_down, color: AppColors.blue),
         menuMaxHeight: menuHeight,
         borderRadius: BorderRadius.circular(12),
         validator: (value) {

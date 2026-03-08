@@ -25,6 +25,12 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
   String? _error;
   bool _updating = false;
 
+  static num _parseNum(dynamic value) {
+    if (value == null) return 0;
+    if (value is num) return value;
+    return num.tryParse(value.toString()) ?? 0;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -241,15 +247,14 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                         style: Theme.of(context).textTheme.titleMedium),
                     const SizedBox(height: 8),
                     ...order.items.map((item) {
-                      final qty = item['quantity'] ?? 1;
-                      final price = (item['unit_price'] ?? item['price'] ?? 0)
-                          as num;
+                      final qty = _parseNum(item['quantity'] ?? 1);
+                      final price = _parseNum(item['unit_price'] ?? item['price'] ?? 0);
                       final name = item['product']?['name'] ?? 'Producto';
                       return Card(
                         margin: const EdgeInsets.only(bottom: 4),
                         child: ListTile(
                           title: Text(name),
-                          subtitle: Text('$qty x \$${price.toStringAsFixed(2)}'),
+                          subtitle: Text('${qty.toInt()} x \$${price.toStringAsFixed(2)}'),
                           trailing: Text(
                             '\$${(qty * price).toStringAsFixed(2)}',
                             style: const TextStyle(fontWeight: FontWeight.bold),

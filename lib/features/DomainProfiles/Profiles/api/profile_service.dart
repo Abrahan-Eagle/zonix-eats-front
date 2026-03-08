@@ -159,7 +159,9 @@ Future<int> createProfile(Profile profile, int userId, {File? imageFile}) async 
         ..fields['middleName'] = profile.middleName
         ..fields['lastName'] = profile.lastName
         ..fields['secondLastName'] = profile.secondLastName
-        ..fields['date_of_birth'] = profile.dateOfBirth
+        ..fields['date_of_birth'] = profile.dateOfBirth.trim().isEmpty
+            ? '2000-01-01'
+            : profile.dateOfBirth
         ..fields['maritalStatus'] = profile.maritalStatus
         ..fields['sex'] = profile.sex;
 

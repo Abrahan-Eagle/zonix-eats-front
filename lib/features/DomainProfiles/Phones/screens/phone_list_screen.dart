@@ -274,9 +274,9 @@ class PhoneScreenState extends State<PhoneScreen> {
     final cardBg = AppColors.cardBg(context);
     final borderColor = isDark ? AppColors.slateBorder : AppColors.stitchBorder;
     final verifiedBg = AppColors.green.withValues(alpha: isDark ? 0.25 : 0.15);
-    final verifiedFg = AppColors.green;
+    const verifiedFg = AppColors.green;
     final pendingBg = AppColors.orange.withValues(alpha: isDark ? 0.25 : 0.15);
-    final pendingFg = AppColors.orange;
+    const pendingFg = AppColors.orange;
 
     return Card(
       margin: EdgeInsets.zero,
@@ -416,16 +416,16 @@ class PhoneScreenState extends State<PhoneScreen> {
             child: InkWell(
               onTap: _navigateToCreatePhone,
               borderRadius: BorderRadius.circular(999),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.add, color: AppColors.white, size: 22),
-                    const SizedBox(width: 8),
+                    Icon(Icons.add, color: AppColors.white, size: 22),
+                    SizedBox(width: 8),
                     Text(
                       'Nuevo',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,

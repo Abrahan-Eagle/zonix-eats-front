@@ -257,7 +257,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
         color: AppColors.cardBg(context),
         borderRadius: BorderRadius.circular(_cardRadius),
         border: Border.all(color: _cardBorder(context)),
-        boxShadow: [BoxShadow(color: AppColors.black12, blurRadius: 2, offset: const Offset(0, 1))],
+        boxShadow: const [BoxShadow(color: AppColors.black12, blurRadius: 2, offset: Offset(0, 1))],
       ),
       child: Row(
         children: [
@@ -385,7 +385,7 @@ class CreateDocumentScreenState extends State<CreateDocumentScreen> {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<String>(
-            value: _selectedType != null && availableEntries.any((e) => e.key == _selectedType)
+            initialValue: _selectedType != null && availableEntries.any((e) => e.key == _selectedType)
                 ? _selectedType
                 : null,
             items: availableEntries

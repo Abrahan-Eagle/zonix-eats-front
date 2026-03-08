@@ -267,7 +267,7 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
           ),
         ),
         DropdownButtonFormField<String>(
-          value: allowed.contains(_context) ? _context : (allowed.isNotEmpty ? allowed.first : null),
+          initialValue: allowed.contains(_context) ? _context : (allowed.isNotEmpty ? allowed.first : null),
           decoration: InputDecoration(
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
@@ -293,7 +293,7 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
         if (_context == PhoneContext.commerce) ...[
           const SizedBox(height: 16),
           DropdownButtonFormField<int>(
-            value: _selectedCommerceId,
+            initialValue: _selectedCommerceId,
             decoration: InputDecoration(
               labelText: 'Comercio',
               border: OutlineInputBorder(
@@ -348,7 +348,7 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
             Flexible(
               flex: 1,
               child: DropdownButtonFormField<int>(
-                value: _selectedOperatorCodeId,
+                initialValue: _selectedOperatorCodeId,
                 decoration: inputDecoration.copyWith(
                   labelText: 'Código',
                 ),
@@ -472,8 +472,8 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
               child: OutlinedButton(
                 onPressed: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('Verificación gratuita. Próximamente en esta versión.'),
+                    const SnackBar(
+                      content: Text('Verificación gratuita. Próximamente en esta versión.'),
                       backgroundColor: AppColors.green,
                       behavior: SnackBarBehavior.fixed,
                     ),

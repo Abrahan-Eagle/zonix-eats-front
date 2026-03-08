@@ -215,7 +215,15 @@ class _CommercePromotionFormPageState extends State<CommercePromotionFormPage> {
                       : (imageUrl != null && imageUrl.isNotEmpty)
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: Image.network(imageUrl, fit: BoxFit.cover),
+                              child: Image.network(
+                                imageUrl,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => const Icon(
+                                  Icons.image_not_supported,
+                                  size: 48,
+                                  color: Colors.grey,
+                                ),
+                              ),
                             )
                           : const Column(
                               mainAxisAlignment: MainAxisAlignment.center,
