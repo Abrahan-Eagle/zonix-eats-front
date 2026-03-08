@@ -108,11 +108,12 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
   final _houseNumberCommerceController = TextEditingController();
   final _postalCodeCommerceController = TextEditingController();
 
-  // STEP 1 incluye teléfono
+  // STEP 1 incluye teléfono; mismo _operatorCodes se usa en último formulario (Teléfono del local)
   final _phoneController = TextEditingController();
   List<Map<String, dynamic>> _operatorCodes = [];
   Map<String, dynamic>? _selectedOperator;
   bool _isLoadingOperators = false;
+  bool _operatorCodesReloadedForStep3 = false;
 
   // Foto
   XFile? _selectedPhoto;
@@ -400,6 +401,13 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       {'id': 4, 'name': '0416', 'code': '416'},
       {'id': 5, 'name': '0426', 'code': '426'},
     ];
+  }
+
+  /// Muestra el código con un solo cero inicial (0412, no 00412).
+  static String _formatOperatorCodeDisplay(Map<String, dynamic> c) {
+    final s = (c['code'] ?? c['name'] ?? '').toString().trim();
+    if (s.isEmpty) return '';
+    return s.startsWith('0') ? s : '0$s';
   }
 
   Future<void> _loadOperatorCodes() async {
@@ -1006,6 +1014,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
           final phone = Phone(
             id: 0,
             profileId: profileId,
+            context: PhoneContext.personal,
             operatorCodeId: operatorId is int ? operatorId : int.tryParse(operatorId.toString()) ?? 0,
             operatorCodeName: operatorName,
             number: number,
@@ -1158,6 +1167,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
           final phone = Phone(
             id: 0,
             profileId: profileId,
+            context: PhoneContext.personal,
             operatorCodeId: operatorId is int ? operatorId : int.tryParse(operatorId.toString()) ?? 0,
             operatorCodeName: operatorName,
             number: number,
@@ -1769,7 +1779,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                       child: CircularProgressIndicator(color: AppColors.blue),
                     ),
                   )
-                else if (_operatorCodes.isNotEmpty)
+                else
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1780,6 +1790,10 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                           isExpanded: true,
                           dropdownColor: AppColors.grayDark,
                           decoration: InputDecoration(
+                            hintText: 'Código',
+                            hintStyle: GoogleFonts.plusJakartaSans(
+                              color: AppColors.white.withValues(alpha: 0.5),
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
                               borderSide: BorderSide(
@@ -1793,12 +1807,14 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                               vertical: 14,
                             ),
                           ),
-                          items: _operatorCodes
+                          items: (_operatorCodes.isNotEmpty
+                                  ? _operatorCodes
+                                  : _fallbackOperatorCodes())
                               .map(
                                 (c) => DropdownMenuItem<Map<String, dynamic>>(
                                   value: c,
                                   child: Text(
-                                    '0${c['code'] ?? ''}',
+                                    _formatOperatorCodeDisplay(c),
                                     style: const TextStyle(color: AppColors.white),
                                   ),
                                 ),
@@ -2428,6 +2444,14 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     final isTablet = size.width > 600;
     final isSmall = size.width < 360;
 
+    // Recarga única de códigos de operador al mostrar último formulario (por si la carga inicial falló)
+    if (!_operatorCodesReloadedForStep3) {
+      _operatorCodesReloadedForStep3 = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _loadOperatorCodes();
+      });
+    }
+
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(
         horizontal: isTablet ? 32 : (isSmall ? 16 : 24),
@@ -2508,7 +2532,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                   child: CircularProgressIndicator(color: AppColors.blue.withValues(alpha: 0.8)),
                 ),
               )
-            else if (_operatorCodes.isNotEmpty)
+            else
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -2545,12 +2569,14 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                         'Código',
                         style: GoogleFonts.plusJakartaSans(color: AppColors.white.withValues(alpha: 0.5)),
                       ),
-                      items: _operatorCodes
+                      items: (_operatorCodes.isNotEmpty
+                              ? _operatorCodes
+                              : _fallbackOperatorCodes())
                           .map(
                             (code) => DropdownMenuItem<Map<String, dynamic>>(
                               value: code,
                               child: Text(
-                                '0${code['code'] ?? ''}',
+                                _formatOperatorCodeDisplay(code),
                                 style: GoogleFonts.plusJakartaSans(color: AppColors.white),
                               ),
                             ),
@@ -2583,9 +2609,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                     ),
                   ),
                 ],
-              )
-            else
-              const SizedBox.shrink(),
+              ),
             SizedBox(height: isSmall ? 20 : 24),
             // Sección: Estado de la tienda (card estilo Stitch 8)
             Container(

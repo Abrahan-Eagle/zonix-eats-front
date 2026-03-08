@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/phone.dart';
 import '../api/phone_service.dart';
 import 'edit_phone_screen.dart';
@@ -47,7 +48,7 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Confirmar eliminación'),
         content: Text(
-            '¿Estás seguro de que quieres eliminar el teléfono ${widget.phone.fullNumber}?'),
+            '¿Estás seguro de que quieres eliminar el teléfono ${widget.phone.fullNumberDisplay}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -173,12 +174,14 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        widget.phone.fullNumber,
+                        widget.phone.fullNumberDisplay,
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: AppColors.white,
                         ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ],
                   ),
@@ -186,20 +189,64 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            Row(
+            Wrap(
+              spacing: 12,
+              runSpacing: 8,
               children: [
                 _buildStatusChip(
                   widget.phone.typeText,
-                  Color(widget.phone.typeColor),
+                  widget.phone.isPrimary ? AppColors.white : AppColors.white70,
                 ),
-                const SizedBox(width: 12),
                 _buildStatusChip(
                   widget.phone.statusText,
-                  Color(widget.phone.statusColor),
+                  widget.phone.status ? AppColors.green : AppColors.red,
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _actionChip(
+                  icon: Icons.copy,
+                  label: 'Copiar',
+                  onTap: () => _copyNumber(),
                 ),
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _copyNumber() {
+    Clipboard.setData(ClipboardData(text: widget.phone.fullNumberForDialing));
+    _showSuccessSnackBar('Número copiado');
+  }
+
+  Widget _actionChip({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    return Material(
+      color: (color ?? AppColors.white).withValues(alpha: 0.2),
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 18, color: color ?? AppColors.white),
+              const SizedBox(width: 6),
+              Text(label, style: TextStyle(fontSize: 12, color: color ?? AppColors.white)),
+            ],
+          ),
         ),
       ),
     );
@@ -225,7 +272,7 @@ class PhoneDetailScreenState extends State<PhoneDetailScreen> {
             const SizedBox(height: 16),
             _buildDetailItem(
                 'Código de Operador', widget.phone.operatorCodeName),
-            _buildDetailItem('Número', widget.phone.number),
+            _buildDetailItem('Número', widget.phone.fullNumberDisplay),
             _buildDetailItem('Tipo', widget.phone.typeText),
             _buildDetailItem('Estado', widget.phone.statusText),
             _buildDetailItem('Creado', widget.phone.formattedCreatedAt),

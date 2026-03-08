@@ -104,7 +104,7 @@ class PhoneScreenState extends State<PhoneScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Confirmar eliminación'),
         content: Text(
-            '¿Estás seguro de que quieres eliminar el teléfono ${phone.fullNumber}?'),
+            '¿Estás seguro de que quieres eliminar el teléfono ${phone.fullNumberDisplay}?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -154,11 +154,20 @@ class PhoneScreenState extends State<PhoneScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final appBarBg = AppColors.cardBg(context);
+    final borderColor = isDark ? AppColors.slateBorder : AppColors.stitchBorder;
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg(context),
       appBar: AppBar(
         title: const Text('Mis Teléfonos'),
         elevation: 0,
+        backgroundColor: appBarBg,
+        surfaceTintColor: Colors.transparent,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: borderColor, height: 1),
+        ),
         actions: [
           if (_phones.isNotEmpty)
             IconButton(
@@ -218,7 +227,8 @@ class PhoneScreenState extends State<PhoneScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Agrega tu primer número de teléfono',
+            'Agrega al menos un teléfono para que te contactemos por tu pedido',
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
               color: AppColors.secondaryText(context),
@@ -244,19 +254,42 @@ class PhoneScreenState extends State<PhoneScreen> {
       itemCount: _phones.length,
       itemBuilder: (context, index) {
         final phone = _phones[index];
-        return _buildPhoneCard(phone);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: _buildPhoneCard(phone),
+        );
       },
     );
   }
 
+  IconData _iconForPhone(Phone phone) {
+    if (phone.isPrimary) return Icons.call;
+    if (phone.context == 'commerce' || phone.context == 'delivery_company') return Icons.work;
+    return Icons.home;
+  }
+
   Widget _buildPhoneCard(Phone phone) {
+    final primary = Theme.of(context).colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardBg = AppColors.cardBg(context);
+    final borderColor = isDark ? AppColors.slateBorder : AppColors.stitchBorder;
+    final verifiedBg = AppColors.green.withValues(alpha: isDark ? 0.25 : 0.15);
+    final verifiedFg = AppColors.green;
+    final pendingBg = AppColors.orange.withValues(alpha: isDark ? 0.25 : 0.15);
+    final pendingFg = AppColors.orange;
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: borderColor),
+      ),
+      color: cardBg,
+      shadowColor: Colors.black.withValues(alpha: 0.08),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
         onTap: () => _navigateToPhoneDetail(phone),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -265,47 +298,59 @@ class PhoneScreenState extends State<PhoneScreen> {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    width: 48,
+                    height: 48,
+                    alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      color: primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
-                      Icons.phone,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 24,
-                    ),
+                    child: Icon(_iconForPhone(phone), color: primary, size: 24),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          phone.fullNumber,
-                          style: const TextStyle(
-                            fontSize: 18,
+                          phone.typeText,
+                          style: TextStyle(
+                            fontSize: 16,
                             fontWeight: FontWeight.w600,
+                            color: AppColors.primaryText(context),
                           ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                         const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            _buildStatusChip(
-                              phone.typeText,
-                              Color(phone.typeColor),
-                            ),
-                            const SizedBox(width: 8),
-                            _buildStatusChip(
-                              phone.statusText,
-                              Color(phone.statusColor),
-                            ),
-                          ],
+                        Text(
+                          phone.fullNumberDisplay,
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.secondaryText(context),
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ],
+                    ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: phone.status ? verifiedBg : pendingBg,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      phone.status ? 'VERIFICADO' : 'PENDIENTE',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: phone.status ? verifiedFg : pendingFg,
+                        letterSpacing: 0.5,
+                      ),
                     ),
                   ),
                   PopupMenuButton<String>(
@@ -336,9 +381,15 @@ class PhoneScreenState extends State<PhoneScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               SwitchListTile(
-                title: const Text('Principal'),
+                title: Text(
+                  'Principal',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.primaryText(context),
+                  ),
+                ),
                 contentPadding: EdgeInsets.zero,
                 value: phone.isPrimary,
                 onChanged: (value) => _updatePrimaryStatus(phone, value),
@@ -350,41 +401,46 @@ class PhoneScreenState extends State<PhoneScreen> {
     );
   }
 
-  Widget _buildStatusChip(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: color,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
   Widget _buildFloatingActionButtons() {
+    final primary = Theme.of(context).colorScheme.primary;
     return Stack(
       children: [
         Positioned(
-          right: 10,
-          bottom: 20,
-          child: FloatingActionButton(
-            heroTag: 'phone_list_new',
-            onPressed: _navigateToCreatePhone,
-            child: const Icon(Icons.add),
+          right: 24,
+          bottom: 24,
+          child: Material(
+            color: primary,
+            borderRadius: BorderRadius.circular(999),
+            elevation: 4,
+            shadowColor: primary.withValues(alpha: 0.3),
+            child: InkWell(
+              onTap: _navigateToCreatePhone,
+              borderRadius: BorderRadius.circular(999),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.add, color: AppColors.white, size: 22),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Nuevo',
+                      style: const TextStyle(
+                        color: AppColors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
         if (widget.statusId)
           Positioned(
-            right: 10,
-            bottom: 85,
+            right: 24,
+            bottom: 80,
             child: FloatingActionButton(
               heroTag: 'phone_list_confirm',
               onPressed: _handleStatusConfirmation,

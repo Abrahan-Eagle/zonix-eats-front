@@ -3,6 +3,10 @@ import 'package:flutter/services.dart';
 import '../models/phone.dart';
 import '../api/phone_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix/features/services/commerce_list_service.dart';
+import 'package:zonix/models/my_commerce.dart';
+import 'package:provider/provider.dart';
 
 class EditPhoneScreen extends StatefulWidget {
   final Phone phone;
@@ -28,12 +32,23 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
   bool _isPrimary = false;
   bool _isActive = true;
   bool _isLoading = false;
+  String _context = PhoneContext.personal;
+  List<MyCommerce> _commerces = [];
+  int? _selectedCommerceId;
 
   @override
   void initState() {
     super.initState();
     _initializeData();
     _loadOperatorCodes();
+    _loadCommerces();
+  }
+
+  Future<void> _loadCommerces() async {
+    try {
+      final list = await CommerceListService.getMyCommerces();
+      if (mounted) setState(() => _commerces = list);
+    } catch (_) {}
   }
 
   void _initializeData() {
@@ -41,6 +56,8 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
     _selectedOperatorCodeId = widget.phone.operatorCodeId;
     _isPrimary = widget.phone.isPrimary;
     _isActive = widget.phone.status;
+    _context = widget.phone.context;
+    _selectedCommerceId = widget.phone.commerceId;
 
     debugPrint('DEBUG: Initializing data for phone: ${widget.phone.id}');
     debugPrint('DEBUG: Original number: ${widget.phone.number}');
@@ -95,12 +112,22 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
     });
 
     try {
-      final updates = {
+      final updates = <String, dynamic>{
+        'context': _context,
         'operator_code_id': _selectedOperatorCodeId,
         'number': _numberController.text,
         'is_primary': _isPrimary ? 1 : 0,
         'status': _isActive ? 1 : 0,
       };
+      if (_context == PhoneContext.commerce) {
+        updates['commerce_id'] = _selectedCommerceId;
+      } else {
+        updates['commerce_id'] = null;
+        updates['delivery_company_id'] = null;
+      }
+      if (_context == PhoneContext.deliveryCompany) {
+        updates['delivery_company_id'] = widget.phone.deliveryCompanyId;
+      }
 
       debugPrint('DEBUG: Phone ID: ${widget.phone.id}');
       debugPrint('DEBUG: Updates: $updates');
@@ -125,311 +152,384 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
     }
   }
 
+  Widget _buildContextSection(String role) {
+    final allowed = PhoneContext.contextsForRole(role);
+    if (allowed.isNotEmpty && !allowed.contains(_context)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() => _context = allowed.first);
+      });
+    }
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderColor = isDark ? AppColors.slateBorder : AppColors.stitchBorder;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            'Etiqueta',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primaryText(context),
+            ),
+          ),
+        ),
+        DropdownButtonFormField<String>(
+          value: allowed.contains(_context) ? _context : (allowed.isNotEmpty ? allowed.first : null),
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: borderColor),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          ),
+          items: allowed
+              .map((ctx) => DropdownMenuItem<String>(
+                    value: ctx,
+                    child: Text(PhoneContext.label(ctx)),
+                  ))
+              .toList(),
+          onChanged: (value) {
+            if (value != null) {
+              setState(() {
+                _context = value;
+                if (value != PhoneContext.commerce) _selectedCommerceId = null;
+              });
+            }
+          },
+        ),
+        if (_context == PhoneContext.commerce) ...[
+          const SizedBox(height: 16),
+          DropdownButtonFormField<int>(
+            value: _selectedCommerceId,
+            decoration: InputDecoration(
+              labelText: 'Comercio',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: borderColor),
+              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+            ),
+            items: _commerces
+                .map((c) => DropdownMenuItem<int>(value: c.id, child: Text(c.businessName)))
+                .toList(),
+            onChanged: (value) => setState(() => _selectedCommerceId = value),
+            validator: _context == PhoneContext.commerce
+                ? (v) => v == null ? 'Selecciona un comercio' : null
+                : null,
+          ),
+        ],
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final isSmallScreen = size.width < 600;
+    final isSmallScreen = MediaQuery.of(context).size.width < 600;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final appBarBorder = isDark ? AppColors.slateBorder : AppColors.stitchBorder;
 
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg(context),
       appBar: AppBar(
         title: const Text('Editar Teléfono'),
         elevation: 0,
+        backgroundColor: AppColors.cardBg(context),
+        surfaceTintColor: Colors.transparent,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(color: appBarBorder, height: 1),
+        ),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: EdgeInsets.all(isSmallScreen ? 16.0 : 24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // Header con información actual
-                  _buildCurrentPhoneCard(),
-                  const SizedBox(height: 24.0),
-
-                  // Formulario de edición
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        // Código de operador y número
-                        // En pantallas pequeñas, apilar verticalmente
-                        if (MediaQuery.of(context).size.width < 400)
-                          Column(
-                            children: [
-                              DropdownButtonFormField<int>(
-                                initialValue: _selectedOperatorCodeId,
-                                decoration: const InputDecoration(
-                                  labelText: 'Código',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.phone_android),
-                                  contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 16),
-                                ),
-                                items: _operatorCodes.map((code) {
-                                  return DropdownMenuItem<int>(
-                                    value: code['id'],
-                                    child: Text(
-                                      code['name'],
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(fontSize: 14),
-                                    ),
-                                  );
-                                }).toList(),
-                                onChanged: (value) {
-                                  setState(() {
-                                    _selectedOperatorCodeId = value;
-                                  });
-                                },
-                                validator: (value) {
-                                  if (value == null) {
-                                    return 'Selecciona un código';
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: 16.0),
-                              TextFormField(
-                                controller: _numberController,
-                                decoration: const InputDecoration(
-                                  labelText: 'Número de Teléfono',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.phone),
-                                  contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 16),
-                                ),
-                                keyboardType: TextInputType.number,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly,
-                                  LengthLimitingTextInputFormatter(7),
-                                ],
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Ingresa un número';
-                                  } else if (value.length != 7) {
-                                    return 'Debe tener 7 dígitos';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ],
-                          )
-                        else
-                          // En pantallas más grandes, usar Row
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Flexible(
-                                flex: 1,
-                                child: DropdownButtonFormField<int>(
-                                  initialValue: _selectedOperatorCodeId,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Código',
-                                    border: OutlineInputBorder(),
-                                    prefixIcon: Icon(Icons.phone_android),
-                                    contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 16),
-                                  ),
-                                  isExpanded: true,
-                                  items: _operatorCodes.map((code) {
-                                    return DropdownMenuItem<int>(
-                                      value: code['id'],
-                                      child: Text(
-                                        code['name'],
-                                        overflow: TextOverflow.ellipsis,
-                                        style: const TextStyle(fontSize: 14),
-                                      ),
-                                    );
-                                  }).toList(),
-                                  onChanged: (value) {
-                                    setState(() {
-                                      _selectedOperatorCodeId = value;
-                                    });
-                                  },
-                                  validator: (value) {
-                                    if (value == null) {
-                                      return 'Selecciona un código';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: 16.0),
-                              Flexible(
-                                flex: 2,
-                                child: TextFormField(
-                                  controller: _numberController,
-                                  decoration: const InputDecoration(
-                                    labelText: 'Número de Teléfono',
-                                    border: OutlineInputBorder(),
-                                    prefixIcon: Icon(Icons.phone),
-                                    contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 16),
-                                  ),
-                                  keyboardType: TextInputType.number,
-                                  inputFormatters: [
-                                    FilteringTextInputFormatter.digitsOnly,
-                                    LengthLimitingTextInputFormatter(7),
-                                  ],
-                                  validator: (value) {
-                                    if (value == null || value.isEmpty) {
-                                      return 'Ingresa un número';
-                                    } else if (value.length != 7) {
-                                      return 'Debe tener 7 dígitos';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                        const SizedBox(height: 24.0),
-
-                        // Switches para estado principal y activo
-                        _buildSwitchRow(),
-                        const SizedBox(height: 24.0),
-                      ],
+          : Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(isSmallScreen ? 16.0 : 24.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildHeader(),
+                          const SizedBox(height: 24.0),
+                          if (PhoneContext.showContextDropdownForRole(
+                              context.read<UserProvider>().userRole)) ...[
+                            _buildContextSection(context.read<UserProvider>().userRole),
+                            const SizedBox(height: 20.0),
+                          ],
+                          _buildPhoneForm(),
+                          const SizedBox(height: 24.0),
+                          _buildOptionsSection(),
+                          const SizedBox(height: 24.0),
+                        ],
+                      ),
                     ),
                   ),
-                ],
-              ),
+                ),
+                _buildBottomButton(),
+              ],
             ),
-      floatingActionButton: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: MediaQuery.of(context).size.width * 0.8,
-            child: FloatingActionButton.extended(
-              heroTag: 'edit_phone_save',
-              onPressed: _isLoading ? null : _updatePhone,
-              tooltip: 'Actualizar Teléfono',
-              icon: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
-                      ),
-                    )
-                  : const Icon(Icons.save),
-              label:
-                  Text(_isLoading ? 'Actualizando...' : 'Actualizar Teléfono'),
-            ),
-          ),
-          const SizedBox(height: 16.0),
-        ],
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 
-  Widget _buildCurrentPhoneCard() {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+  Widget _buildHeader() {
+    final primary = Theme.of(context).colorScheme.primary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderColor = isDark ? AppColors.slateBorder : AppColors.stitchBorder;
+    final cardBg = AppColors.cardBg(context);
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: cardBg,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: primary.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.smartphone, color: primary, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.phone,
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 24,
-                ),
-                const SizedBox(width: 8),
-                const Text(
-                  'Teléfono Actual',
+                Text(
+                  'Información de contacto',
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    color: AppColors.primaryText(context),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Actualiza los datos de tu número de teléfono.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.secondaryText(context),
+                    height: 1.35,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              widget.phone.fullNumber,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPhoneForm() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderColor = isDark ? AppColors.slateBorder : AppColors.stitchBorder;
+    final cardBg = AppColors.cardBg(context);
+    final inputDecoration = InputDecoration(
+      filled: true,
+      fillColor: cardBg,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: borderColor),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            'Número de Teléfono',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primaryText(context),
+            ),
+          ),
+        ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Flexible(
+              flex: 1,
+              child: DropdownButtonFormField<int>(
+                value: _selectedOperatorCodeId,
+                decoration: inputDecoration.copyWith(labelText: 'Código'),
+                items: _operatorCodes.map((code) {
+                  return DropdownMenuItem<int>(
+                    value: code['id'] as int,
+                    child: Text(
+                      code['name'] as String,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() => _selectedOperatorCodeId = value);
+                },
+                validator: (value) {
+                  if (value == null) return 'Selecciona código';
+                  return null;
+                },
               ),
             ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                _buildStatusChip(
-                  widget.phone.typeText,
-                  Color(widget.phone.typeColor),
+            const SizedBox(width: 12),
+            Flexible(
+              flex: 2,
+              child: TextFormField(
+                controller: _numberController,
+                decoration: inputDecoration.copyWith(
+                  hintText: '7 dígitos',
+                  prefixIcon: Icon(
+                    Icons.call,
+                    size: 22,
+                    color: AppColors.secondaryText(context),
+                  ),
                 ),
-                const SizedBox(width: 8),
-                _buildStatusChip(
-                  widget.phone.statusText,
-                  Color(widget.phone.statusColor),
-                ),
-              ],
+                keyboardType: TextInputType.phone,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(7),
+                ],
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Ingresa número';
+                  if (value.length != 7) return '7 dígitos';
+                  return null;
+                },
+              ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatusChip(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.3)),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: color,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSwitchRow() {
-    return Column(
-      children: [
-        SwitchListTile(
-          title: const Text('Teléfono Principal'),
-          subtitle: const Text('Marcar como número principal'),
-          value: _isPrimary,
-          onChanged: (value) {
-            setState(() {
-              _isPrimary = value;
-            });
-          },
-          secondary: Icon(
-            Icons.star,
-            color: _isPrimary ? AppColors.amber : AppColors.gray,
-          ),
-        ),
-        const Divider(),
-        SwitchListTile(
-          title: const Text('Teléfono Activo'),
-          subtitle: const Text('Habilitar o deshabilitar'),
-          value: _isActive,
-          onChanged: (value) {
-            setState(() {
-              _isActive = value;
-            });
-          },
-          secondary: Icon(
-            Icons.check_circle,
-            color: _isActive ? AppColors.green : AppColors.gray,
-          ),
-        ),
       ],
+    );
+  }
+
+  Widget _buildOptionsSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final borderColor = isDark ? AppColors.slateBorder : AppColors.stitchBorder;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Opciones',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.primaryText(context),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SwitchListTile(
+            title: Text(
+              'Teléfono Principal',
+              style: TextStyle(color: AppColors.primaryText(context)),
+            ),
+            subtitle: Text(
+              'Marcar como número principal',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.secondaryText(context),
+              ),
+            ),
+            value: _isPrimary,
+            onChanged: (value) => setState(() => _isPrimary = value),
+            secondary: Icon(
+              Icons.star,
+              color: _isPrimary ? AppColors.amber : AppColors.textMutedGray,
+            ),
+          ),
+          const Divider(),
+          SwitchListTile(
+            title: Text(
+              'Teléfono Activo',
+              style: TextStyle(color: AppColors.primaryText(context)),
+            ),
+            subtitle: Text(
+              'Habilitar o deshabilitar',
+              style: TextStyle(
+                fontSize: 12,
+                color: AppColors.secondaryText(context),
+              ),
+            ),
+            value: _isActive,
+            onChanged: (value) => setState(() => _isActive = value),
+            secondary: Icon(
+              Icons.check_circle,
+              color: _isActive ? AppColors.green : AppColors.textMutedGray,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomButton() {
+    final primary = Theme.of(context).colorScheme.primary;
+    return Container(
+      padding: EdgeInsets.fromLTRB(16, 16, 16, MediaQuery.of(context).padding.bottom + 16),
+      decoration: BoxDecoration(
+        color: AppColors.cardBg(context),
+        border: Border(
+          top: BorderSide(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? AppColors.slateBorder
+                : AppColors.stitchBorder,
+          ),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton.icon(
+            onPressed: _isLoading ? null : _updatePhone,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primary,
+              foregroundColor: AppColors.white,
+              elevation: 4,
+              shadowColor: primary.withValues(alpha: 0.3),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+            icon: _isLoading
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
+                    ),
+                  )
+                : const Icon(Icons.save, size: 22),
+            label: Text(_isLoading ? 'Guardando...' : 'Guardar cambios'),
+          ),
+        ),
+      ),
     );
   }
 

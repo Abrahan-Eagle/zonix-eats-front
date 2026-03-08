@@ -27,6 +27,7 @@
 
 ### Cambios recientes (documentar aquí los avances)
 
+- **6 Mar 2026:** Onboarding: dropdown código de operador (paso 1 y paso 3 comercio) con fallback si no hay carga, hint "Código", y formato de visualización (0412, no 00412) vía `_formatOperatorCodeDisplay` en `client_onboarding_flow.dart`.
 - **6 Mar 2026:** Módulo Documentos: DocumentService usa AuthHelper (getAuthHeaders/getToken) para evitar 401 tras escáner; pantalla editar RIF muestra y permite editar Domicilio fiscal (controller + TextFormField); modelo Document acepta `tax_domicile` del backend como fallback.
 - **6 Mar 2026:** Módulo Documents: solo CI y RIF; formato al escribir (CI: V-12.345.678, RIF: J-19217553-0) con `document_input_formatters.dart`; formato al mostrar con `rif_formatter.dart` y `formattedRifNumber`; estado Verificado/Pendiente en lista y detalle (`approved`). Requisito de documento para método de pago pago móvil (comercio). Tests: rif_formatter y Document model.
 - **6 Mar 2026:** Documentado en AGENTS.md: Profile como entidad principal; uso de getMyProfile() y fetchMyPhones/fetchMyDocuments cuando el API es por usuario autenticado.
