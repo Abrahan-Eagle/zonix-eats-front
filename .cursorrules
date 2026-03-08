@@ -3,6 +3,14 @@ description: "Guía de desarrollo Frontend (Flutter) para Zonix Eats"
 alwaysApply: true
 ---
 
+## Jarvis (definición)
+
+**Jarvis** = todo el ecosistema de guía para la IA en este proyecto: este archivo (`.cursorrules`), las skills en `.agents/skills/`, y los documentos de referencia (`AGENTS.md`, `docs/*.md`). Cuando el usuario diga **"Jarvis"** se refiere a este conjunto. Mantener coherencia entre todos estos elementos.
+
+**Cumplir este archivo:** Al iniciar una tarea o ante duda sobre cómo proceder, revisar `.cursorrules` para no salirse de las reglas aquí definidas (colaboración, preguntar antes de actuar, usar skills, etc.).
+
+---
+
 ## Instrucciones Completas
 
 Para instrucciones completas del proyecto, arquitectura, convenciones, skills disponibles
