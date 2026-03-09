@@ -116,9 +116,12 @@ flutter test test/services/...       # Específico
 flutter analyze                      # Análisis
 ```
 
----
+### Código limpio (no dejar cochinero)
+- **Eliminar código no usado:** Al tocar un archivo, quitar imports no usados, variables/funciones muertas y comentarios obsoletos. No acumular "por si acaso".
+- **Respetar el analizador:** Corregir avisos de `flutter analyze` en los archivos que se modifican (prefer_const, unused_*, etc.), salvo que haya razón explícita para dejarlos.
+- **Regla práctica:** Si algo no se usa en este archivo, se elimina. Si se necesita después, se recupera del historial o se vuelve a añadir.
 
 ---
 
-**Última actualización:** 6 Marzo 2026
+**Última actualización:** 9 Marzo 2026
 **Para instrucciones completas:** Ver `AGENTS.md`

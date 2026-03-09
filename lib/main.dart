@@ -15,6 +15,7 @@ import 'package:zonix/features/utils/bottom_nav_persistence.dart';
 import 'package:flutter/services.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'package:zonix/features/screens/settings/settings_page_2.dart';
 import 'package:zonix/features/screens/auth/sign_in_screen.dart';
@@ -61,7 +62,7 @@ import 'package:zonix/features/screens/admin/admin_analytics_page.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zonix/features/screens/commerce/commerce_chat_page.dart';
-import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
+import 'package:zonix/features/screens/notifications/notifications_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_profile_page.dart';
 import 'package:zonix/features/screens/onboarding/onboarding_provider.dart';
 import 'package:zonix/features/screens/location/location_search_page.dart';
@@ -87,6 +88,7 @@ Future<void> main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   initialization();
+  await initializeDateFormatting('es');
 
   SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -292,7 +294,7 @@ class MyApp extends StatelessWidget {
         '/commerce/orders': (context) => const CommerceOrdersPage(),
         '/commerce/profile': (context) => const CommerceProfilePage(),
         '/commerce/chat': (context) => const CommerceChatPage(),
-        '/commerce/notifications': (context) => const CommerceNotificationsPage(),
+        '/commerce/notifications': (context) => const NotificationsPage(),
         '/commerce/reports': (context) => const CommerceReportsPage(),
         '/commerce/products/create': (context) => const CommerceProductFormPage(),
       },

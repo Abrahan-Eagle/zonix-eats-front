@@ -4,7 +4,7 @@ import 'package:zonix/models/commerce_product.dart';
 import 'package:zonix/features/services/commerce_product_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
-import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
+import 'package:zonix/features/screens/notifications/notifications_page.dart';
 
 class CommerceProductsPage extends StatefulWidget {
   const CommerceProductsPage({super.key});
@@ -158,7 +158,7 @@ class _CommerceProductsPageState extends State<CommerceProductsPage> {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const CommerceNotificationsPage(),
+                builder: (_) => const NotificationsPage(),
               ),
             ),
           ),

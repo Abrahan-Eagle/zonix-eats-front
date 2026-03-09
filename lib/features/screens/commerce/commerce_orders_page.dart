@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zonix/models/commerce_order.dart';
 import 'package:zonix/features/services/commerce_order_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
-import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
+import 'package:zonix/features/screens/notifications/notifications_page.dart';
 
 class CommerceOrdersPage extends StatefulWidget {
   const CommerceOrdersPage({super.key});
@@ -101,7 +101,7 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const CommerceNotificationsPage(),
+                builder: (_) => const NotificationsPage(),
               ),
             ),
           ),

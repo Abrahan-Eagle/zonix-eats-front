@@ -241,12 +241,15 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
     }
   }
 
-  // Exportar todos los datos personales del usuario
+  // Exportar todos los datos personales del usuario (GET /api/profile/export, cualquier rol)
   Future<Map<String, dynamic>> exportPersonalData() async {
     final token = await _getToken();
     final response = await http.get(
-      Uri.parse('${AppConfig.apiUrl}/api/buyer/export'),
-      headers: {'Authorization': 'Bearer $token'},
+      Uri.parse('${AppConfig.apiUrl}/api/profile/export'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Accept': 'application/json',
+      },
     );
     if (response.statusCode == 200) {
       return jsonDecode(response.body) as Map<String, dynamic>;
@@ -260,6 +263,7 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
         }
       } catch (_) {}
     }
+    logger.w('Export failed: status=${response.statusCode} body=${response.body}');
     throw Exception(msg);
   }
 

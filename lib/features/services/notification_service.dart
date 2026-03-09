@@ -41,11 +41,7 @@ class NotificationService extends ChangeNotifier {
   Future<List<NotificationItem>> getNotificationItems({String? type, bool? read}) async {
     try {
       final notifications = await getNotifications(type: type, read: read);
-      return notifications.map((notification) => NotificationItem(
-        title: notification['title'] ?? '',
-        body: notification['message'] ?? '',
-        receivedAt: DateTime.tryParse(notification['created_at'] ?? '') ?? DateTime.now(),
-      )).toList();
+      return notifications.map((n) => NotificationItem.fromJson(Map<String, dynamic>.from(n))).toList();
     } catch (e) {
       throw Exception('Error fetching notification items: $e');
     }

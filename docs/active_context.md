@@ -9,10 +9,10 @@
 
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
-- **Fecha:** 6 Mar 2026
-- **Resumen:** Módulo Ayuda y Soporte dado por terminado (UI mejorada, analyzer corregido, documentación y library directives).
-- **Áreas tocadas:** `lib/features/screens/help/help_and_faq_page.dart`, `lib/features/utils/bottom_nav_persistence.dart`, `AGENTS.md`.
-- **Próximos pasos sugeridos:** Elegir siguiente módulo (p. ej. i18n, optimización de imágenes, error handling centralizado, tests de widgets, offline/caché, o tarea de negocio que indiques).
+- **Fecha:** 9 Mar 2026
+- **Resumen:** Módulo Exportar datos cerrado. ProfileService.exportPersonalData() usa /api/profile/export; DataExportPage genera archivo (path_provider + share_plus) y abre panel compartir; formato TXT con ciudad legible y activity_type.
+- **Áreas tocadas:** `lib/features/DomainProfiles/Profiles/api/profile_service.dart`, `lib/features/DomainProfiles/Profiles/screens/data_export_page.dart`, AGENTS.md, README, .cursorrules, docs/active_context.md.
+- **Próximos pasos sugeridos:** Elegir siguiente módulo (notificaciones, órdenes commerce, promociones, i18n, etc.). Commit/push cuando el usuario lo indique.
 
 ---
 

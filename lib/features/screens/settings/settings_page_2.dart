@@ -14,22 +14,18 @@ import 'package:zonix/features/DomainProfiles/Addresses/screens/adresse_list_scr
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/DomainProfiles/Phones/screens/phone_list_screen.dart';
 import 'package:zonix/features/DomainProfiles/Documents/screens/document_list_screen.dart';
-import 'package:zonix/features/screens/about/about_page.dart';
 import 'package:zonix/features/screens/help/help_and_faq_page.dart';
+import 'package:zonix/features/screens/settings/legal_info_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/activity_history_page.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/screens/data_export_page.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:zonix/features/screens/account_deletion_page.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/screens/settings/commerce_data_page.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/screens/settings/commerce_schedule_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_promotions_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_zones_page.dart';
-import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_payment_methods_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_list_page.dart';
 import 'package:zonix/features/screens/orders/orders_page.dart';
@@ -614,26 +610,6 @@ class _SettingsPage2State extends State<SettingsPage2> {
             color: theme.colorScheme.onSurface,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(_activeTab == 'mas' ? Icons.logout : Icons.settings),
-            onPressed: _activeTab == 'mas'
-                ? () async {
-                    final userProvider =
-                        Provider.of<UserProvider>(context, listen: false);
-                    await userProvider.logout();
-                    if (!context.mounted) return;
-                    Navigator.of(context).pushAndRemoveUntil(
-                      MaterialPageRoute(builder: (_) => const SignInScreen()),
-                      (_) => false,
-                    );
-                  }
-                : () {},
-            style: IconButton.styleFrom(
-              foregroundColor: theme.colorScheme.onSurface,
-            ),
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -688,24 +664,13 @@ class _SettingsPage2State extends State<SettingsPage2> {
     switch (tab) {
       case 'comercios':
         return 'Mis Comercios';
+      case 'publicaciones':
+        return 'Promociones';
       case 'mas':
         return 'Más';
       default:
         return 'Mi Perfil';
     }
-  }
-
-  /// Devuelve la base URL para las páginas legales (términos, privacidad, etc.).
-  /// - Si APP_DOMAIN está definido, usa https://APP_DOMAIN
-  /// - Si no, usa AppConfig.apiUrl (API_URL_LOCAL / API_URL_PROD desde .env)
-  String _legalBaseUrl() {
-    final appDomain = dotenv.env['APP_DOMAIN']?.trim();
-    if (appDomain != null && appDomain.isNotEmpty) {
-      final hasScheme =
-          appDomain.startsWith('http://') || appDomain.startsWith('https://');
-      return hasScheme ? appDomain : 'https://$appDomain';
-    }
-    return AppConfig.apiUrl;
   }
 
   Widget _buildTabPills(ThemeData theme, bool isCommerce) {
@@ -725,10 +690,10 @@ class _SettingsPage2State extends State<SettingsPage2> {
               activeBg, inactiveBg, inactiveColor),
           const SizedBox(width: 8),
           if (isCommerce) ...[
-            _buildPill('publicaciones', Icons.article_outlined, 'Publicaciones',
+            _buildPill('comercios', Icons.storefront_outlined, 'Comercios',
                 theme, activeBg, inactiveBg, inactiveColor),
             const SizedBox(width: 8),
-            _buildPill('comercios', Icons.storefront_outlined, 'Comercios',
+            _buildPill('publicaciones', Icons.article_outlined, 'Promociones',
                 theme, activeBg, inactiveBg, inactiveColor),
             const SizedBox(width: 8),
           ],
@@ -1330,7 +1295,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Publicaciones',
+                          'Promociones',
                           style: TextStyle(
                               fontSize: 12,
                               color: theme.colorScheme.onSurfaceVariant,
@@ -1377,91 +1342,6 @@ class _SettingsPage2State extends State<SettingsPage2> {
           ],
         );
       },
-    );
-  }
-
-  Widget _buildLegalCard(BuildContext context, ThemeData theme, bool isTablet,
-      Color surfaceColor, Color borderColor) {
-    // Links centrados tipo texto, alineados con el template HTML.
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        TextButton(
-          onPressed: () async {
-            final baseUrl = _legalBaseUrl();
-            final uri = Uri.parse('$baseUrl/terminos-condiciones');
-            if (await canLaunchUrl(uri)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-            }
-          },
-          child: Text(
-            'TÉRMINOS DE SERVICIO',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.1,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextButton(
-          onPressed: () async {
-            final baseUrl = _legalBaseUrl();
-            final uri = Uri.parse('$baseUrl/politica-privacidad');
-            if (await canLaunchUrl(uri)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-            }
-          },
-          child: Text(
-            'POLÍTICA DE PRIVACIDAD',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.1,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextButton(
-          onPressed: () async {
-            final baseUrl = _legalBaseUrl();
-            final uri = Uri.parse('$baseUrl/politica-cookies');
-            if (await canLaunchUrl(uri)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-            }
-          },
-          child: Text(
-            'POLÍTICA DE COOKIES',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.1,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        TextButton(
-          onPressed: () async {
-            final baseUrl = _legalBaseUrl();
-            final uri = Uri.parse('$baseUrl/seguridad');
-            if (await canLaunchUrl(uri)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-            }
-          },
-          child: Text(
-            'SEGURIDAD',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.1,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -1516,7 +1396,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  'No tienes publicaciones aún',
+                  'No tienes promociones aún',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: isTablet ? 22 : 20,
                     fontWeight: FontWeight.bold,
@@ -1526,7 +1406,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Crea tu primera publicación para empezar a compartir tus sabores favoritos',
+                  'Crea tu primera promoción para empezar a compartir tus sabores favoritos',
                   style: TextStyle(
                     fontSize: isTablet ? 14 : 13,
                     color: theme.colorScheme.onSurfaceVariant,
@@ -1537,7 +1417,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                 FilledButton.icon(
                   onPressed: () {},
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Crear Publicación'),
+                  label: const Text('Crear Promoción'),
                   style: FilledButton.styleFrom(
                     backgroundColor: _stitchPrimary,
                     foregroundColor: AppColors.white,
@@ -1632,20 +1512,6 @@ class _SettingsPage2State extends State<SettingsPage2> {
                 onTap: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const DataExportPage())),
               ),
-            _MasTile(
-              icon: Icons.privacy_tip_outlined,
-              iconColor: AppColors.amber,
-              title: 'Privacidad',
-              onTap: () async {
-                final baseUrl = dotenv.env['APP_DOMAIN'] != null
-                    ? 'https://${dotenv.env['APP_DOMAIN']}'
-                    : 'https://eats.aiblockweb.com';
-                final uri = Uri.parse('$baseUrl/politica-de-privacidad');
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri, mode: LaunchMode.externalApplication);
-                }
-              },
-            ),
           ],
         ),
         if (isDelivery || isDeliveryCompany) ...[
@@ -1688,6 +1554,15 @@ class _SettingsPage2State extends State<SettingsPage2> {
                       MaterialPageRoute(
                           builder: (_) => const CommerceDataPage()))),
               _MasTile(
+                  icon: Icons.schedule,
+                  iconColor: AppColors.purple,
+                  title: 'Horarios',
+                  subtitle: 'Apertura y cierre',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const CommerceSchedulePage()))),
+              _MasTile(
                   icon: Icons.payments,
                   iconColor: AppColors.green,
                   title: 'Métodos de pago',
@@ -1697,14 +1572,14 @@ class _SettingsPage2State extends State<SettingsPage2> {
                       MaterialPageRoute(
                           builder: (_) => const CommercePaymentMethodsPage()))),
               _MasTile(
-                  icon: Icons.schedule,
-                  iconColor: Colors.purple,
-                  title: 'Horarios',
-                  subtitle: 'Apertura y cierre',
+                  icon: Icons.map_outlined,
+                  iconColor: AppColors.brown,
+                  title: 'Zonas de delivery',
+                  subtitle: 'Áreas de entrega',
                   onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (_) => const CommerceSchedulePage()))),
+                          builder: (_) => const CommerceZonesPage()))),
             ],
           ),
           const SizedBox(height: 24),
@@ -1726,38 +1601,9 @@ class _SettingsPage2State extends State<SettingsPage2> {
                           builder: (_) => const CommercePromotionsPage()))),
             ],
           ),
-          const SizedBox(height: 24),
-          _buildMasSection(
-            context: context,
-            theme: theme,
-            title: 'MÁS OPCIONES',
-            surfaceColor: surfaceColor,
-            borderColor: borderColor,
-            tiles: [
-              _MasTile(
-                  icon: Icons.map_outlined,
-                  iconColor: AppColors.brown,
-                  title: 'Zonas de delivery',
-                  subtitle: 'Áreas de entrega',
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const CommerceZonesPage()))),
-              _MasTile(
-                  icon: Icons.notifications_outlined,
-                  iconColor: AppColors.amber,
-                  title: 'Notificaciones del comercio',
-                  onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => const CommerceNotificationsPage()))),
-            ],
-          ),
         ],
         const SizedBox(height: 24),
         _buildMasSectionSoporte(context, theme, surfaceColor, borderColor),
-        const SizedBox(height: 32),
-        _buildLegalCard(context, theme, isTablet, surfaceColor, borderColor),
         const SizedBox(height: 24),
       ],
     );
@@ -1931,6 +1777,48 @@ class _SettingsPage2State extends State<SettingsPage2> {
                   onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
+                          builder: (_) => const LegalInfoPage())),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 16),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: _stitchPrimary.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: const Icon(Icons.gavel_outlined,
+                              color: _stitchPrimary, size: 22),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Text(
+                            'Información legal',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        Icon(Icons.chevron_right,
+                            color: theme.colorScheme.onSurfaceVariant,
+                            size: 24),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Divider(height: 1, color: borderColor),
+              Material(
+                color: AppColors.transparent,
+                child: InkWell(
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
                           builder: (_) => const NotificationsPage())),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
@@ -1956,61 +1844,6 @@ class _SettingsPage2State extends State<SettingsPage2> {
                               fontWeight: FontWeight.w600,
                               color: theme.colorScheme.onSurface,
                             ),
-                          ),
-                        ),
-                        Switch(
-                          value: true,
-                          onChanged: (_) {},
-                          activeTrackColor: _stitchPrimary,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Divider(height: 1, color: borderColor),
-              Material(
-                color: AppColors.transparent,
-                child: InkWell(
-                  onTap: () => Navigator.push(context,
-                      MaterialPageRoute(builder: (_) => const AboutScreen())),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 16),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.onSurfaceVariant
-                                .withValues(alpha: 0.2),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Icon(Icons.info_outline,
-                              color: theme.colorScheme.onSurfaceVariant,
-                              size: 22),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Acerca de',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: theme.colorScheme.onSurface,
-                                ),
-                              ),
-                              Text(
-                                'Versión 1.0.0',
-                                style: TextStyle(
-                                    fontSize: 11,
-                                    color: theme.colorScheme.onSurfaceVariant),
-                              ),
-                            ],
                           ),
                         ),
                         Icon(Icons.chevron_right,

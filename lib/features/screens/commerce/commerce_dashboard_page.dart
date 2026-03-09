@@ -6,7 +6,7 @@ import 'package:zonix/features/services/commerce_data_service.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/screens/commerce/commerce_promotions_page.dart';
-import 'package:zonix/features/screens/commerce/commerce_notifications_page.dart';
+import 'package:zonix/features/screens/notifications/notifications_page.dart';
 
 class CommerceDashboardPage extends StatefulWidget {
   const CommerceDashboardPage({
@@ -192,7 +192,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => const CommerceNotificationsPage(),
+                builder: (_) => const NotificationsPage(),
               ),
             ),
           ),

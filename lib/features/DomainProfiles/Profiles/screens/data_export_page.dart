@@ -1,7 +1,11 @@
-import 'package:flutter/material.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
-import 'package:logger/logger.dart';
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/material.dart';
+import 'package:logger/logger.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 
 final logger = Logger();
 
@@ -58,6 +62,48 @@ class _DataExportPageState extends State<DataExportPage> {
     }
   }
 
+  /// Escribe el archivo de exportación y abre el diálogo de compartir para guardar o enviar.
+  Future<void> _downloadFile() async {
+    if (_exportData == null) return;
+    try {
+      final String content = _selectedFormat == 'json'
+          ? JsonEncoder.withIndent('  ').convert(_exportData!)
+          : _formatDataAsText(_exportData!);
+      final String ext = _selectedFormat == 'json' ? 'json' : 'txt';
+      final String filename =
+          'zonix_export_datos_${DateTime.now().toIso8601String().replaceAll(':', '-').split('.').first}.$ext';
+
+      final Directory dir = await getApplicationDocumentsDirectory();
+      final File file = File('${dir.path}/$filename');
+      await file.writeAsString(content, encoding: utf8);
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Exportación de mis datos personales - Zonix',
+        subject: 'Mis datos Zonix',
+      );
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Archivo listo. Usa "Guardar en archivos" o "Compartir" para conservarlo.'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      logger.e('Error al guardar/compartir exportación: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al generar el archivo: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   void _showDataPreview() {
     if (_exportData == null) return;
 
@@ -109,7 +155,9 @@ class _DataExportPageState extends State<DataExportPage> {
       buffer.writeln('DIRECCIONES:');
       for (int i = 0; i < data['addresses'].length; i++) {
         final address = data['addresses'][i];
-        buffer.writeln('  ${i + 1}. ${address['street']}, ${address['city']}');
+        final city = address['city'];
+        final cityName = city is Map ? (city['name'] ?? '') : city?.toString() ?? '';
+        buffer.writeln('  ${i + 1}. ${address['street']}, $cityName');
       }
       buffer.writeln('');
     }
@@ -139,7 +187,8 @@ class _DataExportPageState extends State<DataExportPage> {
       buffer.writeln('ACTIVIDAD RECIENTE (${data['activity'].length}):');
       for (int i = 0; i < data['activity'].length; i++) {
         final activity = data['activity'][i];
-        buffer.writeln('  ${i + 1}. ${activity['type']} - ${activity['description']}');
+        final type = activity['activity_type'] ?? activity['type'] ?? '';
+        buffer.writeln('  ${i + 1}. $type - ${activity['description']}');
       }
       buffer.writeln('');
     }
@@ -308,15 +357,7 @@ class _DataExportPageState extends State<DataExportPage> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: ElevatedButton.icon(
-                              onPressed: () {
-                                // Aquí se implementaría la descarga real
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Descarga iniciada'),
-                                    backgroundColor: Colors.green,
-                                  ),
-                                );
-                              },
+                              onPressed: _downloadFile,
                               icon: const Icon(Icons.file_download),
                               label: const Text('Descargar'),
                             ),

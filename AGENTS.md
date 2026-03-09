@@ -23,10 +23,11 @@
 | **Servicios**            | 49                                       |
 | **Tests**                | 235 pasaron ✅, 0 fallaron               |
 | **Plataformas**          | Android + iOS                            |
-| **Última actualización** | 6 Marzo 2026                             |
+| **Última actualización** | 9 Marzo 2026                             |
 
 ### Cambios recientes (documentar aquí los avances)
 
+- **9 Mar 2026:** Módulo Exportar datos: ProfileService.exportPersonalData() llama a `/api/profile/export`; DataExportPage genera archivo (path_provider + share_plus) y abre panel compartir para guardar/compartir; formato TXT con ciudad legible (city.name) y activity_type (login, order_placed).
 - **6 Mar 2026:** Módulo Ayuda y Soporte terminado: `HelpAndFAQPage` con contenido por rol (users, commerce, delivery, delivery_company, admin), búsqueda en tiempo real sobre FAQs, temas populares (grid) que filtran, acordeón de preguntas frecuentes con "Ver todas" (scroll automático a la sección), bloque "¿Aún necesitas ayuda?" con Chat en vivo y Enviar correo. Al cambiar el texto de búsqueda se resetea "Ver todas". Documentación en cabecera del archivo. Cierre de módulo: library directives (`help_and_faq_page`, `bottom_nav_persistence`), prefer_const_constructors, actualización AGENTS.md, README.md y docs/active_context.md.
 - **6 Mar 2026:** Bottom nav: persistencia por rol (clave `bottomNavIndex_$role`), sin doble "Saved 0" al cargar rol; nivel por defecto y niveles permitidos por rol (level 0 = users, 1 = commerce, etc.). Lógica extraída a `lib/features/utils/bottom_nav_persistence.dart` (bottomNavStorageKey, defaultLevelForRole, levelsForRole). Tests en `test/features/utils/bottom_nav_persistence_test.dart` (21 tests: claves, niveles, SharedPreferences).
 - **6 Mar 2026:** Onboarding: dropdown código de operador (paso 1 y paso 3 comercio) con fallback si no hay carga, hint "Código", y formato de visualización (0412, no 00412) vía `_formatOperatorCodeDisplay` en `client_onboarding_flow.dart`.
@@ -708,4 +709,4 @@ FORMATO DE SALIDA:
 
 **Documentación completa:** Ver `README.md`
 **Backend API:** Ver `zonix-eats-back/AGENTS.md`
-**Última actualización:** 6 Marzo 2026
+**Última actualización:** 9 Marzo 2026
