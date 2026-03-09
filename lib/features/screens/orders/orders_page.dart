@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/config/app_config.dart';
-import 'package:zonix/features/screens/orders/order_detail_page.dart';
 import 'package:zonix/features/screens/orders/current_order_detail_page.dart';
+import 'package:zonix/features/screens/orders/order_detail_page.dart';
+import 'package:zonix/features/screens/orders/order_history_detail_page.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/models/cart_item.dart';
@@ -443,11 +444,12 @@ class _OrdersPageState extends State<OrdersPage> {
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       children: [
         Text(
-          'Órdenes Completadas',
+          'Órdenes completadas',
           style: GoogleFonts.plusJakartaSans(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primaryText(context)),
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primaryText(context),
+          ),
         ),
         const SizedBox(height: 12),
         if (history.isEmpty)
@@ -683,20 +685,26 @@ class _OrdersPageState extends State<OrdersPage> {
     final dateStr = _formatOrderDate(order.createdAt);
     final statusText = order.isDelivered ? 'Entregado' : 'Cancelado';
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: surfaceColor,
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: borderColor),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 4,
-              offset: const Offset(0, 1))
-        ],
-      ),
-      child: Column(
+        onTap: () => _openHistoryDetail(context, order),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: surfaceColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1))
+            ],
+          ),
+          child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
@@ -791,6 +799,8 @@ class _OrdersPageState extends State<OrdersPage> {
             ],
           ),
         ],
+          ),
+        ),
       ),
     );
   }
@@ -837,5 +847,14 @@ class _OrdersPageState extends State<OrdersPage> {
     ).then((_) {
       if (mounted) _loadOrders();
     });
+  }
+
+  void _openHistoryDetail(BuildContext context, Order order) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => OrderHistoryDetailPage(order: order),
+      ),
+    );
   }
 }
