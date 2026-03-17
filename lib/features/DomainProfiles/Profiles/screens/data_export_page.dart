@@ -67,7 +67,7 @@ class _DataExportPageState extends State<DataExportPage> {
     if (_exportData == null) return;
     try {
       final String content = _selectedFormat == 'json'
-          ? JsonEncoder.withIndent('  ').convert(_exportData!)
+          ? const JsonEncoder.withIndent('  ').convert(_exportData!)
           : _formatDataAsText(_exportData!);
       final String ext = _selectedFormat == 'json' ? 'json' : 'txt';
       final String filename =
@@ -77,10 +77,12 @@ class _DataExportPageState extends State<DataExportPage> {
       final File file = File('${dir.path}/$filename');
       await file.writeAsString(content, encoding: utf8);
 
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        text: 'Exportación de mis datos personales - Zonix',
-        subject: 'Mis datos Zonix',
+      await SharePlus.instance.share(
+        ShareParams(
+          files: [XFile(file.path)],
+          text: 'Exportación de mis datos personales - Zonix',
+          subject: 'Mis datos Zonix',
+        ),
       );
 
       if (mounted) {

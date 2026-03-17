@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/models/commerce_order.dart';
 import 'package:zonix/features/services/commerce_order_service.dart';
+import 'package:zonix/features/services/commerce_data_service.dart';
+import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
 
 class CommerceOrdersPage extends StatefulWidget {
@@ -18,6 +21,8 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
   bool _loading = true;
   String? _error;
   String _currentFilter = '';
+  bool _pusherSubscribed = false;
+  int _commerceId = 0;
 
   final List<Map<String, String>> _tabs = [
     {'key': '', 'label': 'Todas'},
@@ -34,13 +39,41 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(_onTabChanged);
     _loadOrders();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _subscribeToCommerceUpdates());
   }
 
   @override
   void dispose() {
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
+    if (_pusherSubscribed && _commerceId > 0) {
+      PusherService.instance.unsubscribeFromChannel('private-commerce.$_commerceId');
+    }
     super.dispose();
+  }
+
+  Future<void> _subscribeToCommerceUpdates() async {
+    if (!AppConfig.enablePusher || _pusherSubscribed || !mounted) return;
+    try {
+      final data = await CommerceDataService.getCommerceData();
+      final id = data['id'] is int ? data['id'] as int : int.tryParse(data['id']?.toString() ?? '0') ?? 0;
+      if (id <= 0 || !mounted) return;
+      _commerceId = id;
+      final ok = await PusherService.instance.subscribeToCommerceChannel(
+        id,
+        onEvent: (eventName, data) {
+          if ((eventName.contains('OrderStatusChanged') ||
+                  eventName.contains('OrderCreated') ||
+                  eventName.contains('PaymentValidated')) &&
+              mounted) {
+            _loadOrders();
+          }
+        },
+      );
+      if (mounted) _pusherSubscribed = ok;
+    } catch (_) {
+      // Sin comercio o Pusher no disponible
+    }
   }
 
   void _onTabChanged() {

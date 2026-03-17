@@ -84,11 +84,19 @@ class CommerceOrderService {
         if (data['order'] != null) {
           return CommerceOrder.fromJson(data['order']);
         }
-        throw Exception('Respuesta inválida del servidor');
+        // El backend puede devolver solo success/message; reobtener la orden actualizada.
+        return getOrder(id);
       } else {
-        throw Exception('Error al actualizar estado: ${response.statusCode}');
+        String message = 'Error al actualizar estado: ${response.statusCode}';
+        try {
+          final body = jsonDecode(response.body);
+          final msg = body['message']?.toString();
+          if (msg != null && msg.isNotEmpty) message = msg;
+        } catch (_) {}
+        throw Exception(message);
       }
     } catch (e) {
+      if (e is Exception) rethrow;
       throw Exception('Error al actualizar estado: $e');
     }
   }
@@ -149,7 +157,7 @@ class CommerceOrderService {
         headers: headers,
         body: jsonEncode({
           'is_valid': isValid,
-          'reason': reason,
+          'rejection_reason': reason,
         }),
       );
 

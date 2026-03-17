@@ -6,6 +6,7 @@ import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/models/cart_item.dart';
 import 'package:zonix/models/order.dart';
 import 'package:zonix/features/screens/orders/order_detail_page.dart';
+import 'package:zonix/features/screens/orders/order_rating_page.dart';
 
 class OrderHistoryDetailPage extends StatelessWidget {
   const OrderHistoryDetailPage({
@@ -101,6 +102,15 @@ class OrderHistoryDetailPage extends StatelessWidget {
                 children: [
                   _buildRepeatButton(context, primary),
                   const SizedBox(height: 8),
+                  if (order.isDelivered) ...[
+                    _buildRateButton(
+                      context,
+                      surface: surface,
+                      textPrimary: textPrimary,
+                      borderColor: borderColor,
+                    ),
+                    const SizedBox(height: 8),
+                  ],
                   _buildReceiptButton(
                     context,
                     surface: surface,
@@ -531,6 +541,44 @@ class OrderHistoryDetailPage extends StatelessWidget {
     );
   }
 
+  Widget _buildRateButton(
+    BuildContext context, {
+    required Color surface,
+    required Color textPrimary,
+    required Color borderColor,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: OutlinedButton(
+        style: OutlinedButton.styleFrom(
+          backgroundColor: surface,
+          side: BorderSide(color: borderColor),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        onPressed: () => _openRatingModal(context),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.star_rate_rounded, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              'Calificar pedido',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: textPrimary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _summaryRow(
     String label,
     double value, {
@@ -599,6 +647,22 @@ class OrderHistoryDetailPage extends StatelessWidget {
         builder: (_) => OrderDetailPage(
           orderId: order.id,
           order: order,
+        ),
+      ),
+    );
+  }
+
+  void _openRatingModal(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.9,
+        child: ClipRRect(
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          child: OrderRatingPage(order: order),
         ),
       ),
     );

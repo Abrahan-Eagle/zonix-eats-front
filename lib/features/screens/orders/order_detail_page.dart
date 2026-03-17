@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -12,16 +14,20 @@ import 'package:zonix/widgets/osm_map_widget.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zonix/l10n/app_strings.dart';
+import 'package:zonix/features/screens/orders/buyer_order_chat_page.dart';
 
 class OrderDetailPage extends StatefulWidget {
   const OrderDetailPage({
     super.key,
     required this.orderId,
     this.order,
+    this.showCreatedDialog = false,
   });
 
   final int orderId;
   final Order? order;
+  /// Si true, al abrir la pantalla se muestra un modal "¡Pedido creado!" y se va directo al detalle del recibo.
+  final bool showCreatedDialog;
 
   @override
   State<OrderDetailPage> createState() => _OrderDetailPageState();
@@ -46,6 +52,29 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       _loading = false;
       _subscribeToTracking();
     }
+    if (widget.showCreatedDialog) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _showCreatedDialog());
+    }
+  }
+
+  void _showCreatedDialog() {
+    if (!mounted) return;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('¡Pedido creado!'),
+        content: const Text(
+          'Tu orden está pendiente. El comercio la revisará y cuando la acepte podrás subir el comprobante de pago aquí.',
+        ),
+        actions: [
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Entendido'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -70,10 +99,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       return;
     }
     final s = _order!.status;
-    if (s == 'shipped' ||
+    final shouldSubscribe = s == 'shipped' ||
         s == 'out_for_delivery' ||
         s == 'processing' ||
-        s == 'paid') {
+        s == 'paid' ||
+        s == 'pending_payment';
+    if (shouldSubscribe) {
       PusherService.instance.subscribeToOrderChat(
         widget.orderId,
         onNewMessage: (eventName, data) {
@@ -87,13 +118,15 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               });
             }
           }
-          if (eventName.contains('OrderStatusChanged')) {
+          if (eventName.contains('OrderStatusChanged') || eventName.contains('PaymentValidated')) {
             _loadOrder();
           }
         },
       );
       _trackingSubscribed = true;
-      _loadInitialTracking();
+      if (_isTrackableStatus(s)) {
+        _loadInitialTracking();
+      }
     }
   }
 
@@ -156,6 +189,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     if (file == null || !mounted) {
       return;
     }
+    final ext = file.path.split('.').last.toLowerCase();
+    final fileType = (ext == 'png') ? 'png' : 'jpeg';
 
     String? paymentMethod;
     String? referenceNumber;
@@ -176,11 +211,16 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
 
     paymentMethod = result['method'];
-    referenceNumber = result['ref'];
+    var rawRef = result['ref']?.trim() ?? '';
+    // Normalizar referencia: solo dígitos, últimos 6
+    rawRef = rawRef.replaceAll(RegExp(r'\\D'), '');
+    if (rawRef.length > 6) {
+      rawRef = rawRef.substring(rawRef.length - 6);
+    }
+    referenceNumber = rawRef;
     if (paymentMethod == null ||
         paymentMethod.isEmpty ||
-        referenceNumber == null ||
-        referenceNumber.isEmpty) {
+        referenceNumber.length < 4) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -196,7 +236,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       await OrderService().uploadPaymentProof(
         widget.orderId,
         file.path,
-        'jpeg',
+        fileType,
         paymentMethod: paymentMethod,
         referenceNumber: referenceNumber,
       );
@@ -340,6 +380,19 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             style: TextStyle(
                 fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary)),
         centerTitle: true,
+        actions: [
+          IconButton(
+            tooltip: 'Chat con el comercio',
+            icon: Icon(Icons.chat_bubble_outline, color: textPrimary),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => BuyerOrderChatPage(orderId: order.id),
+                ),
+              );
+            },
+          ),
+        ],
         backgroundColor: surfaceColor,
         foregroundColor: textPrimary,
         elevation: 0,
@@ -362,6 +415,17 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                         surfaceColor: surfaceColor,
                         borderColor: borderColor,
                         badgeBg: badgeBg),
+                    if (_isTrackableStatus(order.status)) ...[
+                      const SizedBox(height: 24),
+                      _buildActiveOrderProgressSection(
+                          order, primary: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.accentButton(context)
+                              : AppColors.blue,
+                          surfaceColor: surfaceColor,
+                          borderColor: borderColor,
+                          textPrimary: textPrimary,
+                          textSecondary: textSecondary),
+                    ],
                     const SizedBox(height: 24),
                     _buildResumenCard(order,
                         textPrimary: textPrimary,
@@ -626,6 +690,25 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   ],
                 ),
               )),
+          if (order.specialInstructions != null &&
+              order.specialInstructions!.trim().isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _buildDashedDivider(borderColor: borderColor),
+            const SizedBox(height: 12),
+            Text(
+              'Notas del pedido',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: textPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              order.specialInstructions!,
+              style: TextStyle(fontSize: 13, color: textSecondary, height: 1.35),
+            ),
+          ],
           const SizedBox(height: 16),
           _buildDashedDivider(borderColor: borderColor),
           const SizedBox(height: 16),
@@ -827,9 +910,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   /// Genera el PDF del recibo con los datos de la orden y abre la hoja de compartir
   /// (guardar, WhatsApp, etc.). Siempre usa ReceiptPdfBuilder para imprimir los valores.
   Future<void> _onDownloadPdf(Order order) async {
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     setState(() => _updating = true);
     try {
       Uint8List? logoBytes;
@@ -852,18 +933,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         return;
       }
       await Printing.sharePdf(bytes: bytes, filename: 'recibo-${order.id}.pdf');
-      if (!mounted) {
-        return;
-      }
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('PDF listo para guardar o compartir'),
             backgroundColor: AppColors.green),
       );
     } finally {
-      if (mounted) {
-        setState(() => _updating = false);
-      }
+      if (mounted) setState(() => _updating = false);
     }
   }
 
@@ -910,27 +987,78 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   Widget _buildPendingPaymentActions(Order order) {
+    final hasProof = order.paymentProof != null && order.paymentProof!.isNotEmpty;
+    final approvedForPayment = order.approvedForPayment;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          'Pendiente de pago',
+          hasProof ? 'Comprobante enviado' : 'Pendiente de pago',
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: AppColors.primaryText(context),
               ),
         ),
         const SizedBox(height: 8),
-        ElevatedButton.icon(
-          onPressed: _uploadProof,
-          icon: const Icon(Icons.upload_file),
-          label: const Text('Subir comprobante de pago'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.accentButton(context),
-            foregroundColor: AppColors.white,
-            padding: const EdgeInsets.symmetric(vertical: 14),
+        if (!approvedForPayment) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.orange.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.orange.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.schedule, color: AppColors.orange, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Esperando que el comercio acepte tu pedido. Cuando lo acepte, aparecerá el botón para subir el comprobante.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.primaryText(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+        ] else if (hasProof) ...[
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.green.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.green.withValues(alpha: 0.4)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.check_circle_outline, color: AppColors.green, size: 24),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Comprobante subido correctamente. Esperando validación del comercio.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppColors.primaryText(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ] else
+          ElevatedButton.icon(
+            onPressed: _uploadProof,
+            icon: const Icon(Icons.upload_file),
+            label: const Text('Subir comprobante de pago'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.accentButton(context),
+              foregroundColor: AppColors.white,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+          ),
         if (_canCancel) ...[
           const SizedBox(height: 12),
           OutlinedButton.icon(
@@ -945,6 +1073,146 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           ),
         ],
       ],
+    );
+  }
+
+  int _progressStep(Order order) {
+    final s = order.status.toLowerCase();
+    switch (s) {
+      case 'pending_payment':
+      case 'pending':
+      case 'paid':
+        return 0;
+      case 'processing':
+      case 'preparing':
+      case 'ready':
+        return 1;
+      case 'shipped':
+      case 'out_for_delivery':
+      case 'on_way':
+        return 2;
+      case 'delivered':
+        return 3;
+      default:
+        if (s.contains('camino') || s.contains('shipped') || s.contains('delivery')) return 2;
+        if (s.contains('prepar') || s.contains('process') || s.contains('ready')) return 1;
+        if (s.contains('entreg') || s.contains('delivered')) return 3;
+        return 0;
+    }
+  }
+
+  Widget _buildActiveOrderProgressSection(Order order,
+      {required Color primary,
+      required Color surfaceColor,
+      required Color borderColor,
+      required Color textPrimary,
+      required Color textSecondary}) {
+    final step = _progressStep(order);
+    const labels = ['RECIBIDO', 'PREPARACIÓN', 'EN CAMINO', 'ENTREGADO'];
+    const icons = [
+      Icons.check,
+      Icons.restaurant,
+      Icons.two_wheeler,
+      Icons.inventory_2,
+    ];
+    Widget circle(int i) {
+      final done = i < step;
+      final active = i == step;
+      return Container(
+        width: active ? 40 : 32,
+        height: active ? 40 : 32,
+        decoration: BoxDecoration(
+          color: done || active ? primary : textSecondary.withValues(alpha: 0.2),
+          shape: BoxShape.circle,
+          boxShadow: active
+              ? [BoxShadow(color: primary.withValues(alpha: 0.3), blurRadius: 8)]
+              : null,
+        ),
+        child: Icon(
+          icons[i],
+          size: active ? 20 : 16,
+          color: (done || active) ? AppColors.white : textSecondary,
+        ),
+      );
+    }
+    Color labelColor(int i) => i <= step ? primary : textSecondary;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.black.withValues(alpha: 0.04),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            step >= 2 ? '¡Ya casi llega!' : (step == 1 ? 'En preparación' : 'Recibido'),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: textPrimary,
+            ),
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Column(children: [
+                circle(0),
+                const SizedBox(height: 6),
+                Text(labels[0], style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: labelColor(0))),
+              ]),
+              Expanded(
+                child: Center(
+                  child: Container(
+                    height: 2,
+                    color: step > 0 ? primary : textSecondary.withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+              Column(children: [
+                circle(1),
+                const SizedBox(height: 6),
+                Text(labels[1], style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: labelColor(1))),
+              ]),
+              Expanded(
+                child: Center(
+                  child: Container(
+                    height: 2,
+                    color: step > 1 ? primary : textSecondary.withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+              Column(children: [
+                circle(2),
+                const SizedBox(height: 6),
+                Text(labels[2], style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: labelColor(2))),
+              ]),
+              Expanded(
+                child: Center(
+                  child: Container(
+                    height: 2,
+                    color: step > 2 ? primary : textSecondary.withValues(alpha: 0.3),
+                  ),
+                ),
+              ),
+              Column(children: [
+                circle(3),
+                const SizedBox(height: 6),
+                Text(labels[3], style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: labelColor(3))),
+              ]),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -1126,10 +1394,15 @@ class _UploadProofDialogState extends State<_UploadProofDialog> {
             TextFormField(
               controller: _refController,
               decoration: const InputDecoration(
-                labelText: 'Número de referencia / transacción',
+                labelText: 'Últimos 4-6 dígitos de la operación',
                 border: OutlineInputBorder(),
-                hintText: 'Ej: REF123456',
+                hintText: 'Ej: 466511',
               ),
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(6),
+              ],
             ),
           ],
         ),

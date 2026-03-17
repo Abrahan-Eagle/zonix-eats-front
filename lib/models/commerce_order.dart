@@ -19,6 +19,7 @@ class CommerceOrder {
   final Map<String, dynamic>? user;
   final List<Map<String, dynamic>>? orderItems;
   final Map<String, dynamic>? orderDelivery;
+  final bool approvedForPayment;
 
   CommerceOrder({
     required this.id,
@@ -41,6 +42,7 @@ class CommerceOrder {
     this.user,
     this.orderItems,
     this.orderDelivery,
+    this.approvedForPayment = false,
   });
 
   factory CommerceOrder.fromJson(Map<String, dynamic> json) {
@@ -71,6 +73,8 @@ class CommerceOrder {
           ? List<Map<String, dynamic>>.from(json['order_items'])
           : null,
       orderDelivery: json['order_delivery'],
+      approvedForPayment:
+          json['approved_for_payment'] == true || json['approved_for_payment'] == 1,
     );
   }
 
@@ -96,6 +100,7 @@ class CommerceOrder {
       'user': user,
       'order_items': orderItems,
       'order_delivery': orderDelivery,
+      'approved_for_payment': approvedForPayment,
     };
   }
 
@@ -120,6 +125,7 @@ class CommerceOrder {
     Map<String, dynamic>? user,
     List<Map<String, dynamic>>? orderItems,
     Map<String, dynamic>? orderDelivery,
+    bool? approvedForPayment,
   }) {
     return CommerceOrder(
       id: id ?? this.id,
@@ -142,6 +148,7 @@ class CommerceOrder {
       user: user ?? this.user,
       orderItems: orderItems ?? this.orderItems,
       orderDelivery: orderDelivery ?? this.orderDelivery,
+      approvedForPayment: approvedForPayment ?? this.approvedForPayment,
     );
   }
 

@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:zonix/features/services/commerce_service.dart';
 import 'package:zonix/features/services/commerce_order_service.dart';
 import 'package:zonix/features/services/commerce_data_service.dart';
+import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/screens/commerce/commerce_promotions_page.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
 
@@ -29,11 +31,36 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
   List<dynamic> _recentOrders = [];
   bool _commerceOpen = false;
   int _commerceId = 0;
+  bool _pusherSubscribed = false;
 
   @override
   void initState() {
     super.initState();
     _loadData();
+  }
+
+  @override
+  void dispose() {
+    if (_pusherSubscribed && _commerceId > 0) {
+      PusherService.instance.unsubscribeFromChannel('private-commerce.$_commerceId');
+    }
+    super.dispose();
+  }
+
+  Future<void> _subscribeToCommerceUpdates() async {
+    if (!AppConfig.enablePusher || _commerceId <= 0 || !mounted) return;
+    final ok = await PusherService.instance.subscribeToCommerceChannel(
+      _commerceId,
+      onEvent: (eventName, data) {
+        if ((eventName.contains('OrderStatusChanged') ||
+                eventName.contains('OrderCreated') ||
+                eventName.contains('PaymentValidated')) &&
+            mounted) {
+          _loadData();
+        }
+      },
+    );
+    if (mounted) _pusherSubscribed = ok;
   }
 
   Future<void> _loadData() async {
@@ -78,6 +105,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
           _recentOrders = recent;
           _loading = false;
         });
+        _subscribeToCommerceUpdates();
       }
     } catch (e) {
       if (mounted) {

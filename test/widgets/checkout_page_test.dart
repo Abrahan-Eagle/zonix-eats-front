@@ -20,6 +20,6 @@ void main() {
     );
     await tester.pumpAndSettle();
     // El texto exacto que muestra CheckoutPage
-    expect(find.text('Resumen de compra'), findsOneWidget);
+    expect(find.text('Resumen del pedido'), findsOneWidget);
   });
 }

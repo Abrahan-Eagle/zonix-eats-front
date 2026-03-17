@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/models/commerce_order.dart';
 import 'package:zonix/features/services/commerce_order_service.dart';
+import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/screens/commerce/commerce_chat_messages_page.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class CommerceOrderDetailPage extends StatefulWidget {
   const CommerceOrderDetailPage({
@@ -24,6 +26,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
   bool _loading = true;
   String? _error;
   bool _updating = false;
+  bool _pusherSubscribed = false;
 
   static num _parseNum(dynamic value) {
     if (value == null) return 0;
@@ -40,6 +43,28 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
     } else {
       _loading = false;
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _subscribeToOrderUpdates());
+  }
+
+  @override
+  void dispose() {
+    if (_pusherSubscribed) {
+      PusherService.instance.unsubscribeFromChannel('private-orders.${widget.orderId}');
+    }
+    super.dispose();
+  }
+
+  Future<void> _subscribeToOrderUpdates() async {
+    if (!AppConfig.enablePusher || _pusherSubscribed || !mounted) return;
+    final ok = await PusherService.instance.subscribeToOrderChat(
+      widget.orderId,
+      onNewMessage: (eventName, data) {
+        if ((eventName.contains('OrderStatusChanged') || eventName.contains('PaymentValidated')) && mounted) {
+          _loadOrder();
+        }
+      },
+    );
+    if (mounted) _pusherSubscribed = ok;
   }
 
   Future<void> _loadOrder() async {
@@ -140,6 +165,10 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
             backgroundColor: isValid ? AppColors.green : AppColors.red,
           ),
         );
+        if (isValid) {
+          // Al validar el pago, pasar directamente a "En preparación"
+          await _updateStatus('processing');
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -155,11 +184,35 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
     }
   }
 
+  static String _paymentMethodLabel(String? type) {
+    if (type == null || type.isEmpty) return '—';
+    switch (type) {
+      case 'mobile_payment':
+        return 'Pago móvil';
+      case 'bank_transfer':
+        return 'Transferencia';
+      case 'card':
+      case 'stripe':
+        return 'Tarjeta';
+      case 'cash':
+        return 'Efectivo';
+      case 'paypal':
+        return 'PayPal';
+      case 'mercadopago':
+        return 'Mercado Pago';
+      case 'digital_wallet':
+        return 'Billetera digital';
+      default:
+        return type.replaceAll('_', ' ').split(' ').map((e) => e.isEmpty ? e : '${e[0].toUpperCase()}${e.substring(1)}').join(' ');
+    }
+  }
+
   String _imageUrl(String? path) {
     if (path == null || path.isEmpty) return '';
     if (path.startsWith('http')) return path;
     final base = AppConfig.apiUrl.replaceAll('/api', '');
-    return path.startsWith('/') ? '$base$path' : '$base/$path';
+    // Backend guarda en disco public (storage); alineamos con detalle de buyer.
+    return path.startsWith('/') ? '$base$path' : '$base/storage/$path';
   }
 
   @override
@@ -262,6 +315,34 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                         ),
                       );
                     }),
+                    if (order.notes != null && order.notes!.trim().isNotEmpty) ...[
+                      const SizedBox(height: 16),
+                      Text('Personalización del pedido',
+                          style: Theme.of(context).textTheme.titleMedium),
+                      const SizedBox(height: 8),
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(Icons.note_alt_outlined,
+                                  size: 20, color: AppColors.amber),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  order.notes!,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    height: 1.35,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
                     Card(
                       child: Padding(
@@ -276,7 +357,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                         ),
                       ),
                     ),
-                    if (order.status == 'pending_payment') ...[
+                    if (order.isPendingPayment && !order.approvedForPayment) ...[
                       const SizedBox(height: 16),
                       Text('Acciones',
                           style: Theme.of(context).textTheme.titleMedium),
@@ -343,21 +424,118 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // Datos para conciliar (método, referencia, monto)
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: AppColors.amber.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: AppColors.amber.withValues(alpha: 0.4),
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Datos para conciliar',
+                                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        color: AppColors.amber,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _TotalRow('Método de pago', _paymentMethodLabel(order.paymentMethod)),
+                                    _TotalRow('Referencia / Nº operación', order.referenceNumber?.isNotEmpty == true ? order.referenceNumber! : '—'),
+                                    _TotalRow('Monto de la orden', '\$${order.total.toStringAsFixed(2)}'),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Datos del comprador',
+                                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    _TotalRow('Nombre', order.customerName),
+                                    _TotalRow('Email', order.customerEmail),
+                                    _TotalRow('Teléfono', order.customerPhone),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
                               if (order.paymentProof != null &&
                                   order.paymentProof!.isNotEmpty)
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image.network(
-                                    _imageUrl(order.paymentProof),
-                                    height: 200,
-                                    width: double.infinity,
-                                    fit: BoxFit.contain,
-                                    errorBuilder: (_, __, ___) => const Icon(
-                                      Icons.receipt,
-                                      size: 64,
-                                    ),
-                                  ),
+                                Builder(
+                                  builder: (ctx) {
+                                    final proofUrl = _imageUrl(order.paymentProof);
+                                    final isPdf = proofUrl.toLowerCase().endsWith('.pdf');
+                                    if (isPdf) {
+                                      return Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          const Icon(Icons.picture_as_pdf, size: 48, color: AppColors.red),
+                                          const SizedBox(height: 8),
+                                          TextButton.icon(
+                                            onPressed: () async {
+                                              final uri = Uri.parse(proofUrl);
+                                              if (await canLaunchUrl(uri)) {
+                                                await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                              }
+                                            },
+                                            icon: const Icon(Icons.open_in_new),
+                                            label: const Text('Ver comprobante (PDF)'),
+                                          ),
+                                        ],
+                                      );
+                                    }
+                                    return Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            showDialog<void>(
+                                              context: ctx,
+                                              builder: (_) => Dialog(
+                                                child: InteractiveViewer(
+                                                  child: Image.network(
+                                                    proofUrl,
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: Image.network(
+                                              proofUrl,
+                                              height: 200,
+                                              width: double.infinity,
+                                              fit: BoxFit.contain,
+                                              errorBuilder: (_, __, ___) => const Icon(
+                                                Icons.receipt,
+                                                size: 64,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 8),
+                                        TextButton.icon(
+                                          onPressed: () async {
+                                            final uri = Uri.parse(proofUrl);
+                                            if (await canLaunchUrl(uri)) {
+                                              await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                            }
+                                          },
+                                          icon: const Icon(Icons.open_in_new),
+                                          label: const Text('Ver comprobante'),
+                                        ),
+                                      ],
+                                    );
+                                  },
                                 ),
                               const SizedBox(height: 12),
                               Row(
@@ -387,27 +565,22 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                         ),
                       ),
                     ],
-                    if (order.isPaid) ...[
+                    if (order.isPaid && (order.paymentMethod != null || order.referenceNumber != null)) ...[
                       const SizedBox(height: 16),
-                      Text('Cambiar estado',
+                      Text('Pago recibido',
                           style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 8,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () =>
-                                _updateStatus('processing'),
-                            child: const Text('En preparación'),
+                      Card(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            children: [
+                              _TotalRow('Método', _paymentMethodLabel(order.paymentMethod)),
+                              if (order.referenceNumber != null && order.referenceNumber!.isNotEmpty)
+                                _TotalRow('Referencia', order.referenceNumber!),
+                            ],
                           ),
-                          ElevatedButton(
-                            onPressed: () =>
-                                _updateStatus('cancelled'),
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.red),
-                            child: const Text('Cancelar'),
-                          ),
-                        ],
+                        ),
                       ),
                     ],
                     if (order.status == 'processing') ...[

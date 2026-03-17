@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/screens/cart/checkout_page.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
@@ -17,8 +16,8 @@ class CartPage extends StatelessWidget {
     final cartItems = cartService.items;
     final totalItems = cartItems.fold<int>(0, (sum, item) => sum + item.quantity);
     final subtotal = cartItems.fold<double>(0, (sum, item) => sum + (item.precio ?? 0) * item.quantity);
-    final deliveryFee = AppConfig.defaultDeliveryFee;
-    final total = subtotal + deliveryFee;
+    // Total en carrito = solo subtotal; la tarifa de envío se muestra en Checkout (cuando el usuario elige delivery o pickup)
+    final total = subtotal;
     return GestureDetector(
       onTap: () {
         FocusScope.of(context).unfocus();
@@ -47,7 +46,7 @@ class CartPage extends StatelessWidget {
           ),
         ),
         bottomNavigationBar: cartItems.isNotEmpty
-            ? _buildFooterSummaryAndCheckout(context, subtotal: subtotal, deliveryFee: deliveryFee, total: total)
+            ? _buildFooterSummaryAndCheckout(context, subtotal: subtotal, total: total)
             : null,
       ),
     );
@@ -296,10 +295,8 @@ class CartPage extends StatelessWidget {
   Widget _buildFooterSummaryAndCheckout(
     BuildContext context, {
     required double subtotal,
-    required double deliveryFee,
     required double total,
   }) {
-    final isFreeDelivery = deliveryFee <= 0;
     return Container(
       decoration: BoxDecoration(
         color: AppColors.cardBg(context),
@@ -339,27 +336,6 @@ class CartPage extends StatelessWidget {
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                       color: AppColors.primaryText(context),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Tarifa de envío',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.secondaryText(context),
-                    ),
-                  ),
-                  Text(
-                    isFreeDelivery ? 'Gratis' : '\$${deliveryFee.toStringAsFixed(2)}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: isFreeDelivery ? AppColors.success(context) : AppColors.primaryText(context),
                     ),
                   ),
                 ],

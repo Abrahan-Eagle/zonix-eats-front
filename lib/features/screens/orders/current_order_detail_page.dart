@@ -8,6 +8,7 @@ import 'package:zonix/config/app_config.dart';
 import 'package:zonix/widgets/osm_map_widget.dart';
 import 'package:zonix/features/screens/orders/buyer_order_chat_page.dart';
 import 'package:zonix/features/screens/orders/delivery_detail_page.dart';
+import 'package:zonix/features/screens/orders/order_detail_page.dart';
 import 'package:flutter_map/flutter_map.dart' show Marker;
 import 'package:latlong2/latlong.dart';
 
@@ -221,6 +222,9 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
   }
 
   String _etaMessage(Order order) {
+    if (order.status == 'pending_payment' || order.status == 'pending') {
+      return 'Sube tu comprobante de pago para que el comercio confirme tu orden.';
+    }
     if (order.status == 'shipped' || order.status == 'out_for_delivery') {
       return 'Tu pedido aterrizará en 8-12 min';
     }
@@ -281,6 +285,10 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                     children: [
                       _buildStatusSection(order, surfaceColor, borderColor,
                           primary, textPrimary, textSecondary),
+                      if (order.status == 'pending_payment' ||
+                          order.status == 'pending')
+                        _buildPendingPaymentCard(context, order, surfaceColor,
+                            borderColor, primary, textPrimary),
                       _buildMapSection(
                           order, primary, surfaceColor, borderColor, isDark),
                       _buildDeliveryPersonCard(surfaceColor, borderColor,
@@ -425,6 +433,64 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
           ),
           const SizedBox(height: 24),
           _buildProgressBar(step, primary, textSecondary),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPendingPaymentCard(BuildContext context, Order order,
+      Color surfaceColor, Color borderColor, Color primary, Color textPrimary) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: surfaceColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Pendiente de pago',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: textPrimary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Sube tu comprobante de pago y elige el método de pago en la pantalla de detalle.',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 14,
+              color: AppColors.secondaryText(context),
+            ),
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => OrderDetailPage(
+                      orderId: order.id,
+                      order: order,
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.upload_file, size: 20),
+              label: const Text('Subir comprobante de pago'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primary,
+                foregroundColor: AppColors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+              ),
+            ),
+          ),
         ],
       ),
     );

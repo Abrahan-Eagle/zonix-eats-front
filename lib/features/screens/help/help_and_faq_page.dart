@@ -600,9 +600,9 @@ class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
   }
 
   static final List<({String question, String answer})> _faqUsers = [
-    (question: '¿Cómo hago un pedido?', answer: 'Entra en Restaurantes o Productos, elige el restaurante y los platos. Añádelos al carrito (solo de un restaurante a la vez). En Checkout indica tu dirección y método de pago. Si pagas por transferencia o pago móvil, sube el comprobante. El comercio validará el pago y preparará tu pedido.'),
+    (question: '¿Cómo hago un pedido?', answer: 'Entra en Restaurantes o Productos, elige el restaurante y los platos. Añádelos al carrito (solo de un restaurante a la vez). En Checkout confirmas tu dirección y tipo de entrega. Después se crea la orden y podrás subir el comprobante de pago. El comercio validará el pago y preparará tu pedido.'),
     (question: '¿Cómo cambio o agrego mi dirección de entrega?', answer: 'En Configuración (Mi perfil) → "Direcciones guardadas" puedes añadir o editar. La predeterminada se usa para buscar restaurantes; en cada pedido puedes elegir otra.'),
-    (question: '¿Qué métodos de pago puedo usar?', answer: 'Cada restaurante define los suyos: efectivo, transferencia, tarjeta, pago móvil, etc. En el checkout verás las opciones. Para transferencia o pago móvil deberás subir el comprobante en el tiempo indicado.'),
+    (question: '¿Qué métodos de pago puedo usar?', answer: 'Cada restaurante define los suyos: efectivo, transferencia, tarjeta, pago móvil, etc. Verás las opciones del comercio al subir el comprobante de pago en el detalle de la orden. Para transferencia o pago móvil deberás subir el comprobante en el tiempo indicado.'),
     (question: '¿Cómo sigo mi pedido?', answer: 'En "Mis Órdenes" verás el estado: Pendiente de pago, Pagado, En preparación, Enviado, Entregado. Toca una orden para el detalle. Si hay repartidor, verás seguimiento en tiempo real.'),
     (question: '¿Cómo cancelo mi pedido en curso?', answer: 'Solo mientras esté en "Pendiente de pago". Después depende del comercio. Si tienes un problema, contacta soporte con el número de orden.'),
     (question: '¿Mi pedido llegó incompleto, qué hago?', answer: 'Contacta a soporte (correo o chat) e indica el número de orden y qué faltó. El equipo revisará con el comercio y te responderá.'),

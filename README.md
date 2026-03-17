@@ -222,6 +222,23 @@ class AppConfig {
 - ✅ Cancelar órdenes
 - ✅ Subir comprobante de pago
 
+#### Flujo Buyer (Resumen)
+
+```mermaid
+flowchart TD
+  A[Productos / Restaurantes] --> B[Carrito]
+  B --> C[CheckoutPage<br/>Finalizar pedido]
+  C -->|Confirmar Pedido| D[createOrder<br/>estado: pending_payment]
+  D --> E[OrderConfirmationPage]
+  E -->|Seguir mi pedido| F[CurrentOrderDetailPage]
+  F -->|Subir comprobante| G[OrderDetailPage<br/>UploadPaymentProof]
+  G --> H[Comercio valida pago<br/>paid -> processing/preparing]
+  H --> I[shipped / out_for_delivery<br/>tracking en vivo]
+  I --> J[delivered<br/>pasa a historial]
+  J --> K[OrderHistoryDetailPage]
+  K --> L[OrderRatingPage<br/>calificar comercio y delivery]
+```
+
 ### Chat y notificaciones en tiempo real
 
 - ✅ Firebase Cloud Messaging (FCM) + Pusher (no WebSocket directo)

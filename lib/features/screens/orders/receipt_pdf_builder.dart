@@ -153,7 +153,7 @@ class ReceiptPdfBuilder {
                     pw.SizedBox(height: 6),
                     pw.Text(AppStrings.clientLabel, style: pw.TextStyle(fontSize: 14, fontWeight: pw.FontWeight.bold, color: _zonixDark)),
                     pw.SizedBox(height: 4),
-                    pw.Text(order.deliveryAddress.isEmpty ? '—' : order.deliveryAddress, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600), maxLines: 4),
+                    pw.Text(order.deliveryAddress.isEmpty ? '-' : order.deliveryAddress, style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey600), maxLines: 4),
                   ],
                 ),
               ),
@@ -215,6 +215,26 @@ class ReceiptPdfBuilder {
               }),
             ],
           ),
+          if (order.specialInstructions != null &&
+              order.specialInstructions!.trim().isNotEmpty) ...[
+            pw.SizedBox(height: 16),
+            pw.Container(
+              padding: const pw.EdgeInsets.all(12),
+              decoration: pw.BoxDecoration(
+                color: PdfColors.grey100,
+                borderRadius: pw.BorderRadius.circular(6),
+              ),
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                mainAxisSize: pw.MainAxisSize.min,
+                children: [
+                  pw.Text('Notas del pedido', style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold, color: _zonixDark)),
+                  pw.SizedBox(height: 6),
+                  pw.Text(order.specialInstructions!, style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700), maxLines: 10),
+                ],
+              ),
+            ),
+          ],
           pw.SizedBox(height: 24),
           pw.Align(
             alignment: pw.Alignment.centerRight,

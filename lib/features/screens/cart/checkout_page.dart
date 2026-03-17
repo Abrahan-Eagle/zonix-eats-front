@@ -7,6 +7,8 @@ import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/features/services/promotion_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/screens/orders/order_detail_page.dart';
+import 'package:zonix/features/utils/network_image_with_fallback.dart';
 
 class CheckoutPage extends StatefulWidget {
   const CheckoutPage({super.key});
@@ -18,7 +20,6 @@ class CheckoutPage extends StatefulWidget {
 class _CheckoutPageState extends State<CheckoutPage> {
   bool _loading = false;
   String? _error;
-  String? _success;
   String _deliveryType = 'pickup';
   String? _selectedAddress;
   double? _selectedDeliveryLat;
@@ -135,7 +136,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
     setState(() {
       _loading = true;
       _error = null;
-      _success = null;
     });
     final cartService = Provider.of<CartService>(context, listen: false);
     final orderService = Provider.of<OrderService>(context, listen: false);
@@ -174,15 +174,23 @@ class _CheckoutPageState extends State<CheckoutPage> {
         }
       }
       cartService.clearCart();
+      if (!mounted) return;
       setState(() {
-        _success = '¡Orden creada exitosamente!';
+        _loading = false;
       });
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => OrderDetailPage(
+            orderId: order.id,
+            order: order,
+            showCreatedDialog: true,
+          ),
+        ),
+      );
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = e.toString().replaceFirst('Exception: ', '');
-      });
-    } finally {
-      setState(() {
         _loading = false;
       });
     }
@@ -192,8 +200,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
   Widget build(BuildContext context) {
     final cartService = Provider.of<CartService>(context);
     final cartItems = cartService.items;
-    final totalItems =
-        cartItems.fold<int>(0, (sum, item) => sum + item.quantity);
     final subtotal = cartItems.fold<double>(
         0, (sum, item) => sum + (item.precio ?? 0) * item.quantity);
     const tax = 0.0;
@@ -202,77 +208,269 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final totalPayment = (subtotal + tax + delivery - _couponDiscount)
         .clamp(0.0, double.infinity);
     return Scaffold(
-      appBar: AppBar(title: const Text('Checkout')),
+      backgroundColor: AppColors.scaffoldBg(context),
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: AppColors.scaffoldBg(context),
+        title: const Text(
+          'Finalizar pedido',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView(
           children: [
-            const Text(
-              'Resumen de compra',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            ...cartService.items.map((item) => Card(
-                  margin: const EdgeInsets.symmetric(vertical: 6),
-                  child: ListTile(
-                    title: Text(item.nombre),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (item.notes != null && item.notes!.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 4),
-                            child: Text('Notas: ${item.notes}',
-                                style: const TextStyle(
-                                    fontSize: 12, color: AppColors.gray)),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.cardBg(context),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? AppColors.grayDark
+                      : AppColors.grayLight.withValues(alpha: 0.7),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Resumen del pedido',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'Zonix Eats',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.orange,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ...cartService.items.map(
+                    (item) {
+                      final imageUrl = (item.image ?? item.imagen ?? '').toString();
+                      return Container(
+                        margin: const EdgeInsets.symmetric(vertical: 6),
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.1),
                           ),
-                        Row(
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            IconButton(
-                              icon: const Icon(Icons.remove),
-                              onPressed: item.quantity > 1
-                                  ? () => cartService.decrementQuantity(item)
-                                  : null,
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: SizedBox(
+                                width: 64,
+                                height: 64,
+                                child: imageUrl.isNotEmpty
+                                    ? NetworkImageWithFallback(
+                                        imageUrl: imageUrl,
+                                        width: 64,
+                                        height: 64,
+                                        fit: BoxFit.cover,
+                                        borderRadius: BorderRadius.circular(12),
+                                      )
+                                    : Container(
+                                        color: Theme.of(context).brightness ==
+                                                Brightness.dark
+                                            ? AppColors.grayDark
+                                            : AppColors.grayLight,
+                                        child: const Icon(
+                                          Icons.fastfood,
+                                          color: AppColors.gray,
+                                        ),
+                                      ),
+                              ),
                             ),
-                            Text('${item.quantity}'),
-                            IconButton(
-                              icon: const Icon(Icons.add),
-                              onPressed: () =>
-                                  cartService.incrementQuantity(item),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.nombre,
+                                    style: const TextStyle(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  if (item.notes != null &&
+                                      item.notes!.isNotEmpty) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      item.notes!,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: AppColors.gray,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
+                                  ],
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      const Text(
+                                        'Cantidad: ',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                      IconButton(
+                                        visualDensity:
+                                            VisualDensity.compact,
+                                        icon: const Icon(
+                                          Icons.remove_circle_outline,
+                                          size: 20,
+                                        ),
+                                        onPressed: item.quantity > 1
+                                            ? () => cartService
+                                                .decrementQuantity(item)
+                                            : null,
+                                      ),
+                                      Text('${item.quantity}'),
+                                      IconButton(
+                                        visualDensity:
+                                            VisualDensity.compact,
+                                        icon: const Icon(
+                                          Icons.add_circle_outline,
+                                          size: 20,
+                                        ),
+                                        onPressed: () =>
+                                            cartService.incrementQuantity(item),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '\$${((item.precio ?? 0) * item.quantity).toStringAsFixed(2)}',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.amber,
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                    trailing: Text(
-                        '\$${((item.precio ?? 0) * item.quantity).toStringAsFixed(2)}'),
+                      );
+                    },
                   ),
-                )),
+                ],
+              ),
+            ),
             const SizedBox(height: 16),
             const Text(
               'Tipo de entrega',
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
-            RadioGroup<String>(
-              groupValue: _deliveryType,
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() => _deliveryType = value);
-                }
-              },
-              child: const Row(
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.cardBg(context),
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(
+                  color: AppColors.gray.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
                 children: [
                   Expanded(
-                    child: RadioListTile<String>(
-                      title: Text('Recoger'),
-                      value: 'pickup',
+                    child: GestureDetector(
+                      onTap: () =>
+                          setState(() => _deliveryType = 'delivery'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: _deliveryType == 'delivery'
+                              ? AppColors.orange
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.delivery_dining,
+                              size: 18,
+                              color: _deliveryType == 'delivery'
+                                  ? Colors.white
+                                  : AppColors.secondaryText(context),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Domicilio',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: _deliveryType == 'delivery'
+                                    ? Colors.white
+                                    : AppColors.secondaryText(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
+                  const SizedBox(width: 4),
                   Expanded(
-                    child: RadioListTile<String>(
-                      title: Text('Envío'),
-                      value: 'delivery',
+                    child: GestureDetector(
+                      onTap: () =>
+                          setState(() => _deliveryType = 'pickup'),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 10, horizontal: 4),
+                        decoration: BoxDecoration(
+                          color: _deliveryType == 'pickup'
+                              ? AppColors.cardBg(context)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.storefront,
+                              size: 18,
+                              color: _deliveryType == 'pickup'
+                                  ? AppColors.primaryText(context)
+                                  : AppColors.secondaryText(context),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              'Recoger',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: _deliveryType == 'pickup'
+                                    ? AppColors.primaryText(context)
+                                    : AppColors.secondaryText(context),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -349,101 +547,323 @@ class _CheckoutPageState extends State<CheckoutPage> {
               ),
             ],
             if (_deliveryType == 'delivery') ...[
-              const SizedBox(height: 8),
-              const Text(
-                'Dirección de entrega',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Elige una opción: GPS del dispositivo, tu casa o otra ubicación.',
-                style: TextStyle(fontSize: 12, color: AppColors.gray),
-              ),
-              const SizedBox(height: 8),
-              // Opción 1: Ubicación GPS del dispositivo
-              Card(
-                color: _isUsingCurrentLocation
-                    ? Theme.of(context).colorScheme.primaryContainer
-                    : null,
-                child: ListTile(
-                  leading: _loadingCurrentLocation
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.my_location),
-                  title: const Text('Ubicación GPS del dispositivo'),
-                  subtitle: Text(
-                    _isUsingCurrentLocation && _selectedAddress != null
-                        ? _selectedAddress!
-                        : 'Usar mi ubicación actual ahora',
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Dirección de entrega',
+                    style:
+                        TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
-                  trailing: _isUsingCurrentLocation
-                      ? const Icon(Icons.check_circle)
-                      : null,
-                  onTap: _loadingCurrentLocation
-                      ? null
-                      : _useCurrentDeviceLocation,
+                  TextButton(
+                    onPressed: () {
+                      // Abrir selector de dirección existente (GPS + direcciones)
+                      showModalBottomSheet<void>(
+                        context: context,
+                        isScrollControlled: true,
+                        shape: const RoundedRectangleBorder(
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(20),
+                          ),
+                        ),
+                        builder: (ctx) {
+                          return Padding(
+                            padding: EdgeInsets.only(
+                              bottom:
+                                  MediaQuery.of(ctx).viewInsets.bottom + 16,
+                              top: 16,
+                              left: 16,
+                              right: 16,
+                            ),
+                            child: SingleChildScrollView(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text(
+                                    'Elige una dirección',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Card(
+                                    color: _isUsingCurrentLocation
+                                        ? Theme.of(ctx)
+                                            .colorScheme
+                                            .primaryContainer
+                                        : null,
+                                    child: ListTile(
+                                      leading: _loadingCurrentLocation
+                                          ? const SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child:
+                                                  CircularProgressIndicator(
+                                                      strokeWidth: 2))
+                                          : const Icon(Icons.my_location),
+                                      title: const Text(
+                                          'Ubicación GPS del dispositivo'),
+                                      subtitle: Text(
+                                        _isUsingCurrentLocation &&
+                                                _selectedAddress != null
+                                            ? _selectedAddress!
+                                            : 'Usar mi ubicación actual ahora',
+                                      ),
+                                      trailing: _isUsingCurrentLocation
+                                          ? const Icon(Icons.check_circle)
+                                          : null,
+                                      onTap: _loadingCurrentLocation
+                                          ? null
+                                          : () async {
+                                              Navigator.of(ctx).pop();
+                                              await _useCurrentDeviceLocation();
+                                            },
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  if (_addresses.isEmpty)
+                                    const Card(
+                                      child: Padding(
+                                        padding: EdgeInsets.all(16),
+                                        child: Text(
+                                            'No tienes direcciones guardadas. Usa "Ubicación GPS del dispositivo" o agrega una en tu perfil.'),
+                                      ),
+                                    )
+                                  else
+                                    ..._addresses.map((addr) {
+                                      final formatted =
+                                          addr['formatted_address']
+                                                  as String? ??
+                                              _formatAddressFromMap(addr);
+                                      final isDefault =
+                                          addr['is_default'] == true;
+                                      final isSelected =
+                                          !_isUsingCurrentLocation &&
+                                              _selectedAddress == formatted;
+                                      return Card(
+                                        color: isSelected
+                                            ? Theme.of(ctx)
+                                                .colorScheme
+                                                .primaryContainer
+                                            : null,
+                                        child: ListTile(
+                                          leading: Icon(isDefault
+                                              ? Icons.home
+                                              : Icons.location_on),
+                                          title: Text(isDefault
+                                              ? 'Mi casa'
+                                              : (addr['name']?.toString() ??
+                                                  'Otra ubicación')),
+                                          subtitle: Text(formatted),
+                                          trailing: isSelected
+                                              ? const Icon(Icons.check_circle)
+                                              : null,
+                                          onTap: () {
+                                            setState(() {
+                                              _selectedAddress = formatted;
+                                              _isUsingCurrentLocation = false;
+                                              _selectedDeliveryLat =
+                                                  _latFromMap(addr);
+                                              _selectedDeliveryLng =
+                                                  _lngFromMap(addr);
+                                            });
+                                            Navigator.of(ctx).pop();
+                                          },
+                                        ),
+                                      );
+                                    }),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: const Text('Editar'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: AppColors.cardBg(context),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: AppColors.gray.withValues(alpha: 0.2),
+                  ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.orange.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(
+                        Icons.location_on,
+                        color: AppColors.orange,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _isUsingCurrentLocation
+                                ? 'Ubicación actual'
+                                : 'Mi Casa',
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _selectedAddress ??
+                                'Selecciona o agrega una dirección',
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: AppColors.gray,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Estimado: 25-35 min',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: AppColors.gray,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              const SizedBox(height: 6),
-              // Opción 2: Mi casa — Opción 3: Otra ubicación (direcciones guardadas)
-              if (_addresses.isEmpty)
-                const Card(
-                  child: Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text(
-                        'No tienes direcciones guardadas. Usa "Ubicación GPS del dispositivo" o agrega una en tu perfil.'),
-                  ),
-                )
-              else
-                ..._addresses.map((addr) {
-                  final formatted = addr['formatted_address'] as String? ??
-                      _formatAddressFromMap(addr);
-                  final isDefault = addr['is_default'] == true;
-                  final isSelected =
-                      !_isUsingCurrentLocation && _selectedAddress == formatted;
-                  return Card(
-                    color: isSelected
-                        ? Theme.of(context).colorScheme.primaryContainer
-                        : null,
-                    child: ListTile(
-                      leading: Icon(isDefault ? Icons.home : Icons.location_on),
-                      title: Text(isDefault
-                          ? 'Mi casa'
-                          : (addr['name']?.toString() ?? 'Otra ubicación')),
-                      subtitle: Text(formatted),
-                      trailing:
-                          isSelected ? const Icon(Icons.check_circle) : null,
-                      onTap: () => setState(() {
-                        _selectedAddress = formatted;
-                        _isUsingCurrentLocation = false;
-                        _selectedDeliveryLat = _latFromMap(addr);
-                        _selectedDeliveryLng = _lngFromMap(addr);
-                      }),
-                    ),
-                  );
-                }),
             ],
             const SizedBox(height: 16),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
+            // Método de pago (UI alineada con template; selección real se hace al subir comprobante)
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Método de pago',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                TextButton(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'Seleccionarás el método de pago al subir el comprobante.'),
+                      ),
+                    );
+                  },
+                  child: const Text('Cambiar'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.cardBg(context),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.gray.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 32,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? AppColors.grayDark
+                          : AppColors.grayLight,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      Icons.credit_card,
+                      size: 18,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Definir en el siguiente paso',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          'Verás las opciones del comercio al subir el comprobante.',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: AppColors.gray,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.check_circle,
+                    size: 18,
+                    color: AppColors.green,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.cardBg(context),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.gray.withValues(alpha: 0.2),
+                ),
+              ),
               child: Column(
                 children: [
-                  _buildSummaryRow('Total de productos:', '$totalItems'),
+                  _buildSummaryRow('Subtotal', '\$${subtotal.toStringAsFixed(2)}'),
                   _buildSummaryRow(
-                      'Subtotal', '\$${subtotal.toStringAsFixed(2)}'),
-                  if (tax > 0)
-                    _buildSummaryRow('Impuesto', '\$${tax.toStringAsFixed(2)}'),
-                  _buildSummaryRow('Envío', '\$${delivery.toStringAsFixed(2)}'),
+                    'Costo de envío',
+                    delivery <= 0
+                        ? 'Gratis'
+                        : '\$${delivery.toStringAsFixed(2)}',
+                    isDiscount: delivery <= 0,
+                  ),
+                  _buildSummaryRow(
+                    'Impuestos (8%)',
+                    '\$${tax.toStringAsFixed(2)}',
+                  ),
                   if (_couponDiscount > 0)
-                    _buildSummaryRow('Descuento cupón',
-                        '-\$${_couponDiscount.toStringAsFixed(2)}',
-                        isDiscount: true),
+                    _buildSummaryRow(
+                      'Descuento cupón',
+                      '-\$${_couponDiscount.toStringAsFixed(2)}',
+                      isDiscount: true,
+                    ),
                   const Divider(height: 24, thickness: 1),
                   _buildSummaryRow(
-                      'Total a pagar:', '\$${totalPayment.toStringAsFixed(2)}',
-                      isTotal: true),
+                    'Total',
+                    '\$${totalPayment.toStringAsFixed(2)}',
+                    isTotal: true,
+                  ),
                 ],
               ),
             ),
@@ -451,21 +871,61 @@ class _CheckoutPageState extends State<CheckoutPage> {
               const SizedBox(height: 8),
               Text(_error!, style: const TextStyle(color: AppColors.red)),
             ],
-            if (_success != null) ...[
-              const SizedBox(height: 8),
-              Text(_success!, style: const TextStyle(color: AppColors.green)),
-            ],
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.orange,
+                  foregroundColor: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
                 onPressed: _loading ? null : _handleCheckout,
                 child: _loading
                     ? const SizedBox(
                         height: 24,
                         width: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2))
-                    : const Text('Confirmar compra'),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Confirmar Pedido',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          SizedBox(width: 8),
+                          Icon(
+                            Icons.chevron_right,
+                            size: 20,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                'Al confirmar, aceptas nuestros términos de servicio y políticas de entrega.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: AppColors.gray,
+                ),
               ),
             ),
           ],
