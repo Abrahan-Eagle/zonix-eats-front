@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#FF9800",
+                        "secondary": "#3399FF",
+                        "background-light": "#f8f6f6",
+                        "background-dark": "#1A2E46",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Public Sans', sans-serif; }
+        .map-gradient {
+            background: linear-gradient(to bottom, rgba(26, 46, 70, 0) 0%, rgba(26, 46, 70, 1) 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex h-screen w-full flex-col overflow-hidden max-w-md mx-auto shadow-2xl">
+<!-- Top Header Overlay -->
+<div class="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-4 bg-gradient-to-b from-background-dark/80 to-transparent">
+<button class="flex size-10 items-center justify-center rounded-full bg-background-dark/50 backdrop-blur-md text-white">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h2 class="text-white text-lg font-bold tracking-tight">Zonix Eats</h2>
+<button class="flex size-10 items-center justify-center rounded-full bg-background-dark/50 backdrop-blur-md text-white">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+<!-- Map Section (Hero) -->
+<div class="relative h-[45%] w-full bg-slate-800">
+<div class="absolute inset-0 bg-center bg-cover" data-alt="Map showing a delivery route in the city" data-location="Mexico City" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCkiRWVaMpj59yuWCJS2jh7PiKmQJbyK6gAjDt9w5MloXKY7UpRDGaYZ4xAP84QiKEQAb5SKdWuClmx0rbZ5rZc5LRmGSutyPfGdpJt4drUDDW3OXZgXmbff8tO4vuFBTCeMXlqbfl730qxs6Q11o82esPuY6xeCkFg1sIYWFDflFJdNzDwWs72DUpLSnl-Jo-LpSJ4hS4CcWDIixxZ1Qyg1SHR6CSQYaegCWbXrvsDVu9mbFDpw5ltex0_yzHKK5Zdt3S8a6C_Kpw');">
+<!-- Map Overlay Tint -->
+<div class="absolute inset-0 bg-background-dark/20"></div>
+<!-- Path Simulation -->
+<svg class="absolute inset-0 w-full h-full" fill="none" viewbox="0 0 400 600" xmlns="http://www.w3.org/2000/svg">
+<path d="M100 100C150 150 300 120 320 300C340 480 200 500 150 550" stroke="#3399FF" stroke-dasharray="1 12" stroke-linecap="round" stroke-width="6"></path>
+<!-- Delivery Bike Indicator -->
+<circle class="shadow-lg" cx="280" cy="240" fill="#FF9800" r="24"></circle>
+<foreignobject height="24" width="24" x="268" y="228">
+<span class="material-symbols-outlined text-white text-[20px]">moped</span>
+</foreignobject>
+</svg>
+</div>
+<!-- Bottom map fade -->
+<div class="absolute bottom-0 left-0 right-0 h-32 map-gradient"></div>
+</div>
+<!-- Order Content Area -->
+<div class="relative flex-1 bg-background-dark flex flex-col -mt-8 rounded-t-[2.5rem] z-30 shadow-[0_-10px_40px_rgba(0,0,0,0.3)]">
+<!-- Drag Handle -->
+<div class="flex justify-center py-3">
+<div class="h-1.5 w-12 rounded-full bg-slate-600/50"></div>
+</div>
+<!-- Status & ETA -->
+<div class="px-6 pb-4">
+<div class="flex items-center justify-between mb-1">
+<span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/20 text-primary text-xs font-bold uppercase tracking-wider">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+                        En camino
+                    </span>
+<div class="text-right">
+<p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest">Llegada estimada</p>
+<p class="text-secondary text-2xl font-black">15-20 min</p>
+</div>
+</div>
+<h1 class="text-2xl font-bold text-white mb-1">¡Tu pedido está en camino!</h1>
+<p class="text-slate-400 text-sm">El repartidor está a 1.2 km de tu ubicación.</p>
+</div>
+<!-- Driver Profile -->
+<div class="mx-6 p-4 rounded-2xl bg-slate-800/40 border border-slate-700/50 flex items-center gap-4 mb-6">
+<div class="relative">
+<img alt="Jesús Morales" class="size-14 rounded-xl object-cover border-2 border-secondary/30" data-alt="Professional delivery driver profile photo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAP_ab8PB7i2147XwUxcoGPLpZNw43F59l5GREx1hAoxBPb1j0hhYpelgKgDAA77aUiCMgZGGzCrFf6Qo8kUZ9a0E4pbqKG4OEzWV2LC__pP8hsv17hsI0h8gO3g2fSkwg54Ghhd0rahIWd2NovyKLto5n180_s4dokD9dHPodTjEuSdiwV_k5tCOFTcSun4JZpt7XBUtgqca9yokEmmRNRnKyofYQegrmRXr13xxwEYohM6XBSP8GOTqWxLAwnipB46U_VQZtaniI"/>
+<div class="absolute -bottom-1 -right-1 bg-primary text-[10px] font-bold px-1.5 rounded-full text-white flex items-center gap-0.5">
+                        4.9 <span class="material-symbols-outlined text-[10px] fill-1">star</span>
+</div>
+</div>
+<div class="flex-1">
+<h3 class="font-bold text-white">Jesús Morales</h3>
+<p class="text-xs text-slate-400">Motoneta Negra 2024</p>
+<p class="text-[10px] font-mono text-secondary mt-0.5">PLACA: ABC-123</p>
+</div>
+<button class="flex size-11 items-center justify-center rounded-full bg-secondary text-white shadow-lg shadow-secondary/20 active:scale-95 transition-transform">
+<span class="material-symbols-outlined">chat</span>
+</button>
+</div>
+<!-- Order Summary -->
+<div class="px-6 flex-1 overflow-y-auto">
+<div class="flex items-center justify-between mb-4 border-b border-slate-700/50 pb-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-lg bg-slate-700/50 flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-300">receipt_long</span>
+</div>
+<div>
+<p class="text-sm font-bold text-white">Resumen del pedido</p>
+<p class="text-xs text-slate-400">2 productos • Zonix Burger BBQ + Papas</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-slate-500">chevron_right</span>
+</div>
+<!-- Live Updates List -->
+<div class="space-y-4 mb-6">
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="size-2.5 rounded-full bg-secondary ring-4 ring-secondary/20"></div>
+<div class="w-0.5 h-full bg-secondary/30"></div>
+</div>
+<div class="pb-4">
+<p class="text-xs font-bold text-secondary uppercase tracking-tighter">19:24 PM</p>
+<p class="text-sm text-slate-200">Jesús recogió tu pedido en el restaurante.</p>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="flex flex-col items-center">
+<div class="size-2.5 rounded-full bg-slate-600"></div>
+<div class="w-0.5 h-full bg-transparent"></div>
+</div>
+<div class="pb-4 opacity-50">
+<p class="text-xs font-bold text-slate-500 uppercase tracking-tighter">19:10 PM</p>
+<p class="text-sm text-slate-400">Tu orden fue aceptada y está en preparación.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Navigation Bar -->
+<div class="z-40 bg-background-dark/95 backdrop-blur-lg border-t border-slate-700/50 px-6 pb-8 pt-3">
+<div class="flex justify-between items-center max-w-sm mx-auto">
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Inicio</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined fill-1">shopping_bag</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Pedido</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">search</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Buscar</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-slate-400" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Perfil</span>
+</a>
+</div>
+</div>
+</div>
+</body></html>

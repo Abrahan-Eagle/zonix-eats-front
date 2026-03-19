@@ -33,7 +33,6 @@ class BuyerShell extends StatefulWidget {
 
 class _BuyerShellState extends State<BuyerShell> {
   int _addressReloadKey = 0;
-  int _unreadNotifications = 0;
 
   static const Color _primary = AppColors.blue;
   static const Color _bgLight = AppColors.grayLight;
@@ -41,25 +40,11 @@ class _BuyerShellState extends State<BuyerShell> {
   static const Color _badgeRed = AppColors.red;
 
   final LocationService _locationService = LocationService();
-  final NotificationService _notificationService = NotificationService();
 
   @override
   void initState() {
     super.initState();
     _loadDeliveryAddress();
-    _loadUnreadCount();
-  }
-
-  Future<void> _loadUnreadCount() async {
-    try {
-      final data = await _notificationService.getNotificationCount();
-      if (!mounted) return;
-      setState(() {
-        _unreadNotifications = (data['unread'] as int?) ?? 0;
-      });
-    } catch (_) {
-      // Silenciar fallo; el icono se muestra sin badge
-    }
   }
 
   Future<void> _loadDeliveryAddress() async {
@@ -92,7 +77,7 @@ class _BuyerShellState extends State<BuyerShell> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const NotificationsPage()),
-    ).then((_) => _loadUnreadCount());
+    );
   }
 
   @override
@@ -186,54 +171,59 @@ class _BuyerShellState extends State<BuyerShell> {
                   ),
                 ),
               ),
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  IconButton(
-                    onPressed: _onNotificationTap,
-                    padding: EdgeInsets.zero,
-                    constraints:
-                        const BoxConstraints(minWidth: 40, minHeight: 40),
-                    icon: Icon(
-                      Icons.notifications_none,
-                      color: isDark ? AppColors.white70 : AppColors.black54,
-                      size: 26,
-                    ),
-                  ),
-                  if (_unreadNotifications > 0)
-                    Positioned(
-                      top: 6,
-                      right: 6,
-                      child: Container(
-                        padding: _unreadNotifications > 9
-                            ? const EdgeInsets.symmetric(
-                                horizontal: 5, vertical: 2)
-                            : const EdgeInsets.all(4),
+              Consumer<NotificationService>(
+                builder: (context, notificationService, child) {
+                  final unread = notificationService.unreadCount;
+                  return Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      IconButton(
+                        onPressed: _onNotificationTap,
+                        padding: EdgeInsets.zero,
                         constraints:
-                            const BoxConstraints(minWidth: 16, minHeight: 16),
-                        decoration: BoxDecoration(
-                          color: _badgeRed,
-                          shape: _unreadNotifications > 9
-                              ? BoxShape.rectangle
-                              : BoxShape.circle,
-                          borderRadius: _unreadNotifications > 9
-                              ? BorderRadius.circular(10)
-                              : null,
-                        ),
-                        alignment: Alignment.center,
-                        child: Text(
-                          _unreadNotifications > 99
-                              ? '99+'
-                              : '$_unreadNotifications',
-                          style: const TextStyle(
-                            color: AppColors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
+                            const BoxConstraints(minWidth: 40, minHeight: 40),
+                        icon: Icon(
+                          Icons.notifications_none,
+                          color: isDark ? AppColors.white70 : AppColors.black54,
+                          size: 26,
                         ),
                       ),
-                    ),
-                ],
+                      if (unread > 0)
+                        Positioned(
+                          top: 6,
+                          right: 6,
+                          child: Container(
+                            padding: unread > 9
+                                ? const EdgeInsets.symmetric(
+                                    horizontal: 5, vertical: 2)
+                                : const EdgeInsets.all(4),
+                            constraints:
+                                const BoxConstraints(minWidth: 16, minHeight: 16),
+                            decoration: BoxDecoration(
+                              color: _badgeRed,
+                              shape: unread > 9
+                                  ? BoxShape.rectangle
+                                  : BoxShape.circle,
+                              borderRadius: unread > 9
+                                  ? BorderRadius.circular(10)
+                                  : null,
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              unread > 99
+                                  ? '99+'
+                                  : '$unread',
+                              style: const TextStyle(
+                                color: AppColors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
               ),
             ],
           ),

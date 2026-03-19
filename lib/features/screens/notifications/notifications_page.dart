@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'package:zonix/models/notification_item.dart';
 import 'package:zonix/features/services/notification_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
@@ -94,20 +95,38 @@ class NotificationsPage extends StatefulWidget {
 }
 
 class _NotificationsPageState extends State<NotificationsPage> {
-  late Future<List<NotificationItem>> _notificationsFuture;
-  final NotificationService _notificationService = NotificationService();
+  bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadNotifications();
-    _notificationService.markAllAsRead();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadNotifications();
+      // No marcar todo como leído al abrir: el badge de la campanita depende de _unreadCount.
+    });
   }
 
-  void _loadNotifications() {
-    setState(() {
-      _notificationsFuture = _notificationService.getNotificationItems();
-    });
+  Future<void> _markAllAsRead(BuildContext context) async {
+    try {
+      await context.read<NotificationService>().markAllAsRead();
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Todas las notificaciones marcadas como leídas')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('No se pudo actualizar: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _loadNotifications() async {
+    setState(() => _isLoading = true);
+    await context.read<NotificationService>().loadInitialData();
+    if (mounted) setState(() => _isLoading = false);
   }
 
   String _formatTime(NotificationItem n) {
@@ -152,41 +171,75 @@ class _NotificationsPageState extends State<NotificationsPage> {
             color: onSurface,
           ),
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Marcar todas como leídas',
+            icon: Icon(Icons.done_all, color: onSurface),
+            onPressed: () => _markAllAsRead(context),
+          ),
+        ],
       ),
-      body: FutureBuilder<List<NotificationItem>>(
-        future: _notificationsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: Consumer<NotificationService>(
+        builder: (context, notificationService, child) {
+          final list = notificationService.items;
+
+          if (_isLoading && list.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  'Error: ${snapshot.error}',
-                  style: TextStyle(color: theme.colorScheme.error),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            );
-          }
-          final list = snapshot.data ?? [];
+          
           if (list.isEmpty) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.notifications_none, size: 64, color: onSurfaceVariant),
-                  const SizedBox(height: 16),
-                  Text(
-                    'No hay notificaciones',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 16,
-                      color: onSurfaceVariant,
-                    ),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 120,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: isDark ? AppColors.slateBorder : AppColors.stitchBorder.withValues(alpha: 0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.notifications_none_outlined,
+                          size: 64,
+                          color: onSurfaceVariant.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      Text(
+                        'Todo al día',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No tienes notificaciones pendientes por ahora. Te avisaremos cuando ocurra algo importante.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 14,
+                          color: onSurfaceVariant,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      OutlinedButton(
+                        onPressed: _loadNotifications,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text('Refrescar'),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             );
           }
@@ -195,10 +248,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
           final order = _sectionOrder(groups);
 
           return RefreshIndicator(
-            onRefresh: () async {
-              _loadNotifications();
-              await _notificationsFuture;
-            },
+            onRefresh: _loadNotifications,
             color: sectionTodayColor,
             child: ListView(
               padding: const EdgeInsets.only(bottom: 24),
@@ -231,12 +281,45 @@ class _NotificationsPageState extends State<NotificationsPage> {
                           iconBgColor: style.bgColor,
                           iconColor: style.iconColor,
                           timeLabel: _formatTime(n),
-                          onTap: () async {
-                            if (n.id != null) {
-                              await _notificationService.markAsRead(n.id!);
-                              _loadNotifications();
-                            }
+                          onTap: () {
+                            notificationService.navigateToNotificationDetail(context, n);
                           },
+                          onDelete: n.id == null
+                              ? null
+                              : () async {
+                                  final confirm = await showDialog<bool>(
+                                    context: context,
+                                    builder: (ctx) => AlertDialog(
+                                      title: const Text('Eliminar notificación'),
+                                      content: const Text('¿Quitar esta notificación de la lista?'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(ctx, false),
+                                          child: const Text('Cancelar'),
+                                        ),
+                                        TextButton(
+                                          onPressed: () => Navigator.pop(ctx, true),
+                                          child: const Text('Eliminar'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                  if (confirm != true || !context.mounted) return;
+                                  try {
+                                    await notificationService.deleteNotification(n.id!);
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(content: Text('Notificación eliminada')),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Error: $e')),
+                                      );
+                                    }
+                                  }
+                                },
                         );
                       },
                     ),
@@ -258,6 +341,7 @@ class _NotificationTile extends StatelessWidget {
   final Color iconColor;
   final String timeLabel;
   final VoidCallback? onTap;
+  final Future<void> Function()? onDelete;
 
   const _NotificationTile({
     required this.notification,
@@ -266,6 +350,7 @@ class _NotificationTile extends StatelessWidget {
     required this.iconColor,
     required this.timeLabel,
     this.onTap,
+    this.onDelete,
   });
 
   @override
@@ -279,7 +364,7 @@ class _NotificationTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          padding: const EdgeInsets.only(left: 16, right: 4, top: 16, bottom: 16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -347,6 +432,12 @@ class _NotificationTile extends StatelessWidget {
                   ],
                 ),
               ),
+              if (onDelete != null)
+                IconButton(
+                  tooltip: 'Eliminar',
+                  icon: Icon(Icons.close, color: onSurfaceVariant, size: 22),
+                  onPressed: () => onDelete!(),
+                ),
             ],
           ),
         ),

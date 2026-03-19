@@ -1,4 +1,5 @@
-import 'dart:typed_data';
+import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -41,6 +42,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   double? _deliveryLat;
   double? _deliveryLng;
   bool _trackingSubscribed = false;
+  StreamSubscription<Map<String, dynamic>>? _pusherSubscription;
+  String? _selectedPaymentMethodLabel;
 
   @override
   void initState() {
@@ -87,6 +90,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   @override
   void dispose() {
+    _pusherSubscription?.cancel();
     if (_trackingSubscribed) {
       PusherService.instance
           .unsubscribeFromChannel('private-orders.${widget.orderId}');
@@ -105,24 +109,35 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         s == 'paid' ||
         s == 'pending_payment';
     if (shouldSubscribe) {
-      PusherService.instance.subscribeToOrderChat(
-        widget.orderId,
-        onNewMessage: (eventName, data) {
-          if (eventName.contains('DeliveryLocationUpdated')) {
-            final lat = double.tryParse(data['latitude']?.toString() ?? '');
-            final lng = double.tryParse(data['longitude']?.toString() ?? '');
-            if (lat != null && lng != null && mounted) {
-              setState(() {
-                _deliveryLat = lat;
-                _deliveryLng = lng;
-              });
-            }
+      PusherService.instance.subscribeToOrderChat(widget.orderId);
+      
+      _pusherSubscription?.cancel();
+      _pusherSubscription = PusherService.instance.eventStream.listen((event) {
+        final eventName = event['eventName']?.toString() ?? '';
+        final channelName = event['channelName']?.toString() ?? '';
+        final data = event['data'] is Map<String, dynamic>
+            ? event['data'] as Map<String, dynamic>
+            : <String, dynamic>{};
+
+        if (channelName != 'private-orders.${widget.orderId}') return;
+
+        if (eventName.contains('DeliveryLocationUpdated')) {
+          final lat = double.tryParse(data['latitude']?.toString() ?? '');
+          final lng = double.tryParse(data['longitude']?.toString() ?? '');
+          if (lat != null && lng != null && mounted) {
+            setState(() {
+              _deliveryLat = lat;
+              _deliveryLng = lng;
+            });
           }
-          if (eventName.contains('OrderStatusChanged') || eventName.contains('PaymentValidated')) {
-            _loadOrder();
-          }
-        },
-      );
+        }
+        
+        if (eventName.contains('OrderStatusChanged') || 
+            eventName.contains('PaymentValidated')) {
+          _loadOrder();
+        }
+      });
+
       _trackingSubscribed = true;
       if (_isTrackableStatus(s)) {
         _loadInitialTracking();
@@ -179,21 +194,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
   }
 
-  Future<void> _uploadProof() async {
-    final picker = ImagePicker();
-    final XFile? file = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 1920,
-      imageQuality: 85,
-    );
-    if (file == null || !mounted) {
-      return;
-    }
-    final ext = file.path.split('.').last.toLowerCase();
-    final fileType = (ext == 'png') ? 'png' : 'jpeg';
-
+  Future<void> _uploadProof(Order order) async {
     String? paymentMethod;
     String? referenceNumber;
+    String? imagePath;
 
     List<Map<String, dynamic>> availableMethods = [];
     try {
@@ -204,28 +208,31 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     final result = await showDialog<Map<String, String>>(
       context: context,
       barrierDismissible: false,
-      builder: (_) => _UploadProofDialog(paymentMethods: availableMethods),
+      builder: (_) => _UploadProofDialog(
+        paymentMethods: availableMethods,
+        initialMethod: _selectedPaymentMethodLabel,
+      ),
     );
     if (result == null || !mounted) {
       return;
     }
 
     paymentMethod = result['method'];
+    imagePath = result['image_path'];
     var rawRef = result['ref']?.trim() ?? '';
-    // Normalizar referencia: solo dígitos, últimos 6
-    rawRef = rawRef.replaceAll(RegExp(r'\\D'), '');
-    if (rawRef.length > 6) {
-      rawRef = rawRef.substring(rawRef.length - 6);
-    }
+    // Normalizar referencia: solo dígitos
+    rawRef = rawRef.replaceAll(RegExp(r'\D'), '');
     referenceNumber = rawRef;
+
     if (paymentMethod == null ||
         paymentMethod.isEmpty ||
-        referenceNumber.length < 4) {
+        referenceNumber.isEmpty ||
+        imagePath == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
               content:
-                  Text('Debes ingresar método de pago y número de referencia')),
+                  Text('Datos incompletos para subir el comprobante')),
         );
       }
       return;
@@ -233,9 +240,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
     setState(() => _updating = true);
     try {
+      final ext = imagePath.split('.').last.toLowerCase();
+      final fileType = (ext == 'png') ? 'png' : 'jpeg';
+
       await OrderService().uploadPaymentProof(
         widget.orderId,
-        file.path,
+        imagePath,
         fileType,
         paymentMethod: paymentMethod,
         referenceNumber: referenceNumber,
@@ -253,15 +263,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(e.toString().replaceFirst('Exception: ', '')),
-            backgroundColor: AppColors.red,
-          ),
+              content: Text('Error al subir comprobante: ${e.toString().replaceFirst('Exception: ', '')}'),
+              backgroundColor: AppColors.red),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _updating = false);
-      }
+      if (mounted) setState(() => _updating = false);
     }
   }
 
@@ -452,8 +459,10 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 ),
               ),
             ),
-      bottomNavigationBar: _buildBottomBar(order,
-          surfaceColor: surfaceColor, borderColor: borderColor),
+      bottomNavigationBar: order.paymentValidatedAt != null
+          ? _buildBottomBar(order,
+              surfaceColor: surfaceColor, borderColor: borderColor)
+          : null,
     );
   }
 
@@ -797,10 +806,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       required Color surfaceColor,
       required Color borderColor,
       required Color badgeBg}) {
+    final approved = order.approvedForPayment;
     final paymentLabel = _paymentMethodLabel(order.paymentMethod);
     final paymentDisplay = order.referenceNumber?.isNotEmpty == true
         ? '${paymentLabel.isNotEmpty ? '$paymentLabel • ' : ''}•••• ${order.referenceNumber!.length >= 4 ? order.referenceNumber!.substring(order.referenceNumber!.length - 4) : order.referenceNumber}'
-        : (paymentLabel.isEmpty ? 'Pago pendiente' : paymentLabel);
+        : (_selectedPaymentMethodLabel ??
+            (paymentLabel.isEmpty ? (approved ? 'Seleccionar pago' : 'Esperando aprobación') : paymentLabel));
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -840,11 +851,36 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                             fontSize: 12,
                             color: textSecondary,
                             fontWeight: FontWeight.w500)),
-                    Text(paymentDisplay,
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: textPrimary)),
+                    const SizedBox(height: 2),
+                    Text(
+                      paymentDisplay,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (order.status == 'pending_payment' && order.approvedForPayment && order.paymentProof == null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: () => _uploadProof(order),
+                            icon: const Icon(Icons.receipt_long, size: 20),
+                            label: const Text('Pagar y notificar'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.blue,
+                              foregroundColor: AppColors.white,
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              elevation: 0,
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -1038,7 +1074,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Comprobante subido correctamente. Esperando validación del comercio.',
+                    'Comprobante subido y esperando validación.',
                     style: TextStyle(
                       fontSize: 14,
                       color: AppColors.primaryText(context),
@@ -1049,16 +1085,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             ),
           ),
         ] else
-          ElevatedButton.icon(
-            onPressed: _uploadProof,
-            icon: const Icon(Icons.upload_file),
-            label: const Text('Subir comprobante de pago'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.accentButton(context),
-              foregroundColor: AppColors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
-          ),
+          const SizedBox.shrink(),
         if (_canCancel) ...[
           const SizedBox(height: 12),
           OutlinedButton.icon(
@@ -1314,9 +1341,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 }
 
 class _UploadProofDialog extends StatefulWidget {
-  const _UploadProofDialog({this.paymentMethods = const []});
-
   final List<Map<String, dynamic>> paymentMethods;
+  final String? initialMethod;
+  const _UploadProofDialog({required this.paymentMethods, this.initialMethod});
 
   @override
   State<_UploadProofDialog> createState() => _UploadProofDialogState();
@@ -1325,6 +1352,9 @@ class _UploadProofDialog extends StatefulWidget {
 class _UploadProofDialogState extends State<_UploadProofDialog> {
   final _refController = TextEditingController();
   late String _selectedMethod;
+  int _currentStep = 0; // 0: Info, 1: Upload
+  XFile? _image;
+  bool _pickingImage = false;
 
   static const List<String> _fallbackMethods = [
     'efectivo',
@@ -1337,8 +1367,11 @@ class _UploadProofDialogState extends State<_UploadProofDialog> {
   @override
   void initState() {
     super.initState();
-    if (widget.paymentMethods.isNotEmpty) {
-      _selectedMethod = (widget.paymentMethods.first['type'] ?? 'other') as String;
+    if (widget.initialMethod != null) {
+      _selectedMethod = widget.initialMethod!;
+    } else if (widget.paymentMethods.isNotEmpty) {
+      _selectedMethod =
+          (widget.paymentMethods.first['type'] ?? 'other') as String;
     } else {
       _selectedMethod = 'transferencia';
     }
@@ -1348,6 +1381,25 @@ class _UploadProofDialogState extends State<_UploadProofDialog> {
   void dispose() {
     _refController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickImage() async {
+    setState(() => _pickingImage = true);
+    try {
+      final picker = ImagePicker();
+      final XFile? file = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1920,
+        imageQuality: 85,
+      );
+      if (file != null) {
+        setState(() => _image = file);
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    } finally {
+      setState(() => _pickingImage = false);
+    }
   }
 
   @override
@@ -1364,83 +1416,458 @@ class _UploadProofDialogState extends State<_UploadProofDialog> {
             .map((m) => DropdownMenuItem(value: m, child: Text(_methodLabel(m))))
             .toList();
 
+    final mq = MediaQuery.sizeOf(context);
+    final dialogWidth = mq.width - 32;
+
     return AlertDialog(
-      title: const Text('Subir comprobante'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              useCommerceMethods
-                  ? 'Elige el método con el que pagaste (configurado por el comercio):'
-                  : 'Ingresa los datos del pago realizado:',
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 16),
-            DropdownButtonFormField<String>(
-              initialValue: items.any((e) => e.value == _selectedMethod)
-                  ? _selectedMethod
-                  : (items.isNotEmpty ? items.first.value : null),
-              decoration: const InputDecoration(
-                labelText: 'Método de pago',
-                border: OutlineInputBorder(),
-              ),
-              items: items,
-              onChanged: (v) =>
-                  setState(() => _selectedMethod = v ?? _selectedMethod),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _refController,
-              decoration: const InputDecoration(
-                labelText: 'Últimos 4-6 dígitos de la operación',
-                border: OutlineInputBorder(),
-                hintText: 'Ej: 466511',
-              ),
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(6),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      titlePadding: EdgeInsets.zero,
+      title: Column(
+        children: [
+          const SizedBox(height: 20),
+          Text(
+            _currentStep == 0 ? 'Datos de pago' : 'Reportar pago',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          _buildStepIndicator(),
+          const SizedBox(height: 8),
+          const Divider(),
+        ],
+      ),
+      content: SizedBox(
+        width: dialogWidth,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: SingleChildScrollView(
+            key: ValueKey<int>(_currentStep),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+              if (_currentStep == 0) ...[
+                Text(
+                  useCommerceMethods
+                      ? 'Transfiere o deposita a estas cuentas:'
+                      : 'Ingresa los datos del pago realizado:',
+                  style: TextStyle(
+                    fontSize: 14, 
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.primaryText(context).withValues(alpha: 0.7),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  initialValue: items.any((e) => e.value == _selectedMethod)
+                      ? _selectedMethod
+                      : (items.isNotEmpty ? items.first.value : null),
+                  decoration: InputDecoration(
+                    labelText: 'Método de pago',
+                    filled: true,
+                    fillColor: AppColors.grayLight.withValues(alpha: 0.3),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                  items: items,
+                  onChanged: (v) =>
+                      setState(() => _selectedMethod = v ?? _selectedMethod),
+                ),
+                if (useCommerceMethods) ...[
+                  const SizedBox(height: 16),
+                  _buildSelectedMethodDetails(),
+                ],
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.blue.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Text(
+                    'Nota: Guarda el número de referencia y captura el comprobante para el siguiente paso.',
+                    style: TextStyle(fontSize: 12, color: AppColors.blue, fontStyle: FontStyle.italic),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              ] else ...[
+                // Paso 1: Carga
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: AppColors.green.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.check_circle, color: AppColors.green, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        _methodLabel(_selectedMethod),
+                        style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.green),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextFormField(
+                  controller: _refController,
+                  decoration: InputDecoration(
+                    labelText: 'Número de referencia',
+                    hintText: 'Ej: 466511',
+                    helperText: 'Últimos 4-6 dígitos del pago',
+                    filled: true,
+                    fillColor: AppColors.grayLight.withValues(alpha: 0.3),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    prefixIcon: const Icon(Icons.tag, size: 20),
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    LengthLimitingTextInputFormatter(6),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                const Text('Imagen del comprobante', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 12),
+                if (_image != null)
+                  Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppColors.black.withValues(alpha: 0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            constraints: const BoxConstraints(maxHeight: 300),
+                            width: double.infinity,
+                            child: Image.file(
+                              File(_image!.path),
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) => Container(
+                                height: 180,
+                                color: AppColors.grayLight,
+                                child: const Icon(Icons.broken_image, color: AppColors.gray, size: 40),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: GestureDetector(
+                          onTap: () => setState(() => _image = null),
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.red.withValues(alpha: 0.9),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.close, size: 18, color: AppColors.white),
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  InkWell(
+                    onTap: _pickingImage ? null : _pickImage,
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      height: 140,
+                      decoration: BoxDecoration(
+                        color: AppColors.blue.withValues(alpha: 0.05),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: AppColors.blue.withValues(alpha: 0.2),
+                          width: 2,
+                          style: BorderStyle.solid,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (_pickingImage)
+                            const CircularProgressIndicator(strokeWidth: 2)
+                          else ...[
+                            const Icon(Icons.add_a_photo, size: 40, color: AppColors.blue),
+                            const SizedBox(height: 12),
+                            const Text(
+                              'Galería de fotos',
+                              style: TextStyle(color: AppColors.blue, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
               ],
+            ],
             ),
-          ],
+          ),
         ),
       ),
+      actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancelar'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            final ref = _refController.text.trim();
-            if (ref.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Ingresa número de referencia')),
-              );
-              return;
-            }
-            Navigator.pop(context, {'method': _selectedMethod, 'ref': ref});
-          },
-          child: const Text('Continuar'),
+        Row(
+          children: [
+            if (_currentStep == 0) ...[
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Cancelar'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () => setState(() => _currentStep = 1),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.blue,
+                    foregroundColor: AppColors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  child: const Text('Ya pagué'),
+                ),
+              ),
+            ] else ...[
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () => setState(() => _currentStep = 0),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Atrás'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    final ref = _refController.text.trim();
+                    if (ref.length < 4) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('La referencia debe tener entre 4 y 6 dígitos')),
+                      );
+                      return;
+                    }
+                    if (_image == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Selecciona una imagen')),
+                      );
+                      return;
+                    }
+                    Navigator.pop(context, {
+                      'method': _selectedMethod,
+                      'ref': ref,
+                      'image_path': _image!.path,
+                    });
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.green,
+                    foregroundColor: AppColors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    elevation: 0,
+                  ),
+                  child: const Text('Enviar'),
+                ),
+              ),
+            ],
+          ],
         ),
       ],
     );
   }
 
+  Widget _buildStepIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _stepCircle(0, 'Info'),
+        Container(
+          width: 40,
+          height: 2,
+          color: _currentStep == 1 ? AppColors.blue : AppColors.grayLight,
+        ),
+        _stepCircle(1, 'Subir'),
+      ],
+    );
+  }
+
+  Widget _stepCircle(int step, String label) {
+    bool active = _currentStep >= step;
+    bool current = _currentStep == step;
+    return Column(
+      children: [
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: active ? AppColors.blue : AppColors.grayLight,
+            shape: BoxShape.circle,
+            border: current ? Border.all(color: AppColors.blue.withValues(alpha: 0.3), width: 4) : null,
+          ),
+          child: Center(
+            child: Text(
+              (step + 1).toString(),
+              style: TextStyle(
+                color: active ? AppColors.white : AppColors.primaryText(context).withValues(alpha: 0.5),
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: active ? AppColors.blue : AppColors.primaryText(context).withValues(alpha: 0.5),
+            fontWeight: active ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSelectedMethodDetails() {
+    final m = widget.paymentMethods.firstWhere(
+      (e) => (e['type'] ?? 'other') == _selectedMethod,
+      orElse: () => {},
+    );
+    if (m.isEmpty) return const SizedBox.shrink();
+
+    final bankName = (m['bank_name'] ?? m['bank']?['name'] ?? '').toString();
+    final accountNumber = (m['account_number'] ?? '').toString();
+    final phone = (m['phone'] ?? '').toString();
+    final ownerName = (m['owner_name'] ?? '').toString();
+    // Backend: owner_id en BD; también number_ci / rif_number en payload o reference_info
+    final idNumber = (m['owner_id'] ??
+            m['rif_number'] ??
+            m['number_ci'] ??
+            m['id_number'] ??
+            m['id_document'] ??
+            '')
+        .toString();
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.blue.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.blue.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.info_outline, color: AppColors.blue, size: 18),
+              SizedBox(width: 8),
+              Text(
+                'Datos de destino',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.blue),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (bankName.isNotEmpty) _detailRow('Banco', bankName, isCopyable: true),
+          if (accountNumber.isNotEmpty) _detailRow('Cuenta', accountNumber, isCopyable: true),
+          if (phone.isNotEmpty) _detailRow('Teléfono', phone, isCopyable: true),
+          if (idNumber.isNotEmpty)
+            _detailRow(
+              _isMobilePaymentType(_selectedMethod) ? 'Cédula / RIF' : 'ID fiscal',
+              idNumber,
+              isCopyable: true,
+            ),
+          if (ownerName.isNotEmpty) _detailRow('Titular', ownerName, isCopyable: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _detailRow(String label, String value, {bool isCopyable = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 11, color: AppColors.textMutedGray, fontWeight: FontWeight.bold)),
+          Row(
+            children: [
+              Expanded(
+                child: Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+              ),
+              if (isCopyable)
+                IconButton(
+                  icon: const Icon(Icons.copy, size: 16, color: AppColors.blue),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: value));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('$label copiado'), duration: const Duration(seconds: 1)),
+                    );
+                  },
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  bool _isMobilePaymentType(String type) {
+    final t = type.toLowerCase();
+    return t == 'pago_movil' || t == 'mobile_payment';
+  }
+
   String _methodLabel(String m) {
-    switch (m) {
+    switch (m.toLowerCase()) {
       case 'efectivo':
+      case 'cash':
         return 'Efectivo';
       case 'transferencia':
-        return 'Transferencia';
+      case 'bank_transfer':
+        return 'Transferencia bancaria';
       case 'tarjeta':
+      case 'card':
         return 'Tarjeta';
       case 'pago_movil':
+      case 'mobile_payment':
         return 'Pago móvil';
       default:
-        return m;
+        if (m.isEmpty) return m;
+        return m.replaceAll('_', ' ').split(' ').map((w) {
+          if (w.isEmpty) return w;
+          return w[0].toUpperCase() + w.substring(1).toLowerCase();
+        }).join(' ');
     }
   }
 }

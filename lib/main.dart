@@ -3,16 +3,27 @@
 
 
 
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/utils/search_radius_provider.dart';
 import 'package:zonix/features/utils/bottom_nav_persistence.dart';
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/services.dart';
+import 'package:zonix/models/notification_item.dart';
+import 'package:zonix/features/screens/orders/buyer_order_chat_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_chat_messages_page.dart';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -83,10 +94,243 @@ final ApiService apiService = ApiService();
 // Configuración del logger
 final logger = Logger();
 
+/// Llave global para navegar desde callbacks sin context (ej. al tocar notificación FCM).
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+/// Navega según el payload de la notificación (order_id, type: order|chat|commerce_order).
+/// Para chat, redirige a la pantalla correcta según el rol del usuario.
+void _navigateFromNotificationPayload(String? payload) {
+  if (payload == null || payload.isEmpty) {
+    navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => const NotificationsPage()));
+    return;
+  }
+  try {
+    final data = jsonDecode(payload) as Map<String, dynamic>?;
+    if (data == null) {
+      navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => const NotificationsPage()));
+      return;
+    }
+    final orderId = data['order_id'] != null ? int.tryParse(data['order_id'].toString()) : null;
+    final type = data['type']?.toString() ?? '';
+
+    if (orderId != null && orderId > 0) {
+      if (type == 'commerce_order') {
+        navigatorKey.currentState?.push(MaterialPageRoute(
+          builder: (_) => CommerceOrderDetailPage(orderId: orderId),
+        ));
+      } else if (type == 'chat') {
+        _navigateToChatByRole(orderId, data);
+      } else {
+        navigatorKey.currentState?.push(MaterialPageRoute(
+          builder: (_) => OrderDetailPage(orderId: orderId, order: null),
+        ));
+      }
+    } else {
+      navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => const NotificationsPage()));
+    }
+  } catch (_) {
+    navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => const NotificationsPage()));
+  }
+}
+
+/// Abre la pantalla de chat correcta según el rol del usuario autenticado.
+void _navigateToChatByRole(int orderId, Map<String, dynamic> data) {
+  final ctx = navigatorKey.currentContext;
+  final role = ctx != null
+      ? Provider.of<UserProvider>(ctx, listen: false).userRole
+      : '';
+  final senderName = data['sender_name']?.toString() ?? '';
+
+  if (role == 'commerce') {
+    navigatorKey.currentState?.push(MaterialPageRoute(
+      builder: (_) => CommerceChatMessagesPage(
+        orderId: orderId,
+        customerName: senderName.isNotEmpty ? senderName : 'Cliente',
+      ),
+    ));
+  } else {
+    navigatorKey.currentState?.push(MaterialPageRoute(
+      builder: (_) => BuyerOrderChatPage(orderId: orderId),
+    ));
+  }
+}
+
+/// Navega desde un RemoteMessage (app abierta desde notificación en background/terminated).
+void _navigateFromRemoteMessage(RemoteMessage message) {
+  final data = message.data;
+  if (data.isEmpty) {
+    _navigateFromNotificationPayload(null);
+    return;
+  }
+  _navigateFromNotificationPayload(jsonEncode(data));
+}
+
+const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
+
+/// ID del canal de notificaciones (sonido + vibración).
+const String _fcmNotificationChannelId = 'zonix_eats_fcm';
+const String _fcmNotificationChannelName = 'Notificaciones Zonix Eats';
+
+/// true = usa res/raw/zonix_notification.mp3; false = sonido por defecto del sistema.
+const bool _useCustomNotificationSound = true;
+
+final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+
+AndroidNotificationChannel _buildFcmChannel() {
+  return const AndroidNotificationChannel(
+    _fcmNotificationChannelId,
+    _fcmNotificationChannelName,
+    description: 'Notificaciones push de pedidos y mensajes',
+    importance: Importance.high,
+    playSound: true,
+    enableVibration: true,
+    showBadge: true,
+    sound: _useCustomNotificationSound ? RawResourceAndroidNotificationSound('zonix_notification') : null,
+  );
+}
+
+AndroidNotificationDetails _buildFcmNotificationDetails() {
+  return const AndroidNotificationDetails(
+    _fcmNotificationChannelId,
+    _fcmNotificationChannelName,
+    channelDescription: 'Notificaciones push de pedidos y mensajes',
+    importance: Importance.high,
+    priority: Priority.high,
+    playSound: true,
+    enableVibration: true,
+    showWhen: true,
+    sound: _useCustomNotificationSound ? RawResourceAndroidNotificationSound('zonix_notification') : null,
+  );
+}
+
+/// Crea el canal de notificaciones con sonido y vibración (Android).
+Future<void> _createFcmNotificationChannel() async {
+  if (defaultTargetPlatform != TargetPlatform.android) return;
+  final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+  if (androidPlugin == null) return;
+  await androidPlugin.createNotificationChannel(_buildFcmChannel());
+}
+
+/// Muestra una notificación local con sonido, vibración y [payload] para navegación al tocar.
+Future<void> _showFcmNotification({
+  required String title,
+  required String body,
+  int id = 0,
+  String? payload,
+}) async {
+  final details = NotificationDetails(android: _buildFcmNotificationDetails());
+  await _localNotifications.show(id, title, body, details, payload: payload);
+}
+
+/// Inicializa notificaciones locales (canal con sonido y vibración).
+Future<void> _initLocalNotifications() async {
+  if (kIsWeb) return;
+  const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const initSettings = InitializationSettings(android: android);
+  await _localNotifications.initialize(
+    initSettings,
+    onDidReceiveNotificationResponse: (NotificationResponse response) {
+      if (response.payload != null && response.payload!.isNotEmpty) {
+        _navigateFromNotificationPayload(response.payload);
+      } else {
+        _navigateFromNotificationPayload(null);
+      }
+    },
+  );
+  await _createFcmNotificationChannel();
+}
+
+/// Handler de mensajes FCM en segundo plano (debe ser función top-level).
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  logger.i('FCM background: ${message.messageId}');
+
+  // Mostrar notificación con sonido y vibración en background
+  final plugin = FlutterLocalNotificationsPlugin();
+  const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+  await plugin.initialize(InitializationSettings(android: android));
+  final androidPlugin = plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+  if (androidPlugin != null) {
+    await androidPlugin.createNotificationChannel(_buildFcmChannel());
+  }
+  final title = message.notification?.title ?? message.data['title'] ?? 'Zonix Eats';
+  final body = message.notification?.body ?? message.data['body'] ?? 'Nueva notificación';
+  await plugin.show(
+    message.hashCode % 0x7FFFFFFF,
+    title,
+    body,
+    NotificationDetails(android: _buildFcmNotificationDetails()),
+  );
+}
+
+/// Solicita permiso de notificaciones, obtiene el token FCM y lo guarda en almacenamiento seguro.
+/// En Android 13+ pide POST_NOTIFICATIONS; el backend recibe el token vía UserProvider._registerFcmToken().
+Future<void> _initFcmToken() async {
+  if (kIsWeb) return;
+  try {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      final status = await Permission.notification.request();
+      if (!status.isGranted) {
+        logger.w('FCM: permiso de notificaciones no concedido');
+        return;
+      }
+    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+      final settings = await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      if (settings.authorizationStatus != AuthorizationStatus.authorized &&
+          settings.authorizationStatus != AuthorizationStatus.provisional) {
+        logger.w('FCM: permiso iOS no concedido');
+        return;
+      }
+    }
+
+    final token = await FirebaseMessaging.instance.getToken();
+    if (token != null && token.isNotEmpty) {
+      await _secureStorage.write(key: 'fcm_token', value: token);
+      logger.i('FCM token guardado');
+    }
+
+    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+      if (newToken.isNotEmpty) {
+        await _secureStorage.write(key: 'fcm_token', value: newToken);
+        logger.i('FCM token actualizado');
+      }
+    });
+  } catch (e) {
+    logger.w('FCM init error: $e');
+  }
+}
+
 Future<void> main() async {
   await dotenv.load(fileName: '.env');
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
+  await Firebase.initializeApp();
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  await _initLocalNotifications();
+  await _initFcmToken();
+
+  // Foreground: mostrar notificación con sonido/vibración y payload para navegación al tocar
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    final title = message.notification?.title ?? message.data['title'] ?? 'Zonix Eats';
+    final body = message.notification?.body ?? message.data['body'] ?? 'Nueva notificación';
+    final payload = message.data.isNotEmpty ? jsonEncode(message.data) : null;
+    _showFcmNotification(
+      title: title,
+      body: body,
+      id: message.hashCode % 0x7FFFFFFF,
+      payload: payload,
+    );
+  });
+
+  // App abierta desde notificación (estaba en background)
+  FirebaseMessaging.onMessageOpenedApp.listen(_navigateFromRemoteMessage);
+
   initialization();
   await initializeDateFormatting('es');
 
@@ -270,6 +514,7 @@ class MyApp extends StatelessWidget {
     }
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Zonix Eats',
       debugShowCheckedModeBanner: false,
       theme: _buildStitchLightTheme(),
@@ -344,12 +589,107 @@ class MainRouterState extends State<MainRouter> {
   String? _lastRole;
   /// Rol para el que ya se cargó la posición guardada (evita recargas).
   String? _positionLoadedForRole;
+  StreamSubscription<NotificationItem>? _notificationSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadProfile();
     _loadLastPosition();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final notifService = context.read<NotificationService>();
+      notifService.loadInitialData();
+
+      // Escuchar nuevas notificaciones en tiempo real para mostrar feedback global
+      _notificationSubscription = notifService.newNotificationStream.listen((n) {
+        if (mounted) {
+          _showGlobalNotification(n);
+        }
+      });
+
+      // Si la app se abrió tocando una notificación (estaba cerrada), navegar
+      if (!kIsWeb) {
+        FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
+          if (message != null && mounted) _navigateFromRemoteMessage(message);
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _notificationSubscription?.cancel();
+    super.dispose();
+  }
+
+  void _showGlobalNotification(NotificationItem notification) {
+    if (!mounted) return;
+
+    // Si estamos en la página de notificaciones, no mostramos el snackbar para evitar ruido
+    // (ya se verá en la lista directamente) - opcional según UX deseada.
+    
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: isDark ? AppColors.slateBorder : AppColors.white,
+        duration: const Duration(seconds: 5),
+        content: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.blue.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.notifications_active, color: AppColors.blue, size: 20),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    notification.title,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: isDark ? AppColors.white : AppColors.stitchTextDark,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    notification.body,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? AppColors.textMutedGray : AppColors.textMutedGray,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        action: SnackBarAction(
+          label: 'VER',
+          textColor: AppColors.blue,
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const NotificationsPage()),
+            );
+          },
+        ),
+      ),
+    );
   }
 
 
@@ -707,6 +1047,29 @@ class MainRouterState extends State<MainRouter> {
               tooltip: 'Cambiar modo',
               onPressed: _showLevelSelector,
             ),
+          Consumer<NotificationService>(
+            builder: (context, notificationService, child) {
+              return IconButton(
+                icon: Badge(
+                  label: Text('${notificationService.unreadCount}'),
+                  isLabelVisible: notificationService.unreadCount > 0,
+                  child: Icon(
+                    Icons.notifications_none,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white70
+                        : const Color(0xFF0F172A),
+                  ),
+                ),
+                tooltip: 'Notificaciones',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const NotificationsPage()),
+                  );
+                },
+              );
+            },
+          ),
           IconButton(
             icon: Icon(
               Icons.gps_fixed,

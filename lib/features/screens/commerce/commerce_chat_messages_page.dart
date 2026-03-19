@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:zonix/features/services/chat_service.dart';
 import 'package:zonix/features/services/pusher_service.dart';
@@ -28,51 +29,68 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
   bool _loading = true;
   String? _error;
   bool _sending = false;
+  StreamSubscription<Map<String, dynamic>>? _pusherSubscription;
 
   @override
   void initState() {
     super.initState();
-    _loadMessages();
-    _subscribeToPusher();
+    _loadMessages(silent: false);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _subscribeToPusher());
   }
 
   @override
   void dispose() {
+    _pusherSubscription?.cancel();
     PusherService.instance.unsubscribeFromChannel('private-orders.${widget.orderId}');
     _textController.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
-  void _subscribeToPusher() {
-    PusherService.instance.subscribeToOrderChat(
-      widget.orderId,
-      onNewMessage: (eventName, data) {
-        if (eventName == 'NewMessage' && mounted) {
-          _loadMessages();
+  Future<void> _subscribeToPusher() async {
+    final ok = await PusherService.instance.subscribeToOrderChat(widget.orderId);
+    if (!ok || !mounted) return;
+
+    _pusherSubscription?.cancel();
+    _pusherSubscription = PusherService.instance.eventStream.listen((event) {
+      final eventName = event['eventName']?.toString() ?? '';
+      final channelName = event['channelName']?.toString() ?? '';
+
+      if (channelName == 'private-orders.${widget.orderId}') {
+        if (!mounted) return;
+        if (eventName.contains('NewMessage') ||
+            eventName.contains('OrderStatusChanged') ||
+            eventName.contains('PaymentValidated')) {
+          _loadMessages(silent: true);
         }
-      },
-    );
+      }
+    });
   }
 
-  Future<void> _loadMessages() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+  /// [silent]: recarga por Pusher sin pantalla de carga (no tapa el chat).
+  Future<void> _loadMessages({required bool silent}) async {
+    if (!silent) {
+      setState(() {
+        _loading = true;
+        _error = null;
+      });
+    }
     try {
       final list = await _chatService.getMessages(widget.orderId);
       if (mounted) {
         setState(() {
           _messages = list;
           _loading = false;
+          if (silent) _error = null;
         });
         _scrollToBottom();
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = e.toString().replaceFirst('Exception: ', '');
+          if (!silent) {
+            _error = e.toString().replaceFirst('Exception: ', '');
+          }
           _loading = false;
         });
       }
@@ -157,7 +175,7 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
             Text(_error!, textAlign: TextAlign.center),
             const SizedBox(height: 16),
             ElevatedButton(
-              onPressed: _loadMessages,
+              onPressed: () => _loadMessages(silent: false),
               child: const Text('Reintentar'),
             ),
           ],
@@ -178,7 +196,7 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
     }
 
     return RefreshIndicator(
-      onRefresh: _loadMessages,
+      onRefresh: () => _loadMessages(silent: false),
       child: ListView.builder(
         controller: _scrollController,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -195,43 +213,91 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
             } catch (_) {}
           }
 
+          final senderType = m['sender_type']?.toString() ?? '';
+          final senderName = m['sender_name']?.toString() ?? '';
+          final roleLabel = _roleBadgeLabel(senderType, senderName);
+
           return Align(
             alignment: isOwn ? Alignment.centerRight : Alignment.centerLeft,
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.75,
-              ),
-              decoration: BoxDecoration(
-                color: isOwn ? AppColors.blue : Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    content,
-                    style: TextStyle(
-                      color: isOwn ? Colors.white : Colors.black87,
-                      fontSize: 15,
+            child: Column(
+              crossAxisAlignment: isOwn ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              children: [
+                if (!isOwn && roleLabel.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 2),
+                    child: Text(
+                      roleLabel,
+                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _roleBadgeColor(senderType)),
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    time,
-                    style: TextStyle(
-                      color: isOwn ? Colors.white70 : Colors.black54,
-                      fontSize: 11,
-                    ),
+                Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.75,
                   ),
-                ],
-              ),
+                  decoration: BoxDecoration(
+                    color: isOwn ? AppColors.blue : Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        content,
+                        style: TextStyle(
+                          color: isOwn ? Colors.white : Colors.black87,
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        time,
+                        style: TextStyle(
+                          color: isOwn ? Colors.white70 : Colors.black54,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
           );
         },
       ),
     );
+  }
+
+  String _roleBadgeLabel(String senderType, String senderName) {
+    final name = senderName.isNotEmpty ? senderName : null;
+    switch (senderType) {
+      case 'restaurant':
+        return name != null ? '$name (Comercio)' : 'Comercio';
+      case 'delivery_agent':
+        return name != null ? '$name (Delivery)' : 'Delivery';
+      case 'admin':
+        return name != null ? '$name (Admin)' : 'Admin';
+      case 'customer':
+        return name != null ? '$name (Cliente)' : 'Cliente';
+      default:
+        return name ?? '';
+    }
+  }
+
+  Color _roleBadgeColor(String senderType) {
+    switch (senderType) {
+      case 'restaurant':
+        return AppColors.orange;
+      case 'delivery_agent':
+        return AppColors.purple;
+      case 'admin':
+        return AppColors.red;
+      case 'customer':
+        return AppColors.blue;
+      default:
+        return Colors.grey;
+    }
   }
 
   Widget _buildInput() {

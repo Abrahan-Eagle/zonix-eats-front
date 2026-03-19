@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/services/commerce_service.dart';
@@ -9,6 +10,7 @@ import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/screens/commerce/commerce_promotions_page.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
+import 'package:zonix/features/services/notification_service.dart';
 
 class CommerceDashboardPage extends StatefulWidget {
   const CommerceDashboardPage({
@@ -32,6 +34,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
   bool _commerceOpen = false;
   int _commerceId = 0;
   bool _pusherSubscribed = false;
+  StreamSubscription<Map<String, dynamic>>? _pusherSubscription;
 
   @override
   void initState() {
@@ -41,6 +44,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
 
   @override
   void dispose() {
+    _pusherSubscription?.cancel();
     if (_pusherSubscribed && _commerceId > 0) {
       PusherService.instance.unsubscribeFromChannel('private-commerce.$_commerceId');
     }
@@ -49,18 +53,25 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
 
   Future<void> _subscribeToCommerceUpdates() async {
     if (!AppConfig.enablePusher || _commerceId <= 0 || !mounted) return;
-    final ok = await PusherService.instance.subscribeToCommerceChannel(
-      _commerceId,
-      onEvent: (eventName, data) {
-        if ((eventName.contains('OrderStatusChanged') ||
-                eventName.contains('OrderCreated') ||
-                eventName.contains('PaymentValidated')) &&
-            mounted) {
-          _loadData();
+    final ok = await PusherService.instance.subscribeToCommerceChannel(_commerceId);
+    
+    if (ok && mounted) {
+      _pusherSubscription?.cancel();
+      _pusherSubscription = PusherService.instance.eventStream.listen((event) {
+        final eventName = event['eventName']?.toString() ?? '';
+        final channelName = event['channelName']?.toString() ?? '';
+
+        if (channelName == 'private-commerce.$_commerceId') {
+          if ((eventName.contains('OrderStatusChanged') ||
+                  eventName.contains('OrderCreated') ||
+                  eventName.contains('PaymentValidated')) &&
+              mounted) {
+            _loadData();
+          }
         }
-      },
-    );
-    if (mounted) _pusherSubscribed = ok;
+      });
+      _pusherSubscribed = true;
+    }
   }
 
   Future<void> _loadData() async {
@@ -215,14 +226,22 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
       appBar: AppBar(
         title: const Text('Dashboard'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const NotificationsPage(),
-              ),
-            ),
+          Consumer<NotificationService>(
+            builder: (context, notificationService, child) {
+              return IconButton(
+                icon: Badge(
+                  label: Text(notificationService.unreadCount.toString()),
+                  isLabelVisible: notificationService.unreadCount > 0,
+                  child: const Icon(Icons.notifications_outlined),
+                ),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const NotificationsPage(),
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),

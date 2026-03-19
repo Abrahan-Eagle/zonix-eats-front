@@ -1,31 +1,42 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:ignore="ScopedStorage"/>
+    <!--
+      Permisos alineados con Zonix Eats (API, mapas, fotos/comprobantes, cámara/ML Kit).
+      Evitar permisos “fuertes” sin uso real mejora revisión en Play Store y la confianza del usuario.
+
+      Seguridad: restrinja en Google Cloud Console las claves declaradas en <meta-data> (Android package + SHA-1).
+    -->
+
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES"/>
-    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+
+    <!-- Geolocator / mapas / direcciones (solo lo habitual; sin ubicación en segundo plano aquí) -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
-    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION"/>
-    <uses-permission android:name="android.permission.SENSORS_ALWAYS"/>
-    <uses-permission android:name="android.permission.BODY_SENSORS"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-    <uses-permission android:name="android.permission.RECEIVE_WAP_PUSH"/>
+
+    <!-- Android 13+ (API 33+): el usuario debe poder conceder notificaciones desde el sistema -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+
+    <!-- Galería / comprobantes: API 33+ -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES"/>
+    <!-- API 32 y anteriores (image_picker, file_picker) -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32"/>
+
+    <!-- Escáner, documentos, ML Kit, mobile_scanner -->
     <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
-    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-    <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY"/>
+
+    <!-- Geolocator puede usar un foreground service al pedir/streaming de ubicación -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
-    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <!-- Android 14+: tipo “location” para ese servicio -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION"/>
+
+    <!-- Pusher / red en segundo plano -->
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+
+    <!-- Vibración en notificaciones (canal FCM) -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
 
     <application
         android:usesCleartextTraffic="true"
@@ -53,6 +64,7 @@
             </intent-filter>
         </activity>
 
+        <!-- Restringir en Google Cloud (no commitear claves sin restricción de app) -->
         <meta-data
             android:name="com.google.android.gms.auth.api.credentials.ClientId"
             android:value="608143949661-g749kjpeasc4ktj8frofrc9k6kge5g78.apps.googleusercontent.com"/>
@@ -67,10 +79,9 @@
             android:name="flutterEmbedding"
             android:value="2"/>
 
-            <meta-data
-        android:name="com.google.mlkit.vision.DEPENDENCIES"
-        android:value="face" />
-        
+        <meta-data
+            android:name="com.google.mlkit.vision.DEPENDENCIES"
+            android:value="face"/>
     </application>
 
     <queries>

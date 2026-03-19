@@ -6,7 +6,9 @@ import 'package:zonix/features/services/auth/api_service.dart';
 import 'package:zonix/main.dart';
 import 'package:zonix/features/services/auth/google_sign_in_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:provider/provider.dart';
 import 'package:zonix/features/utils/auth_utils.dart';
+import 'package:zonix/features/utils/user_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:zonix/features/screens/onboarding/onboarding_screen.dart';
 import 'package:zonix/features/utils/app_colors.dart';
@@ -78,6 +80,11 @@ class SignInScreenState extends State<SignInScreen> {
 
         if (!mounted) return;
 
+        // Sincronizar UserProvider (datos, Pusher, registro FCM) antes de ir a home
+        await context.read<UserProvider>().checkAuthentication();
+
+        if (!mounted) return;
+
         if (!onboardingCompleted) {
           Navigator.pushReplacement(
             context,
@@ -114,28 +121,28 @@ class SignInScreenState extends State<SignInScreen> {
           children: [
             _buildBackground(),
             SafeArea(
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: SizedBox(
-                      height: constraints.maxHeight,
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const SizedBox(height: 60),
-                            _buildLogoAndTitle(),
-                            const SizedBox(height: 32),
-                            const Spacer(),
-                            _buildBottomContent(),
-                            const SizedBox(height: 40),
-                          ],
-                        ),
+              // SliverFillRemaining evita overflow: con poco alto (teclado, pantalla chica)
+              // el contenido hace scroll; con mucho espacio, el Spacer empuja el botón abajo.
+              child: CustomScrollView(
+                slivers: [
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: 60),
+                          _buildLogoAndTitle(),
+                          const SizedBox(height: 32),
+                          const Spacer(),
+                          _buildBottomContent(),
+                          const SizedBox(height: 40),
+                        ],
                       ),
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
             ),
           ],

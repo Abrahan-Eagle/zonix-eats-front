@@ -4,6 +4,7 @@ import 'package:zonix/config/app_config.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:zonix/features/utils/auth_utils.dart';
 import 'package:zonix/features/services/pusher_service.dart';
+import 'package:zonix/features/services/commerce_data_service.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -121,42 +122,67 @@ class UserProvider with ChangeNotifier {
         await getUserDetails();
         await _loadUserData();
         logger.i('Final userId: $_userId');
-        _initRealtimeServices();
+        await _initRealtimeServices();
       }
     } catch (e) {
+      _isAuthenticated = false;
       debugPrint('Error al verificar autenticación: $e');
     } finally {
       notifyListeners();
     }
   }
 
-  void _initRealtimeServices() {
-    if (_userId > 0) {
-      PusherService.instance.subscribeToUserChannel(
-        _userId,
-        onEvent: (eventName, data) {
-          logger.i('Pusher event: $eventName');
-        },
-      );
-      _registerFcmToken();
+  Future<void> _initRealtimeServices() async {
+    if (_userId <= 0) return;
+    PusherService.instance.subscribeToUserChannel(_userId);
+    await _registerFcmToken();
+    // Reintento por si el token FCM llegó después del login (permiso notificaciones)
+    Future.delayed(const Duration(seconds: 3), () => _registerFcmToken());
+
+    if (_role == 'commerce') {
+      try {
+        final data = await CommerceDataService.getCommerceData();
+        final commerceId = data['id'] is int
+            ? data['id'] as int
+            : int.tryParse(data['id']?.toString() ?? '0') ?? 0;
+        if (commerceId > 0) {
+          PusherService.instance.subscribeToCommerceChannel(commerceId);
+        }
+      } catch (e) {
+        logger.w('Could not subscribe to commerce channel: $e');
+      }
     }
   }
 
   Future<void> _registerFcmToken() async {
     try {
-      final token = await _storage.read(key: 'token');
+      // Obtener auth token usando AuthUtils (mismo storage donde el login guarda)
+      var token = await AuthUtils.getToken();
+      token ??= await _storage.read(key: 'token');
       final fcmToken = await _storage.read(key: 'fcm_token');
-      if (token == null || fcmToken == null || fcmToken.isEmpty) return;
+      if (token == null || token.isEmpty) {
+        logger.w('FCM: no se registra (falta token de sesión)');
+        return;
+      }
+      if (fcmToken == null || fcmToken.isEmpty) {
+        logger.w('FCM: no se registra (falta fcm_token; acepta notificaciones al abrir la app)');
+        return;
+      }
 
-      await http.post(
+      logger.i('FCM: registrando token en backend...');
+      final response = await http.post(
         Uri.parse('${AppConfig.apiUrl}/api/chat/fcm/register'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
-        body: jsonEncode({'fcm_token': fcmToken}),
+        body: jsonEncode({'device_token': fcmToken}),
       );
-      logger.i('FCM token registered');
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        logger.i('FCM token registrado en backend (push activo)');
+      } else {
+        logger.w('FCM registro falló: ${response.statusCode} ${response.body}');
+      }
     } catch (e) {
       logger.w('FCM token registration failed: $e');
     }
@@ -213,12 +239,16 @@ class UserProvider with ChangeNotifier {
   
   Future<Map<String, dynamic>> _fetchUserDetails() async {
     try {
-      final token = await _storage.read(key: 'token');
-      if (token == null) {
+      // Usar AuthUtils.getToken() para coincidir con donde el login guarda el token
+      var token = await AuthUtils.getToken();
+      if (token == null || token.isEmpty) {
+        token = await _storage.read(key: 'token');
+      }
+      if (token == null || token.isEmpty) {
         throw Exception('Token no encontrado. El usuario no está autenticado.');
       }
 
-      logger.i('Retrieved token: $token');
+      logger.i('Token de sesión presente (longitud: ${token.length})');
       final response = await http.get(
         Uri.parse('${AppConfig.apiUrl}/api/auth/user'),
         headers: {
@@ -251,10 +281,11 @@ class UserProvider with ChangeNotifier {
             userDetails['completed_onboarding'] == true ||
             userDetails['completed_onboarding']?.toString() == '1';
 
-        // Persistir para que _loadUserData no sobrescriba con 0
+        // Persistir para que _loadUserData no sobrescriba con valores ausentes
         await AuthUtils.saveUserId(_userId);
         await AuthUtils.saveProfileId(_profileId);
         await AuthUtils.saveUserRole(_role);
+        await _storage.write(key: 'userCompletedOnboarding', value: _completedOnboarding ? '1' : '0');
 
         logger.i('User details: $userDetails');
         logger.i('User role: $_role');
@@ -321,6 +352,8 @@ class UserProvider with ChangeNotifier {
   Future<void> logout() async {
     try {
       PusherService.instance.disconnect();
+      // Desregistrar FCM en el backend antes de borrar el token (necesitamos auth)
+      await _unregisterFcmToken();
       await AuthUtils.logout();
       await GoogleSignIn().signOut();
     } catch (e) {
@@ -328,6 +361,25 @@ class UserProvider with ChangeNotifier {
     } finally {
       await _clearUserData();
       notifyListeners();
+    }
+  }
+
+  /// Llama al backend para eliminar el token FCM del perfil (dejar de recibir push en este dispositivo).
+  Future<void> _unregisterFcmToken() async {
+    try {
+      var token = await AuthUtils.getToken();
+      token ??= await _storage.read(key: 'token');
+      if (token == null || token.isEmpty) return;
+      await http.post(
+        Uri.parse('${AppConfig.apiUrl}/api/chat/fcm/unregister'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      logger.i('FCM token desregistrado');
+    } catch (e) {
+      logger.w('FCM unregister failed: $e');
     }
   }
 
@@ -362,6 +414,7 @@ class UserProvider with ChangeNotifier {
     await _storage.delete(key: 'emailCreated');
     await _storage.delete(key: 'token');
     await _storage.delete(key: 'userId');
+    await _storage.delete(key: 'fcm_token');
   }
 
   // Bypass de login para tests de integración

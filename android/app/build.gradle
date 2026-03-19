@@ -8,8 +8,8 @@ plugins {
 }
 
 android {
-    namespace = "com.example.zonix"
-    //   namespace = "com.example.zonix_app"
+    namespace = "com.zonix.eats"
+    //   namespace = "com.zonix.eats_app"
     //compileSdk = flutter.compileSdkVersion
    // ndkVersion = flutter.ndkVersion
     
@@ -19,10 +19,8 @@ android {
     ndkVersion = "27.0.12077973"
 
     compileOptions {
-        //sourceCompatibility = JavaVersion.VERSION_1_8
-        //targetCompatibility = JavaVersion.VERSION_1_8
-        // sourceCompatibility JavaVersion.VERSION_21
-        // targetCompatibility JavaVersion.VERSION_21
+        // Core library desugaring requerido por flutter_local_notifications (Java 8+ APIs en Android antiguos)
+        coreLibraryDesugaringEnabled true
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
@@ -33,7 +31,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.zonix"
+        applicationId = "com.zonix.eats"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         //minSdk = flutter.minSdkVersion
@@ -90,7 +88,14 @@ android {
     }
 }
 
+configurations.all {
+    // Evita Duplicate class FirebaseInstanceIdReceiver (firebase-iid deprecado, ya en firebase-messaging)
+    exclude group: 'com.google.firebase', module: 'firebase-iid'
+}
+
 dependencies {
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.4'
+
     implementation 'org.jetbrains.kotlin:kotlin-stdlib:2.1.0' // Actualizado a versión compatible
     implementation 'com.google.android.gms:play-services-auth:21.2.0'
 
@@ -105,6 +110,8 @@ flutter {
     source = "../.."
 }
 
+// Firebase (google-services.json en este módulo)
+apply plugin: 'com.google.gms.google-services'
 
 // plugins {
 //     id "com.android.application"
@@ -114,7 +121,7 @@ flutter {
 // }
 
 // android {
-//     namespace = "com.example.zonix"
+//     namespace = "com.zonix.eats"
 //     compileSdk = flutter.compileSdkVersion
 //     ndkVersion = flutter.ndkVersion
 
@@ -129,7 +136,7 @@ flutter {
 
 //     defaultConfig {
 //         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-//         applicationId = "com.example.zonix"
+//         applicationId = "com.zonix.eats"
 //         // You can update the following values to match your application needs.
 //         // For more information, see: https://flutter.dev/to/review-gradle-config.
 //         minSdk = flutter.minSdkVersion

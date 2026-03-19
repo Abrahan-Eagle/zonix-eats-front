@@ -1,12 +1,116 @@
+import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
+import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix/features/screens/orders/order_detail_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_order_detail_page.dart';
+import 'package:zonix/features/screens/delivery/delivery_orders_page.dart';
 import 'package:zonix/models/notification_item.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
+import 'pusher_service.dart';
 
 class NotificationService extends ChangeNotifier {
   static String get baseUrl => AppConfig.apiUrl;
+
+  List<NotificationItem> _items = [];
+  int _unreadCount = 0;
+  StreamSubscription? _pusherSubscription;
+  final _newNotificationController = StreamController<NotificationItem>.broadcast();
+
+  List<NotificationItem> get items => _items;
+  int get unreadCount => _unreadCount;
+  Stream<NotificationItem> get newNotificationStream => _newNotificationController.stream;
+
+  NotificationService() {
+    _initPusherListener();
+  }
+
+  @override
+  void dispose() {
+    _pusherSubscription?.cancel();
+    _newNotificationController.close();
+    super.dispose();
+  }
+
+  void _initPusherListener() {
+    _pusherSubscription = PusherService.instance.eventStream.listen((event) {
+      final eventName = event['eventName']?.toString() ?? '';
+      final data = _coerceEventData(event['data']);
+
+      // Solo log en debug y solo para notificaciones in-app (evita ruido de OrderStatusChanged, etc.)
+      if (kDebugMode && eventName.contains('NotificationCreated')) {
+        debugPrint('🔔 NotificationService: NotificationCreated');
+      }
+
+      // El nombre del evento en Pusher suele omitir el namespace o usar el definido en broadcastAs()
+      if (eventName.contains('NotificationCreated')) {
+        _handleNewNotification(data);
+      }
+    });
+  }
+
+  /// Pusher a veces entrega `data` como String JSON.
+  Map<String, dynamic> _coerceEventData(dynamic raw) {
+    if (raw == null) return {};
+    if (raw is Map<String, dynamic>) return raw;
+    if (raw is Map) return Map<String, dynamic>.from(raw);
+    if (raw is String && raw.isNotEmpty) {
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is Map) {
+          return Map<String, dynamic>.from(decoded);
+        }
+      } catch (_) {}
+    }
+    return {};
+  }
+
+  void _handleNewNotification(Map<String, dynamic> data) {
+    try {
+      final newItem = NotificationItem.fromJson(data);
+      
+      // Evitar duplicados por ID
+      if (newItem.id != null && _items.any((n) => n.id == newItem.id)) {
+        return;
+      }
+
+      _items.insert(0, newItem);
+      if (newItem.isUnread) {
+        _unreadCount++;
+        // Feedback háptico al recibir notificación in-app
+        HapticFeedback.lightImpact();
+        
+        // Emitir para SnackBars globales
+        _newNotificationController.add(newItem);
+      }
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error handling new notification from Pusher: $e');
+    }
+  }
+
+  // Load initial data
+  Future<void> loadInitialData() async {
+    try {
+      final results = await Future.wait([
+        getNotificationItems(),
+        getNotificationCount(),
+      ]);
+      
+      _items = results[0] as List<NotificationItem>;
+      final stats = results[1] as Map<String, dynamic>;
+      _unreadCount = stats['unread'] ?? 0;
+      
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error loading initial notification data: $e');
+    }
+  }
 
   // Get all notifications
   Future<List<Map<String, dynamic>>> getNotifications({String? type, bool? read}) async {
@@ -58,6 +162,25 @@ class NotificationService extends ChangeNotifier {
       if (response.statusCode != 200) {
         throw Exception('Error al marcar notificación como leída: ${response.statusCode}');
       }
+
+      final now = DateTime.now();
+      final idx = _items.indexWhere((n) => n.id == notificationId);
+      if (idx >= 0) {
+        final item = _items[idx];
+        if (item.isUnread) {
+          _unreadCount = (_unreadCount - 1).clamp(0, 1 << 30);
+        }
+        _items[idx] = NotificationItem(
+          id: item.id,
+          title: item.title,
+          body: item.body,
+          receivedAt: item.receivedAt,
+          readAt: now,
+          type: item.type,
+          data: item.data,
+        );
+        notifyListeners();
+      }
     } catch (e) {
       throw Exception('Error al marcar notificación como leída: $e');
     }
@@ -72,6 +195,22 @@ class NotificationService extends ChangeNotifier {
       );
 
       if (response.statusCode == 200) {
+        _unreadCount = 0;
+        final now = DateTime.now();
+        _items = _items.map((item) {
+          if (item.isUnread) {
+            return NotificationItem(
+              id: item.id,
+              title: item.title,
+              body: item.body,
+              receivedAt: item.receivedAt,
+              readAt: now,
+              type: item.type,
+              data: item.data,
+            );
+          }
+          return item;
+        }).toList();
         notifyListeners();
         return;
       } else {
@@ -93,6 +232,15 @@ class NotificationService extends ChangeNotifier {
       if (response.statusCode != 200) {
         throw Exception('Error al eliminar notificación: ${response.statusCode}');
       }
+
+      final removed = _items.where((n) => n.id == notificationId).toList();
+      _items.removeWhere((n) => n.id == notificationId);
+      for (final r in removed) {
+        if (r.isUnread) {
+          _unreadCount = (_unreadCount - 1).clamp(0, 1 << 30);
+        }
+      }
+      notifyListeners();
     } catch (e) {
       throw Exception('Error al eliminar notificación: $e');
     }
@@ -231,33 +379,54 @@ class NotificationService extends ChangeNotifier {
     );
   }
 
-  // Handle notification tap
-  void _handleNotificationTap(BuildContext context, Map<String, dynamic> notification) {
-    switch (notification['type']) {
-      case 'order':
-        // Navigate to order details
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Navegando a orden #${notification['data']['order_number']}')),
+  // Handle notification tap (Deep Linking)
+  void navigateToNotificationDetail(BuildContext context, NotificationItem notification) {
+    final type = notification.type;
+    final data = notification.data ?? {};
+    final orderId = data['order_id'];
+
+    if (type == 'order' && orderId != null) {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      final role = userProvider.userRole;
+
+      if (role == 'commerce') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CommerceOrderDetailPage(orderId: orderId is int ? orderId : int.parse(orderId.toString())),
+          ),
         );
-        break;
-      case 'commission':
-        // Navigate to commission details
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Navegando a comisiones')),
+      } else if (role == 'delivery_agent' || role == 'delivery_company' || role == 'delivery') {
+        // Para delivery, solemos ir a la lista de órdenes o al detalle si existe
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const DeliveryOrdersPage()),
         );
-        break;
-      case 'maintenance':
-        // Navigate to maintenance details
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Navegando a mantenimiento')),
+      } else {
+        // Buyer o rol por defecto
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => OrderDetailPage(orderId: orderId is int ? orderId : int.parse(orderId.toString())),
+          ),
         );
-        break;
-      default:
-        // Navigate to notifications page
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Navegando a notificaciones')),
-        );
+      }
+    } else {
+      // Navegación por defecto si no es una orden o no tiene ID
+      // Por ahora no hacemos nada o podríamos ir a una página genérica
     }
+
+    // Marcar como leída al tocar si es necesario (ya se suele hacer al abrir la lista, 
+    // pero aquí aseguramos la experiencia individual)
+    if (notification.id != null && notification.isUnread) {
+      markAsRead(notification.id!);
+    }
+  }
+
+  // Handle old notification tap (Map-based, for backward compatibility or direct SnackBar actions)
+  void _handleNotificationTap(BuildContext context, Map<String, dynamic> notification) {
+    final item = NotificationItem.fromJson(notification);
+    navigateToNotificationDetail(context, item);
   }
 
   // Get notification icon

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zonix/models/order.dart';
@@ -37,6 +38,7 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
   List<LatLng> _routePoints = [];
   bool _trackingSubscribed = false;
   Map<String, dynamic>? _deliveryAgent;
+  StreamSubscription<Map<String, dynamic>>? _pusherSubscription;
 
   static const Color _primary = AppColors.blue;
   static const Color _accent = AppColors.amber;
@@ -54,6 +56,7 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
 
   @override
   void dispose() {
+    _pusherSubscription?.cancel();
     if (_trackingSubscribed) {
       PusherService.instance
           .unsubscribeFromChannel('private-orders.${widget.orderId}');
@@ -61,7 +64,7 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     super.dispose();
   }
 
-  void _subscribeToTracking() {
+  Future<void> _subscribeToTracking() async {
     if (_order == null || _trackingSubscribed) {
       return;
     }
@@ -70,25 +73,35 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
         s == 'out_for_delivery' ||
         s == 'processing' ||
         s == 'paid') {
-      PusherService.instance.subscribeToOrderChat(
-        widget.orderId,
-        onNewMessage: (eventName, data) {
-          if (eventName.contains('DeliveryLocationUpdated')) {
-            final lat = double.tryParse(data['latitude']?.toString() ?? '');
-            final lng = double.tryParse(data['longitude']?.toString() ?? '');
-            if (lat != null && lng != null && mounted) {
-              setState(() {
-                _deliveryLat = lat;
-                _deliveryLng = lng;
-              });
+      final ok = await PusherService.instance.subscribeToOrderChat(widget.orderId);
+      
+      if (ok && mounted) {
+        _pusherSubscription?.cancel();
+        _pusherSubscription = PusherService.instance.eventStream.listen((event) {
+          final eventName = event['eventName']?.toString() ?? '';
+          final channelName = event['channelName']?.toString() ?? '';
+          final eventData = event['data'] is Map<String, dynamic>
+              ? event['data'] as Map<String, dynamic>
+              : <String, dynamic>{};
+
+          if (channelName == 'private-orders.${widget.orderId}') {
+            if (eventName.contains('DeliveryLocationUpdated')) {
+              final lat = double.tryParse(eventData['latitude']?.toString() ?? '');
+              final lng = double.tryParse(eventData['longitude']?.toString() ?? '');
+              if (lat != null && lng != null && mounted) {
+                setState(() {
+                  _deliveryLat = lat;
+                  _deliveryLng = lng;
+                });
+              }
+            }
+            if (eventName.contains('OrderStatusChanged') && mounted) {
+              _refreshOrder();
             }
           }
-          if (eventName.contains('OrderStatusChanged') && mounted) {
-            _refreshOrder();
-          }
-        },
-      );
-      _trackingSubscribed = true;
+        });
+        _trackingSubscribed = true;
+      }
     }
   }
 

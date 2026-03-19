@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:zonix/features/services/delivery_service.dart';
+import 'package:zonix/features/services/notification_service.dart';
+import 'package:zonix/features/screens/notifications/notifications_page.dart';
 
 class DeliveryOrdersPage extends StatefulWidget {
   const DeliveryOrdersPage({super.key});
@@ -73,6 +76,23 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage> {
         backgroundColor: Colors.green,
         foregroundColor: Colors.white,
         actions: [
+          Consumer<NotificationService>(
+            builder: (context, notificationService, child) {
+              return IconButton(
+                icon: Badge(
+                  label: Text(notificationService.unreadCount.toString()),
+                  isLabelVisible: notificationService.unreadCount > 0,
+                  child: const Icon(Icons.notifications_outlined),
+                ),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const NotificationsPage(),
+                  ),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadOrders,

@@ -9,6 +9,7 @@ import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/models/cart_item.dart';
 import 'package:zonix/features/services/pusher_service.dart';
+import 'package:zonix/features/services/notification_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/models/order.dart';
@@ -73,16 +74,24 @@ class _OrdersPageState extends State<OrdersPage> {
       final userId = userProvider.userId;
       if (userId <= 0) return;
       _pusherSubscription?.cancel();
-      await PusherService.instance.subscribeToUserChannel(
-        userId,
-        onEvent: (eventName, data) {
-          final mapped = <String, dynamic>{
-            'type': _mapPusherEventToType(eventName),
-            'data': data,
-          };
-          _handlePusherMessage(mapped);
-        },
-      );
+      final ok = await PusherService.instance.subscribeToUserChannel(userId);
+      if (ok && mounted) {
+        _pusherSubscription = PusherService.instance.eventStream.listen((event) {
+          final eventName = event['eventName']?.toString() ?? '';
+          final channelName = event['channelName']?.toString() ?? '';
+          final eventData = event['data'] is Map<String, dynamic>
+              ? event['data'] as Map<String, dynamic>
+              : <String, dynamic>{};
+
+          if (channelName == 'private-user.$userId') {
+            final mapped = <String, dynamic>{
+              'type': _mapPusherEventToType(eventName),
+              'data': eventData,
+            };
+            _handlePusherMessage(mapped);
+          }
+        });
+      }
     } catch (e) {
       debugPrint('Error inicializando Pusher: $e');
     }
@@ -108,9 +117,67 @@ class _OrdersPageState extends State<OrdersPage> {
       case 'order_created':
       case 'payment_validated':
         _loadOrders();
+        _maybeShowOrderNotification(type, message['data'] as Map<String, dynamic>?);
         break;
       case 'delivery_location_updated':
         _updateDeliveryLocation(message);
+        break;
+    }
+  }
+
+  void _maybeShowOrderNotification(String type, Map<String, dynamic>? data) {
+    if (!mounted || data == null) return;
+
+    final notifService = context.read<NotificationService>();
+    final orderId = data['order_id']?.toString() ?? '';
+
+    switch (type) {
+      case 'payment_validated':
+        final isValidated = data['is_validated'] == true;
+        final title = isValidated ? 'Pago validado' : 'Pago rechazado';
+        final message = isValidated
+            ? 'Tu pago de la orden #$orderId fue validado por el comercio.'
+            : 'El pago de la orden #$orderId fue rechazado. Revisa los datos o sube un nuevo comprobante.';
+        notifService.showInAppNotification(context, {
+          'title': title,
+          'message': message,
+          'type': 'order',
+          'data': {
+            'order_id': orderId,
+          },
+        });
+        break;
+      case 'order_status_changed':
+        final status = (data['status'] ?? '').toString();
+        String statusText;
+        switch (status) {
+          case 'processing':
+          case 'preparing':
+            statusText = 'tu pedido está en preparación';
+            break;
+          case 'shipped':
+          case 'out_for_delivery':
+            statusText = 'tu pedido está en camino';
+            break;
+          case 'delivered':
+            statusText = 'tu pedido fue entregado';
+            break;
+          case 'cancelled':
+            statusText = 'tu pedido fue cancelado';
+            break;
+          default:
+            statusText = 'el estado de tu pedido cambió';
+        }
+        notifService.showInAppNotification(context, {
+          'title': 'Actualización de pedido',
+          'message': 'Orden #$orderId: $statusText.',
+          'type': 'order',
+          'data': {
+            'order_id': orderId,
+          },
+        });
+        break;
+      default:
         break;
     }
   }

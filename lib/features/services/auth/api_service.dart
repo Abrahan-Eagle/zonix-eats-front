@@ -37,7 +37,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        logger.i('Respuesta del servidor: $responseData');
+        // No registrar token ni cuerpo completo (riesgo en logs / adb)
         
         // Handle the nested response structure: {success: true, data: {user: {...}, token: ...}}
         Map<String, dynamic> userData;
@@ -53,43 +53,34 @@ class ApiService {
           token = responseData['token'];
         }
         
-        var $varToken = token;
-        logger.i($varToken);
-        var $varRole = userData['role'];
-        logger.i($varRole);
-        var $completedOnboarding = userData['completed_onboarding']?.toString(); // Convertimos a String
-        logger.i($completedOnboarding);
+        final authToken = token;
+        final role = userData['role'];
+        final completedOnboarding = userData['completed_onboarding']?.toString();
 
-        // Verificación más flexible para data
-        if ($varToken != null) {
-          await _storage.write(key: 'token', value: $varToken);  // Guardar el JWT en almacenamiento seguro
-          await _storage.write(key: 'role', value: $varRole);
-          await _storage.write(key: 'userCompletedOnboarding', value: $completedOnboarding); // Guardamos como String
+        if (authToken != null) {
+          await _storage.write(key: 'token', value: authToken);
+          await _storage.write(key: 'role', value: role);
+          await _storage.write(key: 'userCompletedOnboarding', value: completedOnboarding);
 
-          logger.i('Inicio de sesión exitoso');
+          logger.i(
+            'Inicio de sesión exitoso (user id: ${userData['id']}, role: $role)',
+          );
 
-          // Leer el token del almacenamiento seguro
-          String? token = await _storage.read(key: 'token');
-          if (token != null) {
-            logger.i('Token almacenado: $token');
-          } else {
+          final storedToken = await _storage.read(key: 'token');
+          if (storedToken == null) {
             logger.e('No se encontró ningún token almacenado');
           }
 
-         // Leer el token del almacenamiento seguro
-          String? role = await _storage.read(key: 'role');
-          if (role != null) {
-            logger.i('Role almacenado: $role');
-          } else {
+          final storedRole = await _storage.read(key: 'role');
+          if (storedRole == null) {
             logger.e('No se encontró ningún role almacenado');
           }
 
-                    // Convertir a booleano al leer desde el almacenamiento
-          bool storedOnboarding = (await _storage.read(key: 'userCompletedOnboarding')) == '1';
+          final storedOnboarding =
+              (await _storage.read(key: 'userCompletedOnboarding')) == '1';
           logger.i('Estado de completedOnboarding almacenado: $storedOnboarding');
-
         } else {
-          logger.e('Respuesta inesperada: ${response.body}');
+          logger.e('Respuesta inesperada: sin token (status 200)');
         }
       } else {
         logger.e('Error al iniciar sesión en Laravel: ${response.statusCode} - ${response.body}');

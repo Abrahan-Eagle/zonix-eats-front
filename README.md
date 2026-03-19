@@ -13,7 +13,7 @@ Frontend de la aplicación Zonix Eats desarrollado en Flutter. Aplicación móvi
 | **Archivos Dart** | 173                                            |
 | **Pantallas**     | 69                                             |
 | **Servicios**     | 49 (2 legacy eliminados)                       |
-| **Tests**         | 235 pasaron ✅, 0 fallaron                     |
+| **Tests**         | 250 pasaron ✅, 0 fallaron                     |
 | **Roles**         | 4 (Standard: Buyer, Commerce, Delivery, Admin) |
 
 ### Terminología Estándar de Roles
@@ -901,6 +901,6 @@ Este proyecto es privado y confidencial.
 **Versión:** 1.0.0  
 **Última actualización:** 9 Marzo 2026  
 **Estado:** ✅ MVP Completado - En desarrollo activo  
-**Tests:** 214 tests pasaron ✅, 0 tests fallaron ✅ (incl. onboarding: payload schedule string, testWidgets con pump)  
+**Tests:** 250 tests pasaron ✅, 0 tests fallaron ✅ (incl. onboarding: payload schedule string, testWidgets con pump)  
 **Errores críticos:** ✅ Todos corregidos  
 **TODOs servicios MVP:** ✅ Completados (commerce, payment, delivery, chat, admin, analytics, location, notification)

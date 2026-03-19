@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:zonix/models/commerce_order.dart';
 import 'package:zonix/features/services/commerce_order_service.dart';
 import 'package:zonix/features/services/commerce_data_service.dart';
@@ -6,6 +8,7 @@ import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
+import 'package:zonix/features/services/notification_service.dart';
 
 class CommerceOrdersPage extends StatefulWidget {
   const CommerceOrdersPage({super.key});
@@ -23,6 +26,7 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
   String _currentFilter = '';
   bool _pusherSubscribed = false;
   int _commerceId = 0;
+  StreamSubscription<Map<String, dynamic>>? _pusherSubscription;
 
   final List<Map<String, String>> _tabs = [
     {'key': '', 'label': 'Todas'},
@@ -46,6 +50,7 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
   void dispose() {
     _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
+    _pusherSubscription?.cancel();
     if (_pusherSubscribed && _commerceId > 0) {
       PusherService.instance.unsubscribeFromChannel('private-commerce.$_commerceId');
     }
@@ -59,18 +64,49 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
       final id = data['id'] is int ? data['id'] as int : int.tryParse(data['id']?.toString() ?? '0') ?? 0;
       if (id <= 0 || !mounted) return;
       _commerceId = id;
-      final ok = await PusherService.instance.subscribeToCommerceChannel(
-        id,
-        onEvent: (eventName, data) {
-          if ((eventName.contains('OrderStatusChanged') ||
-                  eventName.contains('OrderCreated') ||
-                  eventName.contains('PaymentValidated')) &&
-              mounted) {
+      final ok = await PusherService.instance.subscribeToCommerceChannel(id);
+      
+      if (ok && mounted) {
+        _pusherSubscription?.cancel();
+        _pusherSubscription = PusherService.instance.eventStream.listen((event) {
+          final eventName = event['eventName']?.toString() ?? '';
+          final channelName = event['channelName']?.toString() ?? '';
+          final eventData = event['data'] is Map<String, dynamic>
+              ? event['data'] as Map<String, dynamic>
+              : <String, dynamic>{};
+
+          if (channelName != 'private-commerce.$id') return;
+
+          if (eventName.contains('OrderStatusChanged') ||
+              eventName.contains('OrderCreated') ||
+              eventName.contains('PaymentValidated')) {
             _loadOrders();
           }
-        },
-      );
-      if (mounted) _pusherSubscribed = ok;
+
+          if (!mounted) return;
+          final notifService = context.read<NotificationService>();
+          final orderId = eventData['order_id']?.toString() ?? '';
+          if (eventName.contains('OrderCreated')) {
+            notifService.showInAppNotification(context, {
+              'title': 'Nueva orden',
+              'message': 'Tienes una nueva orden #$orderId.',
+              'type': 'order',
+              'data': {'order_id': orderId},
+            });
+          } else if (eventName.contains('PaymentValidated')) {
+            final isValidated = eventData['is_validated'] == true;
+            notifService.showInAppNotification(context, {
+              'title': isValidated ? 'Pago validado' : 'Pago rechazado',
+              'message': isValidated
+                  ? 'El pago de la orden #$orderId fue validado.'
+                  : 'El pago de la orden #$orderId fue rechazado.',
+              'type': 'order',
+              'data': {'order_id': orderId},
+            });
+          }
+        });
+        _pusherSubscribed = true;
+      }
     } catch (_) {
       // Sin comercio o Pusher no disponible
     }

@@ -222,7 +222,7 @@ class _LocationSearchPageState extends State<LocationSearchPage> {
               children: [
                 TileLayer(
                   urlTemplate: AppConfig.osmTileUrl,
-                  userAgentPackageName: 'com.example.zonix',
+                  userAgentPackageName: 'com.zonix.eats',
                 ),
                 CircleLayer(
                   circles: [

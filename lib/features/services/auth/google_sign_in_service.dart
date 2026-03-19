@@ -67,7 +67,8 @@ class GoogleSignInService {
           // Backend puede devolver { data: { user, token } } o { token } directo
           final inner = data['data'] is Map<String, dynamic> ? data['data'] as Map<String, dynamic> : data;
           final token = inner['token']?.toString();
-          final expiresIn = data['expires_in'] is int ? data['expires_in'] as int : (int.tryParse(data['expires_in']?.toString() ?? '0') ?? 3600);
+          final rawExpiresIn = data['expires_in'];
+          final expiresIn = (rawExpiresIn is int && rawExpiresIn > 0) ? rawExpiresIn : 3600;
           if (token == null || token.isEmpty) {
             logger.e('Backend no devolvió token');
             return null;

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff9800",
+                        "accent": "#ffc107",
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#0f1923",
+                        "card-dark": "#1a2733",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .star-filled {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full max-w-md mx-auto flex-col overflow-x-hidden">
+<!-- Top Navigation -->
+<header class="flex items-center p-6 justify-between sticky top-0 bg-background-dark/80 backdrop-blur-md z-10">
+<button class="flex items-center justify-center size-10 rounded-full bg-card-dark text-slate-100 hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<h1 class="text-xl font-bold leading-tight tracking-tight flex-1 text-center pr-10">Calificar Pedido</h1>
+</header>
+<main class="flex flex-col gap-6 p-6">
+<!-- Restaurant Rating Card -->
+<section class="bg-card-dark rounded-xl overflow-hidden shadow-2xl border border-slate-700/50">
+<div class="w-full h-40 bg-center bg-cover" data-alt="Delicious gourmet burger with BBQ sauce" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDoh6TazzY-ATbM5fCYwGdVKgRdDzdGnsauK9wEyuF29OVs0eVz6LVB5QHXBAVqMz35Ssacw0vAMz-d1psgOKaKm4eAQOsOU7qQMpOqctAis1C5-kvK3O8dglHfbLhZ8eSGiW-O3ywWR-irUR7bY6xxP6QwJmvUs4X2pG121tKKzJtnwX6ueHMmpH6l-1epmoL-BEBLW0PXLXkflS_41wCNE1214Gxbg-nmc00y84XAPfRzPF352N4zlpskSBUUQ_B60Jf5v59KcKY");'></div>
+<div class="p-6">
+<div class="flex flex-col items-center text-center gap-2 mb-4">
+<h2 class="text-2xl font-bold text-white">Zonix Burger BBQ</h2>
+<p class="text-slate-400 text-sm">¿Qué te pareció la comida?</p>
+</div>
+<div class="flex justify-center gap-2 mb-6 text-accent">
+<span class="material-symbols-outlined text-4xl star-filled cursor-pointer">star</span>
+<span class="material-symbols-outlined text-4xl star-filled cursor-pointer">star</span>
+<span class="material-symbols-outlined text-4xl star-filled cursor-pointer">star</span>
+<span class="material-symbols-outlined text-4xl star-filled cursor-pointer">star</span>
+<span class="material-symbols-outlined text-4xl cursor-pointer">star</span>
+</div>
+<div class="relative">
+<textarea class="w-full rounded-lg bg-background-dark/50 border border-slate-600 focus:border-primary focus:ring-1 focus:ring-primary text-slate-200 p-4 min-h-[100px] placeholder:text-slate-500 text-sm transition-all" placeholder="Comparte tu experiencia con los sabores de Zonix..."></textarea>
+</div>
+</div>
+</section>
+<!-- Delivery Rating Card -->
+<section class="bg-card-dark rounded-xl p-6 shadow-2xl border border-slate-700/50">
+<div class="flex items-center gap-4 mb-6">
+<div class="size-16 rounded-full border-2 border-primary/30 p-0.5">
+<img alt="Repartidor" class="w-full h-full object-cover rounded-full" data-alt="Friendly delivery person portrait" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCNf-sf1wUN23kY_11SBhpks9rpgnhUT0vKna1bUMjTnZdSxkl44B6EW82eNCssL_6S1Q3_eynRwloAz_-jugcGGUFXO6Q0lI_wRKC0VfuGPGV1AOcwJWKjZBy-LnLp1CQUIwL2td3NjD4eHWPDYuve-47IkQDraKM2XD44BC0ZDOG-LYTYD8NLmzzwXaqs329f__5aF27mFH8ppAfig5sFnkLeTj7OKbxdks7k8VACk72M7vk4UtaH2EThSJV9_XJ-oXX6dlBPq2c"/>
+</div>
+<div class="flex-1">
+<h3 class="text-lg font-bold text-white leading-none">Jesús Morales</h3>
+<p class="text-slate-400 text-xs mt-1 uppercase tracking-wider font-semibold">Repartidor Zonix</p>
+</div>
+<div class="flex gap-0.5 text-accent">
+<span class="material-symbols-outlined text-xl star-filled">star</span>
+<span class="text-sm font-bold text-white ml-1">4.9</span>
+</div>
+</div>
+<div class="flex flex-col items-center gap-4">
+<p class="text-slate-300 text-sm font-medium">Califica el servicio de entrega</p>
+<div class="flex justify-center gap-3 text-accent mb-2">
+<span class="material-symbols-outlined text-3xl star-filled cursor-pointer">star</span>
+<span class="material-symbols-outlined text-3xl star-filled cursor-pointer">star</span>
+<span class="material-symbols-outlined text-3xl star-filled cursor-pointer">star</span>
+<span class="material-symbols-outlined text-3xl star-filled cursor-pointer">star</span>
+<span class="material-symbols-outlined text-3xl star-filled cursor-pointer">star</span>
+</div>
+<div class="flex flex-wrap justify-center gap-2 mt-2">
+<button class="px-4 py-1.5 rounded-full bg-slate-700/50 border border-slate-600 text-xs font-medium text-slate-200 hover:bg-primary/20 hover:border-primary transition-all">Rápido</button>
+<button class="px-4 py-1.5 rounded-full bg-slate-700/50 border border-slate-600 text-xs font-medium text-slate-200 hover:bg-primary/20 hover:border-primary transition-all">Amable</button>
+<button class="px-4 py-1.5 rounded-full bg-slate-700/50 border border-slate-600 text-xs font-medium text-slate-200 hover:bg-primary/20 hover:border-primary transition-all">Excelente servicio</button>
+</div>
+</div>
+</section>
+<!-- Actions -->
+<footer class="mt-4 flex flex-col gap-4 pb-10">
+<button class="w-full bg-primary hover:bg-orange-600 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all transform active:scale-[0.98]">
+                    Enviar Calificación
+                </button>
+<button class="w-full text-slate-400 hover:text-white font-medium text-sm transition-colors py-2">
+                    Ahora no
+                </button>
+</footer>
+</main>
+</div>
+</body></html>

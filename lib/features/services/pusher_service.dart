@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -24,19 +25,21 @@ class PusherService {
   bool _isConnected = false;
   bool _isInitialized = false;
 
-  // Canales suscritos (por ejemplo: profile.{id}, orders.{id}, etc.)
+  // Canales realmente suscritos en Pusher (socket).
   final Set<String> _subscribedChannels = {};
 
-  // Callback genérico para eventos de órdenes u otros eventos de dominio
-  Function(String eventName, Map<String, dynamic> data)? _onDomainEvent;
+  /// Cuántas pantallas/servicios piden cada canal. Solo al llegar a 0 se hace unsubscribe real.
+  /// Evita que al cerrar el chat se corte el canal que el detalle de orden sigue usando (y viceversa).
+  final Map<String, int> _channelRefCount = {};
+
+  // Stream para eventos de dominio (Orders, chat, notificaciones, etc.)
+  final _eventController = StreamController<Map<String, dynamic>>.broadcast();
+  Stream<Map<String, dynamic>> get eventStream => _eventController.stream;
 
   bool get isConnected => _isConnected;
   bool get isInitialized => _isInitialized;
 
   /// Inicializa Pusher con credenciales desde `.env`
-  /// Variables esperadas:
-  /// - PUSHER_APP_KEY
-  /// - PUSHER_APP_CLUSTER
   Future<bool> initialize() async {
     if (_isInitialized) {
       return _isConnected;
@@ -46,7 +49,6 @@ class PusherService {
       String pusherKey = dotenv.env['PUSHER_APP_KEY'] ?? '';
       String pusherCluster = dotenv.env['PUSHER_APP_CLUSTER'] ?? 'mt1';
 
-      // Respaldo: si .env no se cargó antes (p. ej. en algunos builds), intentar cargar aquí
       if (pusherKey.isEmpty && !dotenv.isInitialized) {
         await dotenv.load(fileName: '.env');
         pusherKey = dotenv.env['PUSHER_APP_KEY'] ?? '';
@@ -54,9 +56,6 @@ class PusherService {
       }
 
       if (pusherKey.isEmpty) {
-        // No rompemos la app si no está configurado: simplemente no conectamos
-        // y dejamos que la app funcione solo con HTTP.
-        // El dev verá este log en consola.
         // ignore: avoid_print
         print('❌ PUSHER_APP_KEY no configurada en .env de Zonix');
         _isInitialized = false;
@@ -97,29 +96,36 @@ class PusherService {
     }
   }
 
-  /// Authorizer para canales privados (envía Bearer token a /api/broadcasting/auth)
+  /// Authorizer para canales privados
   Future<Map<String, dynamic>?> _onAuthorizer(String channelName, String socketId, dynamic options) async {
     try {
       final authHeaders = await AuthHelper.getAuthHeaders();
+      final url = '${AppConfig.apiUrl}/api/broadcasting/auth';
+      
       final headers = {
         ...authHeaders,
         'Content-Type': 'application/x-www-form-urlencoded',
       };
+      
+      final body = 'channel_name=${Uri.encodeComponent(channelName)}&socket_id=${Uri.encodeComponent(socketId)}';
+
       final response = await http.post(
-        Uri.parse('${AppConfig.apiUrl}/api/broadcasting/auth'),
+        Uri.parse(url),
         headers: headers,
-        body: 'channel_name=${Uri.encodeComponent(channelName)}&socket_id=${Uri.encodeComponent(socketId)}',
+        body: body,
       );
+      
       if (response.statusCode == 200) {
         final dynamic decoded = jsonDecode(response.body);
         final Map<String, dynamic> data = decoded is Map
             ? Map<String, dynamic>.from(Map.from(decoded))
             : <String, dynamic>{};
-        // Respuesta puede venir envuelta en "data" o directo { auth, shared_secret }
         final Map<String, dynamic> payload = data.containsKey('data') && data['data'] is Map
             ? Map<String, dynamic>.from(data['data'] as Map)
             : data;
-        if (!payload.containsKey('auth')) return null;
+        if (!payload.containsKey('auth')) {
+          return null;
+        }
         payload['shared_secret'] = payload['shared_secret'] ?? '';
         return payload;
       }
@@ -131,59 +137,43 @@ class PusherService {
     }
   }
 
-  /// Suscribirse al canal de chat de una orden (private-orders.{orderId}, coincide con backend)
-  Future<bool> subscribeToOrderChat(
-    int orderId, {
-    required Function(String eventName, Map<String, dynamic> data) onNewMessage,
-  }) async {
+  /// Suscribirse al canal de chat de una orden
+  Future<bool> subscribeToOrderChat(int orderId) async {
     final channelName = 'private-orders.$orderId';
-    return subscribeToChannel(channelName, onDomainEvent: onNewMessage);
+    return subscribeToChannel(channelName);
   }
 
-  /// Suscribirse al canal de usuario para recibir OrderCreated, OrderStatusChanged,
-  /// PaymentValidated y NotificationCreated.
-  Future<bool> subscribeToUserChannel(
-    int userId, {
-    required Function(String eventName, Map<String, dynamic> data) onEvent,
-  }) async {
+  /// Suscribirse al canal de usuario
+  Future<bool> subscribeToUserChannel(int userId) async {
     final channelName = 'private-user.$userId';
-    return subscribeToChannel(channelName, onDomainEvent: onEvent);
+    return subscribeToChannel(channelName);
   }
 
-  /// Suscribirse al canal de comercio para recibir OrderCreated del comercio.
-  Future<bool> subscribeToCommerceChannel(
-    int commerceId, {
-    required Function(String eventName, Map<String, dynamic> data) onEvent,
-  }) async {
+  /// Suscribirse al canal de comercio
+  Future<bool> subscribeToCommerceChannel(int commerceId) async {
     final channelName = 'private-commerce.$commerceId';
-    return subscribeToChannel(channelName, onDomainEvent: onEvent);
+    return subscribeToChannel(channelName);
   }
 
-  /// Suscribirse al canal de una orden específica para tracking de delivery
-  /// y actualizaciones de estado de pago (private-orders.{orderId}, coincide con backend).
-  Future<bool> subscribeToOrderUpdates(
-    int orderId, {
-    required Function(String eventName, Map<String, dynamic> data) onEvent,
-  }) async {
-    final channelName = 'private-orders.$orderId';
-    return subscribeToChannel(channelName, onDomainEvent: onEvent);
-  }
 
-  /// Suscribirse a un canal genérico
-  Future<bool> subscribeToChannel(
-    String channelName, {
-    required Function(String eventName, Map<String, dynamic> data) onDomainEvent,
-  }) async {
+  /// Suscribirse a un canal genérico (con conteo de referencias).
+  Future<bool> subscribeToChannel(String channelName) async {
+    final prev = _channelRefCount[channelName] ?? 0;
+    _channelRefCount[channelName] = prev + 1;
+
+    if (prev > 0) {
+      // Ya había un suscriptor: el socket sigue en este canal.
+      return true;
+    }
+
     try {
       if (_pusher == null || !_isInitialized) {
         final ok = await initialize();
-        if (!ok) return false;
-      }
-
-      _onDomainEvent = onDomainEvent;
-
-      if (_subscribedChannels.contains(channelName)) {
-        return true;
+        if (!ok) {
+          _channelRefCount[channelName] = 0;
+          _channelRefCount.remove(channelName);
+          return false;
+        }
       }
 
       await _pusher!.subscribe(channelName: channelName);
@@ -192,47 +182,26 @@ class PusherService {
       print('✅ Suscrito a canal Pusher: $channelName');
       return true;
     } catch (e) {
+      _channelRefCount.remove(channelName);
       // ignore: avoid_print
       print('❌ Error suscribiendo a canal Pusher ($channelName): $e');
       return false;
     }
   }
 
-  /// Suscribirse a un canal de perfil para recibir eventos de órdenes/notificaciones
-  ///
-  /// Ejemplo de canal: `profile.{profileId}` o `user.{userId}` según definas en backend.
-  Future<bool> subscribeToProfileChannel(
-    String channelName, {
-    required Function(String eventName, Map<String, dynamic> data) onDomainEvent,
-  }) async {
-    try {
-      if (_pusher == null || !_isInitialized) {
-        final ok = await initialize();
-        if (!ok) return false;
-      }
-
-      _onDomainEvent = onDomainEvent;
-
-      if (_subscribedChannels.contains(channelName)) {
-        // ignore: avoid_print
-        print('⚠️ Ya suscrito a canal Pusher: $channelName');
-        return true;
-      }
-
-      await _pusher!.subscribe(channelName: channelName);
-      _subscribedChannels.add(channelName);
-      // ignore: avoid_print
-      print('✅ Suscrito a canal Pusher: $channelName');
-      return true;
-    } catch (e) {
-      // ignore: avoid_print
-      print('❌ Error suscribiendo a canal Pusher ($channelName): $e');
-      return false;
-    }
-  }
-
-  /// Desuscribirse de un canal Pusher
+  /// Libera una referencia al canal; solo desuscribe en Pusher cuando el contador llega a 0.
   Future<void> unsubscribeFromChannel(String channelName) async {
+    final prev = _channelRefCount[channelName] ?? 0;
+    if (prev <= 0) return;
+
+    final next = prev - 1;
+    if (next > 0) {
+      _channelRefCount[channelName] = next;
+      return;
+    }
+
+    _channelRefCount.remove(channelName);
+
     if (_pusher == null || !_subscribedChannels.contains(channelName)) return;
 
     try {
@@ -246,18 +215,13 @@ class PusherService {
     }
   }
 
-  /// Manejar cambios de estado de conexión
   void _handleConnectionStateChange(String currentState, String? previousState) {
     // ignore: avoid_print
     print('🔄 Pusher (Zonix) connection: $previousState → $currentState');
     _isConnected = currentState == 'CONNECTED';
   }
 
-  /// Manejar eventos recibidos
   void _handleEvent(PusherEvent event) {
-    // ignore: avoid_print
-    print('📨 Pusher (Zonix) event: ${event.eventName} en ${event.channelName}');
-
     try {
       final dynamic raw = event.data;
       final Map<String, dynamic> data = raw == null
@@ -266,8 +230,15 @@ class PusherService {
               ? Map<String, dynamic>.from(jsonDecode(raw) as Map)
               : Map<String, dynamic>.from(raw as Map));
 
-      if (_onDomainEvent != null && data.isNotEmpty) {
-        _onDomainEvent!(event.eventName, data);
+      if (data.isNotEmpty) {
+        _eventController.add({
+          'eventName': event.eventName,
+          'channelName': event.channelName,
+          'data': data,
+        });
+        
+        // ignore: avoid_print
+        print('📡 Event broadcasted to stream: ${event.eventName} on ${event.channelName}');
       }
     } catch (e) {
       // ignore: avoid_print
@@ -275,7 +246,6 @@ class PusherService {
     }
   }
 
-  /// Manejar errores
   void _handleError(String message, int? code, dynamic e) {
     // ignore: avoid_print
     print('❌ Pusher (Zonix) error: $message (code: $code)');
@@ -307,13 +277,13 @@ class PusherService {
     print('👤 Pusher (Zonix) miembro removido: ${member.userId} de $channelName');
   }
 
-  /// Desconectar completamente de Pusher
   Future<void> disconnect() async {
     try {
       for (final channel in _subscribedChannels.toList()) {
         await _pusher?.unsubscribe(channelName: channel);
       }
       _subscribedChannels.clear();
+      _channelRefCount.clear();
       await _pusher?.disconnect();
       _isConnected = false;
       _isInitialized = false;
@@ -325,4 +295,3 @@ class PusherService {
     }
   }
 }
-

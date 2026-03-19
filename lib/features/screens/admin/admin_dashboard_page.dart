@@ -4,6 +4,9 @@ import 'package:zonix/features/screens/admin/admin_security_page.dart';
 import 'package:zonix/features/screens/admin/admin_users_page.dart';
 import 'package:zonix/features/screens/settings/settings_page_2.dart';
 import 'package:zonix/features/services/admin_service.dart';
+import 'package:provider/provider.dart';
+import 'package:zonix/features/services/notification_service.dart';
+import 'package:zonix/features/screens/notifications/notifications_page.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -59,6 +62,23 @@ class AdminDashboardPageState extends State<AdminDashboardPage> {
         backgroundColor: Colors.red,
         foregroundColor: Colors.white,
         actions: [
+          Consumer<NotificationService>(
+            builder: (context, notificationService, child) {
+              return IconButton(
+                icon: Badge(
+                  label: Text(notificationService.unreadCount.toString()),
+                  isLabelVisible: notificationService.unreadCount > 0,
+                  child: const Icon(Icons.notifications_outlined),
+                ),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const NotificationsPage(),
+                  ),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadDashboardData,
