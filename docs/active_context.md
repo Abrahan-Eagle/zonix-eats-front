@@ -9,10 +9,10 @@
 
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
-- **Fecha:** 9 Mar 2026
-- **Resumen:** Además de cerrar el módulo Exportar datos y el Historial de órdenes (Buyer), se definió e implementó el flujo completo de órdenes lado Buyer: Carrito → `CheckoutPage` (“Finalizar pedido”) sin orden creada → `OrderService.createOrder` crea orden en `pending_payment` → `OrderConfirmationPage` muestra confirmación y botón “Seguir mi pedido” → `CurrentOrderDetailPage` muestra tracking en vivo (estados, mapa, repartidor, dirección y resumen) mientras el comercio valida pago y cocina → al marcarse `delivered` la orden pasa a historial y se abre `OrderHistoryDetailPage` desde `OrdersPage`, con opción “Calificar pedido” que lleva a `OrderRatingPage` (usa BuyerReviewService para comercio y delivery).
-- **Áreas tocadas:** `lib/features/DomainProfiles/Profiles/api/profile_service.dart`, `lib/features/DomainProfiles/Profiles/screens/data_export_page.dart`, `lib/features/screens/orders/orders_page.dart`, `lib/features/screens/orders/order_history_detail_page.dart`, `lib/features/screens/orders/current_order_detail_page.dart`, `lib/features/screens/orders/order_confirmation_page.dart`, `lib/features/screens/orders/order_rating_page.dart`, `lib/features/screens/cart/cart_page.dart`, `lib/features/screens/cart/checkout_page.dart`, AGENTS.md, README, .cursorrules, docs/active_context.md.
-- **Próximos pasos sugeridos:** Seguir refinando la UI de `CheckoutPage` para que iguale el template `resumen_de_checkout_dark` (card de productos con imagen real, tipografía/paddings idénticos, copy final “Al confirmar, aceptas…”), y después revisar vistas equivalentes en Commerce/Delivery para asegurar que el flujo de estados sea coherente en los tres roles. Commit/push cuando el usuario lo indique.
+- **Fecha:** 19 Mar 2026
+- **Resumen:** Cierre del módulo de comprobante de pago (vista Commerce). En `commerce_order_detail_page.dart`: eliminados los enlaces "Ver comprobante" y "Ver comprobante (PDF)"; botones Validar/Rechazar solo visibles cuando la orden está en `pending_payment`; al rechazar pago se hace `Navigator.pop(context)` para volver al dashboard; si la API devuelve 400 (orden ya cancelada) se recarga y también pop. Sin cambios en backend.
+- **Áreas tocadas:** `lib/features/screens/commerce/commerce_order_detail_page.dart`, AGENTS.md, docs/active_context.md.
+- **Próximos pasos sugeridos:** Probar flujo completo Buyer→Commerce con Pusher en dispositivo. Verificar badge de notificaciones. Valorar si eventos Review/Dispute migran al patrón Streams. Monitorear Pusher en redes inestables.
 
 ---
 

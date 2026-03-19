@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:zonix/models/commerce_order.dart';
 import 'package:zonix/features/services/commerce_order_service.dart';
@@ -5,7 +6,6 @@ import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/screens/commerce/commerce_chat_messages_page.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class CommerceOrderDetailPage extends StatefulWidget {
   const CommerceOrderDetailPage({
@@ -27,6 +27,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
   String? _error;
   bool _updating = false;
   bool _pusherSubscribed = false;
+  StreamSubscription<Map<String, dynamic>>? _pusherSubscription;
 
   static num _parseNum(dynamic value) {
     if (value == null) return 0;
@@ -48,6 +49,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
 
   @override
   void dispose() {
+    _pusherSubscription?.cancel();
     if (_pusherSubscribed) {
       PusherService.instance.unsubscribeFromChannel('private-orders.${widget.orderId}');
     }
@@ -56,15 +58,23 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
 
   Future<void> _subscribeToOrderUpdates() async {
     if (!AppConfig.enablePusher || _pusherSubscribed || !mounted) return;
-    final ok = await PusherService.instance.subscribeToOrderChat(
-      widget.orderId,
-      onNewMessage: (eventName, data) {
-        if ((eventName.contains('OrderStatusChanged') || eventName.contains('PaymentValidated')) && mounted) {
-          _loadOrder();
+    final ok = await PusherService.instance.subscribeToOrderChat(widget.orderId);
+    
+    if (ok && mounted) {
+      _pusherSubscription?.cancel();
+      _pusherSubscription = PusherService.instance.eventStream.listen((event) {
+        final eventName = event['eventName']?.toString() ?? '';
+        final channelName = event['channelName']?.toString() ?? '';
+
+        if (channelName == 'private-orders.${widget.orderId}') {
+          if ((eventName.contains('OrderStatusChanged') || 
+               eventName.contains('PaymentValidated')) && mounted) {
+            _loadOrder();
+          }
         }
-      },
-    );
-    if (mounted) _pusherSubscribed = ok;
+      });
+      _pusherSubscribed = true;
+    }
   }
 
   Future<void> _loadOrder() async {
@@ -158,17 +168,18 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
     try {
       await CommerceOrderService.validatePayment(widget.orderId, isValid);
       await _loadOrder();
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(isValid ? 'Pago validado' : 'Pago rechazado'),
-            backgroundColor: isValid ? AppColors.green : AppColors.red,
-          ),
-        );
-        if (isValid) {
-          // Al validar el pago, pasar directamente a "En preparación"
-          await _updateStatus('processing');
-        }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isValid ? 'Pago validado' : 'Pago rechazado'),
+          backgroundColor: isValid ? AppColors.green : AppColors.red,
+        ),
+      );
+      if (isValid) {
+        await _updateStatus('processing');
+      } else if (_order?.isCancelled == true) {
+        Navigator.pop(context);
+        return;
       }
     } catch (e) {
       if (mounted) {
@@ -178,6 +189,10 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
             backgroundColor: AppColors.red,
           ),
         );
+        await _loadOrder();
+        if (mounted && _order?.isCancelled == true) {
+          Navigator.pop(context);
+        }
       }
     } finally {
       if (mounted) setState(() => _updating = false);
@@ -473,93 +488,69 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                                     final proofUrl = _imageUrl(order.paymentProof);
                                     final isPdf = proofUrl.toLowerCase().endsWith('.pdf');
                                     if (isPdf) {
-                                      return Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                      return Row(
                                         children: [
                                           const Icon(Icons.picture_as_pdf, size: 48, color: AppColors.red),
-                                          const SizedBox(height: 8),
-                                          TextButton.icon(
-                                            onPressed: () async {
-                                              final uri = Uri.parse(proofUrl);
-                                              if (await canLaunchUrl(uri)) {
-                                                await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                              }
-                                            },
-                                            icon: const Icon(Icons.open_in_new),
-                                            label: const Text('Ver comprobante (PDF)'),
-                                          ),
+                                          const SizedBox(width: 12),
+                                          const Text('Comprobante (PDF)'),
                                         ],
                                       );
                                     }
-                                    return Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        GestureDetector(
-                                          onTap: () {
-                                            showDialog<void>(
-                                              context: ctx,
-                                              builder: (_) => Dialog(
-                                                child: InteractiveViewer(
-                                                  child: Image.network(
-                                                    proofUrl,
-                                                    fit: BoxFit.contain,
-                                                  ),
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                          child: ClipRRect(
-                                            borderRadius: BorderRadius.circular(8),
-                                            child: Image.network(
-                                              proofUrl,
-                                              height: 200,
-                                              width: double.infinity,
-                                              fit: BoxFit.contain,
-                                              errorBuilder: (_, __, ___) => const Icon(
-                                                Icons.receipt,
-                                                size: 64,
+                                    return GestureDetector(
+                                      onTap: () {
+                                        showDialog<void>(
+                                          context: ctx,
+                                          builder: (_) => Dialog(
+                                            child: InteractiveViewer(
+                                              child: Image.network(
+                                                proofUrl,
+                                                fit: BoxFit.contain,
                                               ),
                                             ),
                                           ),
+                                        );
+                                      },
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image.network(
+                                          proofUrl,
+                                          height: 200,
+                                          width: double.infinity,
+                                          fit: BoxFit.contain,
+                                          errorBuilder: (_, __, ___) => const Icon(
+                                            Icons.receipt,
+                                            size: 64,
+                                          ),
                                         ),
-                                        const SizedBox(height: 8),
-                                        TextButton.icon(
-                                          onPressed: () async {
-                                            final uri = Uri.parse(proofUrl);
-                                            if (await canLaunchUrl(uri)) {
-                                              await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                            }
-                                          },
-                                          icon: const Icon(Icons.open_in_new),
-                                          label: const Text('Ver comprobante'),
-                                        ),
-                                      ],
+                                      ),
                                     );
                                   },
                                 ),
-                              const SizedBox(height: 12),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  ElevatedButton.icon(
-                                    onPressed: () =>
-                                        _validatePayment(true),
-                                    icon: const Icon(Icons.check),
-                                    label: const Text('Validar'),
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColors.green),
-                                  ),
-                                  ElevatedButton.icon(
-                                    onPressed: () =>
-                                        _validatePayment(false),
-                                    icon: const Icon(Icons.close),
-                                    label: const Text('Rechazar'),
-                                    style: ElevatedButton.styleFrom(
-                                        backgroundColor: AppColors.red),
-                                  ),
-                                ],
-                              ),
+                              if (order.isPendingPayment) ...[
+                                const SizedBox(height: 12),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    ElevatedButton.icon(
+                                      onPressed: () =>
+                                          _validatePayment(true),
+                                      icon: const Icon(Icons.check),
+                                      label: const Text('Validar'),
+                                      style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.green),
+                                    ),
+                                    ElevatedButton.icon(
+                                      onPressed: () =>
+                                          _validatePayment(false),
+                                      icon: const Icon(Icons.close),
+                                      label: const Text('Rechazar'),
+                                      style: ElevatedButton.styleFrom(
+                                          backgroundColor: AppColors.red),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ],
                           ),
                         ),

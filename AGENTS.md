@@ -21,12 +21,14 @@
 | **Archivos Dart**        | 173                                      |
 | **Pantallas**            | 69                                       |
 | **Servicios**            | 49                                       |
-| **Tests**                | 235 pasaron ✅, 0 fallaron               |
+| **Tests**                | 250 pasaron ✅, 0 fallaron               |
 | **Plataformas**          | Android + iOS                            |
-| **Última actualización** | 9 Marzo 2026                             |
+| **Última actualización** | 18 Marzo 2026                             |
 
 ### Cambios recientes (documentar aquí los avances)
 
+- **19 Mar 2026:** Cierre flujo comprobante (Commerce): en detalle de orden se quitaron los enlaces "Ver comprobante" y "Ver comprobante (PDF)" (se mantiene imagen táctil y diálogo; PDF solo icono + texto). Botones Validar/Rechazar solo se muestran si la orden está en `pending_payment`; si la orden está cancelada no se muestran. Al rechazar el pago, tras éxito de la API se hace `Navigator.pop(context)` para volver al dashboard; si la API devuelve 400 (orden ya cancelada), se recarga la orden y también se hace pop. Eliminado import `url_launcher`. Archivo: `commerce_order_detail_page.dart`.
+- **18 Mar 2026:** Optimización de Pusher y tiempo real: `PusherService.dart` refactorizado a `Streams` (evita pérdida de eventos por sobrescritura de callbacks). Backend corregido para evitar broadcast público redundante. Actualizadas 9 pantallas (Commerce, Orders, Chat, Dashboard) y `UserProvider` para usar suscripciones seguras (`dispose`).
 - **10 Mar 2026:** PASO 7 y 8 del flujo de compra: (1) Comprador: en detalle de orden pendiente de pago puede subir comprobante (imagen) con método de pago y referencia; si ya subió, se muestra "Comprobante subido correctamente. Esperando validación del comercio." y opción "Reemplazar comprobante". (2) Comercio: en detalle de orden ve "Datos para conciliar" (método, referencia, monto), comprobante e imagen, y botones Validar/Rechazar; validación envía `rejection_reason` al backend; tras validar se muestra "Pago recibido" (método y referencia). (3) Backend: se permite "Aprobar para pago" aunque la orden ya tenga comprobante (para flujo comprador sube primero). (4) Diálogo subir comprobante: dropdown con `value` y métodos del comercio vía `getAvailablePaymentMethodsForOrder`; extensión de archivo (jpeg/png) detectada desde path.
 - **9 Mar 2026:** Flujo de órdenes (Buyer) extendido: desde Carrito → `CheckoutPage` (“Finalizar pedido”) → creación de orden (`pending_payment`) con `OrderService.createOrder` → `OrderConfirmationPage` (“¡Pedido realizado!”) → `CurrentOrderDetailPage` (tracking en vivo) → `OrderHistoryDetailPage` (historial) → `OrderRatingPage` (calificar comercio y delivery). La lógica de estados sigue el backend (`pending_payment` → `paid` → `processing/preparing` → `shipped/out_for_delivery` → `delivered`).
 - **9 Mar 2026:** Módulo Historial de órdenes (Buyer): cards de historial reciente/historial abren `OrderHistoryDetailPage` con layout tipo recibo (header con comercio, fecha, estado, productos, entrega y resumen de pago); botones “Volver a pedir” (reutiliza lógica de carrito) y “Descargar recibo” que llevan a `OrderDetailPage`. UI adaptada a modo claro/oscuro usando `AppColors`/Theme (sin colores hardcodeados).
@@ -66,7 +68,7 @@ r                                    # Presionar 'r' en consola
 R                                    # Full restart
 
 # Testing
-flutter test                         # Todos (214 tests)
+flutter test                         # Todos (250 tests)
 flutter test test/services/order_service_test.dart
 
 # Análisis
@@ -597,7 +599,7 @@ AddressService.createAddress(..., role: 'commerce', commerceId: commerceId)
 ## Testing
 
 ```bash
-flutter test                         # Todos (214 tests)
+flutter test                         # Todos (250 tests)
 flutter test test/services/...       # Específico
 flutter analyze                      # Análisis estático
 ```
@@ -663,7 +665,7 @@ FASE 2: ANÁLISIS PROFUNDO POR ÁREA
 4. MODELOS Y ESTRUCTURA DE DATOS (fromJson/toJson, serialización)
 5. SEGURIDAD (flutter_secure_storage, tokens, validación)
 6. PERFORMANCE (bundle size, renderizado, caching)
-7. TESTING (214 tests, estrategia, cobertura)
+7. TESTING (250 tests, estrategia, cobertura)
 8. FRONTEND/UI (componentes, state management, routing, a11y)
 9. INTEGRACIÓN CON BACKEND (232 endpoints, Firebase + Pusher)
 10. DEVOPS E INFRAESTRUCTURA
