@@ -10,9 +10,9 @@
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
 - **Fecha:** 19 Mar 2026
-- **Resumen:** Cierre del módulo de comprobante de pago (vista Commerce). En `commerce_order_detail_page.dart`: eliminados los enlaces "Ver comprobante" y "Ver comprobante (PDF)"; botones Validar/Rechazar solo visibles cuando la orden está en `pending_payment`; al rechazar pago se hace `Navigator.pop(context)` para volver al dashboard; si la API devuelve 400 (orden ya cancelada) se recarga y también pop. Sin cambios en backend.
-- **Áreas tocadas:** `lib/features/screens/commerce/commerce_order_detail_page.dart`, AGENTS.md, docs/active_context.md.
-- **Próximos pasos sugeridos:** Probar flujo completo Buyer→Commerce con Pusher en dispositivo. Verificar badge de notificaciones. Valorar si eventos Review/Dispute migran al patrón Streams. Monitorear Pusher en redes inestables.
+- **Resumen:** Subida a dev completada (frontend y backend). Frontend: commits de cierre comprobante (Commerce) y feat Pusher Streams, notificaciones, auth, Android/iOS. Backend: seeders reorg, NotificationService, Listeners, .gitignore (venv_scraper, pendrive_badblocks). Documentación: "Cambios recientes" y active_context actualizados en ambos AGENTS.md.
+- **Áreas tocadas:** `commerce_order_detail_page.dart`, AGENTS.md, docs/active_context.md (front); backend seeders, Listeners, NotificationService, .gitignore, docs (back).
+- **Próximos pasos sugeridos:** Probar flujo completo en dev (Buyer→Commerce, Pusher, notificaciones). Valorar merge a main cuando esté estable. Revisar si .env quedó en historial y, si incluye datos sensibles, sacarlo del repo.
 
 ---
 

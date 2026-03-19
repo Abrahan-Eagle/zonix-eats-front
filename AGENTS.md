@@ -23,10 +23,11 @@
 | **Servicios**            | 49                                       |
 | **Tests**                | 250 pasaron ✅, 0 fallaron               |
 | **Plataformas**          | Android + iOS                            |
-| **Última actualización** | 18 Marzo 2026                             |
+| **Última actualización** | 19 Marzo 2026                             |
 
 ### Cambios recientes (documentar aquí los avances)
 
+- **19 Mar 2026:** Subida a dev: commits de cierre comprobante (Commerce) y feat Pusher Streams, notificaciones, auth, mejoras Android/iOS (google-services, sonido notificación, package com.zonix.eats). Documentación actualizada en AGENTS.md y active_context.
 - **19 Mar 2026:** Cierre flujo comprobante (Commerce): en detalle de orden se quitaron los enlaces "Ver comprobante" y "Ver comprobante (PDF)" (se mantiene imagen táctil y diálogo; PDF solo icono + texto). Botones Validar/Rechazar solo se muestran si la orden está en `pending_payment`; si la orden está cancelada no se muestran. Al rechazar el pago, tras éxito de la API se hace `Navigator.pop(context)` para volver al dashboard; si la API devuelve 400 (orden ya cancelada), se recarga la orden y también se hace pop. Eliminado import `url_launcher`. Archivo: `commerce_order_detail_page.dart`.
 - **18 Mar 2026:** Optimización de Pusher y tiempo real: `PusherService.dart` refactorizado a `Streams` (evita pérdida de eventos por sobrescritura de callbacks). Backend corregido para evitar broadcast público redundante. Actualizadas 9 pantallas (Commerce, Orders, Chat, Dashboard) y `UserProvider` para usar suscripciones seguras (`dispose`).
 - **10 Mar 2026:** PASO 7 y 8 del flujo de compra: (1) Comprador: en detalle de orden pendiente de pago puede subir comprobante (imagen) con método de pago y referencia; si ya subió, se muestra "Comprobante subido correctamente. Esperando validación del comercio." y opción "Reemplazar comprobante". (2) Comercio: en detalle de orden ve "Datos para conciliar" (método, referencia, monto), comprobante e imagen, y botones Validar/Rechazar; validación envía `rejection_reason` al backend; tras validar se muestra "Pago recibido" (método y referencia). (3) Backend: se permite "Aprobar para pago" aunque la orden ya tenga comprobante (para flujo comprador sube primero). (4) Diálogo subir comprobante: dropdown con `value` y métodos del comercio vía `getAvailablePaymentMethodsForOrder`; extensión de archivo (jpeg/png) detectada desde path.
@@ -714,4 +715,4 @@ FORMATO DE SALIDA:
 
 **Documentación completa:** Ver `README.md`
 **Backend API:** Ver `zonix-eats-back/AGENTS.md`
-**Última actualización:** 9 Marzo 2026
+**Última actualización:** 19 Marzo 2026
