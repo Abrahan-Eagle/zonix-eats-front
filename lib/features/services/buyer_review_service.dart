@@ -9,7 +9,7 @@ class BuyerReviewService {
 
   // POST /api/buyer/reviews/restaurant - Calificar restaurante
   Future<Map<String, dynamic>> rateRestaurant({
-    required int commerceId,
+    required int orderId,
     required double rating,
     required String comment,
     Map<String, dynamic>? criteria,
@@ -19,8 +19,8 @@ class BuyerReviewService {
       final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/reviews/restaurant');
       
       final body = {
-        'commerce_id': commerceId,
-        'rating': rating,
+        'order_id': orderId,
+        'rating': rating.round(),
         'comment': comment,
         if (criteria != null) 'criteria': criteria,
       };
@@ -49,7 +49,7 @@ class BuyerReviewService {
 
   // POST /api/buyer/reviews/delivery-agent - Calificar agente de delivery
   Future<Map<String, dynamic>> rateDeliveryAgent({
-    required int agentId,
+    required int orderId,
     required double rating,
     required String comment,
     Map<String, dynamic>? criteria,
@@ -59,8 +59,8 @@ class BuyerReviewService {
       final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/reviews/delivery-agent');
       
       final body = {
-        'agent_id': agentId,
-        'rating': rating,
+        'order_id': orderId,
+        'rating': rating.round(),
         'comment': comment,
         if (criteria != null) 'criteria': criteria,
       };

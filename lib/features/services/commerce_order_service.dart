@@ -69,6 +69,23 @@ class CommerceOrderService {
     }
   }
 
+  static Future<String?> getPickupQrPayload(int orderId) async {
+    try {
+      final headers = await AuthHelper.getAuthHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/api/commerce/orders/$orderId/pickup-qr'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) return data['data']['qr_payload'] as String?;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   // Actualizar estado de una orden
   static Future<CommerceOrder> updateOrderStatus(int id, String status) async {
     try {

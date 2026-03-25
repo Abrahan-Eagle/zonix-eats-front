@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:zonix/models/commerce_order.dart';
 import 'package:zonix/features/services/commerce_order_service.dart';
 import 'package:zonix/features/services/pusher_service.dart';
@@ -28,6 +29,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
   bool _updating = false;
   bool _pusherSubscribed = false;
   StreamSubscription<Map<String, dynamic>>? _pusherSubscription;
+  String? _pickupQrPayload;
 
   static num _parseNum(dynamic value) {
     if (value == null) return 0;
@@ -84,9 +86,14 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
     });
     try {
       final order = await CommerceOrderService.getOrder(widget.orderId);
+      String? qr;
+      if (order.status == 'processing') {
+        qr = await CommerceOrderService.getPickupQrPayload(widget.orderId);
+      }
       if (mounted) {
         setState(() {
           _order = order;
+          _pickupQrPayload = qr;
           _loading = false;
         });
       }
@@ -166,20 +173,30 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
   Future<void> _validatePayment(bool isValid) async {
     setState(() => _updating = true);
     try {
-      await CommerceOrderService.validatePayment(widget.orderId, isValid);
+      final response = await CommerceOrderService.validatePayment(widget.orderId, isValid);
       await _loadOrder();
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(isValid ? 'Pago validado' : 'Pago rechazado'),
-          backgroundColor: isValid ? AppColors.green : AppColors.red,
-        ),
-      );
+
       if (isValid) {
-        await _updateStatus('processing');
-      } else if (_order?.isCancelled == true) {
-        Navigator.pop(context);
-        return;
+        final allValidated = response['all_payments_validated'] == true;
+        final msg = response['message'] as String? ?? '';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(allValidated ? 'Pago validado' : msg),
+            backgroundColor: AppColors.green,
+          ),
+        );
+        if (allValidated) {
+          await _updateStatus('processing');
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Pago rechazado'), backgroundColor: AppColors.red),
+        );
+        if (_order?.isCancelled == true) {
+          Navigator.pop(context);
+          return;
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -488,11 +505,11 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                                     final proofUrl = _imageUrl(order.paymentProof);
                                     final isPdf = proofUrl.toLowerCase().endsWith('.pdf');
                                     if (isPdf) {
-                                      return Row(
+                                      return const Row(
                                         children: [
-                                          const Icon(Icons.picture_as_pdf, size: 48, color: AppColors.red),
-                                          const SizedBox(width: 12),
-                                          const Text('Comprobante (PDF)'),
+                                          Icon(Icons.picture_as_pdf, size: 48, color: AppColors.red),
+                                          SizedBox(width: 12),
+                                          Text('Comprobante (PDF)'),
                                         ],
                                       );
                                     }
@@ -556,42 +573,80 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                         ),
                       ),
                     ],
-                    if (order.isPaid && (order.paymentMethod != null || order.referenceNumber != null)) ...[
+                    if (order.isPaid) ...[
                       const SizedBox(height: 16),
                       Text('Pago recibido',
                           style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 8),
-                      Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            children: [
-                              _TotalRow('Método', _paymentMethodLabel(order.paymentMethod)),
-                              if (order.referenceNumber != null && order.referenceNumber!.isNotEmpty)
-                                _TotalRow('Referencia', order.referenceNumber!),
-                            ],
+                      if (order.paymentMethod != null || order.referenceNumber != null)
+                        Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              children: [
+                                _TotalRow('Método', _paymentMethodLabel(order.paymentMethod)),
+                                if (order.referenceNumber != null && order.referenceNumber!.isNotEmpty)
+                                  _TotalRow('Referencia', order.referenceNumber!),
+                              ],
+                            ),
                           ),
                         ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: _updating ? null : () => _updateStatus('processing'),
+                            icon: const Icon(Icons.restaurant),
+                            label: const Text('Comenzar a preparar'),
+                            style: ElevatedButton.styleFrom(backgroundColor: AppColors.green),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: _updating ? null : () => _updateStatus('cancelled'),
+                            icon: const Icon(Icons.close),
+                            label: const Text('Cancelar'),
+                            style: ElevatedButton.styleFrom(backgroundColor: AppColors.red),
+                          ),
+                        ],
                       ),
                     ],
                     if (order.status == 'processing') ...[
                       const SizedBox(height: 16),
-                      Wrap(
-                        spacing: 8,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () =>
-                                _updateStatus('shipped'),
-                            child: const Text('Enviar'),
+                      if (_pickupQrPayload != null) ...[
+                        Text(
+                          'Muestra este QR al repartidor',
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 12),
+                        Center(
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: QrImageView(
+                              data: _pickupQrPayload!,
+                              version: QrVersions.auto,
+                              size: 200,
+                            ),
                           ),
-                          ElevatedButton(
-                            onPressed: () =>
-                                _updateStatus('cancelled'),
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.red),
-                            child: const Text('Cancelar'),
-                          ),
-                        ],
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      if (_pickupQrPayload == null)
+                        Text(
+                          'El repartidor escaneará el QR para recoger el pedido',
+                          style: TextStyle(fontSize: 13, color: AppColors.secondaryText(context)),
+                          textAlign: TextAlign.center,
+                        ),
+                      const SizedBox(height: 8),
+                      ElevatedButton.icon(
+                        onPressed: _updating ? null : () => _updateStatus('cancelled'),
+                        icon: const Icon(Icons.close),
+                        label: const Text('Cancelar orden'),
+                        style: ElevatedButton.styleFrom(backgroundColor: AppColors.red),
                       ),
                     ],
                   ],

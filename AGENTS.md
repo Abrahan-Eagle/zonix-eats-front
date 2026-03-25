@@ -23,10 +23,11 @@
 | **Servicios**            | 49                                       |
 | **Tests**                | 250 pasaron ✅, 0 fallaron               |
 | **Plataformas**          | Android + iOS                            |
-| **Última actualización** | 19 Marzo 2026                             |
+| **Última actualización** | 20 Marzo 2026                             |
 
 ### Cambios recientes (documentar aquí los avances)
 
+- **20 Mar 2026:** Jarvis — Backlog producto/técnico documentado en `docs/active_context.md` (alineado con backend: backlog + prioridad sugerida ETA / rutas / tarifa). Sin cambios de código.
 - **19 Mar 2026:** Subida a dev: commits de cierre comprobante (Commerce) y feat Pusher Streams, notificaciones, auth, mejoras Android/iOS (google-services, sonido notificación, package com.zonix.eats). Documentación actualizada en AGENTS.md y active_context.
 - **19 Mar 2026:** Cierre flujo comprobante (Commerce): en detalle de orden se quitaron los enlaces "Ver comprobante" y "Ver comprobante (PDF)" (se mantiene imagen táctil y diálogo; PDF solo icono + texto). Botones Validar/Rechazar solo se muestran si la orden está en `pending_payment`; si la orden está cancelada no se muestran. Al rechazar el pago, tras éxito de la API se hace `Navigator.pop(context)` para volver al dashboard; si la API devuelve 400 (orden ya cancelada), se recarga la orden y también se hace pop. Eliminado import `url_launcher`. Archivo: `commerce_order_detail_page.dart`.
 - **18 Mar 2026:** Optimización de Pusher y tiempo real: `PusherService.dart` refactorizado a `Streams` (evita pérdida de eventos por sobrescritura de callbacks). Backend corregido para evitar broadcast público redundante. Actualizadas 9 pantallas (Commerce, Orders, Chat, Dashboard) y `UserProvider` para usar suscripciones seguras (`dispose`).

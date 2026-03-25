@@ -119,7 +119,7 @@ class PaymentMethodDetailPage extends StatelessWidget {
             gradient: const LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [AppColors.blueDark, Color(0xFF23456b), AppColors.blue],
+              colors: [AppColors.blueDark, AppColors.blueDarkMid, AppColors.blue],
             ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
@@ -348,7 +348,7 @@ class PaymentMethodDetailPage extends StatelessWidget {
     List<_InfoRow> rows,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final headerBg = isDark ? AppColors.grayDark.withValues(alpha: 0.5) : const Color(0xFFF1F5F9);
+    final headerBg = isDark ? AppColors.grayDark.withValues(alpha: 0.5) : AppColors.stitchBgCard;
 
     return Container(
       decoration: BoxDecoration(
@@ -794,7 +794,7 @@ class PaymentMethodDetailPage extends StatelessWidget {
   }
 
   Widget _securityBadge(Color primaryText, Color secondaryText, Color cardBg, Color borderColor) {
-    const Color green100 = Color(0xFFDCFCE7);
+    const Color green100 = AppColors.greenLight100;
 
     return Container(
       padding: const EdgeInsets.all(16),

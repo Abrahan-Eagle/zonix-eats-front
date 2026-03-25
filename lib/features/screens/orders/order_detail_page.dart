@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:printing/printing.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 import 'package:zonix/models/order.dart';
 import 'package:zonix/features/screens/orders/receipt_pdf_builder.dart';
 import 'package:zonix/features/services/order_service.dart';
@@ -16,6 +17,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zonix/l10n/app_strings.dart';
 import 'package:zonix/features/screens/orders/buyer_order_chat_page.dart';
+import 'package:zonix/features/screens/orders/order_rating_page.dart';
 
 class OrderDetailPage extends StatefulWidget {
   const OrderDetailPage({
@@ -119,6 +121,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             ? event['data'] as Map<String, dynamic>
             : <String, dynamic>{};
 
+        if (eventName.contains('NotificationCreated') && mounted) {
+          final notifData = data['data'] is Map ? data['data'] as Map : {};
+          if (notifData['action'] == 'show_delivery_qr' &&
+              notifData['order_id']?.toString() == widget.orderId.toString()) {
+            _showDeliveryQrModal();
+          }
+        }
+
         if (channelName != 'private-orders.${widget.orderId}') return;
 
         if (eventName.contains('DeliveryLocationUpdated')) {
@@ -135,6 +145,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         if (eventName.contains('OrderStatusChanged') || 
             eventName.contains('PaymentValidated')) {
           _loadOrder();
+          if (data['status'] == 'delivered' && mounted) {
+            _showRatingAfterDelivery();
+          }
         }
       });
 
@@ -194,46 +207,43 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
   }
 
-  Future<void> _uploadProof(Order order) async {
+  Future<void> _uploadProof(Order order, {String type = 'food'}) async {
     String? paymentMethod;
     String? referenceNumber;
     String? imagePath;
 
     List<Map<String, dynamic>> availableMethods = [];
     try {
-      availableMethods = await OrderService().getAvailablePaymentMethodsForOrder(widget.orderId);
+      if (type == 'delivery') {
+        final info = await OrderService().getPaymentInfo(widget.orderId);
+        availableMethods = List<Map<String, dynamic>>.from(info?['delivery_methods'] ?? []);
+      } else {
+        availableMethods = await OrderService().getAvailablePaymentMethodsForOrder(widget.orderId);
+      }
     } catch (_) {}
     if (!mounted) return;
 
+    final dialogTitle = type == 'delivery' ? 'Pagar envío' : 'Pagar comida';
     final result = await showDialog<Map<String, String>>(
       context: context,
       barrierDismissible: false,
       builder: (_) => _UploadProofDialog(
         paymentMethods: availableMethods,
         initialMethod: _selectedPaymentMethodLabel,
+        title: dialogTitle,
       ),
     );
-    if (result == null || !mounted) {
-      return;
-    }
+    if (result == null || !mounted) return;
 
     paymentMethod = result['method'];
     imagePath = result['image_path'];
     var rawRef = result['ref']?.trim() ?? '';
-    // Normalizar referencia: solo dígitos
     rawRef = rawRef.replaceAll(RegExp(r'\D'), '');
     referenceNumber = rawRef;
 
-    if (paymentMethod == null ||
-        paymentMethod.isEmpty ||
-        referenceNumber.isEmpty ||
-        imagePath == null) {
+    if (paymentMethod == null || paymentMethod.isEmpty || referenceNumber.isEmpty || imagePath == null) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-              content:
-                  Text('Datos incompletos para subir el comprobante')),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Datos incompletos para subir el comprobante')));
       }
       return;
     }
@@ -249,22 +259,19 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         fileType,
         paymentMethod: paymentMethod,
         referenceNumber: referenceNumber,
+        type: type,
       );
       await _loadOrder();
       if (mounted) {
+        final label = type == 'delivery' ? 'envío' : 'comida';
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Comprobante subido correctamente'),
-            backgroundColor: AppColors.green,
-          ),
+          SnackBar(content: Text('Comprobante de $label subido correctamente'), backgroundColor: AppColors.green),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-              content: Text('Error al subir comprobante: ${e.toString().replaceFirst('Exception: ', '')}'),
-              backgroundColor: AppColors.red),
+          SnackBar(content: Text('Error: ${e.toString().replaceFirst('Exception: ', '')}'), backgroundColor: AppColors.red),
         );
       }
     } finally {
@@ -800,6 +807,18 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     );
   }
 
+  /// Formatea método + referencia desde un item de order_payments (food o delivery).
+  String _paymentDisplayFromMap(Map<String, dynamic>? p) {
+    if (p == null) return '';
+    final label = (p['payment_method_label'] as String?)?.trim() ?? '';
+    final ref = p['reference_number'] as String?;
+    if (ref != null && ref.isNotEmpty) {
+      final last4 = ref.length >= 4 ? ref.substring(ref.length - 4) : ref;
+      return label.isNotEmpty ? '$label •••• $last4' : '•••• $last4';
+    }
+    return label.isNotEmpty ? label : '';
+  }
+
   Widget _buildPaymentAndAddressCard(Order order,
       {required Color textPrimary,
       required Color textSecondary,
@@ -812,6 +831,13 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         ? '${paymentLabel.isNotEmpty ? '$paymentLabel • ' : ''}•••• ${order.referenceNumber!.length >= 4 ? order.referenceNumber!.substring(order.referenceNumber!.length - 4) : order.referenceNumber}'
         : (_selectedPaymentMethodLabel ??
             (paymentLabel.isEmpty ? (approved ? 'Seleccionar pago' : 'Esperando aprobación') : paymentLabel));
+
+    final useDoublePayment = order.orderPayments.isNotEmpty && order.foodPayment != null;
+    final foodLine = useDoublePayment ? _paymentDisplayFromMap(order.foodPayment) : null;
+    final deliveryLine = useDoublePayment && order.deliveryPaymentData != null
+        ? _paymentDisplayFromMap(order.deliveryPaymentData)
+        : null;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -830,6 +856,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       child: Column(
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
                 width: 40,
@@ -846,41 +873,155 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Método de pago',
+                    if (useDoublePayment) ...[
+                      Text('Pago comida (comercio)',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: textSecondary,
+                              fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 2),
+                      Text(
+                        foodLine?.isNotEmpty == true ? foodLine! : '—',
                         style: TextStyle(
-                            fontSize: 12,
-                            color: textSecondary,
-                            fontWeight: FontWeight.w500)),
-                    const SizedBox(height: 2),
-                    Text(
-                      paymentDisplay,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: textPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (order.status == 'pending_payment' && order.approvedForPayment && order.paymentProof == null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: () => _uploadProof(order),
-                            icon: const Icon(Icons.receipt_long, size: 20),
-                            label: const Text('Pagar y notificar'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.blue,
-                              foregroundColor: AppColors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              elevation: 0,
+                      if (deliveryLine != null) ...[
+                        const SizedBox(height: 12),
+                        Text('Pago envío (empresa de delivery)',
+                            style: TextStyle(
+                                fontSize: 12,
+                                color: textSecondary,
+                                fontWeight: FontWeight.w500)),
+                        const SizedBox(height: 2),
+                        Text(
+                          deliveryLine.isNotEmpty ? deliveryLine : '—',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ] else ...[
+                      Text('Método de pago',
+                          style: TextStyle(
+                              fontSize: 12,
+                              color: textSecondary,
+                              fontWeight: FontWeight.w500)),
+                      const SizedBox(height: 2),
+                      Text(
+                        paymentDisplay,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: textPrimary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                    if (order.status == 'pending_payment' && order.approvedForPayment) ...[
+                      if (!order.hasFoodProof)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () => _uploadProof(order, type: 'food'),
+                              icon: const Icon(Icons.receipt_long, size: 20),
+                              label: const Text('Pagar comida'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.blue,
+                                foregroundColor: AppColors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 0,
+                              ),
                             ),
                           ),
+                        )
+                      else if (!order.foodValidated && !order.foodRejected)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 8),
+                          child: Text(
+                            'Comprobante comida subido. Esperando validación del comercio.',
+                            style: TextStyle(fontSize: 12, color: AppColors.orange),
+                          ),
+                        )
+                      else if (order.foodRejected)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Pago comida rechazado.', style: TextStyle(fontSize: 12, color: AppColors.red)),
+                              const SizedBox(height: 4),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: () => _uploadProof(order, type: 'food'),
+                                  icon: const Icon(Icons.refresh, size: 18),
+                                  label: const Text('Re-subir comprobante comida'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      else
+                        const Padding(
+                          padding: EdgeInsets.only(top: 8),
+                          child: Text('Pago comida validado', style: TextStyle(fontSize: 12, color: AppColors.green)),
                         ),
-                      ),
+                      if (order.needsDeliveryPayment) ...[
+                        const SizedBox(height: 8),
+                        if (!order.hasDeliveryProof)
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton.icon(
+                              onPressed: () => _uploadProof(order, type: 'delivery'),
+                              icon: const Icon(Icons.local_shipping, size: 20),
+                              label: Text('Pagar envío (\$${order.deliveryFee.toStringAsFixed(2)})'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.green,
+                                foregroundColor: AppColors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                elevation: 0,
+                              ),
+                            ),
+                          )
+                        else if (!order.deliveryValidated && !order.deliveryRejected)
+                          const Text(
+                            'Comprobante envío subido. Esperando validación de la empresa.',
+                            style: TextStyle(fontSize: 12, color: AppColors.orange),
+                          )
+                        else if (order.deliveryRejected)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text('Pago envío rechazado.', style: TextStyle(fontSize: 12, color: AppColors.red)),
+                              const SizedBox(height: 4),
+                              SizedBox(
+                                width: double.infinity,
+                                child: OutlinedButton.icon(
+                                  onPressed: () => _uploadProof(order, type: 'delivery'),
+                                  icon: const Icon(Icons.refresh, size: 18),
+                                  label: const Text('Re-subir comprobante envío'),
+                                ),
+                              ),
+                            ],
+                          )
+                        else
+                          const Text('Pago envío validado', style: TextStyle(fontSize: 12, color: AppColors.green)),
+                      ],
+                    ],
                   ],
                 ),
               ),
@@ -1182,7 +1323,13 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            step >= 2 ? '¡Ya casi llega!' : (step == 1 ? 'En preparación' : 'Recibido'),
+            switch (step) {
+              0 => 'Recibido',
+              1 => 'En preparación',
+              2 => 'En camino',
+              3 => 'Entregado',
+              _ => 'Recibido',
+            },
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
@@ -1238,13 +1385,102 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               ]),
             ],
           ),
+          const SizedBox(height: 12),
+          Text(
+            'El avance lo marca el comercio. Desliza hacia abajo para actualizar.',
+            style: TextStyle(fontSize: 11, color: textSecondary),
+          ),
         ],
       ),
     );
   }
 
+  Future<void> _showDeliveryQrModal() async {
+    final qr = await OrderService().getDeliveryQrPayload(widget.orderId);
+    if (!mounted || qr == null) return;
+    showModalBottomSheet<void>(
+      context: context,
+      isDismissible: false,
+      enableDrag: false,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        padding: const EdgeInsets.all(24),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.delivery_dining, size: 48, color: AppColors.green),
+              const SizedBox(height: 12),
+              Text(
+                'El repartidor llegó',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Muestra este QR al repartidor para confirmar la entrega',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.green, width: 2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: QrImageView(
+                  data: qr,
+                  version: QrVersions.auto,
+                  size: 200,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'El repartidor escaneará este código',
+                style: TextStyle(fontSize: 13, color: AppColors.secondaryText(context)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showRatingAfterDelivery() {
+    if (_order == null) return;
+    // Close QR modal if open
+    Navigator.of(context).popUntil((route) => route.isFirst || route.settings.name == null);
+    Future.delayed(const Duration(milliseconds: 600), () {
+      if (!mounted) return;
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        isDismissible: false,
+        useSafeArea: true,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => SizedBox(
+          height: MediaQuery.of(context).size.height * 0.9,
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            child: OrderRatingPage(order: _order!),
+          ),
+        ),
+      ).then((_) {
+        if (mounted) {
+          Navigator.of(context).popUntil((route) => route.isFirst);
+        }
+      });
+    });
+  }
+
   bool _isTrackableStatus(String status) {
-    return status == 'shipped' ||
+    return status == 'pending_payment' ||
+        status == 'shipped' ||
         status == 'out_for_delivery' ||
         status == 'processing' ||
         status == 'paid';
@@ -1314,6 +1550,14 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   ],
                 ),
               ),
+            if (order.status == 'shipped' || order.status == 'out_for_delivery') ...[
+              const SizedBox(height: 12),
+              Text(
+                'Cuando el repartidor llegue, te pedirá mostrar tu QR',
+                style: TextStyle(fontSize: 13, color: AppColors.secondaryText(context)),
+                textAlign: TextAlign.center,
+              ),
+            ],
             if (hasLocation) ...[
               const SizedBox(height: 12),
               SizedBox(
@@ -1343,7 +1587,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 class _UploadProofDialog extends StatefulWidget {
   final List<Map<String, dynamic>> paymentMethods;
   final String? initialMethod;
-  const _UploadProofDialog({required this.paymentMethods, this.initialMethod});
+  final String title;
+  const _UploadProofDialog({required this.paymentMethods, this.initialMethod, this.title = 'Pagar y notificar'});
 
   @override
   State<_UploadProofDialog> createState() => _UploadProofDialogState();

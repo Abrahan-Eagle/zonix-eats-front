@@ -5,8 +5,11 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/screens/orders/order_detail_page.dart';
+import 'package:zonix/features/screens/orders/buyer_order_chat_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_order_detail_page.dart';
-import 'package:zonix/features/screens/delivery/delivery_orders_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_chat_messages_page.dart';
+import 'package:zonix/features/screens/delivery/delivery_order_detail_page.dart';
+import 'package:zonix/features/screens/delivery_company/delivery_company_orders_page.dart';
 import 'package:zonix/models/notification_item.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
@@ -381,46 +384,101 @@ class NotificationService extends ChangeNotifier {
 
   // Handle notification tap (Deep Linking)
   void navigateToNotificationDetail(BuildContext context, NotificationItem notification) {
-    final type = notification.type;
+    final type = notification.type ?? '';
     final data = notification.data ?? {};
-    final orderId = data['order_id'];
+    final rawId = data['order_id'];
+    int? orderId;
+    if (rawId != null) {
+      orderId = rawId is int ? rawId : int.tryParse(rawId.toString());
+    }
 
-    if (type == 'order' && orderId != null) {
-      final userProvider = Provider.of<UserProvider>(context, listen: false);
-      final role = userProvider.userRole;
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final role = userProvider.userRole;
+    final senderName = (data['sender_name'] ?? '').toString();
 
-      if (role == 'commerce') {
+    void markReadIfNeeded() {
+      if (notification.id != null && notification.isUnread) {
+        markAsRead(notification.id!);
+      }
+    }
+
+    if (orderId == null || orderId <= 0) {
+      markReadIfNeeded();
+      return;
+    }
+    final oid = orderId;
+
+    if (type == 'chat') {
+      if (role == 'commerce' || role == 'delivery_agent' || role == 'delivery') {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => CommerceOrderDetailPage(orderId: orderId is int ? orderId : int.parse(orderId.toString())),
+            builder: (_) => CommerceChatMessagesPage(
+              orderId: oid,
+              customerName: senderName.isNotEmpty ? senderName : 'Cliente',
+            ),
           ),
         );
-      } else if (role == 'delivery_agent' || role == 'delivery_company' || role == 'delivery') {
-        // Para delivery, solemos ir a la lista de órdenes o al detalle si existe
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const DeliveryOrdersPage()),
-        );
-      } else {
-        // Buyer o rol por defecto
+      } else if (role == 'delivery_company') {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => OrderDetailPage(orderId: orderId is int ? orderId : int.parse(orderId.toString())),
+            builder: (_) => DeliveryCompanyOrdersPage(highlightOrderId: oid),
+          ),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => BuyerOrderChatPage(orderId: oid),
           ),
         );
       }
-    } else {
-      // Navegación por defecto si no es una orden o no tiene ID
-      // Por ahora no hacemos nada o podríamos ir a una página genérica
+      markReadIfNeeded();
+      return;
     }
 
-    // Marcar como leída al tocar si es necesario (ya se suele hacer al abrir la lista, 
-    // pero aquí aseguramos la experiencia individual)
-    if (notification.id != null && notification.isUnread) {
-      markAsRead(notification.id!);
+    final isOrderLike = type == 'order' ||
+        type == 'commerce_order' ||
+        type == 'delivery_order' ||
+        type.isEmpty;
+
+    if (!isOrderLike) {
+      markReadIfNeeded();
+      return;
     }
+
+    if (role == 'commerce') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CommerceOrderDetailPage(orderId: oid),
+        ),
+      );
+    } else if (role == 'delivery_company') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => DeliveryCompanyOrdersPage(highlightOrderId: oid),
+        ),
+      );
+    } else if (role == 'delivery_agent' || role == 'delivery') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => DeliveryOrderDetailLoaderPage(orderId: oid),
+        ),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => OrderDetailPage(orderId: oid, order: null),
+        ),
+      );
+    }
+
+    markReadIfNeeded();
   }
 
   // Handle old notification tap (Map-based, for backward compatibility or direct SnackBar actions)

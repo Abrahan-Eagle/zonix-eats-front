@@ -75,6 +75,17 @@ class AuthUtils {
     await _storage.deleteAll();
   }
 
+  /// El API respondió 401: el token Sanctum ya no es válido (revocado, migrate:fresh, otro dispositivo).
+  /// Borra solo credenciales de sesión, sin `deleteAll()` (mantiene prefs como onboarding donde aplica).
+  static Future<void> invalidateSanctumSession() async {
+    try {
+      await _storage.delete(key: 'token');
+      await _storage.delete(key: 'expiryDate');
+    } catch (e) {
+      logger.w('invalidateSanctumSession: $e');
+    }
+  }
+
   // Maneja el cierre de sesión
   static Future<void> logout() async {
     try {

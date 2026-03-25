@@ -277,19 +277,26 @@ class _OrderRatingPageState extends State<OrderRatingPage> {
     });
 
     try {
-      final commerceId = widget.order.commerceId;
-      await _reviewService.rateRestaurant(
-        commerceId: commerceId,
-        rating: _restaurantRating,
-        comment: _restaurantCommentController.text.trim(),
-      );
-
-      if (widget.order.deliveryAgentId != null) {
-        await _reviewService.rateDeliveryAgent(
-          agentId: widget.order.deliveryAgentId!,
-          rating: _deliveryRating,
-          comment: _deliveryCommentController.text.trim(),
+      try {
+        await _reviewService.rateRestaurant(
+          orderId: widget.order.id,
+          rating: _restaurantRating,
+          comment: _restaurantCommentController.text.trim(),
         );
+      } catch (_) {
+        // Puede fallar si ya calificó (400); continuar con delivery
+      }
+
+      if (widget.order.deliveryAgentId != null && _deliveryRating > 0) {
+        try {
+          await _reviewService.rateDeliveryAgent(
+            orderId: widget.order.id,
+            rating: _deliveryRating,
+            comment: _deliveryCommentController.text.trim(),
+          );
+        } catch (_) {
+          // Puede fallar si ya calificó
+        }
       }
 
       if (!mounted) return;

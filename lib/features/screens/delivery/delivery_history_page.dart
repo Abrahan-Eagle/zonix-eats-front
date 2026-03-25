@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'package:zonix/features/services/delivery_service.dart';
+import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix/models/order.dart';
 
 class DeliveryHistoryPage extends StatefulWidget {
   const DeliveryHistoryPage({super.key});
@@ -8,642 +14,268 @@ class DeliveryHistoryPage extends StatefulWidget {
 }
 
 class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
-  bool _isLoading = true;
-  String _selectedPeriod = 'Esta Semana';
-  final List<String> _periods = ['Hoy', 'Esta Semana', 'Este Mes', 'Este Año'];
-  
-  List<Map<String, dynamic>> _deliveryHistory = [];
-  Map<String, dynamic> _stats = {};
+  String _selectedPeriod = 'Todo';
 
   @override
   void initState() {
     super.initState();
-    _loadHistoryData();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
   }
 
-  Future<void> _loadHistoryData() async {
-    setState(() {
-      _isLoading = true;
-    });
+  Future<void> _loadData() async {
+    final now = DateTime.now();
+    DateTime? start;
+    DateTime? end;
 
-    try {
-      // Simular carga de datos del historial
-      await Future.delayed(const Duration(seconds: 1));
-      
-      setState(() {
-        _stats = {
-          'totalDeliveries': 156,
-          'totalEarnings': 125000.0,
-          'averageRating': 4.8,
-          'totalDistance': 450.5,
-          'totalTime': 78.5,
-          'onTimeDeliveries': 142,
-          'lateDeliveries': 14,
-        };
-        
-        _deliveryHistory = [
-          {
-            'id': 1,
-            'orderNumber': 'ORD-001',
-            'customerName': 'Juan Pérez',
-            'address': 'San José, Costa Rica',
-            'status': 'delivered',
-            'total': 15000.0,
-            'deliveryFee': 2000.0,
-            'tip': 1000.0,
-            'distance': 2.5,
-            'time': 25,
-            'rating': 5,
-            'comment': 'Excelente servicio, muy rápido',
-            'deliveredAt': DateTime.now().subtract(const Duration(days: 1, hours: 2)),
-          },
-          {
-            'id': 2,
-            'orderNumber': 'ORD-002',
-            'customerName': 'María García',
-            'address': 'Heredia, Costa Rica',
-            'status': 'delivered',
-            'total': 8500.0,
-            'deliveryFee': 1500.0,
-            'tip': 500.0,
-            'distance': 1.8,
-            'time': 18,
-            'rating': 4,
-            'comment': 'Buen servicio',
-            'deliveredAt': DateTime.now().subtract(const Duration(days: 1, hours: 4)),
-          },
-          {
-            'id': 3,
-            'orderNumber': 'ORD-003',
-            'customerName': 'Carlos López',
-            'address': 'Alajuela, Costa Rica',
-            'status': 'delivered',
-            'total': 22000.0,
-            'deliveryFee': 2500.0,
-            'tip': 2000.0,
-            'distance': 3.2,
-            'time': 35,
-            'rating': 5,
-            'comment': 'Muy amable y puntual',
-            'deliveredAt': DateTime.now().subtract(const Duration(days: 2, hours: 1)),
-          },
-          {
-            'id': 4,
-            'orderNumber': 'ORD-004',
-            'customerName': 'Ana Rodríguez',
-            'address': 'Cartago, Costa Rica',
-            'status': 'delivered',
-            'total': 12000.0,
-            'deliveryFee': 1800.0,
-            'tip': 800.0,
-            'distance': 4.1,
-            'time': 42,
-            'rating': 4,
-            'comment': 'Llegó a tiempo',
-            'deliveredAt': DateTime.now().subtract(const Duration(days: 2, hours: 3)),
-          },
-          {
-            'id': 5,
-            'orderNumber': 'ORD-005',
-            'customerName': 'Luis Martínez',
-            'address': 'San José, Costa Rica',
-            'status': 'delivered',
-            'total': 18000.0,
-            'deliveryFee': 2000.0,
-            'tip': 1500.0,
-            'distance': 2.8,
-            'time': 28,
-            'rating': 5,
-            'comment': 'Perfecto servicio',
-            'deliveredAt': DateTime.now().subtract(const Duration(days: 3, hours: 2)),
-          },
-        ];
-        
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-      });
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al cargar historial: $e')),
-      );
+    switch (_selectedPeriod) {
+      case 'Hoy':
+        start = DateTime(now.year, now.month, now.day);
+        end = DateTime(now.year, now.month, now.day, 23, 59, 59);
+        break;
+      case 'Esta semana':
+        start = now.subtract(Duration(days: now.weekday - 1));
+        start = DateTime(start.year, start.month, start.day);
+        break;
+      case 'Este mes':
+        start = DateTime(now.year, now.month, 1);
+        break;
+      case 'Todo':
+        break;
     }
-  }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color, String subtitle) {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: color, size: 24),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDeliveryCard(Map<String, dynamic> delivery) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header con número de orden y fecha
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  delivery['orderNumber'],
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  '${delivery['deliveredAt'].day}/${delivery['deliveredAt'].month}/${delivery['deliveredAt'].year}',
-                  style: const TextStyle(
-                    color: Colors.grey,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 12),
-            
-            // Información del cliente
-            Row(
-              children: [
-                const Icon(Icons.person, color: Colors.grey, size: 20),
-                const SizedBox(width: 8),
-                Text(
-                  delivery['customerName'],
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 8),
-            
-            // Dirección
-            Row(
-              children: [
-                const Icon(Icons.location_on, color: Colors.grey, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    delivery['address'],
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 12),
-            
-            // Métricas de la entrega
-            Row(
-              children: [
-                Expanded(
-                  child: _buildDeliveryMetric(
-                    'Distancia',
-                    '${delivery['distance']} km',
-                    Icons.straighten,
-                    Colors.blue,
-                  ),
-                ),
-                Expanded(
-                  child: _buildDeliveryMetric(
-                    'Tiempo',
-                    '${delivery['time']} min',
-                    Icons.access_time,
-                    Colors.orange,
-                  ),
-                ),
-                Expanded(
-                  child: _buildDeliveryMetric(
-                    'Calificación',
-                    '${delivery['rating']}/5',
-                    Icons.star,
-                    Colors.amber,
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 12),
-            
-            // Información financiera
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.green[50],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Total: \$${delivery['total'].toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                          ),
-                        ),
-                        Text(
-                          'Comisión: \$${delivery['deliveryFee'].toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'Propina: \$${delivery['tip'].toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.orange,
-                        ),
-                      ),
-                      Text(
-                        'Ganancia: \$${(delivery['deliveryFee'] + delivery['tip']).toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            
-            // Comentario del cliente
-            if (delivery['comment'] != null && delivery['comment'].isNotEmpty)
-              Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.blue[50],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.chat_bubble, color: Colors.blue, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          delivery['comment'],
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontStyle: FontStyle.italic,
-                            color: Colors.blue,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDeliveryMetric(String title, String value, IconData icon, Color color) {
-    return Column(
-      children: [
-        Icon(icon, color: color, size: 20),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 12,
-            color: Colors.grey,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPerformanceChart() {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Rendimiento de Entregas',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildPerformanceMetric(
-                    'A tiempo',
-                    _stats['onTimeDeliveries'],
-                    _stats['totalDeliveries'],
-                    Colors.green,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildPerformanceMetric(
-                    'Tardías',
-                    _stats['lateDeliveries'],
-                    _stats['totalDeliveries'],
-                    Colors.red,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Container(
-              height: 200,
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.analytics,
-                      size: 48,
-                      color: Colors.blue,
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Gráfico de Rendimiento',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    Text(
-                      'Implementación futura',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPerformanceMetric(String title, int value, int total, Color color) {
-    double percentage = total > 0 ? (value / total) * 100 : 0;
-    
-    return Column(
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '$value/$total',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        Text(
-          '${percentage.toStringAsFixed(1)}%',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        const SizedBox(height: 8),
-        LinearProgressIndicator(
-          value: percentage / 100,
-          backgroundColor: Colors.grey[300],
-          valueColor: AlwaysStoppedAnimation<Color>(color),
-        ),
-      ],
-    );
+    if (!mounted) return;
+    final d = context.read<DeliveryService>();
+    await d.loadHistory(startDate: start, endDate: end);
+    if (!mounted) return;
+    await syncDeliverySessionAfterApi(context, d);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Historial'),
-        actions: [
-          // Filtro de período
-          PopupMenuButton<String>(
-            onSelected: (String period) {
-              setState(() {
-                _selectedPeriod = period;
-              });
-              _loadHistoryData();
-            },
-            itemBuilder: (BuildContext context) {
-              return _periods.map((String period) {
-                return PopupMenuItem<String>(
-                  value: period,
-                  child: Text(period),
-                );
-              }).toList();
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(_selectedPeriod),
-                  const Icon(Icons.arrow_drop_down),
-                ],
-              ),
+      appBar: AppBar(title: const Text('Historial de entregas')),
+      body: Consumer<DeliveryService>(
+        builder: (context, service, _) {
+          if (service.historyLoading && service.historyOrders.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (service.historyError != null && service.historyOrders.isEmpty) {
+            return _buildErrorState(service.historyError!);
+          }
+
+          return RefreshIndicator(
+            onRefresh: () async => _loadData(),
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _buildPeriodChips(isDark),
+                const SizedBox(height: 16),
+                _buildSummaryRow(service.historyOrders, isDark),
+                const SizedBox(height: 20),
+                if (service.historyOrders.isEmpty)
+                  _buildEmptyState()
+                else
+                  ...service.historyOrders.map((o) => _buildOrderCard(o, isDark)),
+              ],
             ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPeriodChips(bool isDark) {
+    const periods = ['Hoy', 'Esta semana', 'Este mes', 'Todo'];
+    return Wrap(
+      spacing: 8,
+      children: periods.map((p) {
+        final selected = _selectedPeriod == p;
+        return ChoiceChip(
+          label: Text(p),
+          selected: selected,
+          selectedColor: AppColors.orange.withValues(alpha: 0.2),
+          labelStyle: TextStyle(
+            color: selected
+                ? AppColors.orange
+                : (isDark ? AppColors.white70 : AppColors.gray),
+            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadHistoryData,
+          onSelected: (_) {
+            setState(() => _selectedPeriod = p);
+            _loadData();
+          },
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildSummaryRow(List<Order> orders, bool isDark) {
+    final total = orders.length;
+    final delivered = orders.where((o) => o.status == 'delivered').length;
+    final cancelled = orders.where((o) => o.status == 'cancelled').length;
+
+    return Row(
+      children: [
+        _summaryTile('Total', '$total', AppColors.orange, isDark),
+        const SizedBox(width: 8),
+        _summaryTile('Completadas', '$delivered', AppColors.green, isDark),
+        const SizedBox(width: 8),
+        _summaryTile('Canceladas', '$cancelled', AppColors.red, isDark),
+      ],
+    );
+  }
+
+  Widget _summaryTile(String label, String value, Color color, bool isDark) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.grayDark : AppColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          children: [
+            Text(
+              value,
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: color),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(fontSize: 12, color: AppColors.secondaryText(context)),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOrderCard(Order order, bool isDark) {
+    final isDelivered = order.status == 'delivered';
+    final statusColor = isDelivered ? AppColors.green : AppColors.red;
+    final statusLabel = isDelivered ? 'Entregada' : 'Cancelada';
+    final commerceName = order.commerce?['name']?.toString() ?? 'Comercio';
+    final date = DateFormat('dd/MM/yyyy HH:mm').format(order.createdAt);
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      color: isDark ? AppColors.grayDark : null,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  isDelivered ? Icons.check_circle : Icons.cancel,
+                  color: statusColor,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'Orden #${order.orderNumber}',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    statusLabel,
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(Icons.store, size: 16, color: AppColors.secondaryText(context)),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    commerceName,
+                    style: TextStyle(color: AppColors.secondaryText(context), fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.access_time, size: 16, color: AppColors.secondaryText(context)),
+                const SizedBox(width: 6),
+                Text(
+                  date,
+                  style: TextStyle(color: AppColors.secondaryText(context), fontSize: 13),
+                ),
+                const Spacer(),
+                if (isDelivered)
+                  Text(
+                    '\$${order.deliveryFee.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: AppColors.green,
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 64),
+      child: Column(
+        children: [
+          Icon(Icons.history, size: 64, color: AppColors.secondaryText(context)),
+          const SizedBox(height: 16),
+          Text(
+            'No hay entregas en este período',
+            style: TextStyle(fontSize: 16, color: AppColors.secondaryText(context)),
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadHistoryData,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Estadísticas principales
-                    const Text(
-                      'Resumen del Período',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 1.3,
-                      children: [
-                        _buildStatCard(
-                          'Entregas',
-                          '${_stats['totalDeliveries']}',
-                          Icons.delivery_dining,
-                          Colors.blue,
-                          'Total realizadas',
-                        ),
-                        _buildStatCard(
-                          'Ganancias',
-                          '\$${_stats['totalEarnings']?.toStringAsFixed(0) ?? '0'}',
-                          Icons.attach_money,
-                          Colors.green,
-                          'Ingresos totales',
-                        ),
-                        _buildStatCard(
-                          'Calificación',
-                          '${_stats['averageRating']?.toStringAsFixed(1) ?? '0'}/5',
-                          Icons.star,
-                          Colors.amber,
-                          'Promedio',
-                        ),
-                        _buildStatCard(
-                          'Distancia',
-                          '${_stats['totalDistance']?.toStringAsFixed(1) ?? '0'} km',
-                          Icons.straighten,
-                          Colors.purple,
-                          'Total recorrida',
-                        ),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Gráfico de rendimiento
-                    _buildPerformanceChart(),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Historial de entregas
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Historial de Entregas',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Exportar historial')),
-                            );
-                          },
-                          child: const Text('Exportar'),
-                        ),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 8),
-                    
-                    // Lista de entregas
-                    ..._deliveryHistory.map((delivery) => _buildDeliveryCard(delivery)),
-                    
-                    const SizedBox(height: 100), // Espacio para el FAB
-                  ],
-                ),
-              ),
-            ),
     );
   }
-} 
+
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: AppColors.red),
+            const SizedBox(height: 16),
+            Text(error, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () => _loadData(),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Reintentar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

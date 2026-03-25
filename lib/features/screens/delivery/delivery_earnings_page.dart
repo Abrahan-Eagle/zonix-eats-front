@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'package:zonix/features/services/delivery_service.dart';
+import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/user_provider.dart';
 
 class DeliveryEarningsPage extends StatefulWidget {
   const DeliveryEarningsPage({super.key});
@@ -8,751 +13,385 @@ class DeliveryEarningsPage extends StatefulWidget {
 }
 
 class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
-  bool _isLoading = true;
-  String _selectedPeriod = 'Esta Semana';
-  final List<String> _periods = ['Hoy', 'Esta Semana', 'Este Mes', 'Este Año'];
-  
-  Map<String, dynamic> _earningsData = {};
-  List<Map<String, dynamic>> _earningsHistory = [];
-  List<Map<String, dynamic>> _topEarningDays = [];
+  String _selectedPeriod = 'Esta semana';
 
   @override
   void initState() {
     super.initState();
-    _loadEarningsData();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
   }
 
-  Future<void> _loadEarningsData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    try {
-      // Simular carga de datos de ganancias
-      await Future.delayed(const Duration(seconds: 1));
-      
-      setState(() {
-        _earningsData = {
-          'totalEarnings': 125000.0,
-          'deliveryFees': 85000.0,
-          'tips': 40000.0,
-          'totalDeliveries': 156,
-          'averagePerDelivery': 801.28,
-          'averagePerHour': 2500.0,
-          'totalHours': 50.0,
-          'growthRate': 15.5,
-          'goalProgress': 78.5,
-        };
-        
-        _earningsHistory = [
-          {
-            'date': DateTime.now().subtract(const Duration(days: 1)),
-            'earnings': 8500.0,
-            'deliveries': 12,
-            'hours': 8.5,
-            'tips': 2500.0,
-          },
-          {
-            'date': DateTime.now().subtract(const Duration(days: 2)),
-            'earnings': 7200.0,
-            'deliveries': 10,
-            'hours': 7.0,
-            'tips': 1800.0,
-          },
-          {
-            'date': DateTime.now().subtract(const Duration(days: 3)),
-            'earnings': 6800.0,
-            'deliveries': 9,
-            'hours': 6.5,
-            'tips': 1500.0,
-          },
-          {
-            'date': DateTime.now().subtract(const Duration(days: 4)),
-            'earnings': 9200.0,
-            'deliveries': 14,
-            'hours': 9.0,
-            'tips': 3200.0,
-          },
-          {
-            'date': DateTime.now().subtract(const Duration(days: 5)),
-            'earnings': 7800.0,
-            'deliveries': 11,
-            'hours': 7.5,
-            'tips': 2100.0,
-          },
-        ];
-        
-        _topEarningDays = [
-          {
-            'date': 'Lunes',
-            'earnings': 9200.0,
-            'deliveries': 14,
-            'color': Colors.blue,
-          },
-          {
-            'date': 'Martes',
-            'earnings': 8500.0,
-            'deliveries': 12,
-            'color': Colors.green,
-          },
-          {
-            'date': 'Miércoles',
-            'earnings': 7800.0,
-            'deliveries': 11,
-            'color': Colors.orange,
-          },
-          {
-            'date': 'Jueves',
-            'earnings': 7200.0,
-            'deliveries': 10,
-            'color': Colors.purple,
-          },
-          {
-            'date': 'Viernes',
-            'earnings': 6800.0,
-            'deliveries': 9,
-            'color': Colors.red,
-          },
-        ];
-        
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-      });
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al cargar ganancias: $e')),
-      );
+  Future<void> _loadData() async {
+    if (!mounted) return;
+    final d = context.read<DeliveryService>();
+    final now = DateTime.now();
+    DateTime? start;
+    DateTime? end;
+    switch (_selectedPeriod) {
+      case 'Hoy':
+        start = DateTime(now.year, now.month, now.day);
+        end = now;
+        break;
+      case 'Esta semana':
+        start = now.subtract(Duration(days: now.weekday - 1));
+        start = DateTime(start.year, start.month, start.day);
+        end = now;
+        break;
+      case 'Este mes':
+        start = DateTime(now.year, now.month, 1);
+        end = now;
+        break;
     }
+    await d.loadEarnings(startDate: start, endDate: end);
+    if (!mounted) return;
+    await syncDeliverySessionAfterApi(context, d);
   }
 
-  Widget _buildEarningsCard(String title, String value, IconData icon, Color color, String subtitle) {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: color, size: 24),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-            ),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEarningsBreakdown() {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Desglose de Ganancias',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            // Comisiones de entrega
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Comisiones',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        '\$${_earningsData['deliveryFees']?.toStringAsFixed(0) ?? '0'}',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      const Text(
-                        'Propinas',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        '\$${_earningsData['tips']?.toStringAsFixed(0) ?? '0'}',
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.orange,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Gráfico de dona
-            SizedBox(
-              height: 150,
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        SizedBox(
-                          width: 120,
-                          height: 120,
-                          child: CircularProgressIndicator(
-                            value: 1.0,
-                            strokeWidth: 12,
-                            backgroundColor: Colors.grey[300],
-                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 80,
-                          height: 80,
-                          child: CircularProgressIndicator(
-                            value: _earningsData['tips'] / _earningsData['totalEarnings'],
-                            strokeWidth: 12,
-                            backgroundColor: Colors.transparent,
-                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.orange),
-                          ),
-                        ),
-                        Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '\$${_earningsData['totalEarnings']?.toStringAsFixed(0) ?? '0'}',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Text(
-                              'Total',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 12,
-                              height: 12,
-                              decoration: const BoxDecoration(
-                                color: Colors.blue,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Text('Comisiones'),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Container(
-                              width: 12,
-                              height: 12,
-                              decoration: const BoxDecoration(
-                                color: Colors.orange,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            const Text('Propinas'),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTopEarningDaysCard() {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Mejores Días',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            ..._topEarningDays.asMap().entries.map((entry) {
-              int index = entry.key;
-              Map<String, dynamic> day = entry.value;
-              double percentage = day['earnings'] / _earningsData['totalEarnings'] * 100;
-              
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: day['color'],
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Center(
-                        child: Text(
-                          '${index + 1}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            day['date'],
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            '${day['deliveries']} entregas',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '\$${day['earnings'].toStringAsFixed(0)}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: day['color'],
-                          ),
-                        ),
-                        Text(
-                          '${percentage.toStringAsFixed(1)}%',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildGoalProgressCard() {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Meta Semanal',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '\$${_earningsData['totalEarnings']?.toStringAsFixed(0) ?? '0'}',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
-                      ),
-                      const Text(
-                        'de \$160,000',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      '${_earningsData['goalProgress']?.toStringAsFixed(1) ?? '0'}%',
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    const Text(
-                      'Completado',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 16),
-            
-            LinearProgressIndicator(
-              value: _earningsData['goalProgress'] / 100,
-              backgroundColor: Colors.grey[300],
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
-              minHeight: 8,
-            ),
-            
-            const SizedBox(height: 8),
-            
-            Text(
-              'Faltan \$${(160000 - _earningsData['totalEarnings']).toStringAsFixed(0)} para alcanzar la meta',
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEarningsHistoryCard() {
-    return Card(
-      elevation: 4,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Historial de Ganancias',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Ver historial completo')),
-                    );
-                  },
-                  child: const Text('Ver todo'),
-                ),
-              ],
-            ),
-            
-            const SizedBox(height: 16),
-            
-            ..._earningsHistory.map((day) {
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${day['date'].day}/${day['date'].month}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          Text(
-                            '${day['deliveries']} entregas • ${day['hours']} horas',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '\$${day['earnings'].toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green,
-                          ),
-                        ),
-                        Text(
-                          '\$${day['tips'].toStringAsFixed(0)} en propinas',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.orange,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            }),
-          ],
-        ),
-      ),
-    );
+  double _parseNum(dynamic v) {
+    if (v is num) return v.toDouble();
+    if (v is String) return double.tryParse(v) ?? 0;
+    return 0;
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Ganancias'),
-        actions: [
-          // Filtro de período
-          PopupMenuButton<String>(
-            onSelected: (String period) {
-              setState(() {
-                _selectedPeriod = period;
-              });
-              _loadEarningsData();
-            },
-            itemBuilder: (BuildContext context) {
-              return _periods.map((String period) {
-                return PopupMenuItem<String>(
-                  value: period,
-                  child: Text(period),
-                );
-              }).toList();
-            },
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(_selectedPeriod),
-                  const Icon(Icons.arrow_drop_down),
-                ],
+      appBar: AppBar(title: const Text('Ganancias')),
+      body: Consumer<DeliveryService>(
+        builder: (context, service, _) {
+          if (service.earningsLoading && service.earningsMap.isEmpty) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (service.earningsError != null && service.earningsMap.isEmpty) {
+            return _buildErrorState(service.earningsError!);
+          }
+
+          final data = service.earningsMap;
+          final todayEarnings = _parseNum(data['today_earnings']);
+          final weeklyEarnings = _parseNum(data['weekly_earnings']);
+          final monthlyEarnings = _parseNum(data['monthly_earnings']);
+          final totalEarnings = _parseNum(data['total_earnings']);
+          final totalDeliveries = (data['total_deliveries'] as int?) ?? 0;
+          final avgTime = _parseNum(data['average_delivery_time']);
+          final fees = (data['delivery_fees'] as List?)?.cast<num>() ?? [];
+          final dates = (data['delivery_dates'] as List?)?.cast<String>() ?? [];
+
+          return RefreshIndicator(
+            onRefresh: () async => _loadData(),
+            child: ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                _buildPeriodChips(isDark),
+                const SizedBox(height: 16),
+                _buildSummaryCards(
+                  isDark,
+                  todayEarnings: todayEarnings,
+                  weeklyEarnings: weeklyEarnings,
+                  monthlyEarnings: monthlyEarnings,
+                  totalEarnings: totalEarnings,
+                ),
+                const SizedBox(height: 16),
+                _buildStatsRow(isDark, totalDeliveries, avgTime),
+                const SizedBox(height: 20),
+                if (fees.isEmpty)
+                  _buildEmptyState()
+                else
+                  _buildRecentFees(isDark, fees, dates),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildPeriodChips(bool isDark) {
+    const periods = ['Hoy', 'Esta semana', 'Este mes'];
+    return Wrap(
+      spacing: 8,
+      children: periods.map((p) {
+        final selected = _selectedPeriod == p;
+        return ChoiceChip(
+          label: Text(p),
+          selected: selected,
+          selectedColor: AppColors.orange.withValues(alpha: 0.2),
+          labelStyle: TextStyle(
+            color: selected
+                ? AppColors.orange
+                : (isDark ? AppColors.white70 : AppColors.gray),
+            fontWeight: selected ? FontWeight.bold : FontWeight.normal,
+          ),
+          onSelected: (_) {
+            setState(() => _selectedPeriod = p);
+            _loadData();
+          },
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildSummaryCards(
+    bool isDark, {
+    required double todayEarnings,
+    required double weeklyEarnings,
+    required double monthlyEarnings,
+    required double totalEarnings,
+  }) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            _earningsCard('Hoy', todayEarnings, AppColors.green, isDark,
+                highlighted: _selectedPeriod == 'Hoy'),
+            const SizedBox(width: 10),
+            _earningsCard('Semana', weeklyEarnings, AppColors.blue, isDark,
+                highlighted: _selectedPeriod == 'Esta semana'),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            _earningsCard('Mes', monthlyEarnings, AppColors.purple, isDark,
+                highlighted: _selectedPeriod == 'Este mes'),
+            const SizedBox(width: 10),
+            _earningsCard('Total', totalEarnings, AppColors.orange, isDark),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _earningsCard(
+    String label,
+    double amount,
+    Color color,
+    bool isDark, {
+    bool highlighted = false,
+  }) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isDark ? AppColors.grayDark : AppColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: highlighted ? color : color.withValues(alpha: 0.25),
+            width: highlighted ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.attach_money, size: 18, color: color),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: AppColors.secondaryText(context),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '\$${amount.toStringAsFixed(2)}',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: color,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsRow(bool isDark, int deliveries, double avgTime) {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.grayDark : AppColors.grayLight,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.delivery_dining, color: AppColors.blue, size: 22),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$deliveries',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'Entregas',
+                      style: TextStyle(fontSize: 12, color: AppColors.secondaryText(context)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadEarningsData,
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.grayDark : AppColors.grayLight,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.timer_outlined, color: AppColors.orange, size: 22),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${avgTime.toStringAsFixed(0)} min',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'Promedio',
+                      style: TextStyle(fontSize: 12, color: AppColors.secondaryText(context)),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildRecentFees(bool isDark, List<num> fees, List<String> dates) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Tarifas recientes',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: AppColors.primaryText(context),
+          ),
+        ),
+        const SizedBox(height: 12),
+        ...List.generate(fees.length, (i) {
+          final fee = fees[i].toDouble();
+          String dateStr = '';
+          if (i < dates.length) {
+            try {
+              final dt = DateTime.parse(dates[i]);
+              dateStr = DateFormat('dd/MM/yyyy HH:mm').format(dt);
+            } catch (_) {
+              dateStr = dates[i];
+            }
+          }
+
+          return Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.grayDark : AppColors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isDark ? AppColors.white12 : AppColors.black12,
+              ),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.green.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.receipt_long, color: AppColors.green, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Entrega #${i + 1}',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      if (dateStr.isNotEmpty)
+                        Text(
+                          dateStr,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: AppColors.secondaryText(context),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                Text(
+                  '\$${fee.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: AppColors.green,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 64),
+      child: Column(
+        children: [
+          Icon(Icons.account_balance_wallet_outlined, size: 64, color: AppColors.secondaryText(context)),
+          const SizedBox(height: 16),
+          Text(
+            'Aún no tienes ganancias registradas',
+            style: TextStyle(fontSize: 16, color: AppColors.secondaryText(context)),
           ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadEarningsData,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Estadísticas principales
-                    const Text(
-                      'Resumen de Ganancias',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 1.3,
-                      children: [
-                        _buildEarningsCard(
-                          'Ganancias',
-                          '\$${_earningsData['totalEarnings']?.toStringAsFixed(0) ?? '0'}',
-                          Icons.attach_money,
-                          Colors.green,
-                          'Total del período',
-                        ),
-                        _buildEarningsCard(
-                          'Entregas',
-                          '${_earningsData['totalDeliveries']}',
-                          Icons.delivery_dining,
-                          Colors.blue,
-                          'Total realizadas',
-                        ),
-                        _buildEarningsCard(
-                          'Promedio',
-                          '\$${_earningsData['averagePerDelivery']?.toStringAsFixed(0) ?? '0'}',
-                          Icons.analytics,
-                          Colors.orange,
-                          'Por entrega',
-                        ),
-                        _buildEarningsCard(
-                          'Por Hora',
-                          '\$${_earningsData['averagePerHour']?.toStringAsFixed(0) ?? '0'}',
-                          Icons.access_time,
-                          Colors.purple,
-                          'Promedio',
-                        ),
-                      ],
-                    ),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Desglose de ganancias
-                    _buildEarningsBreakdown(),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Meta semanal
-                    _buildGoalProgressCard(),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Mejores días
-                    _buildTopEarningDaysCard(),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Historial de ganancias
-                    _buildEarningsHistoryCard(),
-                    
-                    const SizedBox(height: 24),
-                    
-                    // Botón para solicitar pago
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Solicitud de pago enviada'),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.payment),
-                        label: const Text('Solicitar Pago'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 100), // Espacio para el FAB
-                  ],
-                ),
-              ),
-            ),
     );
   }
-} 
+
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.error_outline, size: 64, color: AppColors.red),
+            const SizedBox(height: 16),
+            Text(error, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () => _loadData(),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Reintentar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

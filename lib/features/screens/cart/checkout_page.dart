@@ -32,11 +32,47 @@ class _CheckoutPageState extends State<CheckoutPage> {
   double _couponDiscount = 0.0;
   bool _validatingCoupon = false;
   final _promotionService = PromotionService();
+  double? _calculatedDeliveryFee;
+  bool _deliveryFeeLoading = false;
 
   @override
   void initState() {
     super.initState();
     _loadAddresses();
+  }
+
+  Future<void> _recalculateDeliveryFee() async {
+    final cartService = Provider.of<CartService>(context, listen: false);
+    final orderService = Provider.of<OrderService>(context, listen: false);
+    if (_deliveryType != 'delivery' ||
+        _selectedDeliveryLat == null ||
+        _selectedDeliveryLng == null ||
+        cartService.items.isEmpty) {
+      setState(() {
+        _calculatedDeliveryFee = null;
+        _deliveryFeeLoading = false;
+      });
+      return;
+    }
+    final commerceId = cartService.items.first.commerceId;
+    if (commerceId == null) {
+      setState(() {
+        _calculatedDeliveryFee = null;
+        _deliveryFeeLoading = false;
+      });
+      return;
+    }
+    setState(() => _deliveryFeeLoading = true);
+    final result = await orderService.calculateDeliveryFee(
+      commerceId: commerceId,
+      deliveryLatitude: _selectedDeliveryLat!,
+      deliveryLongitude: _selectedDeliveryLng!,
+    );
+    if (!mounted) return;
+    setState(() {
+      _deliveryFeeLoading = false;
+      _calculatedDeliveryFee = result != null ? (result['delivery_fee'] as num?)?.toDouble() : null;
+    });
   }
 
   Future<void> _loadAddresses() async {
@@ -58,6 +94,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           _selectedDeliveryLng = _lngFromMap(defaultAddr);
         }
       });
+      if (_deliveryType == 'delivery') _recalculateDeliveryFee();
     } catch (_) {
       // Sin direcciones guardadas
     }
@@ -84,6 +121,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         _selectedDeliveryLat = lat?.toDouble();
         _selectedDeliveryLng = lng?.toDouble();
       });
+      _recalculateDeliveryFee();
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -151,8 +189,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
           return;
         }
       }
-      final deliveryFee =
-          _deliveryType == 'delivery' ? AppConfig.defaultDeliveryFee : 0.0;
+      final deliveryFee = _deliveryType == 'delivery'
+          ? (_calculatedDeliveryFee ?? AppConfig.defaultDeliveryFee)
+          : 0.0;
       final order = await orderService.createOrder(
         cartService.items.toList(),
         deliveryType: _deliveryType,
@@ -203,8 +242,9 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final subtotal = cartItems.fold<double>(
         0, (sum, item) => sum + (item.precio ?? 0) * item.quantity);
     const tax = 0.0;
-    final delivery =
-        _deliveryType == 'delivery' ? AppConfig.defaultDeliveryFee : 0.0;
+    final delivery = _deliveryType == 'delivery'
+        ? (_calculatedDeliveryFee ?? AppConfig.defaultDeliveryFee)
+        : 0.0;
     final totalPayment = (subtotal + tax + delivery - _couponDiscount)
         .clamp(0.0, double.infinity);
     return Scaffold(
@@ -396,8 +436,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: () =>
-                          setState(() => _deliveryType = 'delivery'),
+                      onTap: () {
+                          setState(() => _deliveryType = 'delivery');
+                          _recalculateDeliveryFee();
+                        },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             vertical: 10, horizontal: 4),
@@ -437,7 +479,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () =>
-                          setState(() => _deliveryType = 'pickup'),
+                          setState(() {
+                            _deliveryType = 'pickup';
+                            _calculatedDeliveryFee = null;
+                          }),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
                             vertical: 10, horizontal: 4),
@@ -671,6 +716,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                                   _lngFromMap(addr);
                                             });
                                             Navigator.of(ctx).pop();
+                                            _recalculateDeliveryFee();
                                           },
                                         ),
                                       );
@@ -843,10 +889,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   _buildSummaryRow('Subtotal', '\$${subtotal.toStringAsFixed(2)}'),
                   _buildSummaryRow(
                     'Costo de envío',
-                    delivery <= 0
-                        ? 'Gratis'
-                        : '\$${delivery.toStringAsFixed(2)}',
-                    isDiscount: delivery <= 0,
+                    _deliveryType == 'delivery' && _deliveryFeeLoading
+                        ? 'Calculando...'
+                        : (delivery <= 0
+                            ? 'Gratis'
+                            : '\$${delivery.toStringAsFixed(2)}'),
+                    isDiscount: delivery <= 0 && !_deliveryFeeLoading,
                   ),
                   _buildSummaryRow(
                     'Impuestos (8%)',

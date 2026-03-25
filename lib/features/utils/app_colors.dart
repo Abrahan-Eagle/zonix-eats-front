@@ -81,6 +81,11 @@ class AppColors {
   static const Color onboardingBlueLight = Color(0xFF5DADE2);
   static const Color blueDeep = Color(0xFF1E3A8A);
   static const Color blueMedium = Color(0xFF3B82F6);
+  static const Color blueDarkMid = Color(0xFF23456B);
+  static const Color blueLight50 = Color(0xFFEFF6FF);
+  static const Color blueLight400 = Color(0xFF60A5FA);
+  static const Color greenLight100 = Color(0xFFDCFCE7);
+  static const Color slateLight50 = Color(0xFFF8FAFC);
 
   // Helpers para modo claro/oscuro
   static Color scaffoldBg(BuildContext context) =>

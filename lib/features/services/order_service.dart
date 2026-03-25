@@ -9,6 +9,32 @@ import 'package:http_parser/http_parser.dart';
 import '../../features/utils/auth_utils.dart';
 
 class OrderService extends ChangeNotifier {
+  /// POST /api/buyer/delivery-fee/calculate — Obtiene tarifa de envío (base + km).
+  /// Devuelve { delivery_fee, distance_km } o null si falla.
+  Future<Map<String, dynamic>?> calculateDeliveryFee({
+    required int commerceId,
+    required double deliveryLatitude,
+    required double deliveryLongitude,
+  }) async {
+    try {
+      final headers = await AuthHelper.getAuthHeaders();
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/delivery-fee/calculate');
+      final body = jsonEncode({
+        'commerce_id': commerceId,
+        'delivery_latitude': deliveryLatitude,
+        'delivery_longitude': deliveryLongitude,
+      });
+      final response = await http.post(url, headers: headers, body: body);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
   // POST /api/buyer/orders - Crear orden
   /// [deliveryType] 'pickup' o 'delivery'
   /// [deliveryAddress] requerido cuando deliveryType es 'delivery'
@@ -112,6 +138,22 @@ class OrderService extends ChangeNotifier {
     return List<Map<String, dynamic>>.from(data['data'] as List);
   }
 
+  /// GET /api/buyer/orders/{id}/payment-info — Métodos de pago commerce + delivery_company + estado de pagos.
+  Future<Map<String, dynamic>?> getPaymentInfo(int orderId) async {
+    try {
+      final headers = await AuthHelper.getAuthHeaders();
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/payment-info');
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          return Map<String, dynamic>.from(data['data']);
+        }
+      }
+    } catch (_) {}
+    return null;
+  }
+
   // GET /api/buyer/orders - Listar órdenes del usuario
   Future<List<Order>> fetchOrders() async {
     final headers = await AuthHelper.getAuthHeaders();
@@ -192,12 +234,14 @@ class OrderService extends ChangeNotifier {
   // POST /api/buyer/orders/{id}/payment-proof - Subir comprobante de pago
   /// [paymentMethod] requerido por backend (ej. efectivo, transferencia, tarjeta)
   /// [referenceNumber] número de referencia/transacción
+  /// Subir comprobante de pago. [type] puede ser 'food' o 'delivery'.
   Future<void> uploadPaymentProof(
     int orderId,
     String filePath,
     String fileType, {
     required String paymentMethod,
     required String referenceNumber,
+    String type = 'food',
   }) async {
     final headers = await AuthHelper.getAuthHeaders();
     final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/payment-proof');
@@ -211,6 +255,7 @@ class OrderService extends ChangeNotifier {
     ));
     request.fields['payment_method'] = paymentMethod;
     request.fields['reference_number'] = referenceNumber;
+    request.fields['type'] = type;
     
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
@@ -227,8 +272,21 @@ class OrderService extends ChangeNotifier {
     }
   }
 
-  // POST /api/buyer/orders/{id}/cancel - Cancelar orden
-  // Nota: El backend valida que solo se puede cancelar en pending_payment y dentro de 5 minutos
+  Future<String?> getDeliveryQrPayload(int orderId) async {
+    try {
+      final headers = await AuthHelper.getAuthHeaders();
+      final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/delivery-qr');
+      final response = await http.get(url, headers: headers);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true) return data['data']['qr_payload'] as String?;
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<void> cancelOrder(int orderId, {String? reason}) async {
     final headers = await AuthHelper.getAuthHeaders();
     final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/cancel');

@@ -255,12 +255,12 @@ class _CommercePaymentMethodsPageState
                           final isActive = m['is_active'] != false;
                           final subtitle = _subtitle(m, effectiveType, ref);
 
-                          final cardBorder = _isDark ? borderColor : const Color(0xFFE2E8F0);
+                          final cardBorder = _isDark ? borderColor : AppColors.stitchBorder;
                           final iconBg = _isDark
                               ? AppColors.blue.withValues(alpha: 0.25)
-                              : const Color(0xFFEFF6FF); // blue-50
+                              : AppColors.blueLight50;
                           final iconColor = isActive
-                              ? (_isDark ? const Color(0xFF60A5FA) : AppColors.blue)
+                              ? (_isDark ? AppColors.blueLight400 : AppColors.blue)
                               : AppColors.gray;
 
                           return Padding(
@@ -363,10 +363,10 @@ class _CommercePaymentMethodsPageState
                       child: Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: _isDark ? AppColors.grayDark.withValues(alpha: 0.5) : const Color(0xFFF8FAFC),
+                          color: _isDark ? AppColors.grayDark.withValues(alpha: 0.5) : AppColors.slateLight50,
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: _isDark ? borderColor : const Color(0xFFE2E8F0),
+                            color: _isDark ? borderColor : AppColors.stitchBorder,
                             width: 1,
                           ),
                         ),

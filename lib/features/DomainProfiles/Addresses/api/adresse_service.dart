@@ -21,7 +21,10 @@ class AddressService {
 
   Future<String?> _getToken() async {
     final token = await _storage.read(key: 'token');
-    logger.i('Token recuperado: $token');
+    // No registrar el token completo (riesgo de seguridad en logs del dispositivo).
+    if (token != null && token.isNotEmpty) {
+      logger.d('Token de sesión presente (longitud: ${token.length})');
+    }
     return token;
   }
 
@@ -188,9 +191,8 @@ class AddressService {
     logger.w('Actualizando dirección - ID: ${address.id}, UserID: $userId');
     final token = await _getToken();
 
-    logger.i('Token obtenido: $token');
-    logger.i(
-        'URL de actualización: ${AppConfig.apiUrl}/api/addresses/${address.id}');
+    logger.d(
+        'PUT dirección id=${address.id} → ${AppConfig.apiUrl}/api/addresses/${address.id}');
 
     try {
       final requestBody = {

@@ -277,16 +277,17 @@ class PusherService {
     print('👤 Pusher (Zonix) miembro removido: ${member.userId} de $channelName');
   }
 
+  /// Cierra la conexión sin hacer unsubscribe por canal, para evitar
+  /// "Cannot send a message while in DISCONNECTING state" del SDK.
+  /// Idempotente: si ya está desconectado, no hace nada (evita logs duplicados).
   Future<void> disconnect() async {
+    if (!_isInitialized) return;
     try {
-      for (final channel in _subscribedChannels.toList()) {
-        await _pusher?.unsubscribe(channelName: channel);
-      }
       _subscribedChannels.clear();
       _channelRefCount.clear();
-      await _pusher?.disconnect();
       _isConnected = false;
       _isInitialized = false;
+      await _pusher?.disconnect();
       // ignore: avoid_print
       print('🛑 PusherService (Zonix): desconectado');
     } catch (e) {

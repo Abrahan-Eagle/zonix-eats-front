@@ -8,9 +8,18 @@ import 'package:zonix/features/services/commerce_data_service.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
+import 'package:zonix/features/services/delivery_service.dart';
 
 final logger = Logger();
 const FlutterSecureStorage _storage = FlutterSecureStorage();
+
+/// Token rechazado por `/api/auth/user` (401): sesión local ya sincronizada en catch de [checkAuthentication].
+class SessionRejectedByApiException implements Exception {
+  const SessionRejectedByApiException();
+  @override
+  String toString() => 'SessionRejectedByApiException';
+}
 
 /// Estado del usuario autenticado.
 ///
@@ -126,7 +135,12 @@ class UserProvider with ChangeNotifier {
       }
     } catch (e) {
       _isAuthenticated = false;
-      debugPrint('Error al verificar autenticación: $e');
+      if (e is SessionRejectedByApiException) {
+        // Limpieza ya hecha en [getUserDetails] (token + estado + Pusher).
+        logger.i('Sesión rechazada por el servidor (401). Inicia sesión de nuevo.');
+      } else {
+        debugPrint('Error al verificar autenticación: $e');
+      }
     } finally {
       notifyListeners();
     }
@@ -226,12 +240,20 @@ class UserProvider with ChangeNotifier {
     
     // Crear nuevo Future para la llamada
     _getUserDetailsFuture = _fetchUserDetails();
-    
+
     try {
       final result = await _getUserDetailsFuture!;
       _cachedUserDetails = result;
       _cacheTimestamp = DateTime.now();
       return result;
+    } on SessionRejectedByApiException {
+      // Misma sesión inválida que en [checkAuthentication]; fuerza vuelta al login vía Consumer<MyApp>.
+      try {
+        PusherService.instance.disconnect();
+      } catch (_) {}
+      await _clearUserData();
+      notifyListeners();
+      rethrow;
     } finally {
       _getUserDetailsFuture = null;
     }
@@ -245,7 +267,7 @@ class UserProvider with ChangeNotifier {
         token = await _storage.read(key: 'token');
       }
       if (token == null || token.isEmpty) {
-        throw Exception('Token no encontrado. El usuario no está autenticado.');
+        throw const SessionRejectedByApiException();
       }
 
       logger.i('Token de sesión presente (longitud: ${token.length})');
@@ -296,6 +318,13 @@ class UserProvider with ChangeNotifier {
           'profileId': _profileId,
           'userGoogleId': _userGoogleId,
         };
+      } else if (response.statusCode == 401) {
+        // Token caducado/revocado en servidor pero fecha local aún "válida" (p. ej. migrate:fresh, logout remoto).
+        logger.w('GET /api/auth/user → 401; limpiando token Sanctum local');
+        await AuthUtils.invalidateSanctumSession();
+        _cachedUserDetails = null;
+        _cacheTimestamp = null;
+        throw const SessionRejectedByApiException();
       } else if (response.statusCode == 429) {
         // Rate limiting: esperar un poco y usar caché si está disponible
         logger.w('Rate limit exceeded (429), using cache if available');
@@ -309,6 +338,9 @@ class UserProvider with ChangeNotifier {
         throw Exception('Error al obtener detalles del usuario');
       }
     } catch (e) {
+      if (e is SessionRejectedByApiException) {
+        rethrow;
+      }
       logger.e('Exception: $e');
       // Si hay error y tenemos caché, devolver caché
       if (_cachedUserDetails != null && !(e is Exception && e.toString().contains('Token no encontrado'))) {
@@ -350,26 +382,38 @@ class UserProvider with ChangeNotifier {
   }
 
   Future<void> logout() async {
+    final token = await AuthUtils.getToken();
     try {
       PusherService.instance.disconnect();
-      // Desregistrar FCM en el backend antes de borrar el token (necesitamos auth)
-      await _unregisterFcmToken();
+    } catch (_) {}
+    await _clearUserData();
+    notifyListeners();
+    try {
+      if (token != null && token.isNotEmpty) {
+        await _unregisterFcmTokenWithToken(token);
+      }
       await AuthUtils.logout();
       await GoogleSignIn().signOut();
     } catch (e) {
       debugPrint('Error al cerrar sesión: $e');
-    } finally {
-      await _clearUserData();
-      notifyListeners();
     }
   }
 
-  /// Llama al backend para eliminar el token FCM del perfil (dejar de recibir push en este dispositivo).
-  Future<void> _unregisterFcmToken() async {
+  /// Token inválido o BD reiniciada (p. ej. migrate:fresh): limpia sesión local sin llamar logout API.
+  Future<void> invalidateSessionLocally() async {
     try {
-      var token = await AuthUtils.getToken();
-      token ??= await _storage.read(key: 'token');
-      if (token == null || token.isEmpty) return;
+      PusherService.instance.disconnect();
+    } catch (_) {}
+    try {
+      await AuthUtils.clearTokens();
+    } catch (_) {}
+    await _clearUserData();
+    notifyListeners();
+  }
+
+  /// Llama al backend para eliminar el token FCM del perfil (dejar de recibir push en este dispositivo).
+  Future<void> _unregisterFcmTokenWithToken(String token) async {
+    try {
       await http.post(
         Uri.parse('${AppConfig.apiUrl}/api/chat/fcm/unregister'),
         headers: {
@@ -413,6 +457,7 @@ class UserProvider with ChangeNotifier {
     await _storage.delete(key: 'phoneCreated');
     await _storage.delete(key: 'emailCreated');
     await _storage.delete(key: 'token');
+    await _storage.delete(key: 'expiryDate');
     await _storage.delete(key: 'userId');
     await _storage.delete(key: 'fcm_token');
   }
@@ -427,4 +472,19 @@ class UserProvider with ChangeNotifier {
     _userPhotoUrl = '';
     notifyListeners();
   }
+}
+
+/// Si [DeliveryService] detectó 401/403 o token inválido, limpia [UserProvider] y muestra aviso.
+Future<void> syncDeliverySessionAfterApi(BuildContext context, DeliveryService delivery) async {
+  if (!delivery.consumeSessionInvalidated()) return;
+  if (!context.mounted) return;
+  await context.read<UserProvider>().invalidateSessionLocally();
+  if (!context.mounted) return;
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text(
+        'Tu sesión expiró o el servidor reinició los datos. Vuelve a iniciar sesión.',
+      ),
+    ),
+  );
 }

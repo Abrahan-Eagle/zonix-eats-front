@@ -46,12 +46,12 @@ import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/features/services/commerce_service.dart';
 import 'package:zonix/features/services/delivery_service.dart';
+import 'package:zonix/features/services/delivery_company_service.dart';
 import 'package:zonix/features/services/admin_service.dart';
 import 'package:zonix/features/services/notification_service.dart';
 import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/services/payment_service.dart';
 import 'package:zonix/features/services/chat_service.dart';
-import 'package:zonix/features/services/analytics_service.dart';
 import 'package:zonix/features/services/commerce_analytics_service.dart';
 import 'package:zonix/features/screens/commerce/commerce_dashboard_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_orders_page.dart';
@@ -61,10 +61,15 @@ import 'package:zonix/features/screens/commerce/commerce_product_form_page.dart'
 import 'package:zonix/features/screens/commerce/commerce_reports_page.dart';
 import 'package:zonix/models/commerce_product.dart';
 import 'package:zonix/models/order.dart';
+import 'package:zonix/features/screens/delivery/delivery_order_detail_page.dart';
 import 'package:zonix/features/screens/delivery/delivery_orders_page.dart';
 import 'package:zonix/features/screens/delivery/delivery_history_page.dart';
 import 'package:zonix/features/screens/delivery/delivery_routes_page.dart';
 import 'package:zonix/features/screens/delivery/delivery_earnings_page.dart';
+import 'package:zonix/features/screens/delivery_company/delivery_company_dashboard_page.dart';
+import 'package:zonix/features/screens/delivery_company/delivery_company_agents_page.dart';
+import 'package:zonix/features/screens/delivery_company/delivery_company_orders_page.dart';
+import 'package:zonix/features/screens/delivery_company/delivery_company_earnings_page.dart';
 import 'package:zonix/features/screens/admin/admin_dashboard_page.dart';
 import 'package:zonix/features/screens/admin/admin_users_page.dart';
 import 'package:zonix/features/screens/admin/admin_security_page.dart';
@@ -81,12 +86,13 @@ import 'package:zonix/features/widgets/buyer_shell.dart';
 
 /*
  * ZONIX EATS - Aplicación Multi-Rol
- * 
+ *
  * Niveles de usuario (según roles):
  * 0 - Comprador (users): Productos, Carrito, Mis Órdenes, Restaurantes
- * 1 - Tiendas/Comercio (commerce): Dashboard, Inventario, Órdenes, Reportes
- * 2 - Delivery (delivery): Entregas, Historial, Rutas, Ganancias
- * 3 - Administrador (admin): Panel Admin, Usuarios, Seguridad, Sistema
+ * 1 - Tiendas/Comercio (commerce): Dashboard, Órdenes, Productos, Reportes
+ * 2 - Delivery (delivery/delivery_agent): Entregas, Historial, Rutas, Ganancias
+ * 3 - Empresa de Delivery (delivery_company): Dashboard, Agentes, Órdenes, Ganancias
+ * 4 - Administrador (admin): Panel Admin, Usuarios, Seguridad, Sistema
  */
 
 final ApiService apiService = ApiService();
@@ -112,6 +118,10 @@ void _navigateFromNotificationPayload(String? payload) {
     }
     final orderId = data['order_id'] != null ? int.tryParse(data['order_id'].toString()) : null;
     final type = data['type']?.toString() ?? '';
+    final ctx = navigatorKey.currentContext;
+    final role = ctx != null
+        ? Provider.of<UserProvider>(ctx, listen: false).userRole
+        : '';
 
     if (orderId != null && orderId > 0) {
       if (type == 'commerce_order') {
@@ -120,6 +130,14 @@ void _navigateFromNotificationPayload(String? payload) {
         ));
       } else if (type == 'chat') {
         _navigateToChatByRole(orderId, data);
+      } else if (role == 'delivery_company') {
+        navigatorKey.currentState?.push(MaterialPageRoute(
+          builder: (_) => DeliveryCompanyOrdersPage(highlightOrderId: orderId),
+        ));
+      } else if (role == 'delivery_agent' || role == 'delivery') {
+        navigatorKey.currentState?.push(MaterialPageRoute(
+          builder: (_) => DeliveryOrderDetailLoaderPage(orderId: orderId),
+        ));
       } else {
         navigatorKey.currentState?.push(MaterialPageRoute(
           builder: (_) => OrderDetailPage(orderId: orderId, order: null),
@@ -147,6 +165,17 @@ void _navigateToChatByRole(int orderId, Map<String, dynamic> data) {
         orderId: orderId,
         customerName: senderName.isNotEmpty ? senderName : 'Cliente',
       ),
+    ));
+  } else if (role == 'delivery_agent' || role == 'delivery') {
+    navigatorKey.currentState?.push(MaterialPageRoute(
+      builder: (_) => CommerceChatMessagesPage(
+        orderId: orderId,
+        customerName: senderName.isNotEmpty ? senderName : 'Cliente',
+      ),
+    ));
+  } else if (role == 'delivery_company') {
+    navigatorKey.currentState?.push(MaterialPageRoute(
+      builder: (_) => DeliveryCompanyOrdersPage(highlightOrderId: orderId),
     ));
   } else {
     navigatorKey.currentState?.push(MaterialPageRoute(
@@ -249,18 +278,20 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Mostrar notificación con sonido y vibración en background
   final plugin = FlutterLocalNotificationsPlugin();
   const android = AndroidInitializationSettings('@mipmap/ic_launcher');
-  await plugin.initialize(InitializationSettings(android: android));
+  await plugin.initialize(const InitializationSettings(android: android));
   final androidPlugin = plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
   if (androidPlugin != null) {
     await androidPlugin.createNotificationChannel(_buildFcmChannel());
   }
   final title = message.notification?.title ?? message.data['title'] ?? 'Zonix Eats';
   final body = message.notification?.body ?? message.data['body'] ?? 'Nueva notificación';
+  final payload = message.data.isNotEmpty ? jsonEncode(message.data) : null;
   await plugin.show(
     message.hashCode % 0x7FFFFFFF,
     title,
     body,
     NotificationDetails(android: _buildFcmNotificationDetails()),
+    payload: payload,
   );
 }
 
@@ -352,12 +383,12 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => OrderService()),
         ChangeNotifierProvider(create: (_) => CommerceService()),
         ChangeNotifierProvider(create: (_) => DeliveryService()),
+        ChangeNotifierProvider(create: (_) => DeliveryCompanyService()),
         ChangeNotifierProvider(create: (_) => AdminService()),
         ChangeNotifierProvider(create: (_) => NotificationService()),
         ChangeNotifierProvider(create: (_) => LocationService()),
         ChangeNotifierProvider(create: (_) => PaymentService()),
         ChangeNotifierProvider(create: (_) => ChatService()),
-        ChangeNotifierProvider(create: (_) => AnalyticsService()),
         ChangeNotifierProvider(create: (_) => CommerceAnalyticsService()),
         // PusherService se maneja como singleton interno, no necesitamos Provider aquí.
       ],
@@ -889,16 +920,16 @@ class MainRouterState extends State<MainRouter> {
       case 3: // Delivery Company
         items = [
           const BottomNavigationBarItem(
-            icon: Icon(Icons.delivery_dining),
-            label: 'Entregas',
+            icon: Icon(Icons.dashboard),
+            label: 'Dashboard',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'Historial',
+            icon: Icon(Icons.people),
+            label: 'Agentes',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.location_on),
-            label: 'Rutas',
+            icon: Icon(Icons.receipt_long),
+            label: 'Órdenes',
           ),
           const BottomNavigationBarItem(
             icon: Icon(Icons.account_balance_wallet),
@@ -1023,7 +1054,7 @@ class MainRouterState extends State<MainRouter> {
                   color:
                       Theme.of(context).brightness == Brightness.dark
                           ? Colors.white
-                          : const Color(0xFF0F172A),
+                          : AppColors.stitchTextDark,
                   letterSpacing: 1.2,
                 ),
               ),
@@ -1057,7 +1088,7 @@ class MainRouterState extends State<MainRouter> {
                     Icons.notifications_none,
                     color: Theme.of(context).brightness == Brightness.dark
                         ? Colors.white70
-                        : const Color(0xFF0F172A),
+                        : AppColors.stitchTextDark,
                   ),
                 ),
                 tooltip: 'Notificaciones',
@@ -1075,7 +1106,7 @@ class MainRouterState extends State<MainRouter> {
               Icons.gps_fixed,
               color: Theme.of(context).brightness == Brightness.dark
                   ? Colors.white70
-                  : const Color(0xFF0F172A),
+                  : AppColors.stitchTextDark,
             ),
             tooltip: 'Ubicación / GPS',
             onPressed: () {
@@ -1095,6 +1126,10 @@ class MainRouterState extends State<MainRouter> {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
+                if (snapshot.error is SessionRejectedByApiException) {
+                  // [UserProvider.getUserDetails] ya limpió sesión; el padre vuelve a SignInScreen.
+                  return const Center(child: CircularProgressIndicator());
+                }
                 logger.e('Error fetching user details: ${snapshot.error}');
                 return Center(child: Text('Error: ${snapshot.error}'));
               } // Dentro del FutureBuilder
@@ -1153,15 +1188,15 @@ class MainRouterState extends State<MainRouter> {
                 if (_selectedLevel == 3) {
                   switch (_bottomNavIndex) {
                     case 0:
-                      return const DeliveryOrdersPage(); // Entregas (empresa)
+                      return const DeliveryCompanyDashboardPage();
                     case 1:
-                      return const DeliveryHistoryPage(); // Historial
+                      return const DeliveryCompanyAgentsPage();
                     case 2:
-                      return const DeliveryRoutesPage(); // Rutas
+                      return const DeliveryCompanyOrdersPage();
                     case 3:
-                      return const DeliveryEarningsPage(); // Ganancias
+                      return const DeliveryCompanyEarningsPage();
                     default:
-                      return const DeliveryOrdersPage();
+                      return const DeliveryCompanyDashboardPage();
                   }
                 }
 

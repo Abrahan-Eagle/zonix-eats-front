@@ -9,10 +9,53 @@
 
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
-- **Fecha:** 19 Mar 2026
-- **Resumen:** Subida a dev completada (frontend y backend). Frontend: commits de cierre comprobante (Commerce) y feat Pusher Streams, notificaciones, auth, Android/iOS. Backend: seeders reorg, NotificationService, Listeners, .gitignore (venv_scraper, pendrive_badblocks). Documentación: "Cambios recientes" y active_context actualizados en ambos AGENTS.md.
-- **Áreas tocadas:** `commerce_order_detail_page.dart`, AGENTS.md, docs/active_context.md (front); backend seeders, Listeners, NotificationService, .gitignore, docs (back).
-- **Próximos pasos sugeridos:** Probar flujo completo en dev (Buyer→Commerce, Pusher, notificaciones). Valorar merge a main cuando esté estable. Revisar si .env quedó en historial y, si incluye datos sensibles, sacarlo del repo.
+- **Fecha:** 20 Marzo 2026
+- **Resumen:** Documentación Jarvis: inventario **Backlog candidato (no implementado)** alineado con el backend (mismo contenido esencial); sin cambios de código en esta sesión. Detalle extendido y referencias a docs del API también en `zonix-eats-back/docs/active_context.md`.
+- **Áreas tocadas:** `docs/active_context.md`, `AGENTS.md` (entrada “Cambios recientes”).
+- **Próximos pasos sugeridos:** Ver **Prioridad sugerida** en la sección de backlog abajo.
+
+---
+
+## Línea base reciente (no es backlog)
+
+- Flujo multi-rol con QR pickup/delivery, auto-asignación, calificaciones; Pusher Streams en órdenes según sesiones previas.
+
+---
+
+## Backlog candidato (no implementado)
+
+Inventario para decidir qué implementar después. **No** implica compromiso hasta aprobación explícita del líder del proyecto.
+
+### Negocio / producto
+
+| Área | Idea | Notas |
+|------|------|--------|
+| Tiempo | ETA de entrega / preparación | Mejora percepción y soporte al cliente. |
+| Operación | Cancelaciones automáticas o reglas más claras | Alinear con políticas ya documentadas. |
+| Incentivos | Modelo claro para delivery company / agentes | Comisiones, prioridad, penalizaciones. |
+| Cobertura | Zonas / módulo tarifa delivery | Ver plan en repo backend: `docs/PLAN_MODULO_TARIFA_DELIVERY.md`. |
+| Monetización | Membresía / comisiones si aplica MVP+ | Revisar `docs/logica-pagos-por-rol.md` en backend. |
+| Admin | Panel operativo (zonas, disputas, métricas) | Si el MVP lo requiere. |
+| Propinas | Permitir o no | Decisión de negocio. |
+
+### Técnico / mantenibilidad
+
+| Área | Idea | Archivos / notas |
+|------|------|------------------|
+| Rutas API | Partir `routes/api.php` en backend por dominio | Coordenar con backend. |
+| Entrada app | Reducir peso de `lib/main.dart` | Extraer providers / rutas. |
+| Datos demo | Acotar seeder demo en backend | — |
+| Tests | Ampliar cobertura en flujos críticos | Servicios Flutter + feature tests API. |
+| Errores | Manejo centralizado en app | Mejora UX ante fallos de red. |
+
+---
+
+## Prioridad sugerida (siguiente iteración, no comprometida)
+
+1. **Producto:** ETA visible (preparación / entrega aproximada) — pantallas buyer/commerce cuando exista API.
+2. **Técnico:** Refactor de rutas en backend + aligerar `main.dart` en front si aplica.
+
+Alternativa: módulo tarifa de delivery (plan en backend `docs/PLAN_MODULO_TARIFA_DELIVERY.md`).
 
 ---
 

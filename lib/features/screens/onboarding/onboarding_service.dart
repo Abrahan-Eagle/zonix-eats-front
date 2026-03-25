@@ -13,7 +13,9 @@ class OnboardingService {
   // Recuperar el token del almacenamiento seguro
   Future<String?> _getToken() async {
     final token = await _storage.read(key: 'token');
-    logger.i('Token recuperado: $token');
+    if (token != null && token.isNotEmpty) {
+      logger.d('Token de sesión presente (longitud: ${token.length})');
+    }
     return token;
   }
 

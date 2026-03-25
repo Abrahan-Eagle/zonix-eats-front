@@ -40,6 +40,7 @@ class Order {
   final String? referenceNumber;
   final DateTime? paymentValidatedAt;
   final DateTime? paymentProofUploadedAt;
+  final List<Map<String, dynamic>> orderPayments;
 
   Order({
     required this.id,
@@ -75,6 +76,7 @@ class Order {
     this.referenceNumber,
     this.paymentValidatedAt,
     this.paymentProofUploadedAt,
+    this.orderPayments = const [],
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
@@ -133,6 +135,9 @@ class Order {
       referenceNumber: json['reference_number']?.toString(),
       paymentValidatedAt: json['payment_validated_at'] != null ? DateTime.tryParse(json['payment_validated_at'].toString()) : null,
       paymentProofUploadedAt: json['payment_proof_uploaded_at'] != null ? DateTime.tryParse(json['payment_proof_uploaded_at'].toString()) : null,
+      orderPayments: (json['order_payments'] as List<dynamic>?)
+          ?.map((e) => Map<String, dynamic>.from(e as Map))
+          .toList() ?? [],
     );
   }
 
@@ -171,6 +176,7 @@ class Order {
       'reference_number': referenceNumber,
       'payment_validated_at': paymentValidatedAt?.toIso8601String(),
       'payment_proof_uploaded_at': paymentProofUploadedAt?.toIso8601String(),
+      'order_payments': orderPayments,
     };
   }
 
@@ -208,6 +214,7 @@ class Order {
     String? referenceNumber,
     DateTime? paymentValidatedAt,
     DateTime? paymentProofUploadedAt,
+    List<Map<String, dynamic>>? orderPayments,
   }) {
     return Order(
       id: id ?? this.id,
@@ -243,8 +250,19 @@ class Order {
       referenceNumber: referenceNumber ?? this.referenceNumber,
       paymentValidatedAt: paymentValidatedAt ?? this.paymentValidatedAt,
       paymentProofUploadedAt: paymentProofUploadedAt ?? this.paymentProofUploadedAt,
+      orderPayments: orderPayments ?? this.orderPayments,
     );
   }
+
+  Map<String, dynamic>? get foodPayment => orderPayments.cast<Map<String, dynamic>?>().firstWhere((p) => p?['type'] == 'food', orElse: () => null);
+  Map<String, dynamic>? get deliveryPaymentData => orderPayments.cast<Map<String, dynamic>?>().firstWhere((p) => p?['type'] == 'delivery', orElse: () => null);
+  bool get hasFoodProof => foodPayment?['payment_proof'] != null;
+  bool get hasDeliveryProof => deliveryPaymentData?['payment_proof'] != null;
+  bool get foodValidated => foodPayment?['validated_at'] != null;
+  bool get deliveryValidated => deliveryPaymentData?['validated_at'] != null;
+  bool get foodRejected => foodPayment?['rejected_at'] != null;
+  bool get deliveryRejected => deliveryPaymentData?['rejected_at'] != null;
+  bool get needsDeliveryPayment => deliveryType == 'delivery' && deliveryFee > 0 && deliveryPaymentData != null;
 
   bool get isPending => status == 'pending' || status == 'pending_payment';
   bool get isConfirmed => status == 'confirmed';
