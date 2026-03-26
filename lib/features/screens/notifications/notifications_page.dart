@@ -188,7 +188,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.cloud_off, size: 64, color: Colors.grey),
+                  const Icon(Icons.cloud_off, size: 64, color: AppColors.textMutedGray),
                   const SizedBox(height: 16),
                   Text(notificationService.error!, style: const TextStyle(fontSize: 16)),
                   const SizedBox(height: 16),
@@ -375,7 +375,7 @@ class _NotificationTile extends StatelessWidget {
     final onSurfaceVariant = theme.colorScheme.onSurfaceVariant;
 
     return Material(
-      color: Colors.transparent,
+      color: AppColors.transparent,
       child: InkWell(
         onTap: onTap,
         child: Padding(

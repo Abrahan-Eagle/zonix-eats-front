@@ -170,6 +170,10 @@ class UserProvider with ChangeNotifier {
 
   Future<void> _registerFcmToken() async {
     try {
+      // El backend asocia FCM al perfil; sin profile_id aún (p. ej. antes de onboarding) no enviamos.
+      if (_profileId <= 0) {
+        return;
+      }
       // Obtener auth token usando AuthUtils (mismo storage donde el login guarda)
       var token = await AuthUtils.getToken();
       token ??= await _storage.read(key: 'token');
@@ -199,6 +203,18 @@ class UserProvider with ChangeNotifier {
       }
     } catch (e) {
       logger.w('FCM token registration failed: $e');
+    }
+  }
+
+  /// Tras crear el perfil en onboarding: sincroniza `/api/auth/user` y registra el token FCM en el backend.
+  Future<void> registerFcmTokenAfterProfileReady() async {
+    try {
+      await getUserDetails(forceRefresh: true);
+      await _loadUserData();
+      await _registerFcmToken();
+      Future.delayed(const Duration(seconds: 2), () => _registerFcmToken());
+    } catch (e) {
+      logger.w('registerFcmTokenAfterProfileReady: $e');
     }
   }
 

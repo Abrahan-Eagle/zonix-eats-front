@@ -454,7 +454,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                         surfaceColor: surfaceColor,
                         borderColor: borderColor,
                         badgeBg: badgeBg),
-                    if (_isTrackableStatus(order.status)) ...[
+                    if (_isTrackableStatus(order.status) && order.isDeliveryOrder) ...[
                       const SizedBox(height: 24),
                       _buildTrackingCard(order),
                     ],
@@ -1046,15 +1046,19 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Dirección de entrega',
+                    Text(order.isPickup ? 'Retiro en tienda' : 'Dirección de entrega',
                         style: TextStyle(
                             fontSize: 12,
                             color: textSecondary,
                             fontWeight: FontWeight.w500)),
                     Text(
-                        order.deliveryAddress.isEmpty
-                            ? '—'
-                            : order.deliveryAddress,
+                        order.isPickup
+                            ? (order.commerceName.isNotEmpty
+                                ? order.commerceName
+                                : 'Recoger en el comercio')
+                            : (order.deliveryAddress.isEmpty
+                                ? '—'
+                                : order.deliveryAddress),
                         style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -1276,13 +1280,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       required Color textPrimary,
       required Color textSecondary}) {
     final step = _progressStep(order);
-    const labels = ['RECIBIDO', 'PREPARACIÓN', 'EN CAMINO', 'ENTREGADO'];
-    const icons = [
-      Icons.check,
-      Icons.restaurant,
-      Icons.two_wheeler,
-      Icons.inventory_2,
-    ];
+    final labels = order.isPickup
+        ? const ['RECIBIDO', 'PREPARACIÓN', 'LISTO', 'RECOGIDO']
+        : const ['RECIBIDO', 'PREPARACIÓN', 'EN CAMINO', 'ENTREGADO'];
+    final icons = order.isPickup
+        ? const [Icons.check, Icons.restaurant, Icons.storefront, Icons.shopping_bag]
+        : const [Icons.check, Icons.restaurant, Icons.two_wheeler, Icons.inventory_2];
     Widget circle(int i) {
       final done = i < step;
       final active = i == step;
@@ -1326,8 +1329,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             switch (step) {
               0 => 'Recibido',
               1 => 'En preparación',
-              2 => 'En camino',
-              3 => 'Entregado',
+              2 => order.isPickup ? 'Listo para recoger' : 'En camino',
+              3 => order.isPickup ? 'Recogido' : 'Entregado',
               _ => 'Recibido',
             },
             style: TextStyle(
@@ -1403,11 +1406,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       isDismissible: false,
       enableDrag: false,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (ctx) => Container(
         constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height * 0.7),
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         padding: const EdgeInsets.all(24),
@@ -1462,7 +1465,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         isScrollControlled: true,
         isDismissible: false,
         useSafeArea: true,
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         builder: (ctx) => SizedBox(
           height: MediaQuery.of(context).size.height * 0.9,
           child: ClipRRect(

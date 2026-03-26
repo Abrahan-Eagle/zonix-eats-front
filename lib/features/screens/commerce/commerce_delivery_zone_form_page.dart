@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 
 class CommerceDeliveryZoneFormPage extends StatefulWidget {
   const CommerceDeliveryZoneFormPage({

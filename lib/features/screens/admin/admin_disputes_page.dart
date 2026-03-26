@@ -32,12 +32,12 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
     'closed': 'Cerrado',
   };
 
+  /// Keys must match POST /api/admin/disputes/{id}/resolve validation: refund|penalty|warning|closed
   static const _resolutionOptions = <String, String>{
     'refund': 'Reembolso',
-    'replacement': 'Reemplazo',
-    'credit': 'Crédito',
-    'dismissed': 'Desestimado',
+    'penalty': 'Sanción / penalización',
     'warning': 'Advertencia',
+    'closed': 'Cerrar disputa',
   };
 
   @override
@@ -315,11 +315,11 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
                           color: AppColors.primaryText(context),
                         ),
                         decoration: InputDecoration(
-                          labelText: 'Notas del admin',
+                          labelText: 'Notas del admin (mín. 5 caracteres)',
                           labelStyle: TextStyle(
                             color: AppColors.secondaryText(context),
                           ),
-                          hintText: 'Escribe una nota...',
+                          hintText: 'Motivo de la resolución (requerido)...',
                           hintStyle: TextStyle(
                             color: AppColors.secondaryText(context),
                           ),
@@ -336,21 +336,31 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
                       const SizedBox(height: 14),
                       ElevatedButton(
                         onPressed: () async {
+                          final notes = notesController.text.trim();
+                          if (notes.length < 5) {
+                            ScaffoldMessenger.of(ctx).showSnackBar(
+                              const SnackBar(
+                                content: Text(
+                                  'Las notas del admin son obligatorias (mínimo 5 caracteres).',
+                                ),
+                              ),
+                            );
+                            return;
+                          }
                           try {
                             await context
                                 .read<AdminService>()
                                 .resolveDispute(
                                   disputeId,
                                   selectedResolution,
-                                  notesController.text.isNotEmpty
-                                      ? notesController.text
-                                      : null,
+                                  notes,
                                 );
                             if (!ctx.mounted) return;
+                            final messenger = ScaffoldMessenger.of(ctx);
                             Navigator.pop(ctx);
                             _loadData();
                             _loadStats();
-                            ScaffoldMessenger.of(ctx).showSnackBar(
+                            messenger.showSnackBar(
                               const SnackBar(
                                 content: Text('Disputa resuelta'),
                               ),

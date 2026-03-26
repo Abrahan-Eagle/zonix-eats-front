@@ -111,7 +111,7 @@ class OrderConfirmationPage extends StatelessWidget {
                       ? null
                       : [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.06),
+                            color: AppColors.black.withValues(alpha: 0.06),
                             blurRadius: 18,
                             offset: const Offset(0, 8),
                           ),
@@ -124,7 +124,11 @@ class OrderConfirmationPage extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Text(
-                        isPendingPayment ? 'Próximo paso' : 'Llegada estimada',
+                        isPendingPayment
+                            ? 'Próximo paso'
+                            : (order.isPickup
+                                ? 'Tiempo estimado'
+                                : 'Llegada estimada'),
                         style: theme.textTheme.bodySmall?.copyWith(
                           letterSpacing: 0.8,
                           fontWeight: FontWeight.w600,
@@ -253,7 +257,7 @@ class OrderConfirmationPage extends StatelessWidget {
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primary,
-                          foregroundColor: Colors.white,
+                          foregroundColor: AppColors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
@@ -306,6 +310,9 @@ class OrderConfirmationPage extends StatelessWidget {
     }
     final lo = (m - 5).clamp(1, m);
     final hi = m + 5;
+    if (order.isPickup) {
+      return 'Listo para recoger en ~$lo-$hi min';
+    }
     return 'Llegada estimada: $lo-$hi min';
   }
 }

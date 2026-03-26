@@ -297,6 +297,25 @@ class Order {
   bool get deliveryRejected => deliveryPaymentData?['rejected_at'] != null;
   bool get needsDeliveryPayment => deliveryType == 'delivery' && deliveryFee > 0 && deliveryPaymentData != null;
 
+  bool get isPickup => deliveryType == 'pickup';
+  bool get isDeliveryOrder => deliveryType == 'delivery';
+
+  String get commerceName {
+    if (commerce is Map) {
+      final name = (commerce as Map)['business_name'] ?? (commerce as Map)['name'] ?? '';
+      return name.toString().trim();
+    }
+    return '';
+  }
+
+  String get commerceAddress {
+    if (commerce is Map) {
+      final addr = (commerce as Map)['address'] ?? '';
+      return addr.toString().trim();
+    }
+    return '';
+  }
+
   bool get isPending => status == 'pending' || status == 'pending_payment';
   bool get isConfirmed => status == 'confirmed';
   bool get isPreparing => status == 'preparing';
@@ -320,11 +339,11 @@ class Order {
       case 'processing':
         return status == 'processing' ? 'En preparación' : 'Listo';
       case 'shipped':
-        return 'En camino';
+        return isPickup ? 'Listo para recoger' : 'En camino';
       case 'out_for_delivery':
-        return 'En Camino';
+        return isPickup ? 'Listo para recoger' : 'En Camino';
       case 'delivered':
-        return 'Entregado';
+        return isPickup ? 'Recogido' : 'Entregado';
       case 'cancelled':
         return 'Cancelado';
       default:

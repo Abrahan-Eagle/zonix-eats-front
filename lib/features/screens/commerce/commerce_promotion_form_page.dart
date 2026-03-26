@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zonix/features/services/commerce_promotion_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
 
 class CommercePromotionFormPage extends StatefulWidget {
@@ -205,7 +205,7 @@ class _CommercePromotionFormPageState extends State<CommercePromotionFormPage> {
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: AppColors.grayLight,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: _imagePath != null
@@ -222,15 +222,15 @@ class _CommercePromotionFormPageState extends State<CommercePromotionFormPage> {
                                 errorBuilder: (_, __, ___) => const Icon(
                                   Icons.image_not_supported,
                                   size: 48,
-                                  color: Colors.grey,
+                                  color: AppColors.textMutedGray,
                                 ),
                               ),
                             )
                           : const Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.add_photo_alternate, size: 48, color: Colors.grey),
-                                Text('Imagen', style: TextStyle(color: Colors.grey)),
+                                Icon(Icons.add_photo_alternate, size: 48, color: AppColors.textMutedGray),
+                                Text('Imagen', style: TextStyle(color: AppColors.textMutedGray)),
                               ],
                             ),
                 ),
@@ -327,7 +327,7 @@ class _CommercePromotionFormPageState extends State<CommercePromotionFormPage> {
             FilledButton.icon(
               onPressed: _saving ? null : _save,
               icon: _saving
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white))
                   : const Icon(Icons.save),
               label: Text(_saving ? 'Guardando...' : 'Guardar'),
             ),

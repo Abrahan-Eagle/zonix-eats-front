@@ -272,9 +272,10 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                               .read<AdminService>()
                               .updateOrderStatus(orderId, currentStatus);
                           if (!ctx.mounted) return;
+                          final messenger = ScaffoldMessenger.of(ctx);
                           Navigator.pop(ctx);
                           _loadData();
-                          ScaffoldMessenger.of(ctx).showSnackBar(
+                          messenger.showSnackBar(
                             const SnackBar(
                               content: Text('Estado actualizado'),
                             ),

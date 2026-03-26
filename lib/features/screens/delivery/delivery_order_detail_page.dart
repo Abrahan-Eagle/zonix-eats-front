@@ -236,17 +236,17 @@ class _DeliveryOrderDetailPageState extends State<DeliveryOrderDetailPage> {
             const SizedBox(height: 24),
 
             if (canScanPickup) ...[
-              Text(
+              const Text(
                 'En el comercio, pide el comerciante que muestre el código QR de recogida y escanéalo.',
-                style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                style: TextStyle(color: AppColors.grayDark, fontSize: 13),
               ),
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () => _openScanAndPop(context, orderId, 'pickup'),
-                  icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
-                  label: const Text('Escanear QR de recogida', style: TextStyle(color: Colors.white, fontSize: 16)),
+                  icon: const Icon(Icons.qr_code_scanner, color: AppColors.white),
+                  label: const Text('Escanear QR de recogida', style: TextStyle(color: AppColors.white, fontSize: 16)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.orange,
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -256,9 +256,9 @@ class _DeliveryOrderDetailPageState extends State<DeliveryOrderDetailPage> {
               ),
             ],
             if (canNotifyArrived) ...[
-              Text(
+              const Text(
                 'Cuando llegues al domicilio del cliente, toca el botón para notificarle y escanear su QR de entrega.',
-                style: TextStyle(color: Colors.grey[700], fontSize: 13),
+                style: TextStyle(color: AppColors.grayDark, fontSize: 13),
               ),
               const SizedBox(height: 12),
               SizedBox(
@@ -266,11 +266,11 @@ class _DeliveryOrderDetailPageState extends State<DeliveryOrderDetailPage> {
                 child: ElevatedButton.icon(
                   onPressed: _notifyingArrival ? null : () => _arrivedAndScan(orderId),
                   icon: _notifyingArrival
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.location_on, color: Colors.white),
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white))
+                      : const Icon(Icons.location_on, color: AppColors.white),
                   label: Text(
                     _notifyingArrival ? 'Notificando...' : 'Llegué al destino',
-                    style: const TextStyle(color: Colors.white, fontSize: 16),
+                    style: const TextStyle(color: AppColors.white, fontSize: 16),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.green,
@@ -313,16 +313,16 @@ class _DeliveryOrderDetailPageState extends State<DeliveryOrderDetailPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? Colors.grey[900] : Colors.grey[50],
+        color: isDark ? AppColors.grayDark : AppColors.grayLight,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.textMutedGray.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: Colors.grey[600]),
+              Icon(icon, size: 18, color: AppColors.gray),
               const SizedBox(width: 8),
               Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
             ],
@@ -342,7 +342,7 @@ class _DeliveryOrderDetailPageState extends State<DeliveryOrderDetailPage> {
         children: [
           SizedBox(
             width: 130,
-            child: Text('$label:', style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+            child: Text('$label:', style: const TextStyle(color: AppColors.gray, fontSize: 13)),
           ),
           Expanded(
             child: Text(value, style: TextStyle(fontSize: 13, fontWeight: bold ? FontWeight.bold : FontWeight.w500)),
@@ -355,15 +355,15 @@ class _DeliveryOrderDetailPageState extends State<DeliveryOrderDetailPage> {
   Color _statusColor(String status, bool hasDelivery) {
     switch (status) {
       case 'processing':
-        return hasDelivery ? AppColors.orange : Colors.grey;
+        return hasDelivery ? AppColors.orange : AppColors.textMutedGray;
       case 'shipped':
-        return hasDelivery ? Colors.blue : AppColors.orange;
+        return hasDelivery ? AppColors.blue : AppColors.orange;
       case 'delivered':
         return AppColors.green;
       case 'cancelled':
         return AppColors.red;
       default:
-        return Colors.grey;
+        return AppColors.textMutedGray;
     }
   }
 

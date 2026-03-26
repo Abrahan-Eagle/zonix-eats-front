@@ -339,7 +339,7 @@ class OrderHistoryDetailPage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Entrega',
+          order.isPickup ? 'Retiro en tienda' : 'Entrega',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 18,
             fontWeight: FontWeight.w700,
@@ -367,7 +367,7 @@ class OrderHistoryDetailPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Dirección de entrega',
+                      order.isPickup ? 'Recoger en' : 'Dirección de entrega',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
@@ -376,9 +376,13 @@ class OrderHistoryDetailPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      order.deliveryAddress.isEmpty
-                          ? '—'
-                          : order.deliveryAddress,
+                      order.isPickup
+                          ? (order.commerceName.isNotEmpty
+                              ? order.commerceName
+                              : 'Retirado en tienda')
+                          : (order.deliveryAddress.isEmpty
+                              ? '—'
+                              : order.deliveryAddress),
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         color: textSecondary,
@@ -657,7 +661,7 @@ class OrderHistoryDetailPage extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       builder: (ctx) => SizedBox(
         height: MediaQuery.of(context).size.height * 0.9,
         child: ClipRRect(

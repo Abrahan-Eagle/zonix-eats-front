@@ -114,11 +114,11 @@ class _DeliveryCompanyEarningsPageState extends State<DeliveryCompanyEarningsPag
       ),
       child: Column(
         children: [
-          Text(_selectedPeriod, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+          Text(_selectedPeriod, style: const TextStyle(color: AppColors.white70, fontSize: 14)),
           const SizedBox(height: 6),
           Text(
             '\$${amount.toStringAsFixed(2)}',
-            style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+            style: const TextStyle(color: AppColors.white, fontSize: 32, fontWeight: FontWeight.bold),
           ),
         ],
       ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zonix/features/services/commerce_list_service.dart';
 import 'package:zonix/models/my_commerce.dart';
@@ -117,12 +117,12 @@ class _CommerceListPageState extends State<CommerceListPage> {
       builder: (ctx) => AlertDialog(
         title: const Text('Eliminar restaurante'),
         content: Text(
-          '¿Eliminar "${c.businessName}"? Esta acción no está disponible aún.',
+          'Para eliminar "${c.businessName}", contacta al equipo de soporte de Zonix Eats.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cerrar'),
+            child: const Text('Entendido'),
           ),
         ],
       ),
@@ -161,8 +161,8 @@ class _CommerceListPageState extends State<CommerceListPage> {
               Icon(
                 Icons.error_outline,
                 color: Theme.of(context).brightness == Brightness.dark
-                    ? Colors.white54
-                    : Colors.grey.shade300,
+                    ? AppColors.white54
+                    : AppColors.textMutedGray,
               ),
               const SizedBox(height: 16),
               Text(_error!, textAlign: TextAlign.center),
@@ -254,7 +254,7 @@ class _CommerceListPageState extends State<CommerceListPage> {
       margin: const EdgeInsets.only(
           bottom: 24), // mb-6: misma separación con las cards
       child: Material(
-        color: Colors.transparent,
+        color: AppColors.transparent,
         child: InkWell(
           onTap: _addRestaurant,
           borderRadius: BorderRadius.circular(24),
@@ -277,14 +277,14 @@ class _CommerceListPageState extends State<CommerceListPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.add_circle, size: 20, color: Colors.white),
+                const Icon(Icons.add_circle, size: 20, color: AppColors.white),
                 const SizedBox(width: 8),
                 Text(
                   'Agregar Restaurante',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: AppColors.white,
                   ),
                 ),
               ],
@@ -347,7 +347,7 @@ class _CommerceCard extends StatelessWidget {
     final surfaceLighter =
         isDark ? _stitchSurfaceLighter : theme.colorScheme.surfaceContainerLow;
     final borderColor = isDark
-        ? Colors.white.withValues(alpha: 0.05)
+        ? AppColors.white.withValues(alpha: 0.05)
         : theme.colorScheme.outline.withValues(alpha: 0.2);
     final iconColor = _iconColorForIndex(index);
     final iconData = _iconForCommerce(c);

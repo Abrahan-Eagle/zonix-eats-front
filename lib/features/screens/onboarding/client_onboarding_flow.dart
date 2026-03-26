@@ -1036,6 +1036,8 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       if (!mounted) return;
       userProvider.setCompletedOnboarding(true);
       onboarding.setRole('users');
+      await userProvider.registerFcmTokenAfterProfileReady();
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -1240,6 +1242,8 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       if (!mounted) return;
       userProvider.setCompletedOnboarding(true);
       onboarding.setRole('commerce');
+      await userProvider.registerFcmTokenAfterProfileReady();
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

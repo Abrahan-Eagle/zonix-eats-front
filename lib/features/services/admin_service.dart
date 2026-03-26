@@ -486,11 +486,14 @@ class AdminService extends ChangeNotifier {
     throw Exception('Error: ${response.statusCode}');
   }
 
-  Future<void> resolveDispute(int id, String resolution, String? adminNotes) async {
+  Future<void> resolveDispute(int id, String resolution, String adminNotes) async {
     final response = await http.post(
       Uri.parse('$baseUrl/api/admin/disputes/$id/resolve'),
       headers: await AuthHelper.getAuthHeaders(),
-      body: jsonEncode({'resolution': resolution, if (adminNotes != null) 'admin_notes': adminNotes}),
+      body: jsonEncode({
+        'resolution': resolution,
+        'admin_notes': adminNotes.trim(),
+      }),
     );
     if (response.statusCode == 200) { notifyListeners(); return; }
     throw Exception('Error: ${response.statusCode}');

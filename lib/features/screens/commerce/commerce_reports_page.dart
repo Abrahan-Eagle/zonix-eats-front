@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/services/commerce_analytics_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
 

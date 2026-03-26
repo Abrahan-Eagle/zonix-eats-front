@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../services/admin_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/safe_parse.dart';
@@ -11,7 +12,6 @@ class AdminUsersPage extends StatefulWidget {
 }
 
 class _AdminUsersPageState extends State<AdminUsersPage> {
-  final AdminService _adminService = AdminService();
   final TextEditingController _searchController = TextEditingController();
 
   List<Map<String, dynamic>> _allUsers = [];
@@ -26,6 +26,8 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     null: 'Todos',
     'users': 'Buyer',
     'commerce': 'Commerce',
+    'delivery_company': 'Delivery Co.',
+    'delivery_agent': 'Agent',
     'delivery': 'Delivery',
     'admin': 'Admin',
   };
@@ -63,7 +65,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
       _error = null;
     });
     try {
-      final users = await _adminService.getUsers(
+      final users = await context.read<AdminService>().getUsers(
         role: _selectedRole,
         status: _selectedStatus,
       );
@@ -485,7 +487,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade400,
+                      color: AppColors.textMutedGray,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -634,7 +636,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
 
   Future<void> _changeRole(int userId, String newRole) async {
     try {
-      await _adminService.updateUserRole(userId, newRole, 0);
+      await context.read<AdminService>().updateUserRole(userId, newRole, 0);
       if (!mounted) return;
       _snack('Rol actualizado correctamente');
       await _loadUsers();
@@ -646,7 +648,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
 
   Future<void> _changeStatus(int userId, String newStatus) async {
     try {
-      await _adminService.updateUserStatus(userId, newStatus);
+      await context.read<AdminService>().updateUserStatus(userId, newStatus);
       if (!mounted) return;
       _snack('Estado actualizado correctamente');
       await _loadUsers();
@@ -673,7 +675,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
             onPressed: () async {
               Navigator.pop(ctx);
               try {
-                await _adminService.deleteUser(userId);
+                await context.read<AdminService>().deleteUser(userId);
                 if (!mounted) return;
                 _snack('Usuario eliminado');
                 await _loadUsers();

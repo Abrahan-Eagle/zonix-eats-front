@@ -1,18 +1,20 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
-import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/screens/orders/order_detail_page.dart';
 import 'package:zonix/features/screens/orders/buyer_order_chat_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_order_detail_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_chat_messages_page.dart';
 import 'package:zonix/features/screens/delivery/delivery_order_detail_page.dart';
 import 'package:zonix/features/screens/delivery_company/delivery_company_orders_page.dart';
+import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/models/notification_item.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:zonix/main.dart' show showLocalNotification;
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 import 'error_handler.dart';
@@ -82,7 +84,6 @@ class NotificationService extends ChangeNotifier {
     try {
       final newItem = NotificationItem.fromJson(data);
       
-      // Evitar duplicados por ID
       if (newItem.id != null && _items.any((n) => n.id == newItem.id)) {
         return;
       }
@@ -90,11 +91,15 @@ class NotificationService extends ChangeNotifier {
       _items.insert(0, newItem);
       if (newItem.isUnread) {
         _unreadCount++;
-        // Feedback háptico al recibir notificación in-app
         HapticFeedback.lightImpact();
-        
-        // Emitir para SnackBars globales
         _newNotificationController.add(newItem);
+
+        final payload = newItem.data != null ? jsonEncode(newItem.data) : null;
+        showLocalNotification(
+          title: newItem.title,
+          body: newItem.body,
+          payload: payload,
+        );
       }
       notifyListeners();
     } catch (e) {
@@ -516,15 +521,15 @@ class NotificationService extends ChangeNotifier {
   Color getNotificationColor(String type) {
     switch (type) {
       case 'order':
-        return Colors.blue;
+        return AppColors.blue;
       case 'commission':
-        return Colors.green;
+        return AppColors.green;
       case 'maintenance':
-        return Colors.orange;
+        return AppColors.orange;
       case 'system':
-        return Colors.purple;
+        return AppColors.purple;
       default:
-        return Colors.grey;
+        return AppColors.textMutedGray;
     }
   }
 
@@ -532,13 +537,13 @@ class NotificationService extends ChangeNotifier {
   Color getPriorityColor(String priority) {
     switch (priority) {
       case 'high':
-        return Colors.red;
+        return AppColors.red;
       case 'medium':
-        return Colors.orange;
+        return AppColors.orange;
       case 'low':
-        return Colors.green;
+        return AppColors.green;
       default:
-        return Colors.grey;
+        return AppColors.textMutedGray;
     }
   }
 

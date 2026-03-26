@@ -126,11 +126,11 @@ class CartPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: Theme.of(context).brightness == Brightness.dark
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.grey.withValues(alpha: 0.2),
+              ? AppColors.white.withValues(alpha: 0.05)
+              : AppColors.textMutedGray.withValues(alpha: 0.2),
         ),
         boxShadow: Theme.of(context).brightness == Brightness.light
-            ? [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))]
+            ? [BoxShadow(color: AppColors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))]
             : null,
       ),
       child: Row(
@@ -152,7 +152,7 @@ class CartPage extends StatelessWidget {
                     )
                   : Container(
                       color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white.withValues(alpha: 0.06)
+                          ? AppColors.white.withValues(alpha: 0.06)
                           : AppColors.grayLight,
                       child: Icon(Icons.restaurant, size: 40, color: AppColors.secondaryText(context).withValues(alpha: 0.3)),
                     ),
@@ -234,9 +234,9 @@ class CartPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey.withValues(alpha: 0.12),
+        color: isDark ? AppColors.white.withValues(alpha: 0.05) : AppColors.textMutedGray.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(8),
-        border: isDark ? Border.all(color: Colors.white.withValues(alpha: 0.1)) : null,
+        border: isDark ? Border.all(color: AppColors.white.withValues(alpha: 0.1)) : null,
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -248,7 +248,7 @@ class CartPage extends StatelessWidget {
               height: 32,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: isDark ? Colors.transparent : Colors.transparent,
+                color: isDark ? AppColors.transparent : AppColors.transparent,
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Icon(
@@ -277,7 +277,7 @@ class CartPage extends StatelessWidget {
               height: 32,
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: isDark ? AppColors.accentButton(context).withValues(alpha: 0.2) : Colors.transparent,
+                color: isDark ? AppColors.accentButton(context).withValues(alpha: 0.2) : AppColors.transparent,
                 borderRadius: BorderRadius.circular(6),
               ),
               child: Icon(
@@ -303,7 +303,7 @@ class CartPage extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
+            color: AppColors.black.withValues(alpha: 0.25),
             blurRadius: 30,
             offset: const Offset(0, -8),
           ),
@@ -398,11 +398,11 @@ class CartPage extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: AppColors.white,
                           ),
                         ),
                         SizedBox(width: 8),
-                        Icon(Icons.arrow_forward_rounded, size: 22, color: Colors.white),
+                        Icon(Icons.arrow_forward_rounded, size: 22, color: AppColors.white),
                       ],
                     ),
                   ),

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/features/screens/commerce/commerce_promotion_form_page.dart';
 import 'package:zonix/features/services/commerce_promotion_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 
 class CommercePromotionsPage extends StatefulWidget {
   const CommercePromotionsPage({super.key});
@@ -79,7 +79,7 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.local_offer, size: 64, color: Colors.grey),
+                  Icon(Icons.local_offer, size: 64, color: AppColors.textMutedGray),
                   SizedBox(height: 16),
                   Text('No hay promociones'),
                 ],
@@ -107,8 +107,8 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> {
                       ),
                       trailing: Chip(
                         label: Text(active ? 'Activa' : 'Inactiva'),
-                        backgroundColor: active ? AppColors.green : Colors.grey,
-                        labelStyle: const TextStyle(color: Colors.white),
+                        backgroundColor: active ? AppColors.green : AppColors.textMutedGray,
+                        labelStyle: const TextStyle(color: AppColors.white),
                       ),
                       onTap: () async {
                         if (id != null) {

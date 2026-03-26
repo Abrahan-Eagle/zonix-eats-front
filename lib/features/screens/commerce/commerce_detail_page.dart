@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:zonix/models/my_commerce.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 import 'package:zonix/features/screens/settings/commerce_data_page.dart';
 import 'package:zonix/features/services/commerce_list_service.dart';
 
@@ -18,7 +18,7 @@ class CommerceDetailPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(c.businessName),
         backgroundColor: AppColors.purple,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.white,
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
@@ -92,7 +92,7 @@ class CommerceDetailPage extends StatelessWidget {
                 label: const Text('Editar restaurante'),
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.green,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.white,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
@@ -243,8 +243,8 @@ class _InfoRow extends StatelessWidget {
             width: 100,
             child: Text(
               label,
-              style: TextStyle(
-                color: Colors.grey.shade600,
+              style: const TextStyle(
+                color: AppColors.gray,
                 fontSize: 13,
               ),
             ),
@@ -283,9 +283,9 @@ class _StatChip extends StatelessWidget {
         ),
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 12,
-            color: Colors.grey.shade600,
+            color: AppColors.gray,
           ),
         ),
       ],

@@ -5,7 +5,7 @@ import 'package:zonix/models/commerce_order.dart';
 import 'package:zonix/features/services/commerce_order_service.dart';
 import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/screens/commerce/commerce_chat_messages_page.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
 
 class CommerceOrderDetailPage extends StatefulWidget {
@@ -629,7 +629,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                           child: Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: AppColors.white,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: QrImageView(

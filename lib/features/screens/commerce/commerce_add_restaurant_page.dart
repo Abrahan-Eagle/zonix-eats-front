@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/features/services/commerce_list_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 
 /// Formulario para agregar un nuevo restaurante (multi-restaurante).
 class CommerceAddRestaurantPage extends StatefulWidget {
@@ -69,7 +69,7 @@ class _CommerceAddRestaurantPageState extends State<CommerceAddRestaurantPage> {
       appBar: AppBar(
         title: const Text('Agregar restaurante'),
         backgroundColor: AppColors.purple,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.white,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -133,19 +133,19 @@ class _CommerceAddRestaurantPageState extends State<CommerceAddRestaurantPage> {
               ),
               if (_error != null) ...[
                 const SizedBox(height: 16),
-                Text(_error!, style: const TextStyle(color: Colors.red)),
+                Text(_error!, style: const TextStyle(color: AppColors.red)),
               ],
               const SizedBox(height: 24),
               FilledButton(
                 onPressed: _loading ? null : _submit,
                 style: FilledButton.styleFrom(
                   backgroundColor: AppColors.green,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 child: _loading
-                    ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white))
                     : const Text('Crear restaurante'),
               ),
             ],

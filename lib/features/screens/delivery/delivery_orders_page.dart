@@ -144,7 +144,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.green),
-            child: const Text('Aceptar', style: TextStyle(color: Colors.white)),
+            child: const Text('Aceptar', style: TextStyle(color: AppColors.white)),
           ),
         ],
       ),
@@ -215,15 +215,15 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
   Color _statusColor(String status, bool hasDelivery) {
     switch (status) {
       case 'processing':
-        return hasDelivery ? AppColors.orange : Colors.grey;
+        return hasDelivery ? AppColors.orange : AppColors.textMutedGray;
       case 'shipped':
-        return hasDelivery ? Colors.blue : AppColors.orange;
+        return hasDelivery ? AppColors.blue : AppColors.orange;
       case 'delivered':
         return AppColors.green;
       case 'cancelled':
         return AppColors.red;
       default:
-        return Colors.grey;
+        return AppColors.textMutedGray;
     }
   }
 
@@ -308,14 +308,14 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: isDark ? Colors.grey[900] : Colors.grey[100],
-        border: Border(bottom: BorderSide(color: Colors.grey.withValues(alpha: 0.2))),
+        color: isDark ? AppColors.grayDark : AppColors.grayLight,
+        border: Border(bottom: BorderSide(color: AppColors.textMutedGray.withValues(alpha: 0.2))),
       ),
       child: Row(
         children: [
           Icon(
             _isWorking ? Icons.delivery_dining : Icons.pause_circle_outline,
-            color: _isWorking ? AppColors.green : Colors.grey,
+            color: _isWorking ? AppColors.green : AppColors.textMutedGray,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -323,7 +323,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
               _isWorking ? 'Disponible para entregas' : 'No disponible',
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: _isWorking ? AppColors.green : Colors.grey,
+                color: _isWorking ? AppColors.green : AppColors.textMutedGray,
               ),
             ),
           ),
@@ -428,7 +428,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
                     children: [
                       Text('Orden $orderNumber', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 2),
-                      Text(commerceName, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                      Text(commerceName, style: const TextStyle(color: AppColors.gray, fontSize: 14)),
                     ],
                   ),
                 ),
@@ -451,8 +451,8 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: () => _acceptOrder(order),
-                icon: const Icon(Icons.check, color: Colors.white),
-                label: const Text('Aceptar orden', style: TextStyle(color: Colors.white)),
+                icon: const Icon(Icons.check, color: AppColors.white),
+                label: const Text('Aceptar orden', style: TextStyle(color: AppColors.white)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.green,
                   padding: const EdgeInsets.symmetric(vertical: 12),
@@ -506,7 +506,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
                     children: [
                       Text('Orden $orderNumber', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       if (customerName.isNotEmpty)
-                        Text(customerName, style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                        Text(customerName, style: const TextStyle(color: AppColors.gray, fontSize: 14)),
                     ],
                   ),
                 ),
@@ -539,8 +539,8 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () => _openScanQr(order, 'pickup'),
-                      icon: const Icon(Icons.qr_code_scanner, color: Colors.white),
-                      label: const Text('QR recogida', style: TextStyle(color: Colors.white)),
+                      icon: const Icon(Icons.qr_code_scanner, color: AppColors.white),
+                      label: const Text('QR recogida', style: TextStyle(color: AppColors.white)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.orange,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -553,8 +553,8 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () => _arrivedAndScan(order),
-                      icon: const Icon(Icons.location_on, color: Colors.white),
-                      label: const Text('Llegué', style: TextStyle(color: Colors.white)),
+                      icon: const Icon(Icons.location_on, color: AppColors.white),
+                      label: const Text('Llegué', style: TextStyle(color: AppColors.white)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.green,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -581,9 +581,9 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: Colors.grey[500]),
+        Icon(icon, size: 16, color: AppColors.gray),
         const SizedBox(width: 6),
-        Text('$label: ', style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+        Text('$label: ', style: const TextStyle(fontSize: 13, color: AppColors.gray)),
         Expanded(
           child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500), maxLines: 2, overflow: TextOverflow.ellipsis),
         ),
@@ -596,9 +596,9 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 64, color: Colors.grey[400]),
+          Icon(icon, size: 64, color: AppColors.textMutedGray),
           const SizedBox(height: 16),
-          Text(message, style: TextStyle(fontSize: 16, color: Colors.grey[600])),
+          Text(message, style: const TextStyle(fontSize: 16, color: AppColors.gray)),
         ],
       ),
     );
@@ -609,7 +609,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error, size: 64, color: Colors.red),
+          const Icon(Icons.error, size: 64, color: AppColors.red),
           const SizedBox(height: 16),
           Text('Error: $error', textAlign: TextAlign.center),
           const SizedBox(height: 16),

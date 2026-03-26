@@ -316,7 +316,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage> {
           ),
           const SizedBox(height: 4),
           Text(
-            'Próximamente podrás ver el historial de notificaciones enviadas',
+            'El historial de notificaciones enviadas se implementará en una próxima versión.',
             textAlign: TextAlign.center,
             style: TextStyle(
               color: AppColors.secondaryText(context),

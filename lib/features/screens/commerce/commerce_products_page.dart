@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:zonix/models/commerce_product.dart';
 import 'package:zonix/features/services/commerce_product_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
 
@@ -328,9 +328,9 @@ class _CommerceProductsPageState extends State<CommerceProductsPage> {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, color: Colors.red),
+                            Icon(Icons.delete, color: AppColors.red),
                             SizedBox(width: 8),
-                            Text('Eliminar', style: TextStyle(color: Colors.red)),
+                            Text('Eliminar', style: TextStyle(color: AppColors.red)),
                           ],
                         ),
                       ),

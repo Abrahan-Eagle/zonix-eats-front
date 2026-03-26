@@ -176,7 +176,7 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error al subir logo: $message'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.red,
         ),
       );
     }
@@ -189,7 +189,7 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
         appBar: AppBar(
           title: const Text('Datos del comercio'),
           backgroundColor: AppColors.purple,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.white,
         ),
         body: const Center(child: CircularProgressIndicator()),
       );
@@ -199,7 +199,7 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
       appBar: AppBar(
         title: const Text('Datos del comercio'),
         backgroundColor: AppColors.purple,
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.white,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -224,7 +224,7 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
                         radius: 50,
                         backgroundImage: _logoUrl != null ? NetworkImage(_logoUrl!) : null,
                         child: _logoUrl == null 
-                          ? const Icon(Icons.store, size: 50, color: Colors.grey)
+                          ? const Icon(Icons.store, size: 50, color: AppColors.textMutedGray)
                           : null,
                       ),
                       const SizedBox(height: 16),
@@ -234,7 +234,7 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
                         label: const Text('Subir logo'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.blue,
-                          foregroundColor: Colors.white,
+                          foregroundColor: AppColors.white,
                         ),
                       ),
                     ],
@@ -402,15 +402,15 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade50,
+                    color: AppColors.red,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red.shade200),
+                    border: Border.all(color: AppColors.red),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.error, color: Colors.red),
+                      const Icon(Icons.error, color: AppColors.red),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(_error!, style: const TextStyle(color: Colors.red))),
+                      Expanded(child: Text(_error!, style: const TextStyle(color: AppColors.red))),
                     ],
                   ),
                 ),
@@ -419,15 +419,15 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.green.shade50,
+                    color: AppColors.green,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.green.shade200),
+                    border: Border.all(color: AppColors.green),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.check_circle, color: Colors.green),
+                      const Icon(Icons.check_circle, color: AppColors.green),
                       const SizedBox(width: 8),
-                      Expanded(child: Text(_success!, style: const TextStyle(color: Colors.green))),
+                      Expanded(child: Text(_success!, style: const TextStyle(color: AppColors.green))),
                     ],
                   ),
                 ),
@@ -443,14 +443,14 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
                   onPressed: _loading ? null : _submit,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.purple,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppColors.white,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                   ),
                   child: _loading 
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                        child: CircularProgressIndicator(color: AppColors.white, strokeWidth: 2),
                       )
                     : const Text(
                         'Guardar cambios',

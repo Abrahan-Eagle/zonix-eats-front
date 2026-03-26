@@ -159,6 +159,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   }
 
   Widget _buildErrorWidget(Object error) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -170,7 +171,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
             style: GoogleFonts.plusJakartaSans(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: AppColors.white,
+              color: isDark ? AppColors.white : AppColors.gray,
             ),
           ),
           Padding(
@@ -178,7 +179,8 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
             child: Text(
               error.toString(),
               textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(color: AppColors.white70),
+              style: GoogleFonts.plusJakartaSans(
+                  color: isDark ? AppColors.white70 : AppColors.textMutedGray),
             ),
           ),
           FilledButton(
@@ -194,6 +196,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   }
 
   Widget _buildEmptyState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -205,7 +208,8 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                 ? 'No hay restaurantes disponibles'
                 : 'No encontramos resultados',
             style: GoogleFonts.plusJakartaSans(
-                fontSize: 18, color: AppColors.white70),
+                fontSize: 18,
+                color: isDark ? AppColors.white70 : AppColors.gray),
           ),
           if (_searchQuery.isNotEmpty) ...[
             const SizedBox(height: 8),
@@ -217,8 +221,9 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                 });
               },
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.white,
-                side: const BorderSide(color: AppColors.white24),
+                foregroundColor: isDark ? AppColors.white : AppColors.blue,
+                side: BorderSide(
+                    color: isDark ? AppColors.white24 : AppColors.blue),
               ),
               child: const Text('Limpiar búsqueda'),
             ),

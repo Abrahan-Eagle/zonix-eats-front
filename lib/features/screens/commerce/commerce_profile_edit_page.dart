@@ -2,7 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zonix/features/services/commerce_data_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 
 class CommerceProfileEditPage extends StatefulWidget {
   const CommerceProfileEditPage({
@@ -158,7 +158,7 @@ class _CommerceProfileEditPageState extends State<CommerceProfileEditPage> {
                   children: [
                     CircleAvatar(
                       radius: 56,
-                      backgroundColor: Colors.grey.shade300,
+                      backgroundColor: AppColors.textMutedGray,
                       backgroundImage: _imagePath != null
                           ? FileImage(File(_imagePath!))
                           : (imageUrl != null && imageUrl.isNotEmpty
@@ -166,7 +166,7 @@ class _CommerceProfileEditPageState extends State<CommerceProfileEditPage> {
                               : null),
                       child: _imagePath == null &&
                               (imageUrl == null || imageUrl.isEmpty)
-                          ? const Icon(Icons.store, size: 48, color: Colors.grey)
+                          ? const Icon(Icons.store, size: 48, color: AppColors.textMutedGray)
                           : null,
                     ),
                     Positioned(
@@ -175,7 +175,7 @@ class _CommerceProfileEditPageState extends State<CommerceProfileEditPage> {
                       child: CircleAvatar(
                         backgroundColor: AppColors.blue,
                         child: IconButton(
-                          icon: const Icon(Icons.camera_alt, color: Colors.white),
+                          icon: const Icon(Icons.camera_alt, color: AppColors.white),
                           onPressed: _pickImage,
                         ),
                       ),
@@ -229,7 +229,7 @@ class _CommerceProfileEditPageState extends State<CommerceProfileEditPage> {
                         height: 20,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          color: Colors.white,
+                          color: AppColors.white,
                         ),
                       )
                     : const Icon(Icons.save),

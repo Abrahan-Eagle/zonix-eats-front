@@ -9,10 +9,10 @@
 
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
-- **Fecha:** 20 Marzo 2026
-- **Resumen:** Documentación Jarvis: inventario **Backlog candidato (no implementado)** alineado con el backend (mismo contenido esencial); sin cambios de código en esta sesión. Detalle extendido y referencias a docs del API también en `zonix-eats-back/docs/active_context.md`.
-- **Áreas tocadas:** `docs/active_context.md`, `AGENTS.md` (entrada “Cambios recientes”).
-- **Próximos pasos sugeridos:** Ver **Prioridad sugerida** en la sección de backlog abajo.
+- **Fecha:** 26 Marzo 2026
+- **Resumen:** Limpieza completa multi-rol + flujo pickup. Bugs corregidos (AdminService duplicado, context.read en initState, DeliveryService local, ScaffoldMessenger post-pop, filtros admin). Placeholders cerrados (4). Colores centralizados (~1100 en ~70 archivos). Sonido notificaciones Pusher. Flujo pickup buyer en 4 pantallas.
+- **Áreas tocadas:** `lib/models/order.dart`, pantallas orders/admin/commerce/delivery (~70 archivos), `notification_service.dart`, `main.dart`, `app_config.dart`.
+- **Próximos pasos sugeridos:** Prueba manual real (pickup + delivery) con ZonixDemoSeeder en dispositivo.
 
 ---
 

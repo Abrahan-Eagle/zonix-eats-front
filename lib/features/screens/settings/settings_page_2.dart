@@ -1745,11 +1745,11 @@ class _SettingsPage2State extends State<SettingsPage2> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: Colors.pink.withValues(alpha: 0.2),
+                            color: AppColors.stitchPink400.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Icon(Icons.help,
-                              color: Colors.pink, size: 22),
+                              color: AppColors.stitchPink400, size: 22),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -1829,11 +1829,11 @@ class _SettingsPage2State extends State<SettingsPage2> {
                           width: 40,
                           height: 40,
                           decoration: BoxDecoration(
-                            color: Colors.cyan.withValues(alpha: 0.2),
+                            color: AppColors.teal.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(16),
                           ),
                           child: const Icon(Icons.notifications,
-                              color: Colors.cyan, size: 22),
+                              color: AppColors.teal, size: 22),
                         ),
                         const SizedBox(width: 16),
                         Expanded(

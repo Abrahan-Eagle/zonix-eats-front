@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/features/screens/commerce/commerce_delivery_zone_form_page.dart';
 import 'package:zonix/features/services/commerce_delivery_zone_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
 
 class CommerceDeliveryZonesPage extends StatefulWidget {
@@ -81,7 +81,7 @@ class _CommerceDeliveryZonesPageState extends State<CommerceDeliveryZonesPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.map, size: 64, color: Colors.grey),
+                  Icon(Icons.map, size: 64, color: AppColors.textMutedGray),
                   SizedBox(height: 16),
                   Text('No hay zonas configuradas'),
                 ],

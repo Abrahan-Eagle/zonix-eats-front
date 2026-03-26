@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../config/app_config.dart';
 import '../../../helpers/auth_helper.dart';
 import 'package:zonix/features/services/payment_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
 import 'package:zonix/features/DomainProfiles/Phones/api/phone_service.dart';
 import 'package:zonix/features/DomainProfiles/Phones/models/phone.dart';

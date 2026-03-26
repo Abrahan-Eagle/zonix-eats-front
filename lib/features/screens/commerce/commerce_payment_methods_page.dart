@@ -280,7 +280,7 @@ class _CommercePaymentMethodsPageState
                                     border: Border.all(color: cardBorder, width: 1),
                                     boxShadow: [
                                       BoxShadow(
-                                        color: Colors.black.withValues(alpha: 0.04),
+                                        color: AppColors.black.withValues(alpha: 0.04),
                                         blurRadius: 6,
                                         offset: const Offset(0, 2),
                                       ),
@@ -400,7 +400,7 @@ class _CommercePaymentMethodsPageState
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           elevation: 2,
-                          shadowColor: Colors.black.withValues(alpha: 0.2),
+                          shadowColor: AppColors.black.withValues(alpha: 0.2),
                         ),
                         child: const Text('+ Agregar nuevo método', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ),

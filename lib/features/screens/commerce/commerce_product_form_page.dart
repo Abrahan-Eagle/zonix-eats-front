@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zonix/models/commerce_product.dart';
 import 'package:zonix/features/services/commerce_product_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
 
 class CommerceProductFormPage extends StatefulWidget {
@@ -136,9 +136,9 @@ class _CommerceProductFormPageState extends State<CommerceProductFormPage> {
                       child: Container(
                         height: 150,
                         decoration: BoxDecoration(
-                          color: Colors.grey[200],
+                          color: AppColors.grayLight,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey),
+                          border: Border.all(color: AppColors.textMutedGray),
                         ),
                         child: _imageFile != null
                             ? ClipRRect(

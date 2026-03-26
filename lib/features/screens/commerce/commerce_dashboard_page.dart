@@ -6,7 +6,7 @@ import 'package:zonix/features/services/commerce_order_service.dart';
 import 'package:zonix/features/services/commerce_data_service.dart';
 import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/screens/commerce/commerce_promotions_page.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
@@ -368,7 +368,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
                         style: const TextStyle(fontSize: 11),
                       ),
                       backgroundColor: _statusColor(order['status'] ?? ''),
-                      labelStyle: const TextStyle(color: Colors.white),
+                      labelStyle: const TextStyle(color: AppColors.white),
                     ),
                     onTap: () async {
                       final id = order['id'];

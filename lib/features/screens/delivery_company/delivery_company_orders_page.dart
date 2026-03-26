@@ -132,7 +132,7 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.cloud_off, size: 64, color: Colors.grey),
+                  const Icon(Icons.cloud_off, size: 64, color: AppColors.textMutedGray),
                   const SizedBox(height: 16),
                   Text(service.ordersError!, style: const TextStyle(fontSize: 16)),
                   const SizedBox(height: 16),

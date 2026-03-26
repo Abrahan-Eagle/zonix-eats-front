@@ -679,6 +679,7 @@ class _CommerceRegistrationPageState extends State<CommerceRegistrationPage>
 
         // Marcar onboarding completado localmente para que no se vuelva a mostrar
         userProvider.setCompletedOnboarding(true);
+        await userProvider.registerFcmTokenAfterProfileReady();
 
         if (!mounted) return;
 

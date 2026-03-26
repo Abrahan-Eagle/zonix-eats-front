@@ -68,7 +68,7 @@ class _OrderRatingPageState extends State<OrderRatingPage> {
                   onPressed: _submitting ? null : _submitRating,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.orange,
-                    foregroundColor: Colors.white,
+                    foregroundColor: AppColors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -80,7 +80,7 @@ class _OrderRatingPageState extends State<OrderRatingPage> {
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
+                                AlwaysStoppedAnimation<Color>(AppColors.white),
                           ),
                         )
                       : const Text(

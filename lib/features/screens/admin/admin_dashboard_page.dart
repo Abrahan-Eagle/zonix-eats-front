@@ -211,7 +211,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     final score = safeInt(_health['performance_score']);
 
     final Color startColor = isHealthy
-        ? (_isDark ? const Color(0xFF0D4A2E) : const Color(0xFFD1FAE5))
+        ? (_isDark ? const Color(0xFF0D4A2E) : AppColors.greenLight100)
         : (_isDark ? const Color(0xFF4A0D0D) : const Color(0xFFFEE2E2));
     final Color endColor = isHealthy
         ? (_isDark ? const Color(0xFF064E3B) : const Color(0xFFA7F3D0))
@@ -333,7 +333,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         crossAxisCount: 3,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 0.88,
+        // Celdas más altas que anchas: evita overflow del Column en pantallas estrechas
+        childAspectRatio: 0.68,
       ),
       itemBuilder: (_, i) => _metricCard(metrics[i]),
     );
@@ -354,40 +355,45 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         ],
         border: _isDark ? Border.all(color: AppColors.white12) : null,
       ),
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: m.color.withAlpha(31),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(m.icon, color: m.color, size: 24),
+            child: Icon(m.icon, color: m.color, size: 22),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 6),
           FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
               m.value,
               style: TextStyle(
-                fontSize: 20,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AppColors.primaryText(context),
               ),
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            m.label,
-            style: TextStyle(
-              fontSize: 11,
-              color: AppColors.secondaryText(context),
+          const SizedBox(height: 2),
+          Expanded(
+            child: Center(
+              child: Text(
+                m.label,
+                style: TextStyle(
+                  fontSize: 10,
+                  height: 1.15,
+                  color: AppColors.secondaryText(context),
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -424,6 +430,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         crossAxisCount: 3,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
+        childAspectRatio: 0.72,
       ),
       itemBuilder: (_, i) => _quickActionCard(actions[i]),
     );
@@ -444,29 +451,34 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   border: Border.all(color: AppColors.white12),
                 )
               : null,
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: a.color.withAlpha(31),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(a.icon, color: a.color, size: 24),
+                child: Icon(a.icon, color: a.color, size: 22),
               ),
-              const SizedBox(height: 10),
-              Text(
-                a.label,
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primaryText(context),
+              const SizedBox(height: 6),
+              Expanded(
+                child: Center(
+                  child: Text(
+                    a.label,
+                    style: TextStyle(
+                      fontSize: 11,
+                      height: 1.15,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryText(context),
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),

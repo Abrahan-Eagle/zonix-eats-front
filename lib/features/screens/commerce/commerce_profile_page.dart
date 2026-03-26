@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/features/screens/commerce/commerce_profile_edit_page.dart';
 import 'package:zonix/features/services/commerce_data_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 
 class CommerceProfilePage extends StatefulWidget {
   const CommerceProfilePage({

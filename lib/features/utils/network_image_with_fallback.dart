@@ -88,10 +88,9 @@ class NetworkImageWithFallback extends StatelessWidget {
 
   Widget _buildErrorPlaceholder() {
     final color = fallbackColor ?? Colors.orange;
-    
-    // Convertir a MaterialColor para usar shades, o usar colores predefinidos
     final materialColor = color is MaterialColor ? color : Colors.orange;
-    
+    final isCompact = height <= 80;
+
     return Container(
       width: width,
       height: height,
@@ -105,47 +104,56 @@ class NetworkImageWithFallback extends StatelessWidget {
           ],
         ),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.9),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              fallbackIcon ?? Icons.restaurant,
-              size: height * 0.2,
-              color: materialColor.shade600,
-            ),
-          ),
-          if (title != null) ...[
-            const SizedBox(height: 8),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Text(
-                title!,
-                style: TextStyle(
-                  fontSize: height * 0.06,
-                  fontWeight: FontWeight.bold,
-                  color: materialColor.shade800,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+      child: Center(
+        child: isCompact
+            ? Icon(
+                fallbackIcon ?? Icons.restaurant,
+                size: height * 0.4,
+                color: materialColor.shade600,
+              )
+            : Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      fallbackIcon ?? Icons.restaurant,
+                      size: height * 0.2,
+                      color: materialColor.shade600,
+                    ),
+                  ),
+                  if (title != null) ...[
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text(
+                        title!,
+                        style: TextStyle(
+                          fontSize: height * 0.06,
+                          fontWeight: FontWeight.bold,
+                          color: materialColor.shade800,
+                        ),
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 4),
+                  Text(
+                    'Imagen no disponible',
+                    style: TextStyle(
+                      fontSize: height * 0.04,
+                      color: materialColor.shade600,
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
-          const SizedBox(height: 4),
-          Text(
-            'Imagen no disponible',
-            style: TextStyle(
-              fontSize: height * 0.04,
-              color: materialColor.shade600,
-            ),
-          ),
-        ],
       ),
     );
   }

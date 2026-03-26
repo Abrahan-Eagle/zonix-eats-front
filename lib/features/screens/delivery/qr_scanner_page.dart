@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:provider/provider.dart';
 import 'package:zonix/features/services/delivery_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
@@ -63,7 +64,7 @@ class _QrScannerPageState extends State<QrScannerPage> {
     _controller.stop();
 
     try {
-      final service = DeliveryService();
+      final service = context.read<DeliveryService>();
       if (widget.scanType == 'pickup') {
         await service.scanPickup(orderId, token);
       } else {
@@ -118,18 +119,18 @@ class _QrScannerPageState extends State<QrScannerPage> {
             right: 0,
             child: Container(
               padding: const EdgeInsets.all(24),
-              color: Colors.black54,
+              color: AppColors.black54,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (_processing)
-                    const CircularProgressIndicator(color: Colors.white)
+                    const CircularProgressIndicator(color: AppColors.white)
                   else
                     Text(
                       widget.scanType == 'pickup'
                           ? 'Apunta al QR del comercio'
                           : 'Apunta al QR del cliente',
-                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                      style: const TextStyle(color: AppColors.white, fontSize: 16),
                       textAlign: TextAlign.center,
                     ),
                   if (_error != null) ...[

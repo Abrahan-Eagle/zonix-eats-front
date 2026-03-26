@@ -90,4 +90,9 @@ class AppConfig {
   /// Base URL para abrir chat WhatsApp (ej. https://wa.me)
   static String get whatsappBaseUrl =>
       dotenv.env['WHATSAPP_BASE_URL'] ?? 'https://wa.me';
+
+  static String get supportUrl =>
+      dotenv.env['SUPPORT_URL'] ?? 'https://zonixeats.com/soporte';
+  static String get supportEmail =>
+      dotenv.env['SUPPORT_EMAIL'] ?? 'soporte@zonixeats.com';
 }

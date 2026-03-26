@@ -166,7 +166,8 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
         crossAxisCount: 2,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 1.45,
+        // Celdas más altas: evita overflow del Column en pantallas estrechas
+        childAspectRatio: 1.05,
       ),
       itemBuilder: (_, i) => _overviewCard(items[i]),
     );
@@ -187,40 +188,47 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
         ],
         border: _isDark ? Border.all(color: AppColors.white12) : null,
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
               color: item.color.withAlpha(31),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(item.icon, color: item.color, size: 22),
+            child: Icon(item.icon, color: item.color, size: 20),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 6),
           FittedBox(
             fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
             child: Text(
               item.value,
               style: TextStyle(
-                fontSize: 22,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: AppColors.primaryText(context),
               ),
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            item.label,
-            style: TextStyle(
-              fontSize: 12,
-              color: AppColors.secondaryText(context),
+          Expanded(
+            child: Align(
+              alignment: Alignment.bottomLeft,
+              child: Text(
+                item.label,
+                style: TextStyle(
+                  fontSize: 11,
+                  height: 1.2,
+                  color: AppColors.secondaryText(context),
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),

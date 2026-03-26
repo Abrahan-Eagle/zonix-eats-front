@@ -239,12 +239,7 @@ class _ProductsPageState extends State<ProductsPage> {
                         color: AppColors.primaryText(context),
                       ),
                     ),
-                    TextButton(
-                      onPressed: () {},
-                      child: const Text('Ver todo',
-                          style: TextStyle(
-                              color: _primary, fontWeight: FontWeight.w600)),
-                    ),
+                    const SizedBox.shrink(),
                   ],
                 ),
               ),

@@ -10,6 +10,7 @@ library help_and_faq_page;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 
@@ -21,8 +22,8 @@ class HelpAndFAQPage extends StatefulWidget {
 }
 
 class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
-  static const String _supportEmail = 'soporte@zonixeats.com';
-  static const String _supportUrl = 'https://zonixeats.com/soporte';
+  static String get _supportEmail => AppConfig.supportEmail;
+  static String get _supportUrl => AppConfig.supportUrl;
 
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
@@ -47,10 +48,10 @@ class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
     return Scaffold(
       backgroundColor: isDark ? AppColors.backgroundDark : AppColors.scaffoldBgLight,
       appBar: AppBar(
-        backgroundColor: isDark ? AppColors.grayDark : Colors.white,
+        backgroundColor: isDark ? AppColors.grayDark : AppColors.white,
         elevation: 0,
         scrolledUnderElevation: 0,
-        surfaceTintColor: Colors.transparent,
+        surfaceTintColor: AppColors.transparent,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: isDark ? AppColors.white : AppColors.blueDark),
           onPressed: () => Navigator.of(context).pop(),
@@ -134,7 +135,7 @@ class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
                       borderRadius: BorderRadius.circular(12),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.06),
+                          color: AppColors.black.withValues(alpha: 0.06),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -154,7 +155,7 @@ class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
                   size: 24,
                 ),
                 filled: true,
-                fillColor: isDark ? AppColors.grayDark : Colors.white,
+                fillColor: isDark ? AppColors.grayDark : AppColors.white,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
@@ -230,7 +231,7 @@ class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
       childAspectRatio: 1.05,
       children: topics.map((t) {
         return Material(
-          color: Colors.transparent,
+          color: AppColors.transparent,
           child: InkWell(
             onTap: () {
               _searchController.text = t.searchKeyword;
@@ -240,7 +241,7 @@ class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isDark ? AppColors.grayDark : Colors.white,
+                color: isDark ? AppColors.grayDark : AppColors.white,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isDark ? AppColors.white12 : AppColors.borderLight,
@@ -249,7 +250,7 @@ class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
                     ? null
                     : [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.04),
+                          color: AppColors.black.withValues(alpha: 0.04),
                           blurRadius: 6,
                           offset: const Offset(0, 2),
                         ),
@@ -354,14 +355,14 @@ class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
                 borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
+                    color: AppColors.black.withValues(alpha: 0.04),
                     blurRadius: 6,
                     offset: const Offset(0, 2),
                   ),
                 ],
               ),
         child: Theme(
-          data: theme.copyWith(dividerColor: Colors.transparent),
+          data: theme.copyWith(dividerColor: AppColors.transparent),
           child: ExpansionTile(
           tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -377,8 +378,8 @@ class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
               color: isDark ? AppColors.white12 : AppColors.borderLight,
             ),
           ),
-          backgroundColor: isDark ? AppColors.grayDark : Colors.white,
-          collapsedBackgroundColor: isDark ? AppColors.grayDark : Colors.white,
+          backgroundColor: isDark ? AppColors.grayDark : AppColors.white,
+          collapsedBackgroundColor: isDark ? AppColors.grayDark : AppColors.white,
           expandedCrossAxisAlignment: CrossAxisAlignment.start,
           title: Text(
             question,
@@ -467,7 +468,7 @@ class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
               label: const Text('Chat en Vivo'),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.blue,
-                foregroundColor: Colors.white,
+                foregroundColor: AppColors.white,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 elevation: 2,
                 shadowColor: AppColors.blue.withValues(alpha: 0.35),
@@ -574,7 +575,7 @@ class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
     } else {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('No se pudo abrir el correo. Escribe a $_supportEmail'),
             backgroundColor: AppColors.orange,
           ),
@@ -590,7 +591,7 @@ class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
     } else {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text('No se pudo abrir $_supportUrl'),
             backgroundColor: AppColors.red,
           ),

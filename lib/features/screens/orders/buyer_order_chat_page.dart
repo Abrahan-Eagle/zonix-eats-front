@@ -153,7 +153,7 @@ class _BuyerOrderChatPageState extends State<BuyerOrderChatPage> {
       appBar: AppBar(
         title: Text('Chat - Orden #${widget.orderId}'),
         backgroundColor: AppColors.headerGradientStart(context),
-        foregroundColor: Colors.white,
+        foregroundColor: AppColors.white,
       ),
       body: Column(
         children: [
@@ -189,16 +189,16 @@ class _BuyerOrderChatPageState extends State<BuyerOrderChatPage> {
       );
     }
     if (_messages.isEmpty) {
-      return Center(
+      return const Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey.shade400),
-            const SizedBox(height: 16),
+            Icon(Icons.chat_bubble_outline, size: 64, color: AppColors.textMutedGray),
+            SizedBox(height: 16),
             Text(
               'No hay mensajes. Escribe para contactar al comercio.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey.shade600),
+              style: TextStyle(color: AppColors.gray),
             ),
           ],
         ),
@@ -247,7 +247,7 @@ class _BuyerOrderChatPageState extends State<BuyerOrderChatPage> {
                     maxWidth: MediaQuery.of(context).size.width * 0.75,
                   ),
                   decoration: BoxDecoration(
-                    color: isOwn ? AppColors.blue : Colors.grey.shade300,
+                    color: isOwn ? AppColors.blue : AppColors.textMutedGray,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -256,7 +256,7 @@ class _BuyerOrderChatPageState extends State<BuyerOrderChatPage> {
                       Text(
                         content,
                         style: TextStyle(
-                          color: isOwn ? Colors.white : Colors.black87,
+                          color: isOwn ? AppColors.white : AppColors.black87,
                           fontSize: 15,
                         ),
                       ),
@@ -264,7 +264,7 @@ class _BuyerOrderChatPageState extends State<BuyerOrderChatPage> {
                       Text(
                         time,
                         style: TextStyle(
-                          color: isOwn ? Colors.white70 : Colors.black54,
+                          color: isOwn ? AppColors.white70 : AppColors.black54,
                           fontSize: 11,
                         ),
                       ),
@@ -306,7 +306,7 @@ class _BuyerOrderChatPageState extends State<BuyerOrderChatPage> {
       case 'customer':
         return AppColors.blue;
       default:
-        return Colors.grey;
+        return AppColors.textMutedGray;
     }
   }
 
@@ -317,7 +317,7 @@ class _BuyerOrderChatPageState extends State<BuyerOrderChatPage> {
         color: Theme.of(context).scaffoldBackgroundColor,
         boxShadow: const [
           BoxShadow(
-            color: Colors.black12,
+            color: AppColors.black12,
             blurRadius: 4,
             offset: Offset(0, -2),
           ),

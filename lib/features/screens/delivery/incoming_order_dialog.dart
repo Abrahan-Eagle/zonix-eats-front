@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:zonix/features/services/delivery_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 
@@ -89,7 +90,7 @@ class _IncomingOrderDialogState extends State<IncomingOrderDialog>
     setState(() => _processing = true);
     _timer?.cancel();
     try {
-      final service = DeliveryService();
+      final service = context.read<DeliveryService>();
       await service.acceptOrder(widget.orderId);
       if (mounted) Navigator.of(context).pop(true);
     } catch (_) {
@@ -108,7 +109,7 @@ class _IncomingOrderDialogState extends State<IncomingOrderDialog>
     setState(() => _processing = true);
     _timer?.cancel();
     try {
-      final service = DeliveryService();
+      final service = context.read<DeliveryService>();
       await service.rejectOrder(widget.orderId);
     } catch (_) {
       // Best-effort
@@ -217,7 +218,7 @@ class _IncomingOrderDialogState extends State<IncomingOrderDialog>
                           ? const SizedBox(
                               width: 18,
                               height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white),
                             )
                           : const Icon(Icons.check),
                       label: Text(_processing ? 'Procesando...' : 'Aceptar'),

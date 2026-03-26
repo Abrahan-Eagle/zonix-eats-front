@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:zonix/features/services/chat_service.dart';
 import 'package:zonix/features/services/pusher_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 
 /// Chat comercio-cliente. Usa Pusher para mensajes en tiempo real.
 class CommerceChatMessagesPage extends StatefulWidget {
@@ -187,7 +187,7 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey),
+            Icon(Icons.chat_bubble_outline, size: 64, color: AppColors.textMutedGray),
             SizedBox(height: 16),
             Text('No hay mensajes. Escribe para iniciar la conversación.'),
           ],
@@ -237,7 +237,7 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
                     maxWidth: MediaQuery.of(context).size.width * 0.75,
                   ),
                   decoration: BoxDecoration(
-                    color: isOwn ? AppColors.blue : Colors.grey.shade300,
+                    color: isOwn ? AppColors.blue : AppColors.textMutedGray,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -246,7 +246,7 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
                       Text(
                         content,
                         style: TextStyle(
-                          color: isOwn ? Colors.white : Colors.black87,
+                          color: isOwn ? AppColors.white : AppColors.black87,
                           fontSize: 15,
                         ),
                       ),
@@ -254,7 +254,7 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
                       Text(
                         time,
                         style: TextStyle(
-                          color: isOwn ? Colors.white70 : Colors.black54,
+                          color: isOwn ? AppColors.white70 : AppColors.black54,
                           fontSize: 11,
                         ),
                       ),
@@ -296,7 +296,7 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
       case 'customer':
         return AppColors.blue;
       default:
-        return Colors.grey;
+        return AppColors.textMutedGray;
     }
   }
 
@@ -307,7 +307,7 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
         color: Theme.of(context).scaffoldBackgroundColor,
         boxShadow: const [
           BoxShadow(
-            color: Colors.black12,
+            color: AppColors.black12,
             blurRadius: 4,
             offset: Offset(0, -2),
           ),

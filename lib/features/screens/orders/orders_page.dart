@@ -232,7 +232,7 @@ class _OrdersPageState extends State<OrdersPage> {
         isDark ? AppColors.backgroundDark : AppColors.grayLight;
     final primary = isDark ? AppColors.accentButton(context) : _templatePrimary;
     final borderColor =
-        isDark ? Colors.white.withValues(alpha: 0.08) : AppColors.grayLight;
+        isDark ? AppColors.white.withValues(alpha: 0.08) : AppColors.grayLight;
 
     return Scaffold(
       backgroundColor: backgroundLight,
@@ -341,7 +341,7 @@ class _OrdersPageState extends State<OrdersPage> {
     required Color surfaceColor,
   }) {
     return Material(
-      color: Colors.transparent,
+      color: AppColors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(10),
@@ -349,12 +349,12 @@ class _OrdersPageState extends State<OrdersPage> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: selected ? surfaceColor : Colors.transparent,
+            color: selected ? surfaceColor : AppColors.transparent,
             borderRadius: BorderRadius.circular(10),
             boxShadow: selected && !isDark
                 ? [
                     BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.06),
+                        color: AppColors.black.withValues(alpha: 0.06),
                         blurRadius: 4,
                         offset: const Offset(0, 1))
                   ]
@@ -574,7 +574,7 @@ class _OrdersPageState extends State<OrdersPage> {
         border: Border.all(color: borderColor),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: AppColors.black.withValues(alpha: 0.05),
               blurRadius: 20,
               spreadRadius: -2,
               offset: const Offset(0, 4))
@@ -718,10 +718,10 @@ class _OrdersPageState extends State<OrdersPage> {
                             style: GoogleFonts.plusJakartaSans(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.white)),
+                                color: AppColors.white)),
                         const SizedBox(width: 8),
                         const Icon(Icons.location_on,
-                            size: 18, color: Colors.white),
+                            size: 18, color: AppColors.white),
                       ],
                     ),
                   ),
@@ -769,7 +769,7 @@ class _OrdersPageState extends State<OrdersPage> {
     final statusText = order.isDelivered ? 'Entregado' : 'Cancelado';
 
     return Material(
-      color: Colors.transparent,
+      color: AppColors.transparent,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -782,7 +782,7 @@ class _OrdersPageState extends State<OrdersPage> {
             border: Border.all(color: borderColor),
             boxShadow: [
               BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
+                  color: AppColors.black.withValues(alpha: 0.04),
                   blurRadius: 4,
                   offset: const Offset(0, 1))
             ],
@@ -911,9 +911,9 @@ class _OrdersPageState extends State<OrdersPage> {
     return Container(
       width: w,
       height: h,
-      color: dark ? Colors.grey.shade800 : Colors.grey.shade300,
+      color: dark ? AppColors.grayDark : AppColors.textMutedGray,
       child: Icon(Icons.store,
-          color: dark ? Colors.grey.shade500 : Colors.grey.shade600,
+          color: dark ? AppColors.gray : AppColors.gray,
           size: w * 0.5),
     );
   }

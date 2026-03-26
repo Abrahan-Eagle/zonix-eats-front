@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/features/screens/commerce/commerce_chat_messages_page.dart';
 import 'package:zonix/features/services/chat_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
 
 class CommerceChatPage extends StatefulWidget {
@@ -81,7 +81,7 @@ class _CommerceChatPageState extends State<CommerceChatPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.chat_bubble_outline, size: 64, color: Colors.grey),
+                  Icon(Icons.chat_bubble_outline, size: 64, color: AppColors.textMutedGray),
                   SizedBox(height: 16),
                   Text('No hay conversaciones'),
                 ],

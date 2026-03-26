@@ -307,10 +307,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         margin: const EdgeInsets.symmetric(vertical: 6),
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.05),
+                          color: AppColors.white.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.1),
+                            color: AppColors.white.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Row(
@@ -449,7 +449,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         decoration: BoxDecoration(
                           color: _deliveryType == 'delivery'
                               ? AppColors.orange
-                              : Colors.transparent,
+                              : AppColors.transparent,
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Row(
@@ -459,7 +459,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               Icons.delivery_dining,
                               size: 18,
                               color: _deliveryType == 'delivery'
-                                  ? Colors.white
+                                  ? AppColors.white
                                   : AppColors.secondaryText(context),
                             ),
                             const SizedBox(width: 6),
@@ -469,7 +469,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 color: _deliveryType == 'delivery'
-                                    ? Colors.white
+                                    ? AppColors.white
                                     : AppColors.secondaryText(context),
                               ),
                             ),
@@ -492,7 +492,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         decoration: BoxDecoration(
                           color: _deliveryType == 'pickup'
                               ? AppColors.cardBg(context)
-                              : Colors.transparent,
+                              : AppColors.transparent,
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Row(
@@ -843,7 +843,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     child: const Icon(
                       Icons.credit_card,
                       size: 18,
-                      color: Colors.white,
+                      color: AppColors.white,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -933,7 +933,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.orange,
-                  foregroundColor: Colors.white,
+                  foregroundColor: AppColors.white,
                   padding:
                       const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                   shape: RoundedRectangleBorder(
@@ -948,7 +948,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.white),
+                              AlwaysStoppedAnimation<Color>(AppColors.white),
                         ),
                       )
                     : const Row(
@@ -966,7 +966,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           Icon(
                             Icons.chevron_right,
                             size: 20,
-                            color: Colors.white,
+                            color: AppColors.white,
                           ),
                         ],
                       ),

@@ -310,10 +310,15 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                           order.status == 'pending')
                         _buildPendingPaymentCard(context, order, surfaceColor,
                             borderColor, primary, textPrimary),
-                      _buildMapSection(
-                          order, primary, surfaceColor, borderColor, isDark),
-                      _buildDeliveryPersonCard(surfaceColor, borderColor,
-                          primary, textPrimary, textSecondary),
+                      if (order.isDeliveryOrder) ...[
+                        _buildMapSection(
+                            order, primary, surfaceColor, borderColor, isDark),
+                        _buildDeliveryPersonCard(surfaceColor, borderColor,
+                            primary, textPrimary, textSecondary),
+                      ],
+                      if (order.isPickup)
+                        _buildPickupInfoCard(order, surfaceColor, borderColor,
+                            primary, textPrimary, textSecondary),
                       _buildAddressCard(order, surfaceColor, borderColor,
                           textPrimary, textSecondary),
                       _buildOrderSummary(order, surfaceColor, borderColor,
@@ -788,9 +793,58 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     );
   }
 
+  Widget _buildPickupInfoCard(Order order, Color surfaceColor,
+      Color borderColor, Color primary, Color textPrimary, Color textSecondary) {
+    final commerceName = order.commerceName.isNotEmpty
+        ? order.commerceName
+        : 'el comercio';
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: primary.withAlpha(15),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: primary.withAlpha(40)),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.storefront, color: primary, size: 28),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Retiro en tienda',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Recoge tu pedido en $commerceName cuando esté listo.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    color: textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildAddressCard(Order order, Color surfaceColor, Color borderColor,
       Color textPrimary, Color textSecondary) {
-    final address = order.deliveryAddress.isEmpty ? '—' : order.deliveryAddress;
+    final address = order.isPickup
+        ? (order.commerceAddress.isNotEmpty
+            ? order.commerceAddress
+            : (order.commerceName.isNotEmpty ? order.commerceName : '—'))
+        : (order.deliveryAddress.isEmpty ? '—' : order.deliveryAddress);
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 16, 16, 0),
       padding: const EdgeInsets.all(16),
@@ -818,7 +872,7 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'DIRECCIÓN DE ENTREGA',
+                  order.isPickup ? 'RECOGER EN' : 'DIRECCIÓN DE ENTREGA',
                   style: GoogleFonts.plusJakartaSans(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,

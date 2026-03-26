@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/screens/commerce/commerce_payment_method_form_page.dart';
 import 'package:zonix/features/services/payment_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/app_colors.dart';
 import 'package:zonix/features/utils/rif_formatter.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
 
@@ -125,7 +125,7 @@ class PaymentMethodDetailPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
+                color: AppColors.black.withValues(alpha: 0.2),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -468,7 +468,7 @@ class PaymentMethodDetailPage extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: AppColors.white,
                         borderRadius: BorderRadius.circular(8),
-                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 4)],
+                        boxShadow: [BoxShadow(color: AppColors.black.withValues(alpha: 0.1), blurRadius: 4)],
                       ),
                       child: const Icon(Icons.account_balance, color: AppColors.blueDark, size: 28),
                     ),

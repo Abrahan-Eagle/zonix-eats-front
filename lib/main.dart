@@ -248,6 +248,17 @@ Future<void> _showFcmNotification({
   await _localNotifications.show(id, title, body, details, payload: payload);
 }
 
+/// Acceso público para que NotificationService pueda mostrar notificación local con sonido
+/// cuando llega un evento Pusher (backup cuando FCM no está disponible).
+Future<void> showLocalNotification({
+  required String title,
+  required String body,
+  String? payload,
+}) async {
+  final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  await _showFcmNotification(title: title, body: body, id: id, payload: payload);
+}
+
 /// Inicializa notificaciones locales (canal con sonido y vibración).
 Future<void> _initLocalNotifications() async {
   if (kIsWeb) return;
