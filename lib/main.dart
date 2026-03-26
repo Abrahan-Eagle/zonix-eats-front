@@ -70,7 +70,7 @@ import 'package:zonix/features/screens/delivery_company/delivery_company_orders_
 import 'package:zonix/features/screens/delivery_company/delivery_company_earnings_page.dart';
 import 'package:zonix/features/screens/admin/admin_dashboard_page.dart';
 import 'package:zonix/features/screens/admin/admin_users_page.dart';
-import 'package:zonix/features/screens/admin/admin_security_page.dart';
+import 'package:zonix/features/screens/admin/admin_orders_page.dart';
 import 'package:zonix/features/screens/admin/admin_analytics_page.dart';
 
 import 'package:zonix/features/utils/app_colors.dart';
@@ -91,7 +91,7 @@ import 'package:zonix/features/widgets/buyer_shell.dart';
  * 1 - Tiendas/Comercio (commerce): Dashboard, Órdenes, Productos, Reportes
  * 2 - Delivery (delivery/delivery_agent): Entregas, Historial, Rutas, Ganancias
  * 3 - Empresa de Delivery (delivery_company): Dashboard, Agentes, Órdenes, Ganancias
- * 4 - Administrador (admin): Panel Admin, Usuarios, Seguridad, Sistema
+ * 4 - Administrador (admin): Dashboard, Usuarios, Órdenes, Analytics
  */
 
 // Configuración del logger
@@ -811,20 +811,20 @@ class MainRouterState extends State<MainRouter> {
       case 4: // Administrador
         items = [
           const BottomNavigationBarItem(
-            icon: Icon(Icons.admin_panel_settings),
-            label: 'Panel Admin',
+            icon: Icon(Icons.dashboard),
+            label: 'Dashboard',
           ),
           const BottomNavigationBarItem(
             icon: Icon(Icons.people_outline),
             label: 'Usuarios',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.security),
-            label: 'Seguridad',
+            icon: Icon(Icons.receipt_long),
+            label: 'Órdenes',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.settings_system_daydream),
-            label: 'Sistema',
+            icon: Icon(Icons.analytics),
+            label: 'Analytics',
           ),
         ];
         break;
@@ -1075,13 +1075,13 @@ class MainRouterState extends State<MainRouter> {
                 if (_selectedLevel == 4) {
                   switch (_bottomNavIndex) {
                     case 0:
-                      return const AdminDashboardPage(); // Panel Admin
+                      return const AdminDashboardPage();
                     case 1:
-                      return const AdminUsersPage(); // Usuarios
+                      return const AdminUsersPage();
                     case 2:
-                      return const AdminSecurityPage(); // Seguridad
+                      return const AdminOrdersPage();
                     case 3:
-                      return const AdminAnalyticsPage(); // Sistema/Analíticas
+                      return const AdminAnalyticsPage();
                     default:
                       return const AdminDashboardPage();
                   }

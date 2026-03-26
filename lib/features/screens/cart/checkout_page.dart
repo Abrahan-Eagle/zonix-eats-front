@@ -34,6 +34,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   bool _validatingCoupon = false;
   final _promotionService = PromotionService();
   double? _calculatedDeliveryFee;
+  int? _deliveryTimeMinutes;
   bool _deliveryFeeLoading = false;
 
   @override
@@ -73,6 +74,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     setState(() {
       _deliveryFeeLoading = false;
       _calculatedDeliveryFee = result != null ? safeDouble(result['delivery_fee']) : null;
+      _deliveryTimeMinutes = result != null ? safeInt(result['delivery_time_minutes']) : null;
     });
   }
 
@@ -897,6 +899,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             : '\$${delivery.toStringAsFixed(2)}'),
                     isDiscount: delivery <= 0 && !_deliveryFeeLoading,
                   ),
+                  if (_deliveryType == 'delivery' && _deliveryTimeMinutes != null && _deliveryTimeMinutes! > 0)
+                    _buildSummaryRow(
+                      'Tiempo estimado',
+                      '~${_deliveryTimeMinutes!} min',
+                    ),
                   _buildSummaryRow(
                     'Impuestos (8%)',
                     '\$${tax.toStringAsFixed(2)}',
