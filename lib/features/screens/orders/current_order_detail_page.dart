@@ -10,6 +10,7 @@ import 'package:zonix/widgets/osm_map_widget.dart';
 import 'package:zonix/features/screens/orders/buyer_order_chat_page.dart';
 import 'package:zonix/features/screens/orders/delivery_detail_page.dart';
 import 'package:zonix/features/screens/orders/order_detail_page.dart';
+import 'package:zonix/features/screens/help/help_and_faq_page.dart';
 import 'package:flutter_map/flutter_map.dart' show Marker;
 import 'package:latlong2/latlong.dart';
 
@@ -366,7 +367,11 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
           ),
           IconButton(
             onPressed: () {
-              // TODO: ayuda/soporte
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const HelpAndFAQPage(),
+                ),
+              );
             },
             icon: Icon(Icons.help_outline, color: primary),
           ),

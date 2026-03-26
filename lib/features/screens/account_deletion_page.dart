@@ -184,7 +184,7 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
           child: AppBar(
             backgroundColor: Colors.transparent,
             elevation: 0,
-            title: const Text('Eliminar Cuenta', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)), // TODO: internacionalizar
+            title: const Text('Eliminar Cuenta', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)),
             iconTheme: const IconThemeData(color: AppColors.white),
           ),
         ),
@@ -211,7 +211,7 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
                               Icon(Icons.warning, color: AppColors.red),
                               SizedBox(width: 8),
                               Text(
-                                'Advertencia importante', // TODO: internacionalizar
+                                'Advertencia importante',
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -222,7 +222,7 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
                           ),
                           SizedBox(height: 8),
                           Text(
-                            'La eliminación de tu cuenta es permanente e irreversible. Todos tus datos, pedidos, reseñas y configuraciones serán eliminados definitivamente.', // TODO: internacionalizar
+                            'La eliminación de tu cuenta es permanente e irreversible. Todos tus datos, pedidos, reseñas y configuraciones serán eliminados definitivamente.',
                             style: TextStyle(color: Colors.red),
                           ),
                         ],
@@ -251,7 +251,7 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            '¿Qué se elimina?', // TODO: internacionalizar
+                            '¿Qué se elimina?',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,

@@ -77,8 +77,7 @@ class _CommerceSchedulePageState extends State<CommerceSchedulePage> {
   }
 
   void _parseScheduleString(String schedule) {
-    // Parsear horario desde string (formato simple)
-    // TODO: Implementar parsing más robusto
+    // Horario como texto libre desde el backend; se muestra/edita tal cual.
     _scheduleController.text = schedule;
   }
 

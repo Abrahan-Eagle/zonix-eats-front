@@ -201,7 +201,7 @@ class ChatService extends ChangeNotifier {
 
   // Start typing indicator
   void startTyping(int conversationId, int userId) {
-    // TODO: Implement real-time typing indicator
+    // Local timer only; no network broadcast until the API exposes typing events.
     _typingTimer?.cancel();
     _typingTimer = Timer(const Duration(seconds: 5), () {
       stopTyping(conversationId, userId);
@@ -211,7 +211,6 @@ class ChatService extends ChangeNotifier {
   // Stop typing indicator
   void stopTyping(int conversationId, int userId) {
     _typingTimer?.cancel();
-    // TODO: Implement real-time typing indicator
   }
 
   // Get message stream
@@ -222,12 +221,9 @@ class ChatService extends ChangeNotifier {
   // Start listening for new messages
   void startListening() {
     _messageController = StreamController<Map<String, dynamic>>.broadcast();
-    
-    // TODO: Implementar tiempo real con Pusher (canal de chat)
-    // _socket = io.connect('ws://your-server.com/chat');
-    // _socket.on('new_message', (data) {
-    //   _messageController?.add(data);
-    // });
+    // Order chat real-time uses PusherService from buyer_order_chat_page /
+    // commerce_chat_messages_page (private-orders.{orderId}). This stream is
+    // not subscribed from the service layer.
   }
 
   // Stop listening for new messages
@@ -235,16 +231,12 @@ class ChatService extends ChangeNotifier {
     _messageController?.close();
     _messageController = null;
     _typingTimer?.cancel();
-    
-    // TODO: Desconectar Pusher (canal de chat)
-    // _socket?.disconnect();
   }
 
   // Upload file
   Future<Map<String, dynamic>> uploadFile(int conversationId, Map<String, dynamic> fileData) async {
     try {
-      // TODO: Implementar subida de archivos con multipart/form-data
-      // Por ahora solo se puede enviar como mensaje de tipo 'image' con URL
+      // JSON body (image URL / content). Use multipart when the chat API accepts file upload.
       final response = await http.post(
         Uri.parse('$baseUrl/api/chat/conversations/$conversationId/messages'),
         headers: await AuthHelper.getAuthHeaders(),

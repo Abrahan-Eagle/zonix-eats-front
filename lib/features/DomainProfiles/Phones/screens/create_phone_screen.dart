@@ -410,10 +410,10 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
   }
 
   /// Sección Código de Verificación (opcional).
-  /// TODO: Implementar cuando el backend exponga API para:
-  /// - Enviar SMS con código de 6 dígitos (ej. POST /api/phones/send-verification-code).
-  /// - Validar código antes o al guardar (ej. campo verification_code en create/update).
-  /// La UI está lista; el botón "Enviar código" muestra mensaje informativo hasta tener API.
+  ///
+  /// Requiere API de verificación (p. ej. POST send-verification-code y campo
+  /// `verification_code` en create/update). La UI y el botón "Enviar código"
+  /// muestran mensaje informativo hasta que exista el endpoint.
   Widget _buildVerificationSection() {
     final primary = Theme.of(context).colorScheme.primary;
     final isDark = Theme.of(context).brightness == Brightness.dark;
