@@ -296,4 +296,249 @@ class AdminService extends ChangeNotifier {
       throw Exception('Error updating system settings: $e');
     }
   }
-} 
+
+  // ---- Delivery Settings ----
+  Future<Map<String, dynamic>> getDeliverySettings() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/admin/delivery-settings'),
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return Map<String, dynamic>.from(data['data'] ?? data);
+    }
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> updateDeliverySettings(Map<String, dynamic> settings) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/admin/delivery-settings'),
+      headers: await AuthHelper.getAuthHeaders(),
+      body: jsonEncode(settings),
+    );
+    if (response.statusCode == 200) {
+      notifyListeners();
+      return jsonDecode(response.body);
+    }
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  // ---- Delivery Zones ----
+  Future<List<Map<String, dynamic>>> getDeliveryZones() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/admin/delivery-zones'),
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final list = data['data'] ?? data;
+      return List<Map<String, dynamic>>.from(list is List ? list : []);
+    }
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> createDeliveryZone(Map<String, dynamic> zone) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/admin/delivery-zones'),
+      headers: await AuthHelper.getAuthHeaders(),
+      body: jsonEncode(zone),
+    );
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      notifyListeners();
+      return jsonDecode(response.body);
+    }
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> updateDeliveryZone(int id, Map<String, dynamic> zone) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/admin/delivery-zones/$id'),
+      headers: await AuthHelper.getAuthHeaders(),
+      body: jsonEncode(zone),
+    );
+    if (response.statusCode == 200) {
+      notifyListeners();
+      return jsonDecode(response.body);
+    }
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<void> deleteDeliveryZone(int id) async {
+    final response = await http.delete(
+      Uri.parse('$baseUrl/api/admin/delivery-zones/$id'),
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200 || response.statusCode == 204) {
+      notifyListeners();
+      return;
+    }
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  // ---- Commerces ----
+  Future<Map<String, dynamic>> getCommerces({int page = 1, String? search, bool? open}) async {
+    final params = <String, String>{'page': '$page'};
+    if (search != null && search.isNotEmpty) params['search'] = search;
+    if (open != null) params['open'] = open ? '1' : '0';
+    final uri = Uri.parse('$baseUrl/api/admin/commerces').replace(queryParameters: params);
+    final response = await http.get(uri, headers: await AuthHelper.getAuthHeaders());
+    if (response.statusCode == 200) return Map<String, dynamic>.from(jsonDecode(response.body));
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> getCommerceById(int id) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/admin/commerces/$id'),
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) return Map<String, dynamic>.from(jsonDecode(response.body));
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<void> updateCommerceStatus(int id, bool open) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/admin/commerces/$id/status'),
+      headers: await AuthHelper.getAuthHeaders(),
+      body: jsonEncode({'open': open}),
+    );
+    if (response.statusCode == 200) { notifyListeners(); return; }
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  // ---- Delivery Companies ----
+  Future<Map<String, dynamic>> getDeliveryCompanies({int page = 1, String? search}) async {
+    final params = <String, String>{'page': '$page'};
+    if (search != null && search.isNotEmpty) params['search'] = search;
+    final uri = Uri.parse('$baseUrl/api/admin/delivery-companies').replace(queryParameters: params);
+    final response = await http.get(uri, headers: await AuthHelper.getAuthHeaders());
+    if (response.statusCode == 200) return Map<String, dynamic>.from(jsonDecode(response.body));
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> getDeliveryCompanyById(int id) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/admin/delivery-companies/$id'),
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) return Map<String, dynamic>.from(jsonDecode(response.body));
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<List<Map<String, dynamic>>> getDeliveryCompanyAgents(int companyId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/admin/delivery-companies/$companyId/agents'),
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return List<Map<String, dynamic>>.from(data['data'] ?? []);
+    }
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  // ---- Orders (admin) ----
+  Future<Map<String, dynamic>> getOrders({int page = 1, String? status, int? commerceId}) async {
+    final params = <String, String>{'page': '$page'};
+    if (status != null && status.isNotEmpty) params['status'] = status;
+    if (commerceId != null) params['commerce_id'] = '$commerceId';
+    final uri = Uri.parse('$baseUrl/api/admin/orders').replace(queryParameters: params);
+    final response = await http.get(uri, headers: await AuthHelper.getAuthHeaders());
+    if (response.statusCode == 200) return Map<String, dynamic>.from(jsonDecode(response.body));
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<void> updateOrderStatus(int orderId, String status) async {
+    final response = await http.patch(
+      Uri.parse('$baseUrl/api/admin/orders/$orderId/status'),
+      headers: await AuthHelper.getAuthHeaders(),
+      body: jsonEncode({'status': status}),
+    );
+    if (response.statusCode == 200) { notifyListeners(); return; }
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  // ---- Disputes ----
+  Future<Map<String, dynamic>> getDisputes({int page = 1, String? status, String? type}) async {
+    final params = <String, String>{'page': '$page'};
+    if (status != null) params['status'] = status;
+    if (type != null) params['type'] = type;
+    final uri = Uri.parse('$baseUrl/api/admin/disputes').replace(queryParameters: params);
+    final response = await http.get(uri, headers: await AuthHelper.getAuthHeaders());
+    if (response.statusCode == 200) return Map<String, dynamic>.from(jsonDecode(response.body));
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> getDisputeStats() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/admin/disputes/stats'),
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) return Map<String, dynamic>.from(jsonDecode(response.body));
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> getDisputeById(int id) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/admin/disputes/$id'),
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) return Map<String, dynamic>.from(jsonDecode(response.body));
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<void> resolveDispute(int id, String resolution, String? adminNotes) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/api/admin/disputes/$id/resolve'),
+      headers: await AuthHelper.getAuthHeaders(),
+      body: jsonEncode({'resolution': resolution, if (adminNotes != null) 'admin_notes': adminNotes}),
+    );
+    if (response.statusCode == 200) { notifyListeners(); return; }
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  // ---- Analytics (detailed endpoints) ----
+  Future<Map<String, dynamic>> getAnalyticsOverview() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/admin/analytics/overview'),
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) return Map<String, dynamic>.from(jsonDecode(response.body));
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> getAnalyticsRevenue() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/admin/analytics/revenue'),
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) return Map<String, dynamic>.from(jsonDecode(response.body));
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> getAnalyticsOrders() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/admin/analytics/orders'),
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) return Map<String, dynamic>.from(jsonDecode(response.body));
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> getAnalyticsRealtime() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/admin/analytics/realtime'),
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) return Map<String, dynamic>.from(jsonDecode(response.body));
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> getAnalyticsKpi() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/admin/analytics/kpi-dashboard'),
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) return Map<String, dynamic>.from(jsonDecode(response.body));
+    throw Exception('Error: ${response.statusCode}');
+  }
+}

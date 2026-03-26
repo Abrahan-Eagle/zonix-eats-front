@@ -50,6 +50,7 @@ import 'package:zonix/features/services/notification_service.dart';
 import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/services/payment_service.dart';
 import 'package:zonix/features/services/commerce_analytics_service.dart';
+import 'package:zonix/features/services/admin_service.dart';
 import 'package:zonix/features/screens/commerce/commerce_dashboard_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_orders_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_order_detail_page.dart';
@@ -384,7 +385,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => LocationService()),
         ChangeNotifierProvider(create: (_) => PaymentService()),
         ChangeNotifierProvider(create: (_) => CommerceAnalyticsService()),
-        // PusherService se maneja como singleton interno, no necesitamos Provider aquí.
+        ChangeNotifierProvider(create: (_) => AdminService()),
       ],
       child: const MyApp(isIntegrationTest: isIntegrationTest),
     ),
