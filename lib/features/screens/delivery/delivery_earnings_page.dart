@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:zonix/features/services/delivery_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 
 class DeliveryEarningsPage extends StatefulWidget {
@@ -94,7 +95,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
           final totalDeliveries = _parseIntLoose(data['total_deliveries']);
           final avgTime = _parseNum(data['average_delivery_time']);
           final fees = _parseFeeList(data['delivery_fees']);
-          final dates = (data['delivery_dates'] as List?)?.cast<String>() ?? [];
+          final dates = safeStringList(data['delivery_dates']);
 
           return RefreshIndicator(
             onRefresh: () async => _loadData(),

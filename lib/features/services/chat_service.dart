@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 class ChatService extends ChangeNotifier {
   static String get baseUrl => AppConfig.apiUrl;
@@ -288,7 +289,7 @@ class ChatService extends ChangeNotifier {
         if (conversation['last_message'] != null) {
           totalMessages++;
         }
-        unreadMessages += (conversation['unread_count'] as int?) ?? 0;
+        unreadMessages += safeInt(conversation['unread_count']);
       }
       
       return {

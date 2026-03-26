@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
+import 'error_handler.dart';
 
 class DeliveryCompanyService extends ChangeNotifier {
   static String get _baseUrl => AppConfig.apiUrl;
@@ -31,10 +32,10 @@ class DeliveryCompanyService extends ChangeNotifier {
           _dashboardData = Map<String, dynamic>.from(body['data']);
         }
       } else {
-        _dashboardError = 'Error al cargar dashboard (${res.statusCode})';
+        _dashboardError = ErrorHandler.handleHttpResponse(res.statusCode, res.body);
       }
     } catch (e) {
-      _dashboardError = 'Error: $e';
+      _dashboardError = ErrorHandler.getUserFriendlyMessage(e);
     } finally {
       _dashboardLoading = false;
       notifyListeners();
@@ -65,10 +66,10 @@ class DeliveryCompanyService extends ChangeNotifier {
           _agents = List<Map<String, dynamic>>.from(body['data']);
         }
       } else {
-        _agentsError = 'Error al cargar agentes (${res.statusCode})';
+        _agentsError = ErrorHandler.handleHttpResponse(res.statusCode, res.body);
       }
     } catch (e) {
-      _agentsError = 'Error: $e';
+      _agentsError = ErrorHandler.getUserFriendlyMessage(e);
     } finally {
       _agentsLoading = false;
       notifyListeners();
@@ -104,10 +105,10 @@ class DeliveryCompanyService extends ChangeNotifier {
           }
         }
       } else {
-        _ordersError = 'Error al cargar órdenes (${res.statusCode})';
+        _ordersError = ErrorHandler.handleHttpResponse(res.statusCode, res.body);
       }
     } catch (e) {
-      _ordersError = 'Error: $e';
+      _ordersError = ErrorHandler.getUserFriendlyMessage(e);
     } finally {
       _ordersLoading = false;
       notifyListeners();
@@ -147,11 +148,11 @@ class DeliveryCompanyService extends ChangeNotifier {
           _pendingOrders = [];
         }
       } else {
-        _pendingOrdersError = 'Error al cargar pendientes (${res.statusCode})';
+        _pendingOrdersError = ErrorHandler.handleHttpResponse(res.statusCode, res.body);
         _pendingOrders = [];
       }
     } catch (e) {
-      _pendingOrdersError = 'Error: $e';
+      _pendingOrdersError = ErrorHandler.getUserFriendlyMessage(e);
       _pendingOrders = [];
     } finally {
       _pendingOrdersLoading = false;
@@ -185,12 +186,11 @@ class DeliveryCompanyService extends ChangeNotifier {
           _availableAgentsForOrder = [];
         }
       } else {
-        final body = jsonDecode(res.body);
-        _availableAgentsError = (body['message'] as String?) ?? 'Error (${res.statusCode})';
+        _availableAgentsError = ErrorHandler.handleHttpResponse(res.statusCode, res.body);
         _availableAgentsForOrder = [];
       }
     } catch (e) {
-      _availableAgentsError = 'Error: $e';
+      _availableAgentsError = ErrorHandler.getUserFriendlyMessage(e);
       _availableAgentsForOrder = [];
     } finally {
       _availableAgentsLoading = false;
@@ -241,10 +241,10 @@ class DeliveryCompanyService extends ChangeNotifier {
           _earningsData = Map<String, dynamic>.from(body['data']);
         }
       } else {
-        _earningsError = 'Error al cargar ganancias (${res.statusCode})';
+        _earningsError = ErrorHandler.handleHttpResponse(res.statusCode, res.body);
       }
     } catch (e) {
-      _earningsError = 'Error: $e';
+      _earningsError = ErrorHandler.getUserFriendlyMessage(e);
     } finally {
       _earningsLoading = false;
       notifyListeners();
@@ -355,10 +355,10 @@ class DeliveryCompanyService extends ChangeNotifier {
           }
         }
       } else {
-        _pendingPaymentOrdersError = 'Error (${res.statusCode})';
+        _pendingPaymentOrdersError = ErrorHandler.handleHttpResponse(res.statusCode, res.body);
       }
     } catch (e) {
-      _pendingPaymentOrdersError = 'Error: $e';
+      _pendingPaymentOrdersError = ErrorHandler.getUserFriendlyMessage(e);
     } finally {
       _pendingPaymentOrdersLoading = false;
       notifyListeners();

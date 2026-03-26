@@ -8,6 +8,7 @@ import 'package:provider/provider.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/services/commerce_list_service.dart';
 import 'package:zonix/models/my_commerce.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 class CreatePhoneScreen extends StatefulWidget {
   final int userId;
@@ -354,7 +355,7 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
                 ),
                 items: _operatorCodes.map((code) {
                   return DropdownMenuItem<int>(
-                    value: code['id'] as int,
+                    value: safeInt(code['id']),
                     child: Text(
                       code['name'] as String,
                       overflow: TextOverflow.ellipsis,

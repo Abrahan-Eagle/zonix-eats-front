@@ -6,6 +6,7 @@ import 'package:zonix/features/screens/commerce/commerce_payment_method_form_pag
 import 'package:zonix/features/services/payment_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/rif_formatter.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 /// Pantalla de detalle de un método de pago. Muestra una vista distinta según el tipo
 /// (tarjeta, pago móvil, billetera, transferencia, otro). Efectivo no se configura aquí.
@@ -899,7 +900,7 @@ class PaymentMethodDetailPage extends StatelessWidget {
   Future<void> _setAsDefault(BuildContext context) async {
     try {
       await Provider.of<PaymentService>(context, listen: false)
-          .setDefaultPaymentMethod(method['id'] as int);
+          .setDefaultPaymentMethod(safeInt(method['id']));
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Método establecido como predeterminado'), backgroundColor: AppColors.green),
@@ -954,7 +955,7 @@ class PaymentMethodDetailPage extends StatelessWidget {
     if (confirm != true) return;
     if (!context.mounted) return;
     try {
-      await Provider.of<PaymentService>(context, listen: false).deletePaymentMethod(method['id'] as int);
+      await Provider.of<PaymentService>(context, listen: false).deletePaymentMethod(safeInt(method['id']));
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Método eliminado'), backgroundColor: AppColors.gray),

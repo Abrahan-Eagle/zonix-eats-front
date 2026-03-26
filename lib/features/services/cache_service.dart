@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:logger/logger.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 class CacheService {
   static final Logger _logger = Logger();
@@ -24,9 +25,11 @@ class CacheService {
       
       if (cachedData != null) {
         final data = json.decode(cachedData);
-        final timestamp = data['timestamp'] as int?;
-        final expiration = data['expiration'] as int?;
-        
+        final timestamp =
+            data['timestamp'] != null ? safeInt(data['timestamp']) : null;
+        final expiration =
+            data['expiration'] != null ? safeInt(data['expiration']) : null;
+
         if (timestamp != null && expiration != null) {
           final now = DateTime.now().millisecondsSinceEpoch;
           if (now - timestamp < expiration) {
@@ -38,7 +41,7 @@ class CacheService {
           }
         }
       }
-      
+
       _logger.i('Cache miss for key: $key');
       return null;
     } catch (e) {
@@ -121,15 +124,17 @@ class CacheService {
       
       if (cachedData != null) {
         final data = json.decode(cachedData);
-        final timestamp = data['timestamp'] as int?;
-        final expiration = data['expiration'] as int?;
-        
+        final timestamp =
+            data['timestamp'] != null ? safeInt(data['timestamp']) : null;
+        final expiration =
+            data['expiration'] != null ? safeInt(data['expiration']) : null;
+
         if (timestamp != null && expiration != null) {
           final now = DateTime.now().millisecondsSinceEpoch;
           return now - timestamp < expiration;
         }
       }
-      
+
       return false;
     } catch (e) {
       _logger.e('Error checking cache existence for key: $key', error: e);
@@ -155,9 +160,11 @@ class CacheService {
         if (cachedData != null) {
           try {
             final data = json.decode(cachedData);
-            final timestamp = data['timestamp'] as int?;
-            final expiration = data['expiration'] as int?;
-            
+            final timestamp =
+                data['timestamp'] != null ? safeInt(data['timestamp']) : null;
+            final expiration =
+                data['expiration'] != null ? safeInt(data['expiration']) : null;
+
             if (timestamp != null && expiration != null) {
               final now = DateTime.now().millisecondsSinceEpoch;
               if (now - timestamp < expiration) {
@@ -204,9 +211,11 @@ class CacheService {
         if (cachedData != null) {
           try {
             final data = json.decode(cachedData);
-            final timestamp = data['timestamp'] as int?;
-            final expiration = data['expiration'] as int?;
-            
+            final timestamp =
+                data['timestamp'] != null ? safeInt(data['timestamp']) : null;
+            final expiration =
+                data['expiration'] != null ? safeInt(data['expiration']) : null;
+
             if (timestamp != null && expiration != null) {
               final now = DateTime.now().millisecondsSinceEpoch;
               if (now - timestamp >= expiration) {

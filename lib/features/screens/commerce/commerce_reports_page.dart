@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/services/commerce_analytics_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
 
 class CommerceReportsPage extends StatefulWidget {
@@ -129,7 +130,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
                   Expanded(
                     child: _StatCard(
                       label: 'Ventas totales',
-                      value: '\$${((_overview['total_sales'] ?? 0) as num).toStringAsFixed(2)}',
+                      value: '\$${safeDouble(_overview['total_sales']).toStringAsFixed(2)}',
                       icon: Icons.attach_money,
                       color: AppColors.green,
                     ),
@@ -151,7 +152,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
                   Expanded(
                     child: _StatCard(
                       label: 'Ticket promedio',
-                      value: '\$${((_overview['average_order_value'] ?? 0) as num).toStringAsFixed(2)}',
+                      value: '\$${safeDouble(_overview['average_order_value']).toStringAsFixed(2)}',
                       icon: Icons.shopping_cart,
                       color: AppColors.orange,
                     ),
@@ -160,9 +161,9 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
                   Expanded(
                     child: _StatCard(
                       label: 'Crecimiento %',
-                      value: '${((_overview['growth_rate'] ?? 0) as num).toStringAsFixed(1)}%',
+                      value: '${safeDouble(_overview['growth_rate']).toStringAsFixed(1)}%',
                       icon: Icons.trending_up,
-                      color: (_overview['growth_rate'] ?? 0) as num >= 0
+                      color: safeDouble(_overview['growth_rate']) >= 0
                           ? AppColors.green
                           : AppColors.red,
                     ),
@@ -236,7 +237,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
             child: Column(
               children: byStatus.entries.map((e) {
                 final status = e.key.toString();
-                final count = (e.value ?? 0) as num;
+                final count = safeInt(e.value);
                 return Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(

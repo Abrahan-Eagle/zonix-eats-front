@@ -15,6 +15,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
+import 'error_handler.dart';
 import 'pusher_service.dart';
 
 class NotificationService extends ChangeNotifier {
@@ -115,7 +116,7 @@ class NotificationService extends ChangeNotifier {
       final stats = results[1] as Map<String, dynamic>;
       _unreadCount = stats['unread'] ?? 0;
     } catch (e) {
-      _error = 'Error al cargar notificaciones';
+      _error = ErrorHandler.getUserFriendlyMessage(e);
       debugPrint('Error loading initial notification data: $e');
     } finally {
       _isLoading = false;

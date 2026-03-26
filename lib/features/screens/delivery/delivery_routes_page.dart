@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/services/delivery_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 
 class DeliveryRoutesPage extends StatefulWidget {
@@ -123,7 +124,7 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
         'Comercio';
     final deliveryAddress = _parseAddress(
         order?['delivery_address'] ?? route['delivery_address']);
-    final estimatedTime = (route['estimated_time'] as num?)?.toInt() ?? 0;
+    final estimatedTime = safeInt(route['estimated_time']);
     final distance = _parseNum(route['total_distance']);
     final status = route['status']?.toString() ?? 'assigned';
     final total = _parseNum(order?['total'] ?? route['total']);

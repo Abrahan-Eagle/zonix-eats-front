@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:zonix/features/services/commerce_promotion_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 class CommercePromotionFormPage extends StatefulWidget {
   const CommercePromotionFormPage({super.key, this.promotionId, this.initialData});
@@ -50,7 +51,7 @@ class _CommercePromotionFormPageState extends State<CommercePromotionFormPage> {
     _minOrderController.text = (d['minimum_order'] ?? 0).toString();
     _maxDiscountController.text = (d['maximum_discount'] ?? '').toString();
     _termsController.text = (d['terms_conditions'] ?? '').toString();
-    _priority = (d['priority'] ?? 0) as int;
+    _priority = safeInt(d['priority']);
     _isActive = d['is_active'] != false;
     if (d['start_date'] != null) {
       try {

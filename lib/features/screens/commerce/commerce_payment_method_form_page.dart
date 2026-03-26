@@ -13,6 +13,7 @@ import 'package:zonix/features/DomainProfiles/Phones/models/phone.dart';
 import 'package:zonix/features/DomainProfiles/Documents/api/document_service.dart';
 import 'package:zonix/features/DomainProfiles/Documents/models/document.dart';
 import 'package:zonix/features/utils/rif_formatter.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 class CommercePaymentMethodFormPage extends StatefulWidget {
   const CommercePaymentMethodFormPage({
@@ -174,7 +175,7 @@ class _CommercePaymentMethodFormPageState
     _expYearController.text = m?['exp_year']?.toString() ?? '';
     _cardholderController.text = (m?['cardholder_name'] ?? ref['holder'] ?? m?['owner_name'] ?? '') as String;
     _brandController.text = (m?['brand'] ?? 'Visa') as String;
-    if (m?['bank_id'] != null) _selectedBankId = m!['bank_id'] as int?;
+    if (m?['bank_id'] != null) _selectedBankId = safeInt(m!['bank_id']);
     _loadBanks();
     _loadPhonesAndDocuments();
   }
@@ -190,7 +191,7 @@ class _CommercePaymentMethodFormPageState
             setState(() {
               _banks = List<Map<String, dynamic>>.from(data['data'] as List);
               if (_selectedBankId == null && _banks.isNotEmpty && widget.method?['bank_id'] != null) {
-                _selectedBankId = widget.method!['bank_id'] as int?;
+                _selectedBankId = safeInt(widget.method!['bank_id']);
               }
             });
           }
@@ -311,7 +312,7 @@ class _CommercePaymentMethodFormPageState
       if (widget.method == null) {
         await paymentService.addPaymentMethod(payload);
       } else {
-        final id = widget.method!['id'] as int;
+        final id = safeInt(widget.method!['id']);
         await paymentService.updatePaymentMethod(id, payload);
       }
 

@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../../models/commerce_product.dart';
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 /// Resultado paginado de productos (para "cargar más").
 class ProductsPageResult {
@@ -63,9 +64,9 @@ class CommerceProductService {
     final products = list.map((json) => CommerceProduct.fromJson(json as Map<String, dynamic>)).toList();
     return ProductsPageResult(
       products: products,
-      currentPage: (pag['current_page'] as num?)?.toInt() ?? page,
-      lastPage: (pag['last_page'] as num?)?.toInt() ?? 1,
-      total: (pag['total'] as num?)?.toInt() ?? products.length,
+      currentPage: safeInt(pag['current_page'], page),
+      lastPage: safeInt(pag['last_page'], 1),
+      total: safeInt(pag['total'], products.length),
     );
   }
 

@@ -7,6 +7,7 @@ import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/features/services/promotion_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 import 'package:zonix/features/screens/orders/order_detail_page.dart';
 import 'package:zonix/features/utils/network_image_with_fallback.dart';
 
@@ -71,7 +72,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     if (!mounted) return;
     setState(() {
       _deliveryFeeLoading = false;
-      _calculatedDeliveryFee = result != null ? (result['delivery_fee'] as num?)?.toDouble() : null;
+      _calculatedDeliveryFee = result != null ? safeDouble(result['delivery_fee']) : null;
     });
   }
 
@@ -107,8 +108,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
       final location = await LocationService().getCurrentLocation();
       if (!mounted) return;
       final address = location['address'] as String?;
-      final lat = location['latitude'] as num?;
-      final lng = location['longitude'] as num?;
+      final lat = location['latitude'] != null ? safeDouble(location['latitude']) : null;
+      final lng = location['longitude'] != null ? safeDouble(location['longitude']) : null;
       final addressText = address?.trim().isNotEmpty == true
           ? address!
           : (lat != null && lng != null
@@ -997,7 +998,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         orderAmount: subtotal,
         commerceId: commerceId,
       );
-      final discount = (result['discount'] as num?)?.toDouble() ?? 0.0;
+      final discount = safeDouble(result['discount']);
       setState(() {
         _appliedCoupon = result;
         _couponDiscount = discount;

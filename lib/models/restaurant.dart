@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 class Restaurant {
   final int id;
@@ -149,11 +150,11 @@ class Restaurant {
     }).where((s) => s.isNotEmpty).toList();
     return parts.isEmpty ? raw : parts.join(' • ');
   }
-  double get rating => (profile?['rating'] as num?)?.toDouble() ?? 0.0;
-  int get reviewCount => profile?['review_count'] as int? ?? 0;
+  double get rating => safeDouble(profile?['rating']);
+  int get reviewCount => safeInt(profile?['review_count']);
   double get distance => 0.0; // Placeholder - calcular desde ubicación
-  int get deliveryTime => profile?['delivery_time'] as int? ?? 30;
-  double get deliveryFee => (profile?['delivery_fee'] as num?)?.toDouble() ?? 0.0;
+  int get deliveryTime => safeInt(profile?['delivery_time'], 30);
+  double get deliveryFee => safeDouble(profile?['delivery_fee']);
 
   @override
   String toString() {

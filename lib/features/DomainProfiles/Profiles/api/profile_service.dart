@@ -8,8 +8,7 @@ import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart
 // import 'package:zonix/features/DomainProfiles/Profiles/utils/constants.dart';
 import 'package:logger/logger.dart';
 import 'package:zonix/config/app_config.dart';
-
-
+import 'package:zonix/features/utils/safe_parse.dart';
 
 final logger = Logger();
 
@@ -113,7 +112,7 @@ Future<int> createProfile(Profile profile, int userId, {File? imageFile}) async 
         final data = decoded['data'] ?? decoded;
         final profileData = data is Map ? data['profile'] ?? data : null;
         if (profileData is Map && profileData['id'] != null) {
-          return (profileData['id'] as num).toInt();
+          return safeInt(profileData['id']);
         }
       }
       final existing = await getMyProfile();

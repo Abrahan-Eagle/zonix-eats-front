@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/services/delivery_company_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 class DeliveryCompanyDashboardPage extends StatefulWidget {
   const DeliveryCompanyDashboardPage({super.key});
@@ -36,11 +37,11 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
 
           final data = service.dashboardData;
           final company = data['company'] as Map<String, dynamic>? ?? {};
-          final agentsCount = data['agents_count'] as int? ?? 0;
-          final activeAgents = data['active_agents'] as int? ?? 0;
-          final todayDeliveries = data['today_deliveries'] as int? ?? 0;
-          final weekDeliveries = data['week_deliveries'] as int? ?? 0;
-          final monthDeliveries = data['month_deliveries'] as int? ?? 0;
+          final agentsCount = safeInt(data['agents_count']);
+          final activeAgents = safeInt(data['active_agents']);
+          final todayDeliveries = safeInt(data['today_deliveries']);
+          final weekDeliveries = safeInt(data['week_deliveries']);
+          final monthDeliveries = safeInt(data['month_deliveries']);
           final todayEarnings = _num(data['today_earnings']);
           final weekEarnings = _num(data['week_earnings']);
           final monthEarnings = _num(data['month_earnings']);
@@ -89,7 +90,7 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
   }
 
   Widget _buildDefaultPayoutCard(Map<String, dynamic> company, bool isDark) {
-    final defaultPct = (company['default_payout_percentage'] as num?)?.toDouble() ?? 70.0;
+    final defaultPct = safeDouble(company['default_payout_percentage'], 70.0);
     return InkWell(
       onTap: () => _showEditDefaultPayoutDialog(context, defaultPct),
       borderRadius: BorderRadius.circular(12),

@@ -7,6 +7,7 @@ import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/services/delivery_company_service.dart';
 import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 class DeliveryCompanyOrdersPage extends StatefulWidget {
   const DeliveryCompanyOrdersPage({super.key, this.highlightOrderId});
@@ -202,7 +203,7 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final orderNumber = order['order_number'] ?? '#${order['id']}';
     final deliveryFee = _num(order['delivery_fee']);
-    final orderId = order['id'] as int? ?? 0;
+    final orderId = safeInt(order['id']);
     final payments = order['order_payments'] as List<dynamic>? ?? [];
     final deliveryPayment = payments.firstWhere((p) => p['type'] == 'delivery', orElse: () => null);
     final reference = deliveryPayment?['reference_number'] ?? '';
@@ -337,7 +338,7 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
         dateStr = createdAt;
       }
     }
-    final orderId = order['id'] as int? ?? 0;
+    final orderId = safeInt(order['id']);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -702,10 +703,10 @@ class _AssignOrderPageState extends State<_AssignOrderPage> {
             itemBuilder: (context, i) {
               final agent = service.availableAgentsForOrder[i];
               final name = agent['name'] as String? ?? 'Sin nombre';
-              final distanceKm = (agent['distance_km'] as num?)?.toDouble() ?? 0;
+              final distanceKm = safeDouble(agent['distance_km']);
               final vehicleType = agent['vehicle_type'] as String? ?? '';
-              final rating = (agent['rating'] as num?)?.toDouble() ?? 0;
-              final agentId = agent['id'] as int? ?? 0;
+              final rating = safeDouble(agent['rating']);
+              final agentId = safeInt(agent['id']);
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),

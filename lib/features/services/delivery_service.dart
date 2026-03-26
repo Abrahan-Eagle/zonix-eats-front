@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 import '../utils/auth_utils.dart';
+import 'error_handler.dart';
 
 class DeliveryService extends ChangeNotifier {
   static String get baseUrl => AppConfig.apiUrl;
@@ -26,7 +27,7 @@ class DeliveryService extends ChangeNotifier {
     try {
       _myOrders = await getDeliveryOrders();
     } catch (e) {
-      _error = _sessionInvalidated ? null : e.toString();
+      _error = _sessionInvalidated ? null : ErrorHandler.getUserFriendlyMessage(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -40,7 +41,7 @@ class DeliveryService extends ChangeNotifier {
     try {
       _availableOrdersMaps = await _getAvailableOrdersRaw();
     } catch (e) {
-      _error = _sessionInvalidated ? null : e.toString();
+      _error = _sessionInvalidated ? null : ErrorHandler.getUserFriendlyMessage(e);
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -200,7 +201,7 @@ class DeliveryService extends ChangeNotifier {
     try {
       _historyOrders = await getDeliveryHistory(id, startDate: startDate, endDate: endDate);
     } catch (e) {
-      _historyError = _sessionInvalidated ? null : e.toString();
+      _historyError = _sessionInvalidated ? null : ErrorHandler.getUserFriendlyMessage(e);
     } finally {
       _historyLoading = false;
       notifyListeners();
@@ -230,7 +231,7 @@ class DeliveryService extends ChangeNotifier {
     try {
       _earningsMap = await getDeliveryEarnings(id, startDate: startDate, endDate: endDate);
     } catch (e) {
-      _earningsError = _sessionInvalidated ? null : e.toString();
+      _earningsError = _sessionInvalidated ? null : ErrorHandler.getUserFriendlyMessage(e);
     } finally {
       _earningsLoading = false;
       notifyListeners();
@@ -260,7 +261,7 @@ class DeliveryService extends ChangeNotifier {
     try {
       _routesList = await getDeliveryRoutes(id);
     } catch (e) {
-      _routesError = _sessionInvalidated ? null : e.toString();
+      _routesError = _sessionInvalidated ? null : ErrorHandler.getUserFriendlyMessage(e);
     } finally {
       _routesLoading = false;
       notifyListeners();

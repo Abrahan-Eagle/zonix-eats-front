@@ -10,6 +10,7 @@ import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/services/product_service.dart';
 import 'package:zonix/features/services/promotion_service.dart';
 import 'package:zonix/features/utils/network_image_with_fallback.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 import 'package:zonix/features/utils/search_radius_provider.dart';
 import 'package:zonix/models/product.dart';
 import 'package:zonix/models/cart_item.dart';
@@ -74,7 +75,7 @@ class _ProductsPageState extends State<ProductsPage> {
         radius: radius,
       );
       if (!mounted) return [];
-      final commerceIds = nearbyPlaces.map((p) => p['id'] as int).toSet();
+      final commerceIds = nearbyPlaces.map((p) => safeInt(p['id'])).toSet();
 
       final allProducts = await productService.fetchProducts();
       if (!mounted) return [];

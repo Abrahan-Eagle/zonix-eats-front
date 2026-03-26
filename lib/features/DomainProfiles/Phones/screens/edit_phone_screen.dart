@@ -7,6 +7,7 @@ import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/services/commerce_list_service.dart';
 import 'package:zonix/models/my_commerce.dart';
 import 'package:provider/provider.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 class EditPhoneScreen extends StatefulWidget {
   final Phone phone;
@@ -375,7 +376,7 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
                 decoration: inputDecoration.copyWith(labelText: 'Código'),
                 items: _operatorCodes.map((code) {
                   return DropdownMenuItem<int>(
-                    value: code['id'] as int,
+                    value: safeInt(code['id']),
                     child: Text(
                       code['name'] as String,
                       overflow: TextOverflow.ellipsis,

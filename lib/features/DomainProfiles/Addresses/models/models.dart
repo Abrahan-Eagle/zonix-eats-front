@@ -1,3 +1,5 @@
+import 'package:zonix/features/utils/safe_parse.dart';
+
 class Country {
   final int id;
   final String name;
@@ -16,7 +18,7 @@ class Country {
         .toList();
 
     return Country(
-      id: json['id'] as int? ?? 0,
+      id: safeInt(json['id']),
       name: json['name'] as String? ?? 'Unknown',
       states: statesList,
     );
@@ -40,7 +42,7 @@ class StateModel {
         .toList();
 
     return StateModel(
-      id: json['id'] as int? ?? 0,
+      id: safeInt(json['id']),
       name: json['name'] as String? ?? 'Unknown',
       cities: citiesList,
     );
@@ -59,7 +61,7 @@ class City {
 
   factory City.fromJson(Map<String, dynamic> json) {
     return City(
-      id: json['id'] as int? ?? 0,
+      id: safeInt(json['id']),
       name: json['name'] as String? ?? 'Unknown',
     );
   }

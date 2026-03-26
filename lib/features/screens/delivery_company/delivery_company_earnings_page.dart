@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/services/delivery_company_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 class DeliveryCompanyEarningsPage extends StatefulWidget {
   const DeliveryCompanyEarningsPage({super.key});
@@ -160,7 +161,7 @@ class _DeliveryCompanyEarningsPageState extends State<DeliveryCompanyEarningsPag
 
   Widget _buildAgentRow(Map<String, dynamic> agent, bool isDark) {
     final name = agent['name'] as String? ?? 'Agente';
-    final deliveries = agent['deliveries'] as int? ?? 0;
+    final deliveries = safeInt(agent['deliveries']);
     final earnings = _num(agent['earnings']);
 
     return Container(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 import 'package:zonix/features/screens/orders/order_detail_page.dart';
 import 'package:zonix/features/screens/orders/buyer_order_chat_page.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -331,10 +332,10 @@ class _DeliveryDetailPageState extends State<DeliveryDetailPage> {
           if (canOpenMapsRoute)
             IconButton(
               onPressed: () {
-                final fromLat = (loc['lat'] as num).toDouble();
-                final fromLng = (loc['lng'] as num).toDouble();
-                final toLat = (customerLoc['lat'] as num).toDouble();
-                final toLng = (customerLoc['lng'] as num).toDouble();
+                final fromLat = safeDouble(loc['lat']);
+                final fromLng = safeDouble(loc['lng']);
+                final toLat = safeDouble(customerLoc['lat']);
+                final toLng = safeDouble(customerLoc['lng']);
                 _openGoogleMapsRoute(fromLat, fromLng, toLat, toLng);
               },
               icon: Icon(Icons.directions, size: 24, color: primary),

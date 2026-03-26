@@ -4,6 +4,7 @@ import 'package:zonix/features/screens/commerce/commerce_payment_method_form_pag
 import 'package:zonix/features/screens/commerce/payment_method_detail_page.dart';
 import 'package:zonix/features/services/payment_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 class CommercePaymentMethodsPage extends StatefulWidget {
   const CommercePaymentMethodsPage({super.key});
@@ -144,7 +145,7 @@ class _CommercePaymentMethodsPageState
     try {
       final paymentService =
           Provider.of<PaymentService>(context, listen: false);
-      await paymentService.deletePaymentMethod(method['id'] as int);
+      await paymentService.deletePaymentMethod(safeInt(method['id']));
       await _loadData();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

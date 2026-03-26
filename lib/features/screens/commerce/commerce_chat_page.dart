@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zonix/features/screens/commerce/commerce_chat_messages_page.dart';
 import 'package:zonix/features/services/chat_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 class CommerceChatPage extends StatefulWidget {
   const CommerceChatPage({super.key});
@@ -111,7 +112,7 @@ class _CommerceChatPageState extends State<CommerceChatPage> {
                     leading: const CircleAvatar(child: Icon(Icons.person)),
                     title: Text(customerName),
                     subtitle: Text(lastMsgText.isNotEmpty ? lastMsgText : 'Sin mensajes'),
-                    trailing: (c['unread_count'] as int? ?? 0) > 0
+                    trailing: safeInt(c['unread_count']) > 0
                         ? CircleAvatar(
                             radius: 12,
                             child: Text(

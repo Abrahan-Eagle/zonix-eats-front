@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:zonix/features/screens/commerce/commerce_delivery_zone_form_page.dart';
 import 'package:zonix/features/services/commerce_delivery_zone_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 class CommerceDeliveryZonesPage extends StatefulWidget {
   const CommerceDeliveryZonesPage({super.key});
@@ -97,7 +98,7 @@ class _CommerceDeliveryZonesPageState extends State<CommerceDeliveryZonesPage> {
                       : <String, dynamic>{};
                   final name = z['name'] ?? 'Zona ${z['id'] ?? ''}';
                   final radius = z['radius'] ?? 0;
-                  final fee = (z['delivery_fee'] ?? 0) as num;
+                  final fee = safeDouble(z['delivery_fee']);
                   final time = z['delivery_time'];
                   return Card(
                     margin: const EdgeInsets.only(bottom: 8),

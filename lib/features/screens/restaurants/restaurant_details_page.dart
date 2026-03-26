@@ -17,6 +17,7 @@ import 'package:zonix/features/screens/products/product_detail_page.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:zonix/widgets/osm_map_widget.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 class RestaurantDetailsPage extends StatefulWidget {
   final int commerceId;
@@ -186,7 +187,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     _totalReviews = reviews.length;
     if (_totalReviews > 0) {
       _averageRating = reviews
-              .map((r) => (r['rating'] ?? 0.0) as num)
+              .map((r) => safeDouble(r['rating']))
               .reduce((a, b) => a + b) /
           _totalReviews;
     } else {

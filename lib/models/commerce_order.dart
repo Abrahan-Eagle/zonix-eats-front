@@ -1,3 +1,5 @@
+import 'package:zonix/features/utils/safe_parse.dart';
+
 class CommerceOrder {
   final int id;
   final int profileId;
@@ -182,7 +184,7 @@ class CommerceOrder {
   }
 
   int get itemCount {
-    return items.fold(0, (sum, item) => sum + (item['quantity'] as int? ?? 0));
+    return items.fold(0, (sum, item) => sum + safeInt(item['quantity']));
   }
 
   bool get isPendingPayment => status == 'pending_payment';

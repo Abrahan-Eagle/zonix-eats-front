@@ -1,4 +1,6 @@
 // profile_model.dart
+import 'package:zonix/features/utils/safe_parse.dart';
+
 class Profile {
   int id;
   int userId; // Clave foránea
@@ -62,8 +64,8 @@ class Profile {
     }
 
     return Profile(
-      id: map['id'] as int? ?? 0,
-      userId: map['user_id'] as int? ?? 0,
+      id: safeInt(map['id']),
+      userId: safeInt(map['user_id']),
       firstName: safeStr(map['firstName']),
       middleName: safeStr(map['middleName']),
       lastName: safeStr(map['lastName']),

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:zonix/features/screens/delivery_company/delivery_company_add_agent_page.dart';
 import 'package:zonix/features/services/delivery_company_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 class DeliveryCompanyAgentsPage extends StatefulWidget {
   const DeliveryCompanyAgentsPage({super.key});
@@ -67,11 +68,11 @@ class _DeliveryCompanyAgentsPageState extends State<DeliveryCompanyAgentsPage> {
     final working = agent['working'] == true;
     final status = agent['status'] as String? ?? 'inactive';
     final vehicleType = agent['vehicle_type'] as String? ?? '';
-    final rating = (agent['rating'] as num?)?.toDouble() ?? 0;
-    final deliveries = agent['total_deliveries'] as int? ?? 0;
+    final rating = safeDouble(agent['rating']);
+    final deliveries = safeInt(agent['total_deliveries']);
     final phone = agent['phone'] as String? ?? '';
-    final payoutPct = (agent['payout_percentage'] as num?)?.toDouble() ?? 70.0;
-    final agentId = agent['id'] as int? ?? 0;
+    final payoutPct = safeDouble(agent['payout_percentage'], 70.0);
+    final agentId = safeInt(agent['id']);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

@@ -73,6 +73,7 @@ import 'package:zonix/features/screens/admin/admin_security_page.dart';
 import 'package:zonix/features/screens/admin/admin_analytics_page.dart';
 
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/app_theme.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zonix/features/screens/commerce/commerce_chat_page.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
@@ -396,131 +397,7 @@ void initialization() async {
   FlutterNativeSplash.remove();
 }
 
-// Paleta Stitch (template) — centralizada en AppColors
-const Color _stitchPrimary = AppColors.blue;
-const Color _stitchBgLight = AppColors.scaffoldBgLight;
-const Color _stitchBgDark = AppColors.backgroundDark;
-const Color _stitchSurfaceDark = AppColors.grayDark;
-const Color _stitchCardCream = AppColors.stitchCardCream;
-const Color _stitchNavBg = AppColors.stitchNavBg;
-const Color _stitchNavActive = AppColors.blue;
-const Color _stitchSlate400 = AppColors.stitchSlate400;
-
-ThemeData _buildStitchLightTheme() {
-  return ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.light,
-    fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
-    primaryColor: _stitchPrimary,
-    scaffoldBackgroundColor: _stitchBgLight,
-    appBarTheme: AppBarTheme(
-      backgroundColor: _stitchPrimary,
-      foregroundColor: AppColors.white,
-      elevation: 0,
-      centerTitle: false,
-      titleTextStyle: GoogleFonts.plusJakartaSans(
-        color: AppColors.white,
-        fontWeight: FontWeight.bold,
-        fontSize: 22,
-      ),
-      iconTheme: const IconThemeData(color: AppColors.white),
-    ),
-    colorScheme: const ColorScheme.light(
-      primary: _stitchPrimary,
-      secondary: AppColors.orange,
-      error: AppColors.red,
-      surface: _stitchBgLight,
-      onPrimary: AppColors.white,
-      onSurface: AppColors.stitchTextDark,
-    ),
-    cardColor: _stitchCardCream,
-    cardTheme: CardThemeData(
-      color: _stitchCardCream,
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _stitchPrimary,
-        foregroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    ),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: _stitchPrimary,
-    ),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: AppColors.white,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: _stitchBgLight,
-      selectedItemColor: _stitchNavActive,
-      unselectedItemColor: _stitchSlate400,
-      type: BottomNavigationBarType.fixed,
-    ),
-  );
-}
-
-ThemeData _buildStitchDarkTheme() {
-  return ThemeData(
-    useMaterial3: true,
-    brightness: Brightness.dark,
-    fontFamily: GoogleFonts.plusJakartaSans().fontFamily,
-    primaryColor: _stitchPrimary,
-    scaffoldBackgroundColor: _stitchBgDark,
-    appBarTheme: AppBarTheme(
-      backgroundColor: _stitchBgDark,
-      foregroundColor: AppColors.white,
-      elevation: 0,
-      centerTitle: false,
-      titleTextStyle: GoogleFonts.plusJakartaSans(
-        color: AppColors.white,
-        fontWeight: FontWeight.bold,
-        fontSize: 22,
-      ),
-      iconTheme: const IconThemeData(color: AppColors.white),
-    ),
-    colorScheme: const ColorScheme.dark(
-      primary: _stitchPrimary,
-      secondary: AppColors.orangeCoral,
-      error: AppColors.red,
-      surface: _stitchSurfaceDark,
-      onPrimary: AppColors.white,
-      onSurface: AppColors.white,
-    ),
-    cardColor: _stitchSurfaceDark,
-    cardTheme: CardThemeData(
-      color: _stitchSurfaceDark,
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(
-        backgroundColor: _stitchPrimary,
-        foregroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    ),
-    floatingActionButtonTheme: const FloatingActionButtonThemeData(
-      backgroundColor: _stitchPrimary,
-    ),
-    inputDecorationTheme: InputDecorationTheme(
-      filled: true,
-      fillColor: _stitchSurfaceDark,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    ),
-    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      backgroundColor: _stitchNavBg,
-      selectedItemColor: _stitchNavActive,
-      unselectedItemColor: _stitchSlate400,
-      type: BottomNavigationBarType.fixed,
-    ),
-  );
-}
+// Theme extraído a lib/features/utils/app_theme.dart
 
 class MyApp extends StatelessWidget {
   final bool isIntegrationTest;
@@ -541,8 +418,8 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       title: 'Zonix Eats',
       debugShowCheckedModeBanner: false,
-      theme: _buildStitchLightTheme(),
-      darkTheme: _buildStitchDarkTheme(),
+      theme: buildStitchLightTheme(),
+      darkTheme: buildStitchDarkTheme(),
       themeMode: ThemeMode.system,
       home: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
@@ -816,11 +693,11 @@ class MainRouterState extends State<MainRouter> {
                 return ListTile(
                   leading: Icon(
                     _iconForLevel(level),
-                    color: selected ? _stitchPrimary : _stitchSlate400,
+                    color: selected ? stitchPrimary : stitchSlate400,
                   ),
                   title: Text(_labelForLevel(level)),
                   trailing: selected
-                      ? const Icon(Icons.check, color: _stitchPrimary)
+                      ? const Icon(Icons.check, color: stitchPrimary)
                       : null,
                   onTap: () {
                     setState(() {
@@ -1056,7 +933,7 @@ class MainRouterState extends State<MainRouter> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 26,
                   fontWeight: FontWeight.w800,
-                  color: _stitchPrimary,
+                  color: stitchPrimary,
                   letterSpacing: 1.2,
                 ),
               ),
@@ -1221,8 +1098,8 @@ class MainRouterState extends State<MainRouter> {
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).brightness == Brightness.dark
-              ? _stitchNavBg
-              : _stitchBgLight,
+              ? stitchNavBg
+              : stitchBgLight,
           border: Border(
             top: BorderSide(
               color: Colors.white.withValues(alpha: 0.05),
@@ -1238,8 +1115,8 @@ class MainRouterState extends State<MainRouter> {
             return BottomNavigationBar(
               items: _getBottomNavItems(_selectedLevel, userProvider.userRole, cartCount),
           currentIndex: _bottomNavIndex,
-          selectedItemColor: _stitchNavActive,
-          unselectedItemColor: _stitchSlate400,
+          selectedItemColor: stitchNavActive,
+          unselectedItemColor: stitchSlate400,
           backgroundColor: Colors.transparent,
           elevation: 0,
           showSelectedLabels: false,
