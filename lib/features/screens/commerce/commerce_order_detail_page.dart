@@ -87,7 +87,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
     try {
       final order = await CommerceOrderService.getOrder(widget.orderId);
       String? qr;
-      if (order.status == 'processing') {
+      if (order.status == 'processing' && order.isDelivery) {
         qr = await CommerceOrderService.getPickupQrPayload(widget.orderId);
       }
       if (mounted) {
@@ -618,41 +618,101 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                     ],
                     if (order.status == 'processing') ...[
                       const SizedBox(height: 16),
-                      if (_pickupQrPayload != null) ...[
+                      if (order.isPickup) ...[
+                        const Icon(Icons.restaurant, size: 48, color: AppColors.orange),
+                        const SizedBox(height: 8),
                         Text(
-                          'Muestra este QR al repartidor',
+                          'Preparando pedido',
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
                         ),
-                        const SizedBox(height: 12),
-                        Center(
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: QrImageView(
-                              data: _pickupQrPayload!,
-                              version: QrVersions.auto,
-                              size: 200,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                      ],
-                      if (_pickupQrPayload == null)
+                        const SizedBox(height: 4),
                         Text(
-                          'El repartidor escaneará el QR para recoger el pedido',
+                          'Cuando el pedido esté listo, notifica al cliente para que pase a recogerlo.',
                           style: TextStyle(fontSize: 13, color: AppColors.secondaryText(context)),
                           textAlign: TextAlign.center,
                         ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton.icon(
+                            onPressed: _updating ? null : () => _updateStatus('shipped'),
+                            icon: const Icon(Icons.notifications_active),
+                            label: const Text('Pedido listo para recoger'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.blue,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      if (order.isDelivery) ...[
+                        if (_pickupQrPayload != null) ...[
+                          Text(
+                            'Muestra este QR al repartidor',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          Center(
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: AppColors.white,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: QrImageView(
+                                data: _pickupQrPayload!,
+                                version: QrVersions.auto,
+                                size: 200,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+                        if (_pickupQrPayload == null)
+                          Text(
+                            'El repartidor escaneará el QR para recoger el pedido',
+                            style: TextStyle(fontSize: 13, color: AppColors.secondaryText(context)),
+                            textAlign: TextAlign.center,
+                          ),
+                      ],
                       const SizedBox(height: 8),
                       ElevatedButton.icon(
                         onPressed: _updating ? null : () => _updateStatus('cancelled'),
                         icon: const Icon(Icons.close),
                         label: const Text('Cancelar orden'),
                         style: ElevatedButton.styleFrom(backgroundColor: AppColors.red),
+                      ),
+                    ],
+                    if (order.status == 'shipped' && order.isPickup) ...[
+                      const SizedBox(height: 16),
+                      const Icon(Icons.storefront, size: 48, color: AppColors.green),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Esperando al cliente',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'El cliente fue notificado. Cuando llegue y recoja su pedido, confirma la entrega.',
+                        style: TextStyle(fontSize: 13, color: AppColors.secondaryText(context)),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: _updating ? null : () => _updateStatus('delivered'),
+                          icon: const Icon(Icons.check_circle),
+                          label: const Text('Entregar al cliente'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.green,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                        ),
                       ),
                     ],
                   ],

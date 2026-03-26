@@ -239,17 +239,19 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     if (order.status == 'pending_payment' || order.status == 'pending') {
       return 'Sube tu comprobante de pago para que el comercio confirme tu orden.';
     }
-    if (order.status == 'shipped' || order.status == 'out_for_delivery') {
-      final m = order.estimatedDeliveryMinutes;
-      if (m != null && m > 0) {
-        return 'Llegada estimada en ~$m min';
-      }
-      return 'Calculando...';
-    }
     if (order.status == 'processing' || order.status == 'preparing') {
       return 'Se está preparando tu pedido';
     }
-    return 'Tu pedido está en camino';
+    if (order.status == 'shipped' || order.status == 'out_for_delivery') {
+      if (order.isPickup) return 'Tu pedido está listo para recoger';
+      final m = order.estimatedDeliveryMinutes;
+      if (m != null && m > 0) return 'Llegada estimada en ~$m min';
+      return 'Tu pedido va en camino';
+    }
+    if (order.status == 'delivered') {
+      return order.isPickup ? '¡Pedido recogido!' : '¡Pedido entregado!';
+    }
+    return order.isPickup ? 'Tu pedido se está preparando' : 'Tu pedido está en camino';
   }
 
   String _etaTime(Order order) {
@@ -423,7 +425,7 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                     const SizedBox(height: 8),
                     Text(
                       step >= 2
-                          ? '¡Ya casi llega!'
+                          ? (order.isPickup ? 'Listo para recoger' : '¡Ya casi llega!')
                           : (step == 1 ? 'En preparación' : 'Recibido'),
                       style: GoogleFonts.plusJakartaSans(
                           fontSize: 22,
@@ -450,7 +452,7 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                         color: primary),
                   ),
                   Text(
-                    'LLEGADA EST.',
+                    order.isPickup ? 'TIEMPO EST.' : 'LLEGADA EST.',
                     style: GoogleFonts.plusJakartaSans(
                         fontSize: 10,
                         fontWeight: FontWeight.bold,
@@ -462,7 +464,7 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
             ],
           ),
           const SizedBox(height: 24),
-          _buildProgressBar(step, primary, textSecondary),
+          _buildProgressBar(step, primary, textSecondary, order),
         ],
       ),
     );
@@ -526,14 +528,13 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     );
   }
 
-  Widget _buildProgressBar(int currentStep, Color primary, Color textMuted) {
-    const labels = ['RECIBIDO', 'PREPARACIÓN', 'EN CAMINO', 'ENTREGADO'];
-    const icons = [
-      Icons.check,
-      Icons.restaurant,
-      Icons.two_wheeler,
-      Icons.inventory_2
-    ];
+  Widget _buildProgressBar(int currentStep, Color primary, Color textMuted, Order order) {
+    final labels = order.isPickup
+        ? const ['RECIBIDO', 'PREPARACIÓN', 'LISTO', 'RECOGIDO']
+        : const ['RECIBIDO', 'PREPARACIÓN', 'EN CAMINO', 'ENTREGADO'];
+    final icons = order.isPickup
+        ? const [Icons.check, Icons.restaurant, Icons.storefront, Icons.shopping_bag]
+        : const [Icons.check, Icons.restaurant, Icons.two_wheeler, Icons.inventory_2];
     Widget circle(int i) {
       final done = i < currentStep;
       final active = i == currentStep;
@@ -978,7 +979,11 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
               children: [
                 _summaryRow('Subtotal', order.subtotal, textSecondary),
                 const SizedBox(height: 10),
-                _summaryRow('Costo de envío', order.deliveryFee, textSecondary),
+                _summaryRow(
+                  order.isPickup ? 'Retiro en tienda' : 'Costo de envío',
+                  order.deliveryFee,
+                  textSecondary,
+                ),
                 const Divider(height: 28),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
