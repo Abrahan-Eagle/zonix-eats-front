@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/admin_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/safe_parse.dart';
+import '../../utils/responsive_helper.dart';
 
 class AdminNotificationsPage extends StatefulWidget {
   const AdminNotificationsPage({super.key});
@@ -22,10 +23,13 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage> {
   bool get _isDark => Theme.of(context).brightness == Brightness.dark;
 
   static const _types = <String, _TypeMeta>{
-    'info': _TypeMeta('Información', Icons.info_outline_rounded, AppColors.blue),
-    'warning': _TypeMeta('Advertencia', Icons.warning_amber_rounded, AppColors.orange),
+    'info':
+        _TypeMeta('Información', Icons.info_outline_rounded, AppColors.blue),
+    'warning':
+        _TypeMeta('Advertencia', Icons.warning_amber_rounded, AppColors.orange),
     'error': _TypeMeta('Error', Icons.error_outline_rounded, AppColors.red),
-    'success': _TypeMeta('Éxito', Icons.check_circle_outline_rounded, AppColors.green),
+    'success':
+        _TypeMeta('Éxito', Icons.check_circle_outline_rounded, AppColors.green),
   };
 
   static const _targets = <String, String>{
@@ -49,8 +53,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage> {
     setState(() => _isSending = true);
 
     try {
-      final result =
-          await context.read<AdminService>().sendSystemNotification({
+      final result = await context.read<AdminService>().sendSystemNotification({
         'title': _titleCtrl.text.trim(),
         'message': _messageCtrl.text.trim(),
         'type': _type,
@@ -58,7 +61,8 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage> {
       });
 
       if (!mounted) return;
-      final count = safeInt(result['recipients_count'] ?? result['data']?['recipients_count']);
+      final count = safeInt(
+          result['recipients_count'] ?? result['data']?['recipients_count']);
       _snack(
         count > 0
             ? 'Notificación enviada a $count destinatarios'
@@ -102,74 +106,78 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage> {
         padding: const EdgeInsets.fromLTRB(16, 24, 16, 40),
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _previewBanner(),
-              const SizedBox(height: 24),
-              _label('Título'),
-              const SizedBox(height: 6),
-              TextFormField(
-                controller: _titleCtrl,
-                textCapitalization: TextCapitalization.sentences,
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Requerido' : null,
-                onChanged: (_) => setState(() {}),
-                decoration: _inputDecoration(
-                  hint: 'Ej: Mantenimiento programado',
-                  icon: Icons.title_rounded,
+          child: ResponsiveCenter(
+            maxWidth: 700,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _previewBanner(),
+                const SizedBox(height: 24),
+                _label('Título'),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: _titleCtrl,
+                  textCapitalization: TextCapitalization.sentences,
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                  onChanged: (_) => setState(() {}),
+                  decoration: _inputDecoration(
+                    hint: 'Ej: Mantenimiento programado',
+                    icon: Icons.title_rounded,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              _label('Mensaje'),
-              const SizedBox(height: 6),
-              TextFormField(
-                controller: _messageCtrl,
-                maxLines: 4,
-                textCapitalization: TextCapitalization.sentences,
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Requerido' : null,
-                onChanged: (_) => setState(() {}),
-                decoration: _inputDecoration(
-                  hint: 'Escribe el contenido de la notificación…',
-                  icon: Icons.message_rounded,
+                const SizedBox(height: 20),
+                _label('Mensaje'),
+                const SizedBox(height: 6),
+                TextFormField(
+                  controller: _messageCtrl,
+                  maxLines: 4,
+                  textCapitalization: TextCapitalization.sentences,
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                  onChanged: (_) => setState(() {}),
+                  decoration: _inputDecoration(
+                    hint: 'Escribe el contenido de la notificación…',
+                    icon: Icons.message_rounded,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              _label('Tipo'),
-              const SizedBox(height: 6),
-              _buildTypeSelector(),
-              const SizedBox(height: 20),
-              _label('Destinatarios'),
-              const SizedBox(height: 6),
-              _buildTargetDropdown(),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton.icon(
-                  onPressed: _isSending ? null : _send,
-                  icon: _isSending
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2, color: AppColors.white),
-                        )
-                      : const Icon(Icons.send_rounded),
-                  label: Text(_isSending ? 'Enviando…' : 'Enviar notificación'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.blue,
-                    foregroundColor: AppColors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                const SizedBox(height: 20),
+                _label('Tipo'),
+                const SizedBox(height: 6),
+                _buildTypeSelector(),
+                const SizedBox(height: 20),
+                _label('Destinatarios'),
+                const SizedBox(height: 6),
+                _buildTargetDropdown(),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton.icon(
+                    onPressed: _isSending ? null : _send,
+                    icon: _isSending
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                                strokeWidth: 2, color: AppColors.white),
+                          )
+                        : const Icon(Icons.send_rounded),
+                    label:
+                        Text(_isSending ? 'Enviando…' : 'Enviar notificación'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.blue,
+                      foregroundColor: AppColors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 36),
-              _buildHistoryPlaceholder(),
-            ],
+                const SizedBox(height: 36),
+                _buildHistoryPlaceholder(),
+              ],
+            ),
           ),
         ),
       ),
@@ -211,9 +219,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  message.isEmpty
-                      ? 'El mensaje aparecerá aquí…'
-                      : message,
+                  message.isEmpty ? 'El mensaje aparecerá aquí…' : message,
                   style: TextStyle(
                     fontSize: 13,
                     color: AppColors.secondaryText(context),
@@ -239,7 +245,8 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage> {
         final selected = _type == entry.key;
         final meta = entry.value;
         return ChoiceChip(
-          avatar: Icon(meta.icon, size: 18, color: selected ? meta.color : null),
+          avatar:
+              Icon(meta.icon, size: 18, color: selected ? meta.color : null),
           label: Text(meta.label),
           selected: selected,
           selectedColor: meta.color.withAlpha(35),
@@ -289,9 +296,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage> {
       decoration: BoxDecoration(
         color: AppColors.cardBg(context),
         borderRadius: BorderRadius.circular(16),
-        border: _isDark
-            ? Border.all(color: AppColors.white12)
-            : null,
+        border: _isDark ? Border.all(color: AppColors.white12) : null,
         boxShadow: [
           if (!_isDark)
             const BoxShadow(

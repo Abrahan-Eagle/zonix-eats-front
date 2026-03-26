@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/admin_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/safe_parse.dart';
+import '../../utils/responsive_helper.dart';
 
 class AdminAnalyticsPage extends StatefulWidget {
   const AdminAnalyticsPage({super.key});
@@ -102,25 +103,28 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _sectionTitle('Resumen'),
-            const SizedBox(height: 12),
-            _buildOverviewGrid(),
-            const SizedBox(height: 28),
-            _sectionTitle('Ingresos'),
-            const SizedBox(height: 12),
-            _buildRevenueSection(),
-            const SizedBox(height: 28),
-            _sectionTitle('Órdenes'),
-            const SizedBox(height: 12),
-            _buildOrdersSection(),
-            const SizedBox(height: 28),
-            _sectionTitle('KPIs'),
-            const SizedBox(height: 12),
-            _buildKpiSection(),
-          ],
+        child: ResponsiveCenter(
+          maxWidth: 1200,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _sectionTitle('Resumen'),
+              const SizedBox(height: 12),
+              _buildOverviewGrid(),
+              const SizedBox(height: 28),
+              _sectionTitle('Ingresos'),
+              const SizedBox(height: 12),
+              _buildRevenueSection(),
+              const SizedBox(height: 28),
+              _sectionTitle('Órdenes'),
+              const SizedBox(height: 12),
+              _buildOrdersSection(),
+              const SizedBox(height: 28),
+              _sectionTitle('KPIs'),
+              const SizedBox(height: 12),
+              _buildKpiSection(),
+            ],
+          ),
         ),
       ),
     );
@@ -158,18 +162,22 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
       ),
     ];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: items.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        // Celdas más altas: evita overflow del Column en pantallas estrechas
-        childAspectRatio: 1.05,
-      ),
-      itemBuilder: (_, i) => _overviewCard(items[i]),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cols = Responsive.gridColumns(constraints.maxWidth, mobile: 2, tablet: 3, desktop: 4);
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: items.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cols,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.05,
+          ),
+          itemBuilder: (_, i) => _overviewCard(items[i]),
+        );
+      },
     );
   }
 

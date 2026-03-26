@@ -4,6 +4,7 @@ import 'package:zonix/features/screens/delivery_company/delivery_company_add_age
 import 'package:zonix/features/services/delivery_company_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
+import '../../utils/responsive_helper.dart';
 
 class DeliveryCompanyAgentsPage extends StatefulWidget {
   const DeliveryCompanyAgentsPage({super.key});
@@ -52,10 +53,13 @@ class _DeliveryCompanyAgentsPageState extends State<DeliveryCompanyAgentsPage> {
 
           return RefreshIndicator(
             onRefresh: () => service.loadAgents(),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: service.agents.length,
-              itemBuilder: (context, i) => _buildAgentCard(service.agents[i], isDark),
+            child: ResponsiveCenter(
+              maxWidth: 900,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: service.agents.length,
+                itemBuilder: (context, i) => _buildAgentCard(service.agents[i], isDark),
+              ),
             ),
           );
         },

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/admin_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/safe_parse.dart';
+import '../../utils/responsive_helper.dart';
 
 class AdminCommercesPage extends StatefulWidget {
   const AdminCommercesPage({super.key});
@@ -246,9 +247,8 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
                           ),
                           label: Text(currentOpen ? 'Cerrar' : 'Abrir'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: currentOpen
-                                ? AppColors.red
-                                : AppColors.green,
+                            backgroundColor:
+                                currentOpen ? AppColors.red : AppColors.green,
                             foregroundColor: AppColors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -305,8 +305,7 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
       backgroundColor: AppColors.scaffoldBg(context),
       appBar: AppBar(
         title: const Text('Comercios'),
-        backgroundColor:
-            isDark ? AppColors.grayDark : AppColors.blueDark,
+        backgroundColor: isDark ? AppColors.grayDark : AppColors.blueDark,
         foregroundColor: AppColors.white,
         elevation: 0,
       ),
@@ -320,10 +319,9 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
               style: TextStyle(color: AppColors.primaryText(context)),
               decoration: InputDecoration(
                 hintText: 'Buscar comercio...',
-                hintStyle:
-                    TextStyle(color: AppColors.secondaryText(context)),
-                prefixIcon: Icon(Icons.search,
-                    color: AppColors.secondaryText(context)),
+                hintStyle: TextStyle(color: AppColors.secondaryText(context)),
+                prefixIcon:
+                    Icon(Icons.search, color: AppColors.secondaryText(context)),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: Icon(Icons.clear,
@@ -387,9 +385,8 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
         child: Text(
           label,
           style: TextStyle(
-            color: selected
-                ? AppColors.white
-                : AppColors.secondaryText(context),
+            color:
+                selected ? AppColors.white : AppColors.secondaryText(context),
             fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
             fontSize: 13,
           ),
@@ -441,19 +438,22 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
     }
     return RefreshIndicator(
       onRefresh: _loadData,
-      child: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        itemCount: _commerces.length + (_isLoadingMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == _commerces.length) {
-            return const Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            );
-          }
-          return _buildCommerceCard(_commerces[index]);
-        },
+      child: ResponsiveCenter(
+        maxWidth: 900,
+        child: ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          itemCount: _commerces.length + (_isLoadingMore ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index == _commerces.length) {
+              return const Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            return _buildCommerceCard(_commerces[index]);
+          },
+        ),
       ),
     );
   }

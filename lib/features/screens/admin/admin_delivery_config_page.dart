@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/admin_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/safe_parse.dart';
+import '../../utils/responsive_helper.dart';
 
 class AdminDeliveryConfigPage extends StatelessWidget {
   const AdminDeliveryConfigPage({super.key});
@@ -158,50 +159,54 @@ class _GlobalRateTabState extends State<_GlobalRateTab>
         padding: const EdgeInsets.fromLTRB(16, 24, 16, 40),
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _infoCard(),
-              const SizedBox(height: 24),
-              _field(_baseCostCtrl, 'Costo base (\$)', Icons.payments_rounded),
-              const SizedBox(height: 16),
-              _field(_costPerKmCtrl, 'Costo por km (\$)',
-                  Icons.straighten_rounded),
-              const SizedBox(height: 16),
-              _field(_freeKmCtrl, 'Km gratis', Icons.card_giftcard_rounded),
-              const SizedBox(height: 16),
-              _field(_feeMinCtrl, 'Tarifa mínima (\$)',
-                  Icons.arrow_downward_rounded),
-              const SizedBox(height: 16),
-              _field(_feeMaxCtrl, 'Tarifa máxima (\$)',
-                  Icons.arrow_upward_rounded),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton.icon(
-                  onPressed: _isSaving ? null : _save,
-                  icon: _isSaving
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: AppColors.white,
-                          ),
-                        )
-                      : const Icon(Icons.save_rounded),
-                  label: Text(_isSaving ? 'Guardando…' : 'Guardar cambios'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.blue,
-                    foregroundColor: AppColors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+          child: ResponsiveCenter(
+            maxWidth: 700,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _infoCard(),
+                const SizedBox(height: 24),
+                _field(
+                    _baseCostCtrl, 'Costo base (\$)', Icons.payments_rounded),
+                const SizedBox(height: 16),
+                _field(_costPerKmCtrl, 'Costo por km (\$)',
+                    Icons.straighten_rounded),
+                const SizedBox(height: 16),
+                _field(_freeKmCtrl, 'Km gratis', Icons.card_giftcard_rounded),
+                const SizedBox(height: 16),
+                _field(_feeMinCtrl, 'Tarifa mínima (\$)',
+                    Icons.arrow_downward_rounded),
+                const SizedBox(height: 16),
+                _field(_feeMaxCtrl, 'Tarifa máxima (\$)',
+                    Icons.arrow_upward_rounded),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton.icon(
+                    onPressed: _isSaving ? null : _save,
+                    icon: _isSaving
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: AppColors.white,
+                            ),
+                          )
+                        : const Icon(Icons.save_rounded),
+                    label: Text(_isSaving ? 'Guardando…' : 'Guardar cambios'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.blue,
+                      foregroundColor: AppColors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -363,10 +368,13 @@ class _DeliveryZonesTabState extends State<_DeliveryZonesTab>
           : RefreshIndicator(
               onRefresh: _loadZones,
               color: AppColors.blue,
-              child: ListView.builder(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-                itemCount: _zones.length,
-                itemBuilder: (_, i) => _zoneCard(_zones[i], i),
+              child: ResponsiveCenter(
+                maxWidth: 900,
+                child: ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                  itemCount: _zones.length,
+                  itemBuilder: (_, i) => _zoneCard(_zones[i], i),
+                ),
               ),
             ),
       floatingActionButton: FloatingActionButton.extended(
@@ -438,8 +446,10 @@ class _DeliveryZonesTabState extends State<_DeliveryZonesTab>
                   spacing: 16,
                   runSpacing: 6,
                   children: [
-                    _zoneStat(Icons.radar_rounded, '${radius.toStringAsFixed(1)} km'),
-                    _zoneStat(Icons.payments_rounded, '\$${fee.toStringAsFixed(2)}'),
+                    _zoneStat(
+                        Icons.radar_rounded, '${radius.toStringAsFixed(1)} km'),
+                    _zoneStat(
+                        Icons.payments_rounded, '\$${fee.toStringAsFixed(2)}'),
                     _zoneStat(Icons.timer_rounded, time),
                   ],
                 ),
@@ -532,8 +542,7 @@ class _DeliveryZonesTabState extends State<_DeliveryZonesTab>
         TextEditingController(text: safeString(zone?['center_lat']));
     final lngCtrl =
         TextEditingController(text: safeString(zone?['center_lng']));
-    final radiusCtrl =
-        TextEditingController(text: safeString(zone?['radius']));
+    final radiusCtrl = TextEditingController(text: safeString(zone?['radius']));
     final feeCtrl =
         TextEditingController(text: safeString(zone?['delivery_fee']));
     final timeCtrl =
@@ -592,8 +601,7 @@ class _DeliveryZonesTabState extends State<_DeliveryZonesTab>
                         SwitchListTile(
                           title: const Text('Activa'),
                           value: isActive,
-                          onChanged: (v) =>
-                              setDialogState(() => isActive = v),
+                          onChanged: (v) => setDialogState(() => isActive = v),
                           contentPadding: EdgeInsets.zero,
                         ),
                       ],

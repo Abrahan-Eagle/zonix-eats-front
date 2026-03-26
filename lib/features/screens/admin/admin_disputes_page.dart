@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../../services/admin_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/safe_parse.dart';
+import '../../utils/responsive_helper.dart';
 
 class AdminDisputesPage extends StatefulWidget {
   const AdminDisputesPage({super.key});
@@ -220,8 +221,7 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
                             vertical: 5,
                           ),
                           decoration: BoxDecoration(
-                            color: _statusColor(status)
-                                .withValues(alpha: 0.15),
+                            color: _statusColor(status).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
@@ -236,8 +236,8 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    _detailRow(Icons.category, 'Tipo',
-                        safeString(dispute['type'])),
+                    _detailRow(
+                        Icons.category, 'Tipo', safeString(dispute['type'])),
                     _detailRow(Icons.receipt_long, 'Orden',
                         '#${safeInt(dispute['order_id'])}'),
                     _detailRow(Icons.calendar_today, 'Fecha',
@@ -287,9 +287,8 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
                             color: AppColors.secondaryText(context),
                           ),
                           filled: true,
-                          fillColor: isDark
-                              ? AppColors.grayDark
-                              : AppColors.grayLight,
+                          fillColor:
+                              isDark ? AppColors.grayDark : AppColors.grayLight,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -324,9 +323,8 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
                             color: AppColors.secondaryText(context),
                           ),
                           filled: true,
-                          fillColor: isDark
-                              ? AppColors.grayDark
-                              : AppColors.grayLight,
+                          fillColor:
+                              isDark ? AppColors.grayDark : AppColors.grayLight,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -348,9 +346,7 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
                             return;
                           }
                           try {
-                            await context
-                                .read<AdminService>()
-                                .resolveDispute(
+                            await context.read<AdminService>().resolveDispute(
                                   disputeId,
                                   selectedResolution,
                                   notes,
@@ -465,8 +461,10 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
 
   Widget _buildStatsBar() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final pending = safeInt(_stats['pending'], safeInt(_stats['data']?['pending']));
-    final resolved = safeInt(_stats['resolved'], safeInt(_stats['data']?['resolved']));
+    final pending =
+        safeInt(_stats['pending'], safeInt(_stats['data']?['pending']));
+    final resolved =
+        safeInt(_stats['resolved'], safeInt(_stats['data']?['resolved']));
     final total = safeInt(_stats['total'], safeInt(_stats['data']?['total']));
 
     return Container(
@@ -539,9 +537,8 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
         child: Text(
           label,
           style: TextStyle(
-            color: selected
-                ? AppColors.white
-                : AppColors.secondaryText(context),
+            color:
+                selected ? AppColors.white : AppColors.secondaryText(context),
             fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
             fontSize: 13,
           ),
@@ -593,19 +590,22 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
     }
     return RefreshIndicator(
       onRefresh: _onRefresh,
-      child: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        itemCount: _disputes.length + (_isLoadingMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == _disputes.length) {
-            return const Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            );
-          }
-          return _buildDisputeCard(_disputes[index]);
-        },
+      child: ResponsiveCenter(
+        maxWidth: 900,
+        child: ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          itemCount: _disputes.length + (_isLoadingMore ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index == _disputes.length) {
+              return const Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            return _buildDisputeCard(_disputes[index]);
+          },
+        ),
       ),
     );
   }
@@ -671,8 +671,7 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
                       vertical: 3,
                     ),
                     decoration: BoxDecoration(
-                      color:
-                          _statusColor(status).withValues(alpha: 0.15),
+                      color: _statusColor(status).withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(

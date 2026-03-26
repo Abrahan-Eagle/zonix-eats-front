@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../services/admin_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/safe_parse.dart';
+import '../../utils/responsive_helper.dart';
 
 class AdminDeliveryCompaniesPage extends StatefulWidget {
   const AdminDeliveryCompaniesPage({super.key});
@@ -156,10 +157,9 @@ class _AdminDeliveryCompaniesPageState
                   ),
                 ),
                 const SizedBox(height: 16),
-                _detailRow(Icons.email, 'Email',
-                    safeString(company['email'])),
-                _detailRow(Icons.phone, 'Teléfono',
-                    safeString(company['phone'])),
+                _detailRow(Icons.email, 'Email', safeString(company['email'])),
+                _detailRow(
+                    Icons.phone, 'Teléfono', safeString(company['phone'])),
                 _detailRow(Icons.location_on, 'Dirección',
                     safeString(company['address'])),
                 _detailRow(Icons.people, 'Agentes',
@@ -235,10 +235,9 @@ class _AdminDeliveryCompaniesPageState
               style: TextStyle(color: AppColors.primaryText(context)),
               decoration: InputDecoration(
                 hintText: 'Buscar empresa...',
-                hintStyle:
-                    TextStyle(color: AppColors.secondaryText(context)),
-                prefixIcon: Icon(Icons.search,
-                    color: AppColors.secondaryText(context)),
+                hintStyle: TextStyle(color: AppColors.secondaryText(context)),
+                prefixIcon:
+                    Icon(Icons.search, color: AppColors.secondaryText(context)),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
                         icon: Icon(Icons.clear,
@@ -307,19 +306,22 @@ class _AdminDeliveryCompaniesPageState
     }
     return RefreshIndicator(
       onRefresh: _loadData,
-      child: ListView.builder(
-        controller: _scrollController,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        itemCount: _companies.length + (_isLoadingMore ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index == _companies.length) {
-            return const Padding(
-              padding: EdgeInsets.all(16),
-              child: Center(child: CircularProgressIndicator()),
-            );
-          }
-          return _buildCompanyCard(_companies[index]);
-        },
+      child: ResponsiveCenter(
+        maxWidth: 900,
+        child: ListView.builder(
+          controller: _scrollController,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          itemCount: _companies.length + (_isLoadingMore ? 1 : 0),
+          itemBuilder: (context, index) {
+            if (index == _companies.length) {
+              return const Padding(
+                padding: EdgeInsets.all(16),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+            return _buildCompanyCard(_companies[index]);
+          },
+        ),
       ),
     );
   }
@@ -351,8 +353,8 @@ class _AdminDeliveryCompaniesPageState
             children: [
               CircleAvatar(
                 backgroundColor: AppColors.purple.withValues(alpha: 0.15),
-                child: const Icon(Icons.local_shipping,
-                    color: AppColors.purple),
+                child:
+                    const Icon(Icons.local_shipping, color: AppColors.purple),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -388,8 +390,7 @@ class _AdminDeliveryCompaniesPageState
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.people,
-                        size: 14, color: AppColors.blue),
+                    const Icon(Icons.people, size: 14, color: AppColors.blue),
                     const SizedBox(width: 4),
                     Text(
                       '$agentCount',
@@ -471,8 +472,10 @@ class _AgentsListState extends State<_AgentsList> {
     }
     return Column(
       children: _agents.map((a) {
-        final name = safeString(a['name'],
-            '${safeString(a['first_name'])} ${safeString(a['last_name'])}'.trim());
+        final name = safeString(
+            a['name'],
+            '${safeString(a['first_name'])} ${safeString(a['last_name'])}'
+                .trim());
         final phone = safeString(a['phone']);
         return ListTile(
           dense: true,

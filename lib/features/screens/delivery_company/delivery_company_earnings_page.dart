@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:zonix/features/services/delivery_company_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
+import '../../utils/responsive_helper.dart';
 
 class DeliveryCompanyEarningsPage extends StatefulWidget {
   const DeliveryCompanyEarningsPage({super.key});
@@ -61,22 +62,25 @@ class _DeliveryCompanyEarningsPageState extends State<DeliveryCompanyEarningsPag
 
           return RefreshIndicator(
             onRefresh: () => service.loadEarnings(),
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _buildPeriodChips(isDark),
-                const SizedBox(height: 16),
-                _buildMainEarnings(highlighted, isDark),
-                const SizedBox(height: 16),
-                _buildSummaryRow(todayEarnings, weekEarnings, monthEarnings, totalEarnings, isDark),
-                const SizedBox(height: 20),
-                _buildSectionTitle('Desglose por agente'),
-                const SizedBox(height: 12),
-                if (breakdown.isEmpty)
-                  _buildEmpty()
-                else
-                  ...breakdown.map((a) => _buildAgentRow(a, isDark)),
-              ],
+            child: ResponsiveCenter(
+              maxWidth: 900,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _buildPeriodChips(isDark),
+                  const SizedBox(height: 16),
+                  _buildMainEarnings(highlighted, isDark),
+                  const SizedBox(height: 16),
+                  _buildSummaryRow(todayEarnings, weekEarnings, monthEarnings, totalEarnings, isDark),
+                  const SizedBox(height: 20),
+                  _buildSectionTitle('Desglose por agente'),
+                  const SizedBox(height: 12),
+                  if (breakdown.isEmpty)
+                    _buildEmpty()
+                  else
+                    ...breakdown.map((a) => _buildAgentRow(a, isDark)),
+                ],
+              ),
             ),
           );
         },

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:zonix/features/services/delivery_company_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
+import '../../utils/responsive_helper.dart';
 
 class DeliveryCompanyDashboardPage extends StatefulWidget {
   const DeliveryCompanyDashboardPage({super.key});
@@ -49,39 +50,42 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
 
           return RefreshIndicator(
             onRefresh: () => service.loadDashboard(),
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _buildCompanyHeader(company, isDark),
-                const SizedBox(height: 16),
-                _buildDefaultPayoutCard(company, isDark),
-                const SizedBox(height: 16),
-                _buildStatusRow(agentsCount, activeAgents, avgRating, isDark),
-                const SizedBox(height: 16),
-                _buildSectionTitle('Entregas'),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    _metricCard('Hoy', '$todayDeliveries', AppColors.green, isDark),
-                    const SizedBox(width: 8),
-                    _metricCard('Semana', '$weekDeliveries', AppColors.blue, isDark),
-                    const SizedBox(width: 8),
-                    _metricCard('Mes', '$monthDeliveries', AppColors.purple, isDark),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                _buildSectionTitle('Ganancias'),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    _metricCard('Hoy', '\$${todayEarnings.toStringAsFixed(2)}', AppColors.green, isDark),
-                    const SizedBox(width: 8),
-                    _metricCard('Semana', '\$${weekEarnings.toStringAsFixed(2)}', AppColors.blue, isDark),
-                    const SizedBox(width: 8),
-                    _metricCard('Mes', '\$${monthEarnings.toStringAsFixed(2)}', AppColors.purple, isDark),
-                  ],
-                ),
-              ],
+            child: ResponsiveCenter(
+              maxWidth: 1000,
+              child: ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
+                  _buildCompanyHeader(company, isDark),
+                  const SizedBox(height: 16),
+                  _buildDefaultPayoutCard(company, isDark),
+                  const SizedBox(height: 16),
+                  _buildStatusRow(agentsCount, activeAgents, avgRating, isDark),
+                  const SizedBox(height: 16),
+                  _buildSectionTitle('Entregas'),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      _metricCard('Hoy', '$todayDeliveries', AppColors.green, isDark),
+                      const SizedBox(width: 8),
+                      _metricCard('Semana', '$weekDeliveries', AppColors.blue, isDark),
+                      const SizedBox(width: 8),
+                      _metricCard('Mes', '$monthDeliveries', AppColors.purple, isDark),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildSectionTitle('Ganancias'),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      _metricCard('Hoy', '\$${todayEarnings.toStringAsFixed(2)}', AppColors.green, isDark),
+                      const SizedBox(width: 8),
+                      _metricCard('Semana', '\$${weekEarnings.toStringAsFixed(2)}', AppColors.blue, isDark),
+                      const SizedBox(width: 8),
+                      _metricCard('Mes', '\$${monthEarnings.toStringAsFixed(2)}', AppColors.purple, isDark),
+                    ],
+                  ),
+                ],
+              ),
             ),
           );
         },

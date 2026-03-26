@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/services/delivery_company_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import '../../utils/responsive_helper.dart';
 
 /// Formulario para que la delivery_company cree una cuenta de repartidor.
 class DeliveryCompanyAddAgentPage extends StatefulWidget {
@@ -75,87 +76,90 @@ class _DeliveryCompanyAddAgentPageState extends State<DeliveryCompanyAddAgentPag
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (_error != null) ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: AppColors.red.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
+          child: ResponsiveCenter(
+            maxWidth: 600,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                if (_error != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: AppColors.red.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(_error!, style: const TextStyle(color: AppColors.red)),
                   ),
-                  child: Text(_error!, style: const TextStyle(color: AppColors.red)),
+                ],
+                TextFormField(
+                  controller: _firstName,
+                  decoration: const InputDecoration(labelText: 'Nombre'),
+                  textCapitalization: TextCapitalization.words,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _lastName,
+                  decoration: const InputDecoration(labelText: 'Apellido'),
+                  textCapitalization: TextCapitalization.words,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _email,
+                  decoration: const InputDecoration(labelText: 'Correo (login)'),
+                  keyboardType: TextInputType.emailAddress,
+                  autocorrect: false,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _password,
+                  decoration: const InputDecoration(labelText: 'Contraseña (mín. 8)'),
+                  obscureText: true,
+                  validator: (v) => (v == null || v.length < 8) ? 'Mínimo 8 caracteres' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _passwordConfirmation,
+                  decoration: const InputDecoration(labelText: 'Confirmar contraseña'),
+                  obscureText: true,
+                  validator: (v) => v != _password.text ? 'No coincide' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _phone,
+                  decoration: const InputDecoration(labelText: 'Teléfono'),
+                  keyboardType: TextInputType.phone,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _vehicleType,
+                  decoration: const InputDecoration(labelText: 'Tipo de vehículo (ej. moto)'),
+                  textCapitalization: TextCapitalization.words,
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: _licenseNumber,
+                  decoration: const InputDecoration(labelText: 'Número de licencia'),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
+                ),
+                const SizedBox(height: 24),
+                FilledButton(
+                  onPressed: _loading ? null : _submit,
+                  child: _loading
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Crear agente'),
                 ),
               ],
-              TextFormField(
-                controller: _firstName,
-                decoration: const InputDecoration(labelText: 'Nombre'),
-                textCapitalization: TextCapitalization.words,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _lastName,
-                decoration: const InputDecoration(labelText: 'Apellido'),
-                textCapitalization: TextCapitalization.words,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _email,
-                decoration: const InputDecoration(labelText: 'Correo (login)'),
-                keyboardType: TextInputType.emailAddress,
-                autocorrect: false,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _password,
-                decoration: const InputDecoration(labelText: 'Contraseña (mín. 8)'),
-                obscureText: true,
-                validator: (v) => (v == null || v.length < 8) ? 'Mínimo 8 caracteres' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _passwordConfirmation,
-                decoration: const InputDecoration(labelText: 'Confirmar contraseña'),
-                obscureText: true,
-                validator: (v) => v != _password.text ? 'No coincide' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _phone,
-                decoration: const InputDecoration(labelText: 'Teléfono'),
-                keyboardType: TextInputType.phone,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _vehicleType,
-                decoration: const InputDecoration(labelText: 'Tipo de vehículo (ej. moto)'),
-                textCapitalization: TextCapitalization.words,
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _licenseNumber,
-                decoration: const InputDecoration(labelText: 'Número de licencia'),
-                validator: (v) => (v == null || v.trim().isEmpty) ? 'Requerido' : null,
-              ),
-              const SizedBox(height: 24),
-              FilledButton(
-                onPressed: _loading ? null : _submit,
-                child: _loading
-                    ? const SizedBox(
-                        height: 22,
-                        width: 22,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('Crear agente'),
-              ),
-            ],
+            ),
           ),
         ),
       ),

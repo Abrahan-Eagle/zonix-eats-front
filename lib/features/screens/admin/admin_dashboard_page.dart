@@ -4,6 +4,7 @@ import 'package:zonix/features/services/admin_service.dart';
 import 'package:zonix/features/services/notification_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
+import 'package:zonix/features/utils/responsive_helper.dart';
 import 'package:zonix/features/screens/admin/admin_users_page.dart';
 import 'package:zonix/features/screens/admin/admin_analytics_page.dart';
 import 'package:zonix/features/screens/admin/admin_commerces_page.dart';
@@ -181,23 +182,26 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHealthBanner(),
-            const SizedBox(height: 24),
-            _sectionTitle('Métricas'),
-            const SizedBox(height: 12),
-            _buildMetricsGrid(),
-            const SizedBox(height: 28),
-            _sectionTitle('Acciones rápidas'),
-            const SizedBox(height: 12),
-            _buildQuickActions(),
-            const SizedBox(height: 28),
-            _sectionTitle('Distribución por rol'),
-            const SizedBox(height: 12),
-            _buildRoleDistribution(),
-          ],
+        child: ResponsiveCenter(
+          maxWidth: 1200,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHealthBanner(),
+              const SizedBox(height: 24),
+              _sectionTitle('Métricas'),
+              const SizedBox(height: 12),
+              _buildMetricsGrid(),
+              const SizedBox(height: 28),
+              _sectionTitle('Acciones rápidas'),
+              const SizedBox(height: 12),
+              _buildQuickActions(),
+              const SizedBox(height: 28),
+              _sectionTitle('Distribución por rol'),
+              const SizedBox(height: 12),
+              _buildRoleDistribution(),
+            ],
+          ),
         ),
       ),
     );
@@ -325,18 +329,22 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       _Metric(Icons.timer_rounded, avgWait, 'Espera prom.', AppColors.amber),
     ];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: metrics.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        // Celdas más altas que anchas: evita overflow del Column en pantallas estrechas
-        childAspectRatio: 0.68,
-      ),
-      itemBuilder: (_, i) => _metricCard(metrics[i]),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cols = Responsive.gridColumns(constraints.maxWidth, mobile: 2, tablet: 3, desktop: 4);
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: metrics.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cols,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.68,
+          ),
+          itemBuilder: (_, i) => _metricCard(metrics[i]),
+        );
+      },
     );
   }
 
@@ -422,17 +430,22 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           AppColors.green, _goNotifications),
     ];
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: actions.length,
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 3,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 0.72,
-      ),
-      itemBuilder: (_, i) => _quickActionCard(actions[i]),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cols = Responsive.gridColumns(constraints.maxWidth, mobile: 3, tablet: 4, desktop: 5);
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: actions.length,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: cols,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 0.72,
+          ),
+          itemBuilder: (_, i) => _quickActionCard(actions[i]),
+        );
+      },
     );
   }
 

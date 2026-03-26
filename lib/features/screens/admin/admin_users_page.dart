@@ -345,11 +345,16 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
     }
     return RefreshIndicator(
       onRefresh: _loadUsers,
-      child: ListView.separated(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-        itemCount: _filteredUsers.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 10),
-        itemBuilder: (context, i) => _buildUserCard(_filteredUsers[i], isDark),
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            itemCount: _filteredUsers.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 10),
+            itemBuilder: (context, i) => _buildUserCard(_filteredUsers[i], isDark),
+          ),
+        ),
       ),
     );
   }

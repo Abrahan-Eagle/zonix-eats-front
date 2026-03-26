@@ -8,6 +8,7 @@ import 'package:zonix/features/services/delivery_company_service.dart';
 import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
+import '../../utils/responsive_helper.dart';
 
 class DeliveryCompanyOrdersPage extends StatefulWidget {
   const DeliveryCompanyOrdersPage({super.key, this.highlightOrderId});
@@ -188,13 +189,16 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
     }
     return RefreshIndicator(
       onRefresh: () => service.loadPendingPaymentOrders(),
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: service.pendingPaymentOrders.length,
-        itemBuilder: (context, i) {
-          final order = service.pendingPaymentOrders[i];
-          return _buildPaymentOrderCard(order, service);
-        },
+      child: ResponsiveCenter(
+        maxWidth: 900,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: service.pendingPaymentOrders.length,
+          itemBuilder: (context, i) {
+            final order = service.pendingPaymentOrders[i];
+            return _buildPaymentOrderCard(order, service);
+          },
+        ),
       ),
     );
   }
@@ -311,13 +315,18 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
     }
     return RefreshIndicator(
       onRefresh: () => service.loadPendingOrders(),
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: service.pendingOrders.length,
-        itemBuilder: (context, i) {
-          final order = service.pendingOrders[i];
-          return _buildPendingOrderCard(order, service);
-        },
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 900),
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: service.pendingOrders.length,
+            itemBuilder: (context, i) {
+              final order = service.pendingOrders[i];
+              return _buildPendingOrderCard(order, service);
+            },
+          ),
+        ),
       ),
     );
   }
@@ -379,7 +388,9 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Total: \$${total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                Expanded(
+                  child: Text('Total: \$${total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w600)),
+                ),
                 Text('Delivery: \$${deliveryFee.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.green)),
               ],
             ),
@@ -422,10 +433,13 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
 
     return RefreshIndicator(
       onRefresh: () => context.read<DeliveryCompanyService>().loadOrders(),
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: orders.length,
-        itemBuilder: (context, i) => _buildOrderCard(orders[i], isDark),
+      child: ResponsiveCenter(
+        maxWidth: 900,
+        child: ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: orders.length,
+          itemBuilder: (context, i) => _buildOrderCard(orders[i], isDark),
+        ),
       ),
     );
   }
