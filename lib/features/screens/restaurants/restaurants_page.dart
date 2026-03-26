@@ -232,6 +232,9 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final rating = restaurant.rating;
     final deliveryTime = restaurant.deliveryTime;
+    final deliveryTimeLabel = deliveryTime > 0
+        ? '$deliveryTime-${deliveryTime + 10} min'
+        : 'Calculando...';
     final deliveryFee = restaurant.deliveryFee;
     final showPromoBadge =
         index == 0; // Template: primera tarjeta con badge Promoción
@@ -431,7 +434,7 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
                           size: 16, color: _TemplateColors.primary),
                       const SizedBox(width: 4),
                       Text(
-                        '$deliveryTime-${deliveryTime + 10} min',
+                        deliveryTimeLabel,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,

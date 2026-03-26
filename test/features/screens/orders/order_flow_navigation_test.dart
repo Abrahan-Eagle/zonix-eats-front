@@ -20,7 +20,7 @@ Order _order({required int id, required String status}) {
     'payment_method': '',
     'payment_status': 'pending',
     'delivery_address': 'Calle Test',
-    'estimated_delivery_time': '2024-06-01T12:00:00.000Z',
+    'estimated_delivery_time': 35,
     'created_at': '2024-06-01T11:00:00.000Z',
     'updated_at': '2024-06-01T11:00:00.000Z',
     'items': [],

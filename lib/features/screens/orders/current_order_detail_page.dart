@@ -239,7 +239,11 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
       return 'Sube tu comprobante de pago para que el comercio confirme tu orden.';
     }
     if (order.status == 'shipped' || order.status == 'out_for_delivery') {
-      return 'Tu pedido aterrizará en 8-12 min';
+      final m = order.estimatedDeliveryMinutes;
+      if (m != null && m > 0) {
+        return 'Llegada estimada en ~$m min';
+      }
+      return 'Calculando...';
     }
     if (order.status == 'processing' || order.status == 'preparing') {
       return 'Se está preparando tu pedido';
@@ -248,8 +252,11 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
   }
 
   String _etaTime(Order order) {
-    final t = order.estimatedDeliveryTime;
-    return '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+    final m = order.estimatedDeliveryMinutes;
+    if (m != null && m > 0) {
+      return '~$m';
+    }
+    return 'Calculando...';
   }
 
   String _imageUrl(String? path) {

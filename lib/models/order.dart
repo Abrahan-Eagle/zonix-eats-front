@@ -1,9 +1,41 @@
+import 'package:zonix/features/utils/safe_parse.dart';
+
 double _parseDouble(dynamic value) {
   if (value == null) return 0.0;
   if (value is int) return value.toDouble();
   if (value is double) return value;
   if (value is String) return double.tryParse(value) ?? 0.0;
   return 0.0;
+}
+
+/// Backend envía minutos (int). Compat: string numérica o ISO8601 vs `created_at`.
+int? _parseEstimatedDeliveryMinutes(Map<String, dynamic> json) {
+  final v = json['estimated_delivery_time'];
+  if (v == null) return null;
+  if (v is int || v is num) {
+    final m = safeInt(v, 0);
+    return m > 0 ? m : null;
+  }
+  if (v is String) {
+    final trimmed = v.trim();
+    if (trimmed.isEmpty) return null;
+    final asInt = int.tryParse(trimmed);
+    if (asInt != null) {
+      return asInt > 0 ? asInt : null;
+    }
+    final dt = DateTime.tryParse(trimmed);
+    if (dt != null) {
+      final createdRaw = json['created_at'];
+      final created = createdRaw != null
+          ? DateTime.tryParse(createdRaw.toString())
+          : null;
+      if (created != null) {
+        final diff = dt.difference(created).inMinutes;
+        return diff > 0 ? diff : null;
+      }
+    }
+  }
+  return null;
 }
 
 class Order {
@@ -22,7 +54,8 @@ class Order {
   final String deliveryAddress;
   final Map<String, dynamic>? deliveryLocation;
   final String? specialInstructions;
-  final DateTime estimatedDeliveryTime;
+  /// Minutos estimados hasta la entrega (API: `estimated_delivery_time` entero).
+  final int? estimatedDeliveryMinutes;
   final DateTime? actualDeliveryTime;
   final DateTime createdAt;
   final DateTime updatedAt;
@@ -58,7 +91,7 @@ class Order {
     required this.deliveryAddress,
     this.deliveryLocation,
     this.specialInstructions,
-    required this.estimatedDeliveryTime,
+    this.estimatedDeliveryMinutes,
     this.actualDeliveryTime,
     required this.createdAt,
     required this.updatedAt,
@@ -115,9 +148,7 @@ class Order {
       deliveryAddress: json['delivery_address']?.toString() ?? '',
       deliveryLocation: json['delivery_location'],
       specialInstructions: json['special_instructions'] ?? json['notes'],
-      estimatedDeliveryTime: createdAtRaw != null
-          ? (DateTime.tryParse(createdAtRaw.toString()) ?? DateTime.now()).add(const Duration(minutes: 30))
-          : DateTime.now().add(const Duration(minutes: 30)),
+      estimatedDeliveryMinutes: _parseEstimatedDeliveryMinutes(json),
       actualDeliveryTime: json['actual_delivery_time'] != null ? DateTime.tryParse(json['actual_delivery_time'].toString()) : null,
       createdAt: createdAtRaw != null ? (DateTime.tryParse(createdAtRaw.toString()) ?? DateTime.now()) : DateTime.now(),
       updatedAt: updatedAtRaw != null ? (DateTime.tryParse(updatedAtRaw.toString()) ?? DateTime.now()) : DateTime.now(),
@@ -158,7 +189,8 @@ class Order {
       'delivery_address': deliveryAddress,
       'delivery_location': deliveryLocation,
       'special_instructions': specialInstructions,
-      'estimated_delivery_time': estimatedDeliveryTime.toIso8601String(),
+      if (estimatedDeliveryMinutes != null)
+        'estimated_delivery_time': estimatedDeliveryMinutes,
       'actual_delivery_time': actualDeliveryTime?.toIso8601String(),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
@@ -196,7 +228,7 @@ class Order {
     String? deliveryAddress,
     Map<String, dynamic>? deliveryLocation,
     String? specialInstructions,
-    DateTime? estimatedDeliveryTime,
+    int? estimatedDeliveryMinutes,
     DateTime? actualDeliveryTime,
     DateTime? createdAt,
     DateTime? updatedAt,
@@ -232,7 +264,8 @@ class Order {
       deliveryAddress: deliveryAddress ?? this.deliveryAddress,
       deliveryLocation: deliveryLocation ?? this.deliveryLocation,
       specialInstructions: specialInstructions ?? this.specialInstructions,
-      estimatedDeliveryTime: estimatedDeliveryTime ?? this.estimatedDeliveryTime,
+      estimatedDeliveryMinutes:
+          estimatedDeliveryMinutes ?? this.estimatedDeliveryMinutes,
       actualDeliveryTime: actualDeliveryTime ?? this.actualDeliveryTime,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,

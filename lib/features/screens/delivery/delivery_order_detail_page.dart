@@ -7,6 +7,7 @@ import 'package:zonix/features/screens/delivery/qr_scanner_page.dart';
 import 'package:zonix/features/services/delivery_service.dart';
 import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/utils/safe_parse.dart';
 
 class DeliveryOrderDetailPage extends StatefulWidget {
   final Map<String, dynamic> order;
@@ -135,6 +136,8 @@ class _DeliveryOrderDetailPageState extends State<DeliveryOrderDetailPage> {
     final canNotifyArrived = status == 'shipped' && hasDelivery;
     final notes = order['notes']?.toString() ?? '';
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final etaMin = safeInt(order['estimated_delivery_time'], 0);
+    final hasEta = etaMin > 0;
 
     return Scaffold(
       appBar: AppBar(
@@ -146,6 +149,16 @@ class _DeliveryOrderDetailPageState extends State<DeliveryOrderDetailPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildStatusHeader(status, hasDelivery),
+            if (hasEta) ...[
+              const SizedBox(height: 12),
+              Text(
+                'ETA para el cliente: ~$etaMin min',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryText(context),
+                    ),
+              ),
+            ],
             const SizedBox(height: 20),
 
             _buildSection(

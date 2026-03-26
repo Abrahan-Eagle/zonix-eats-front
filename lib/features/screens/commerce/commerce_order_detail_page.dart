@@ -385,6 +385,12 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                                 '\$${order.total.toStringAsFixed(2)}'),
                             _TotalRow('Estado', order.statusText),
                             _TotalRow('Tipo', order.deliveryTypeText),
+                            if (order.estimatedDeliveryMinutes != null &&
+                                order.estimatedDeliveryMinutes! > 0)
+                              _TotalRow(
+                                'Tiempo estimado de entrega',
+                                '~${order.estimatedDeliveryMinutes} min',
+                              ),
                           ],
                         ),
                       ),

@@ -17,7 +17,7 @@ void main() {
         paymentMethod: 'cash',
         paymentStatus: 'pending',
         deliveryAddress: 'Calle 123',
-        estimatedDeliveryTime: DateTime(2024, 1, 1, 13, 0),
+        estimatedDeliveryMinutes: 45,
         createdAt: DateTime(2024, 1, 1),
         updatedAt: DateTime(2024, 1, 1),
         items: [],
@@ -43,7 +43,7 @@ void main() {
         'payment_method': 'cash',
         'payment_status': 'pending',
         'delivery_address': 'Calle 123',
-        'estimated_delivery_time': '2024-01-01T13:00:00.000Z',
+        'estimated_delivery_time': 25,
         'created_at': '2024-01-01T00:00:00.000Z',
         'updated_at': '2024-01-01T00:00:00.000Z',
         'items': [],
@@ -53,6 +53,7 @@ void main() {
       expect(order.status, 'pending');
       expect(order.total, 25.0);
       expect(order.items, isEmpty);
+      expect(order.estimatedDeliveryMinutes, 25);
       expect(order.createdAt, DateTime.parse('2024-01-01T00:00:00.000Z'));
     });
 
@@ -70,13 +71,14 @@ void main() {
         'payment_method': 'cash',
         'payment_status': 'pending',
         'delivery_address': 'Calle 123',
-        'estimated_delivery_time': '2024-01-01T13:00:00.000Z',
+        'estimated_delivery_time': 25,
         'created_at': '2024-01-01T00:00:00.000Z',
         'updated_at': '2024-01-01T00:00:00.000Z',
         'items': [],
       };
       final order = Order.fromJson(json);
       expect(order.total, 25.0);
+      expect(order.estimatedDeliveryMinutes, 25);
     });
 
     test('Maneja total como string en JSON', () {
@@ -93,13 +95,37 @@ void main() {
         'payment_method': 'cash',
         'payment_status': 'pending',
         'delivery_address': 'Calle 123',
-        'estimated_delivery_time': '2024-01-01T13:00:00.000Z',
+        'estimated_delivery_time': 25,
         'created_at': '2024-01-01T00:00:00.000Z',
         'updated_at': '2024-01-01T00:00:00.000Z',
         'items': [],
       };
       final order = Order.fromJson(json);
       expect(order.total, 25.50);
+      expect(order.estimatedDeliveryMinutes, 25);
+    });
+
+    test('estimated_delivery_time ISO8601 legacy: minutos vs created_at', () {
+      final json = {
+        'id': 1,
+        'user_id': 1,
+        'commerce_id': 1,
+        'order_number': 'ORD-001',
+        'status': 'pending',
+        'subtotal': 20.0,
+        'delivery_fee': 3.0,
+        'tax': 2.0,
+        'total': 25.0,
+        'payment_method': 'cash',
+        'payment_status': 'pending',
+        'delivery_address': 'Calle 123',
+        'estimated_delivery_time': '2024-01-01T13:00:00.000Z',
+        'created_at': '2024-01-01T00:00:00.000Z',
+        'updated_at': '2024-01-01T00:00:00.000Z',
+        'items': [],
+      };
+      final order = Order.fromJson(json);
+      expect(order.estimatedDeliveryMinutes, 13 * 60);
     });
 
     test('Parsea campos extra del backend (delivery_type, payment_validated_at, cancellation)', () {
@@ -134,6 +160,7 @@ void main() {
       expect(order.cancellationReason, isNull);
       expect(order.receiptUrl, 'https://example.com/receipt.pdf');
       expect(order.referenceNumber, 'REF-123');
+      expect(order.estimatedDeliveryMinutes, isNull);
     });
   });
 

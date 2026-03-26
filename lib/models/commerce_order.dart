@@ -1,5 +1,11 @@
 import 'package:zonix/features/utils/safe_parse.dart';
 
+int? _etaMinutesFromJson(dynamic v) {
+  if (v == null) return null;
+  final m = safeInt(v, 0);
+  return m > 0 ? m : null;
+}
+
 class CommerceOrder {
   final int id;
   final int profileId;
@@ -15,6 +21,8 @@ class CommerceOrder {
   final DateTime? paymentValidatedAt;
   final String? cancellationReason;
   final String? deliveryAddress;
+  /// Minutos hasta entrega (API: `estimated_delivery_time`).
+  final int? estimatedDeliveryMinutes;
   final DateTime createdAt;
   final DateTime updatedAt;
   final Map<String, dynamic>? profile;
@@ -38,6 +46,7 @@ class CommerceOrder {
     this.paymentValidatedAt,
     this.cancellationReason,
     this.deliveryAddress,
+    this.estimatedDeliveryMinutes,
     required this.createdAt,
     required this.updatedAt,
     this.profile,
@@ -67,6 +76,7 @@ class CommerceOrder {
           : null,
       cancellationReason: json['cancellation_reason'],
       deliveryAddress: json['delivery_address'],
+      estimatedDeliveryMinutes: _etaMinutesFromJson(json['estimated_delivery_time']),
       createdAt: DateTime.parse(json['created_at'] ?? DateTime.now().toIso8601String()),
       updatedAt: DateTime.parse(json['updated_at'] ?? DateTime.now().toIso8601String()),
       profile: json['profile'],
@@ -96,6 +106,8 @@ class CommerceOrder {
       'payment_validated_at': paymentValidatedAt?.toIso8601String(),
       'cancellation_reason': cancellationReason,
       'delivery_address': deliveryAddress,
+      if (estimatedDeliveryMinutes != null)
+        'estimated_delivery_time': estimatedDeliveryMinutes,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       'profile': profile,
@@ -121,6 +133,7 @@ class CommerceOrder {
     DateTime? paymentValidatedAt,
     String? cancellationReason,
     String? deliveryAddress,
+    int? estimatedDeliveryMinutes,
     DateTime? createdAt,
     DateTime? updatedAt,
     Map<String, dynamic>? profile,
@@ -144,6 +157,8 @@ class CommerceOrder {
       paymentValidatedAt: paymentValidatedAt ?? this.paymentValidatedAt,
       cancellationReason: cancellationReason ?? this.cancellationReason,
       deliveryAddress: deliveryAddress ?? this.deliveryAddress,
+      estimatedDeliveryMinutes:
+          estimatedDeliveryMinutes ?? this.estimatedDeliveryMinutes,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       profile: profile ?? this.profile,

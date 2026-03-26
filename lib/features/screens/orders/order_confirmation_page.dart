@@ -21,7 +21,7 @@ class OrderConfirmationPage extends StatelessWidget {
     const accentGreen = AppColors.green;
     final isPendingPayment =
         order.status == 'pending_payment' || order.status == 'pending';
-    final etaRange = _arrivalWindow(order.estimatedDeliveryTime);
+    final etaRange = _arrivalEtaText(order);
 
     return Scaffold(
       backgroundColor: scaffoldBg,
@@ -299,12 +299,14 @@ class OrderConfirmationPage extends StatelessWidget {
     );
   }
 
-  String _arrivalWindow(DateTime estimate) {
-    final now = DateTime.now();
-    final diffMinutes = estimate.difference(now).inMinutes.clamp(5, 90);
-    final start = (diffMinutes - 5).clamp(5, diffMinutes);
-    final end = diffMinutes + 5;
-    return 'Llegada estimada: $start-$end min';
+  String _arrivalEtaText(Order order) {
+    final m = order.estimatedDeliveryMinutes;
+    if (m == null || m <= 0) {
+      return 'Preparando tu pedido...';
+    }
+    final lo = (m - 5).clamp(1, m);
+    final hi = m + 5;
+    return 'Llegada estimada: $lo-$hi min';
   }
 }
 
