@@ -22,6 +22,7 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
   late TabController _tabController;
   StreamSubscription<Map<String, dynamic>>? _pusherSub;
   String? _companyChannel;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -48,6 +49,7 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _unsubscribePusher();
     _tabController.dispose();
     super.dispose();
@@ -85,7 +87,10 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
            eventName.contains('NotificationCreated') ||
            eventName.contains('PaymentValidated') ||
            eventName.contains('OrderPendingAssignment')) && mounted) {
-        _loadAll();
+        _debounceTimer?.cancel();
+        _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+          if (mounted) _loadAll();
+        });
       }
     });
   }
@@ -119,6 +124,25 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
         builder: (context, service, _) {
           if (service.ordersLoading && service.orders.isEmpty && service.pendingOrders.isEmpty) {
             return const Center(child: CircularProgressIndicator());
+          }
+
+          if (service.ordersError != null && service.orders.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.cloud_off, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  Text(service.ordersError!, style: const TextStyle(fontSize: 16)),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: _loadAll,
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            );
           }
 
           final active = service.orders.where((o) {

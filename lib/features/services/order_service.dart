@@ -206,10 +206,11 @@ class OrderService extends ChangeNotifier {
     }
   }
 
-  // GET /api/buyer/orders/{id} - Obtener detalle de orden específica
   Future<Order> getOrderById(int orderId) async {
     final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId');
+    final userRole = await AuthUtils.getUserRole();
+    final prefix = (userRole == 'commerce') ? 'commerce' : 'buyer';
+    final url = Uri.parse('${AppConfig.apiUrl}/api/$prefix/orders/$orderId');
     final response = await http.get(
       url,
       headers: headers,

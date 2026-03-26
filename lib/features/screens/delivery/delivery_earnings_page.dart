@@ -53,6 +53,24 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
     return 0;
   }
 
+  /// Laravel puede serializar DECIMAL como string en JSON; evita `.cast<num>()` que falla.
+  int _parseIntLoose(dynamic v) {
+    if (v == null) return 0;
+    if (v is int) return v;
+    if (v is num) return v.toInt();
+    if (v is String) return int.tryParse(v) ?? 0;
+    return 0;
+  }
+
+  List<double> _parseFeeList(dynamic v) {
+    if (v is! List) return [];
+    return v.map((e) {
+      if (e is num) return e.toDouble();
+      if (e is String) return double.tryParse(e) ?? 0.0;
+      return 0.0;
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -73,9 +91,9 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
           final weeklyEarnings = _parseNum(data['weekly_earnings']);
           final monthlyEarnings = _parseNum(data['monthly_earnings']);
           final totalEarnings = _parseNum(data['total_earnings']);
-          final totalDeliveries = (data['total_deliveries'] as int?) ?? 0;
+          final totalDeliveries = _parseIntLoose(data['total_deliveries']);
           final avgTime = _parseNum(data['average_delivery_time']);
-          final fees = (data['delivery_fees'] as List?)?.cast<num>() ?? [];
+          final fees = _parseFeeList(data['delivery_fees']);
           final dates = (data['delivery_dates'] as List?)?.cast<String>() ?? [];
 
           return RefreshIndicator(
@@ -276,7 +294,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
     );
   }
 
-  Widget _buildRecentFees(bool isDark, List<num> fees, List<String> dates) {
+  Widget _buildRecentFees(bool isDark, List<double> fees, List<String> dates) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

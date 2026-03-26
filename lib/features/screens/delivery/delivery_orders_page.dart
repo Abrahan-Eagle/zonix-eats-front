@@ -28,6 +28,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
   bool _pusherSubscribed = false;
   StreamSubscription<Map<String, dynamic>>? _pusherSub;
   String? _pusherChannel;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -56,6 +57,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _tabController.dispose();
     _pusherSub?.cancel();
     if (_pusherSubscribed && _pusherChannel != null) {
@@ -69,9 +71,18 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
     final d = context.read<DeliveryService>();
     try {
       await Future.wait([d.loadMyOrders(), d.loadAvailableOrders()]);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error cargando órdenes delivery: $e');
+    }
     if (!mounted) return;
     await syncDeliverySessionAfterApi(context, d);
+  }
+
+  void _debouncedLoadAll() {
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      if (mounted) _loadAll();
+    });
   }
 
   Future<void> _loadWorkingStatus() async {
@@ -112,12 +123,14 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
           final eventName = event['eventName']?.toString() ?? '';
           final channelName = event['channelName']?.toString() ?? '';
           if (channelName == channel && eventName.contains('OrderStatusChanged')) {
-            _loadAll();
+            _debouncedLoadAll();
           }
         });
         _pusherSubscribed = true;
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error suscribiendo Pusher delivery: $e');
+    }
   }
 
   Future<void> _acceptOrder(Map<String, dynamic> order) async {

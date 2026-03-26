@@ -22,11 +22,15 @@ class NotificationService extends ChangeNotifier {
 
   List<NotificationItem> _items = [];
   int _unreadCount = 0;
+  bool _isLoading = false;
+  String? _error;
   StreamSubscription? _pusherSubscription;
   final _newNotificationController = StreamController<NotificationItem>.broadcast();
 
   List<NotificationItem> get items => _items;
   int get unreadCount => _unreadCount;
+  bool get isLoading => _isLoading;
+  String? get error => _error;
   Stream<NotificationItem> get newNotificationStream => _newNotificationController.stream;
 
   NotificationService() {
@@ -97,21 +101,25 @@ class NotificationService extends ChangeNotifier {
     }
   }
 
-  // Load initial data
   Future<void> loadInitialData() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
     try {
       final results = await Future.wait([
         getNotificationItems(),
         getNotificationCount(),
       ]);
-      
+
       _items = results[0] as List<NotificationItem>;
       final stats = results[1] as Map<String, dynamic>;
       _unreadCount = stats['unread'] ?? 0;
-      
-      notifyListeners();
     } catch (e) {
+      _error = 'Error al cargar notificaciones';
       debugPrint('Error loading initial notification data: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
   }
 

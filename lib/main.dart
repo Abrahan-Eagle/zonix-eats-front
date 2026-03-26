@@ -13,7 +13,6 @@ import 'package:logger/logger.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:zonix/features/services/auth/api_service.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/features/utils/search_radius_provider.dart';
@@ -47,11 +46,9 @@ import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/features/services/commerce_service.dart';
 import 'package:zonix/features/services/delivery_service.dart';
 import 'package:zonix/features/services/delivery_company_service.dart';
-import 'package:zonix/features/services/admin_service.dart';
 import 'package:zonix/features/services/notification_service.dart';
 import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/services/payment_service.dart';
-import 'package:zonix/features/services/chat_service.dart';
 import 'package:zonix/features/services/commerce_analytics_service.dart';
 import 'package:zonix/features/screens/commerce/commerce_dashboard_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_orders_page.dart';
@@ -94,8 +91,6 @@ import 'package:zonix/features/widgets/buyer_shell.dart';
  * 3 - Empresa de Delivery (delivery_company): Dashboard, Agentes, Órdenes, Ganancias
  * 4 - Administrador (admin): Panel Admin, Usuarios, Seguridad, Sistema
  */
-
-final ApiService apiService = ApiService();
 
 // Configuración del logger
 final logger = Logger();
@@ -384,11 +379,9 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => CommerceService()),
         ChangeNotifierProvider(create: (_) => DeliveryService()),
         ChangeNotifierProvider(create: (_) => DeliveryCompanyService()),
-        ChangeNotifierProvider(create: (_) => AdminService()),
         ChangeNotifierProvider(create: (_) => NotificationService()),
         ChangeNotifierProvider(create: (_) => LocationService()),
         ChangeNotifierProvider(create: (_) => PaymentService()),
-        ChangeNotifierProvider(create: (_) => ChatService()),
         ChangeNotifierProvider(create: (_) => CommerceAnalyticsService()),
         // PusherService se maneja como singleton interno, no necesitamos Provider aquí.
       ],

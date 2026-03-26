@@ -156,7 +156,7 @@ class _ProductsPageState extends State<ProductsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cartService = Provider.of<CartService>(context);
+    final cartService = Provider.of<CartService>(context, listen: false);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(

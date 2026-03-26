@@ -309,8 +309,7 @@ class UserProvider with ChangeNotifier {
         await AuthUtils.saveUserRole(_role);
         await _storage.write(key: 'userCompletedOnboarding', value: _completedOnboarding ? '1' : '0');
 
-        logger.i('User details: $userDetails');
-        logger.i('User role: $_role');
+        logger.i('User details loaded (id: ${userDetails['id']}, role: $_role)');
         return {
           'users': userDetails,
           'role': _role,
@@ -334,7 +333,7 @@ class UserProvider with ChangeNotifier {
         logger.e('Error: ${response.statusCode} - Rate limit exceeded');
         throw Exception('Demasiadas solicitudes. Por favor, espera un momento.');
       } else {
-        logger.e('Error: ${response.statusCode} - ${response.body}');
+        logger.e('Error al obtener detalles del usuario: ${response.statusCode}');
         throw Exception('Error al obtener detalles del usuario');
       }
     } catch (e) {

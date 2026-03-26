@@ -506,33 +506,50 @@ class _OrdersPageState extends State<OrdersPage> {
     Color primary,
   ) {
     final history = _historyOrders;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-      children: [
-        Text(
-          'Órdenes completadas',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.primaryText(context),
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          sliver: SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Órdenes completadas',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primaryText(context),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 12),
         if (history.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            child: Text(
-              'No hay órdenes completadas',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            sliver: SliverToBoxAdapter(
+              child: Text(
+                'No hay órdenes completadas',
+                style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+              ),
             ),
           )
         else
-          ...history.map((o) => Padding(
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            sliver: SliverList.builder(
+              itemCount: history.length,
+              itemBuilder: (context, i) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: _buildHistoryOrderCardCompact(
-                    context, o, theme, surfaceColor, borderColor, primary),
-              )),
+                    context, history[i], theme, surfaceColor, borderColor, primary),
+              ),
+            ),
+          ),
       ],
     );
   }

@@ -48,7 +48,7 @@ class GoogleSignInService {
 
       if (profileResponse.statusCode == 200) {
         final profileData = jsonDecode(profileResponse.body);
-        logger.i('Datos del perfil de usuario: ${jsonEncode(profileData)}');
+        logger.i('Perfil Google obtenido OK');
 
         // Enviar el token al backend
         final processedResult = jsonEncode({
@@ -97,7 +97,7 @@ class GoogleSignInService {
     try {
       final GoogleSignInAccount? user = await _googleSignIn.signInSilently();
       if (user != null) {
-        logger.i('Usuario actualmente autenticado: ${user.email}');
+        logger.i('Usuario autenticado silenciosamente');
         return user; // Devuelve el usuario autenticado directamente
       } else {
         logger.i('No hay usuario autenticado actualmente.');
@@ -124,7 +124,7 @@ class GoogleSignInService {
   Future<void> initAuth() async {
     final currentUser = await getCurrentUser();
     if (currentUser != null) {
-      logger.i('Usuario autenticado automáticamente: ${currentUser.email}');
+      logger.i('Usuario autenticado automáticamente');
     } else {
       logger.i('No se detectó ningún usuario autenticado. Requiere inicio de sesión.');
     }

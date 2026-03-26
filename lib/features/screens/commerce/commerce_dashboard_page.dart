@@ -35,6 +35,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
   int _commerceId = 0;
   bool _pusherSubscribed = false;
   StreamSubscription<Map<String, dynamic>>? _pusherSubscription;
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -44,6 +45,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _pusherSubscription?.cancel();
     if (_pusherSubscribed && _commerceId > 0) {
       PusherService.instance.unsubscribeFromChannel('private-commerce.$_commerceId');
@@ -66,7 +68,10 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
                   eventName.contains('OrderCreated') ||
                   eventName.contains('PaymentValidated')) &&
               mounted) {
-            _loadData();
+            _debounceTimer?.cancel();
+            _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+              if (mounted) _loadData();
+            });
           }
         }
       });

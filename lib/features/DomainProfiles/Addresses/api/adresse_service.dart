@@ -206,7 +206,7 @@ class AddressService {
         'status': address.status,
       };
 
-      logger.i('Datos a enviar: ${json.encode(requestBody)}');
+      logger.i('Actualizando dirección id=${address.id}');
 
       final response = await http
           .put(
@@ -220,7 +220,6 @@ class AddressService {
           .timeout(const Duration(seconds: 15));
 
       logger.i('Response status: ${response.statusCode}');
-      logger.i('Response body: ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         logger.i('Dirección actualizada exitosamente');

@@ -95,8 +95,6 @@ class NotificationsPage extends StatefulWidget {
 }
 
 class _NotificationsPageState extends State<NotificationsPage> {
-  bool _isLoading = false;
-
   @override
   void initState() {
     super.initState();
@@ -124,9 +122,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   }
 
   Future<void> _loadNotifications() async {
-    setState(() => _isLoading = true);
     await context.read<NotificationService>().loadInitialData();
-    if (mounted) setState(() => _isLoading = false);
   }
 
   String _formatTime(NotificationItem n) {
@@ -183,10 +179,29 @@ class _NotificationsPageState extends State<NotificationsPage> {
         builder: (context, notificationService, child) {
           final list = notificationService.items;
 
-          if (_isLoading && list.isEmpty) {
+          if (notificationService.isLoading && list.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
-          
+
+          if (notificationService.error != null && list.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.cloud_off, size: 64, color: Colors.grey),
+                  const SizedBox(height: 16),
+                  Text(notificationService.error!, style: const TextStyle(fontSize: 16)),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () => notificationService.loadInitialData(),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reintentar'),
+                  ),
+                ],
+              ),
+            );
+          }
+
           if (list.isEmpty) {
             return Center(
               child: SingleChildScrollView(

@@ -70,6 +70,7 @@ dependencies:
   flutter_local_notifications: ^18.0.1
 
   flutter_native_splash: any
+  cached_network_image: ^3.4.1
 dev_dependencies:
   flutter_test:
     sdk: flutter

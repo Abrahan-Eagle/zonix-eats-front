@@ -1665,7 +1665,10 @@ class _UploadProofDialogState extends State<_UploadProofDialog> {
     final dialogWidth = mq.width - 32;
 
     return AlertDialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: 16,
+        vertical: MediaQuery.viewInsetsOf(context).bottom > 0 ? 8 : 24,
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       titlePadding: EdgeInsets.zero,
       title: Column(

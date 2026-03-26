@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class NetworkImageWithFallback extends StatelessWidget {
@@ -24,17 +25,18 @@ class NetworkImageWithFallback extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final cacheW = width.isFinite ? (width * dpr).toInt() : null;
+
     final Widget imageWidget = imageUrl.isNotEmpty
-        ? Image.network(
-            imageUrl,
+        ? CachedNetworkImage(
+            imageUrl: imageUrl,
             width: width,
             height: height,
             fit: fit,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return _buildLoadingPlaceholder();
-            },
-            errorBuilder: (_, __, ___) => _buildErrorPlaceholder(),
+            memCacheWidth: cacheW,
+            placeholder: (_, __) => _buildLoadingPlaceholder(),
+            errorWidget: (_, __, ___) => _buildErrorPlaceholder(),
           )
         : _buildErrorPlaceholder();
 

@@ -188,26 +188,6 @@ class CommerceOrderService {
     }
   }
 
-  // Obtener estadísticas de órdenes
-  static Future<Map<String, dynamic>> getOrderStats() async {
-    try {
-      final headers = await AuthHelper.getAuthHeaders();
-      final response = await http.get(
-        Uri.parse('$baseUrl/api/commerce/orders/stats'),
-        headers: headers,
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return data['data'] ?? {};
-      } else {
-        throw Exception('Error al obtener estadísticas: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Error al obtener estadísticas: $e');
-    }
-  }
-
   // Solicitar delivery para una orden
   static Future<Map<String, dynamic>> requestDelivery(int orderId, {
     String? notes,
@@ -232,44 +212,6 @@ class CommerceOrderService {
       }
     } catch (e) {
       throw Exception('Error al solicitar delivery: $e');
-    }
-  }
-
-  // Obtener historial de órdenes con filtros
-  static Future<List<CommerceOrder>> getOrderHistory({
-    DateTime? startDate,
-    DateTime? endDate,
-    String? status,
-    String? deliveryType,
-  }) async {
-    try {
-      final headers = await AuthHelper.getAuthHeaders();
-      final queryParams = <String, String>{};
-      if (startDate != null) queryParams['start_date'] = startDate.toIso8601String();
-      if (endDate != null) queryParams['end_date'] = endDate.toIso8601String();
-      if (status != null) queryParams['status'] = status;
-      if (deliveryType != null) queryParams['delivery_type'] = deliveryType;
-
-      final uri = Uri.parse('$baseUrl/api/commerce/orders/history').replace(queryParameters: queryParams);
-      
-      final response = await http.get(
-        uri,
-        headers: headers,
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data is List) {
-          return data.map((json) => CommerceOrder.fromJson(json)).toList();
-        } else if (data['data'] != null) {
-          return (data['data'] as List).map((json) => CommerceOrder.fromJson(json)).toList();
-        }
-        return [];
-      } else {
-        throw Exception('Error al obtener historial: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('Error al obtener historial: $e');
     }
   }
 
