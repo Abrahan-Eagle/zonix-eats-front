@@ -31,6 +31,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
   StreamSubscription<Map<String, dynamic>>? _pusherSub;
   String? _companyChannel;
   String? _companyName;
+  int? _selectedAgentId;
 
   static const _radiusOptions = [1.0, 3.0, 5.0, 10.0, 20.0];
 
@@ -258,7 +259,10 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
         width: 120,
         height: 52,
         child: GestureDetector(
-          onTap: () => _showAgentSheet(a),
+          onTap: () {
+            setState(() => _selectedAgentId = safeInt(a['id']));
+            _showAgentSheet(a);
+          },
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -324,6 +328,27 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
       );
     }
 
+    // Destination markers for busy agents with routes
+    for (final a in agents) {
+      if (a['is_busy'] != true) continue;
+      final dest = a['destination'];
+      if (dest == null || dest is! Map) continue;
+      final destLat = safeDouble(dest['latitude']);
+      final destLng = safeDouble(dest['longitude']);
+      if (destLat == 0 || destLng == 0) continue;
+      final isSelected = safeInt(a['id']) == _selectedAgentId;
+      markers.add(Marker(
+        point: LatLng(destLat, destLng),
+        width: 32,
+        height: 32,
+        child: Icon(
+          Icons.flag_rounded,
+          color: isSelected ? AppColors.red : AppColors.red.withAlpha(120),
+          size: isSelected ? 32 : 24,
+        ),
+      ));
+    }
+
     final circles = <CircleMarker>[];
     if (_headquarters != null) {
       circles.add(CircleMarker(
@@ -351,9 +376,32 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
           maxZoom: 19,
         ),
         if (circles.isNotEmpty) CircleLayer(circles: circles),
+        PolylineLayer(polylines: _buildRoutePolylines(agents)),
         MarkerLayer(markers: markers),
       ],
     );
+  }
+
+  List<Polyline> _buildRoutePolylines(List<Map<String, dynamic>> agents) {
+    final polylines = <Polyline>[];
+    for (final a in agents) {
+      if (a['is_busy'] != true) continue;
+      final dest = a['destination'];
+      if (dest == null || dest is! Map) continue;
+      final agentLat = safeDouble(a['current_latitude']);
+      final agentLng = safeDouble(a['current_longitude']);
+      final destLat = safeDouble(dest['latitude']);
+      final destLng = safeDouble(dest['longitude']);
+      if (destLat == 0 || destLng == 0) continue;
+
+      final isSelected = a['id'] == _selectedAgentId;
+      polylines.add(Polyline(
+        points: [LatLng(agentLat, agentLng), LatLng(destLat, destLng)],
+        color: isSelected ? AppColors.orange : AppColors.orange.withAlpha(80),
+        strokeWidth: isSelected ? 4.0 : 2.0,
+      ));
+    }
+    return polylines;
   }
 
   Widget _buildTopControls(int visibleCount, int totalCount) {
@@ -614,11 +662,12 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
                   children: [
                     const Icon(Icons.receipt_long, size: 18, color: AppColors.orange),
                     const SizedBox(width: 8),
-                    Text(
-                      'Orden #$orderId',
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    Expanded(
+                      child: Text(
+                        'Orden #$orderId',
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
                     ),
-                    const SizedBox(width: 8),
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
@@ -637,6 +686,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
                     ),
                   ],
                 ),
+                _buildRoutePreview(agent),
               ],
               const SizedBox(height: 20),
               Row(
@@ -683,6 +733,90 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildRoutePreview(Map<String, dynamic> agent) {
+    final dest = agent['destination'];
+    if (dest == null || dest is! Map) return const SizedBox.shrink();
+    final agentLat = safeDouble(agent['current_latitude']);
+    final agentLng = safeDouble(agent['current_longitude']);
+    final destLat = safeDouble(dest['latitude']);
+    final destLng = safeDouble(dest['longitude']);
+    final destAddress = safeString(dest['address']);
+    if (destLat == 0 || destLng == 0) return const SizedBox.shrink();
+
+    final midLat = (agentLat + destLat) / 2;
+    final midLng = (agentLng + destLng) / 2;
+    final dist = _haversineKm(agentLat, agentLng, destLat, destLng);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            const Icon(Icons.route, size: 16, color: AppColors.orange),
+            const SizedBox(width: 6),
+            Text(
+              'Ruta al destino (${dist.toStringAsFixed(1)} km)',
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+            ),
+          ],
+        ),
+        if (destAddress.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(
+            destAddress,
+            style: TextStyle(fontSize: 12, color: AppColors.secondaryText(context)),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: SizedBox(
+            height: 160,
+            child: FlutterMap(
+              options: MapOptions(
+                initialCenter: LatLng(midLat, midLng),
+                initialZoom: dist > 10 ? 10 : (dist > 3 ? 12 : 14),
+                interactionOptions: const InteractionOptions(
+                  flags: InteractiveFlag.none,
+                ),
+              ),
+              children: [
+                TileLayer(
+                  urlTemplate: AppConfig.osmTileUrl,
+                  userAgentPackageName: 'com.zonix.eats',
+                ),
+                PolylineLayer(polylines: [
+                  Polyline(
+                    points: [LatLng(agentLat, agentLng), LatLng(destLat, destLng)],
+                    color: AppColors.orange,
+                    strokeWidth: 3,
+                  ),
+                ]),
+                MarkerLayer(markers: [
+                  Marker(
+                    point: LatLng(agentLat, agentLng),
+                    width: 28,
+                    height: 28,
+                    child: const Icon(Icons.delivery_dining, color: AppColors.orange, size: 28),
+                  ),
+                  Marker(
+                    point: LatLng(destLat, destLng),
+                    width: 28,
+                    height: 28,
+                    child: const Icon(Icons.flag_rounded, color: AppColors.red, size: 28),
+                  ),
+                ]),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
