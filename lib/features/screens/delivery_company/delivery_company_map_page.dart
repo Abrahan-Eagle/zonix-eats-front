@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../config/app_config.dart';
@@ -32,6 +33,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
   String? _companyChannel;
   String? _companyName;
   int? _selectedAgentId;
+  final Map<int, List<LatLng>> _routeCache = {};
 
   static const _radiusOptions = [1.0, 3.0, 5.0, 10.0, 20.0];
 
@@ -90,6 +92,40 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
     if (_headquarters == null) return;
     final zoom = _radiusToZoom[_radiusKm] ?? 11.8;
     _mapController.move(_headquarters!, zoom);
+  }
+
+  Future<List<LatLng>> _fetchOsrmRoute(double fromLat, double fromLng, double toLat, double toLng) async {
+    try {
+      final url = 'http://router.project-osrm.org/route/v1/driving/'
+          '$fromLng,$fromLat;$toLng,$toLat'
+          '?overview=full&geometries=geojson';
+      final res = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 8));
+      if (res.statusCode != 200) return [];
+      final data = jsonDecode(res.body);
+      final routes = data['routes'];
+      if (routes == null || routes is! List || routes.isEmpty) return [];
+      final coords = routes[0]['geometry']?['coordinates'];
+      if (coords == null || coords is! List) return [];
+      return coords.map<LatLng>((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble())).toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> _loadRouteForAgent(Map<String, dynamic> agent) async {
+    final agentId = safeInt(agent['id']);
+    if (_routeCache.containsKey(agentId)) return;
+    final dest = agent['destination'];
+    if (dest == null || dest is! Map) return;
+    final pts = await _fetchOsrmRoute(
+      safeDouble(agent['current_latitude']),
+      safeDouble(agent['current_longitude']),
+      safeDouble(dest['latitude']),
+      safeDouble(dest['longitude']),
+    );
+    if (pts.isNotEmpty && mounted) {
+      setState(() => _routeCache[agentId] = pts);
+    }
   }
 
   void _subscribePusher() {
@@ -259,8 +295,10 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
         width: 120,
         height: 52,
         child: GestureDetector(
-          onTap: () {
+          onTap: () async {
             setState(() => _selectedAgentId = safeInt(a['id']));
+            if (a['is_busy'] == true) await _loadRouteForAgent(a);
+            if (!mounted) return;
             _showAgentSheet(a);
           },
           child: Column(
@@ -388,15 +426,19 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
       if (a['is_busy'] != true) continue;
       final dest = a['destination'];
       if (dest == null || dest is! Map) continue;
+      final agentId = safeInt(a['id']);
       final agentLat = safeDouble(a['current_latitude']);
       final agentLng = safeDouble(a['current_longitude']);
       final destLat = safeDouble(dest['latitude']);
       final destLng = safeDouble(dest['longitude']);
       if (destLat == 0 || destLng == 0) continue;
 
-      final isSelected = a['id'] == _selectedAgentId;
+      final isSelected = agentId == _selectedAgentId;
+      final cachedRoute = _routeCache[agentId];
+      final points = cachedRoute ?? [LatLng(agentLat, agentLng), LatLng(destLat, destLng)];
+
       polylines.add(Polyline(
-        points: [LatLng(agentLat, agentLng), LatLng(destLat, destLng)],
+        points: points,
         color: isSelected ? AppColors.orange : AppColors.orange.withAlpha(80),
         strokeWidth: isSelected ? 4.0 : 2.0,
       ));
@@ -793,7 +835,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
                 ),
                 PolylineLayer(polylines: [
                   Polyline(
-                    points: [LatLng(agentLat, agentLng), LatLng(destLat, destLng)],
+                    points: _routeCache[safeInt(agent['id'])] ?? [LatLng(agentLat, agentLng), LatLng(destLat, destLng)],
                     color: AppColors.orange,
                     strokeWidth: 3,
                   ),
