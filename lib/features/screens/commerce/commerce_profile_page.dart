@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:zonix/features/screens/commerce/commerce_profile_edit_page.dart';
+import 'package:zonix/features/screens/settings/commerce_schedule_page.dart';
 import 'package:zonix/features/services/commerce_data_service.dart';
 import '../../utils/app_colors.dart';
 
@@ -207,9 +208,7 @@ class _CommerceProfilePageState extends State<CommerceProfilePage> {
                   final result = await Navigator.push<bool>(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CommerceProfileEditPage(
-                        initialData: _commerce,
-                      ),
+                      builder: (context) => const CommerceSchedulePage(),
                     ),
                   );
                   if (result == true) _loadData();

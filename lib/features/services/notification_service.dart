@@ -13,6 +13,9 @@ import 'package:zonix/features/screens/delivery/delivery_order_detail_page.dart'
 import 'package:zonix/features/screens/delivery_company/delivery_company_orders_page.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/user_provider.dart';
+import 'cache_service.dart';
+import 'connectivity_service.dart';
+import '../utils/http_retry.dart';
 import 'package:zonix/models/notification_item.dart';
 import 'package:zonix/main.dart' show showLocalNotification;
 import '../../config/app_config.dart';
@@ -35,6 +38,9 @@ class NotificationService extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get error => _error;
   Stream<NotificationItem> get newNotificationStream => _newNotificationController.stream;
+
+  /// Una sola carga concurrente (MainRouter + pantalla de notificaciones no duplican GET).
+  Future<void>? _loadInitialDataInFlight;
 
   NotificationService() {
     _initPusherListener();
@@ -108,6 +114,18 @@ class NotificationService extends ChangeNotifier {
   }
 
   Future<void> loadInitialData() async {
+    if (_loadInitialDataInFlight != null) {
+      return _loadInitialDataInFlight!;
+    }
+    _loadInitialDataInFlight = _loadInitialDataImpl();
+    try {
+      await _loadInitialDataInFlight!;
+    } finally {
+      _loadInitialDataInFlight = null;
+    }
+  }
+
+  Future<void> _loadInitialDataImpl() async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -131,30 +149,38 @@ class NotificationService extends ChangeNotifier {
 
   // Get all notifications
   Future<List<Map<String, dynamic>>> getNotifications({String? type, bool? read}) async {
+    if (!ConnectivityService.isConnected && type == null && read == null) {
+      final cached = await CacheService.getRawJson('notifications');
+      if (cached != null) return List<Map<String, dynamic>>.from(jsonDecode(cached));
+    }
     try {
       final queryParams = <String, String>{};
       if (type != null) queryParams['type'] = type;
       if (read != null) queryParams['read'] = read.toString();
 
       final uri = Uri.parse('$baseUrl/api/notifications').replace(queryParameters: queryParams);
-      
-      final response = await http.get(
-        uri,
-        headers: await AuthHelper.getAuthHeaders(),
-      );
+      final headers = await AuthHelper.getAuthHeaders();
+      final response = await withRetry(() => http.get(uri, headers: headers));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true && data['data'] != null) {
-          return List<Map<String, dynamic>>.from(data['data']);
-        } else {
-          return [];
+          final list = List<Map<String, dynamic>>.from(data['data']);
+          if (type == null && read == null) {
+            CacheService.setRawJson('notifications', jsonEncode(list), expiration: const Duration(minutes: 30));
+          }
+          return list;
         }
+        return [];
       } else {
         throw Exception('Error al obtener notificaciones: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error al obtener notificaciones: $e');
+      if (type == null && read == null) {
+        final cached = await CacheService.getRawJson('notifications');
+        if (cached != null) return List<Map<String, dynamic>>.from(jsonDecode(cached));
+      }
+      rethrow;
     }
   }
 

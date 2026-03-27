@@ -3,32 +3,44 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
+import 'cache_service.dart';
+import 'connectivity_service.dart';
+import '../utils/http_retry.dart';
 
 class AdminService extends ChangeNotifier {
   static String get baseUrl => AppConfig.apiUrl;
 
   // Get all users
   Future<List<Map<String, dynamic>>> getUsers({String? role, String? status}) async {
+    if (!ConnectivityService.isConnected && role == null && status == null) {
+      final cached = await CacheService.getRawJson('admin_users');
+      if (cached != null) return List<Map<String, dynamic>>.from(jsonDecode(cached));
+    }
     try {
       final queryParams = <String, String>{};
       if (role != null) queryParams['role'] = role;
       if (status != null) queryParams['status'] = status;
 
       final uri = Uri.parse('$baseUrl/api/admin/users').replace(queryParameters: queryParams);
-      
-      final response = await http.get(
-        uri,
-        headers: await AuthHelper.getAuthHeaders(),
-      );
+      final headers = await AuthHelper.getAuthHeaders();
+      final response = await withRetry(() => http.get(uri, headers: headers));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return List<Map<String, dynamic>>.from(data['data'] ?? []);
+        final list = List<Map<String, dynamic>>.from(data['data'] ?? []);
+        if (role == null && status == null) {
+          CacheService.setRawJson('admin_users', jsonEncode(list), expiration: const Duration(minutes: 10));
+        }
+        return list;
       } else {
         throw Exception('Error fetching users: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error fetching users: $e');
+      if (role == null && status == null) {
+        final cached = await CacheService.getRawJson('admin_users');
+        if (cached != null) return List<Map<String, dynamic>>.from(jsonDecode(cached));
+      }
+      rethrow;
     }
   }
 
@@ -114,20 +126,29 @@ class AdminService extends ChangeNotifier {
 
   // Get system statistics
   Future<Map<String, dynamic>> getSystemStatistics() async {
+    if (!ConnectivityService.isConnected) {
+      final cached = await CacheService.getRawJson('admin_stats');
+      if (cached != null) return Map<String, dynamic>.from(jsonDecode(cached));
+    }
     try {
-      final response = await http.get(
+      final headers = await AuthHelper.getAuthHeaders();
+      final response = await withRetry(() => http.get(
         Uri.parse('$baseUrl/api/admin/statistics'),
-        headers: await AuthHelper.getAuthHeaders(),
-      );
+        headers: headers,
+      ));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data is Map ? Map<String, dynamic>.from(data) : {};
+        final result = data is Map ? Map<String, dynamic>.from(data) : <String, dynamic>{};
+        CacheService.setRawJson('admin_stats', jsonEncode(result), expiration: const Duration(minutes: 5));
+        return result;
       } else {
         throw Exception('Error fetching system statistics: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error fetching system statistics: $e');
+      final cached = await CacheService.getRawJson('admin_stats');
+      if (cached != null) return Map<String, dynamic>.from(jsonDecode(cached));
+      rethrow;
     }
   }
 

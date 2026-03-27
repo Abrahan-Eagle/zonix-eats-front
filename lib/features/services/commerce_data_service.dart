@@ -9,8 +9,21 @@ class CommerceDataService {
   static String get baseUrl => AppConfig.apiUrl;
   static final Logger _logger = Logger();
 
+  /// Evita GET /api/commerce duplicados al arranque commerce (UserProvider + dashboard + orders).
+  static Future<Map<String, dynamic>>? _getCommerceDataInFlight;
+
   // Obtener datos del comercio (usa GET /api/commerce para rol commerce)
   static Future<Map<String, dynamic>> getCommerceData() async {
+    if (_getCommerceDataInFlight != null) return _getCommerceDataInFlight!;
+    _getCommerceDataInFlight = _getCommerceDataImpl();
+    try {
+      return await _getCommerceDataInFlight!;
+    } finally {
+      _getCommerceDataInFlight = null;
+    }
+  }
+
+  static Future<Map<String, dynamic>> _getCommerceDataImpl() async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
       final response = await http.get(

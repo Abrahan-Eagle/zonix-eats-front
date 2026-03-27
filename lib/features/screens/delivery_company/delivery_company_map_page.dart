@@ -150,13 +150,14 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
     }
   }
 
-  void _subscribePusher() {
+  Future<void> _subscribePusher() async {
+    if (!AppConfig.enablePusher) return;
     final svc = context.read<DeliveryCompanyService>();
     final companyId = (svc.dashboardData['company'] as Map?)?['id'];
     if (companyId == null) return;
 
     _companyChannel = 'private-company.$companyId';
-    PusherService.instance.subscribeToChannel(_companyChannel!);
+    await PusherService.instance.subscribeToChannel(_companyChannel!);
 
     _pusherSub?.cancel();
     _pusherSub = PusherService.instance.eventStream.listen((event) {

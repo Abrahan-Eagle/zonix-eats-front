@@ -7,6 +7,9 @@ import '../../helpers/auth_helper.dart';
 import '../../config/app_config.dart';
 import 'package:http_parser/http_parser.dart';
 import '../../features/utils/auth_utils.dart';
+import 'cache_service.dart';
+import 'connectivity_service.dart';
+import '../utils/http_retry.dart';
 
 class OrderService extends ChangeNotifier {
   /// POST /api/buyer/delivery-fee/calculate — Obtiene tarifa de envío (base + km).
@@ -154,55 +157,57 @@ class OrderService extends ChangeNotifier {
     return null;
   }
 
-  // GET /api/buyer/orders - Listar órdenes del usuario
+  static const String _ordersCacheKey = 'buyer_orders';
+
   Future<List<Order>> fetchOrders() async {
+    if (!ConnectivityService.isConnected) {
+      final cached = await CacheService.getRawJson(_ordersCacheKey);
+      if (cached != null) return (jsonDecode(cached) as List).map<Order>((j) => Order.fromJson(j)).toList();
+    }
+
     final headers = await AuthHelper.getAuthHeaders();
-    // Obtener el rol del usuario
     final userRole = await AuthUtils.getUserRole();
     final isCommerce = userRole == 'commerce';
     final url = isCommerce
         ? Uri.parse('${AppConfig.apiUrl}/api/commerce/orders')
         : Uri.parse('${AppConfig.apiUrl}/api/buyer/orders');
-    
-    final response = await http.get(
-      url,
-      headers: headers,
-    );
-    
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      
-      // Handle different response structures
-      List<dynamic> ordersData;
-      
-      if (data is Map<String, dynamic>) {
-        // Check if it's wrapped in success/data structure
-        if (data['success'] == true && data['data'] != null) {
-          ordersData = data['data'];
-        } else if (data.containsKey('data') && data['data'] is List) {
-          // Laravel paginator: { data: [...], current_page, total, ... }
-          ordersData = data['data'] as List<dynamic>;
-        } else if (data.containsKey('orders')) {
-          ordersData = data['orders'];
+
+    try {
+      final response = await withRetry(() => http.get(url, headers: headers));
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        List<dynamic> ordersData;
+        if (data is Map<String, dynamic>) {
+          if (data['success'] == true && data['data'] != null) {
+            ordersData = data['data'];
+          } else if (data.containsKey('data') && data['data'] is List) {
+            ordersData = data['data'] as List<dynamic>;
+          } else if (data.containsKey('orders')) {
+            ordersData = data['orders'];
+          } else {
+            return [];
+          }
+        } else if (data is List) {
+          ordersData = data;
         } else {
           return [];
         }
-      } else if (data is List) {
-        // If backend returns an array directly
-        ordersData = data;
+
+        if (!isCommerce) {
+          CacheService.setRawJson(_ordersCacheKey, jsonEncode(ordersData), expiration: const Duration(minutes: 10));
+        }
+        return ordersData.map<Order>((item) => Order.fromJson(item)).toList();
       } else {
-        return [];
+        throw Exception('Error al obtener órdenes: ${response.statusCode}');
       }
-      
-      try {
-        return ordersData.map<Order>((item) {
-          return Order.fromJson(item);
-        }).toList();
-      } catch (e) {
-        throw Exception('Error processing orders: $e');
+    } catch (e) {
+      final cached = await CacheService.getRawJson(_ordersCacheKey);
+      if (cached != null) {
+        final list = jsonDecode(cached) as List;
+        return list.map<Order>((j) => Order.fromJson(j)).toList();
       }
-        } else {
-      throw Exception('Error al obtener órdenes: ${response.statusCode}');
+      rethrow;
     }
   }
 

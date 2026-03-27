@@ -45,13 +45,14 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
 
   Future<void> _loadCommerceData() async {
     try {
+      if (!mounted) return;
       setState(() {
         _initialLoading = true;
         _error = null;
       });
 
       final data = await CommerceDataService.getCommerceData();
-      
+      if (!mounted) return;
       setState(() {
         _businessNameController.text = data['business_name'] ?? '';
         _businessTypeController.text = data['business_type'] ?? '';
@@ -64,6 +65,7 @@ class _CommerceDataPageState extends State<CommerceDataPage> {
         _initialLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _error = 'Error al cargar datos: $e';
         _initialLoading = false;

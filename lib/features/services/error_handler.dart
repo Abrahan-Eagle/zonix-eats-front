@@ -37,23 +37,24 @@ class ErrorHandler {
   /// Handle HTTP response and return appropriate error message
   static String handleHttpResponse(int statusCode, String? responseBody) {
     _logger.e('HTTP Error: $statusCode - $responseBody');
-    
-    // Check if we have a specific error for this status code
-    if (statusCodeErrors.containsKey(statusCode)) {
-      final errorType = statusCodeErrors[statusCode]!;
-      return errorMessages[errorType] ?? 'Error $statusCode';
-    }
-    
-    // Try to parse error from response body
+
+    // Prioridad: mensaje del API (Laravel suele enviar `message` en JSON)
     if (responseBody != null && responseBody.isNotEmpty) {
       try {
         final Map<String, dynamic> errorData = json.decode(responseBody);
-        if (errorData.containsKey('message')) {
-          return errorData['message'];
+        final msg = errorData['message'];
+        if (msg is String && msg.trim().isNotEmpty) {
+          return msg.trim();
         }
       } catch (e) {
         _logger.w('Could not parse error response: $e');
       }
+    }
+
+    // Códigos con plantilla fija (solo si no hubo `message` en JSON)
+    if (statusCodeErrors.containsKey(statusCode)) {
+      final errorType = statusCodeErrors[statusCode]!;
+      return errorMessages[errorType] ?? 'Error $statusCode';
     }
     
     // Default error message
@@ -71,25 +72,39 @@ class ErrorHandler {
     _logger.e('Exception occurred', error: error, stackTrace: stackTrace);
     
     if (error is String) {
+      if (_isNetworkString(error)) return errorMessages[networkError]!;
       return error;
     }
     
-    if (error.toString().contains('SocketException') ||
-        error.toString().contains('NetworkException')) {
-      return errorMessages[networkError]!;
-    }
+    final s = error.toString();
+    if (_isNetworkString(s)) return errorMessages[networkError]!;
     
-    if (error.toString().contains('Unauthorized') ||
-        error.toString().contains('Forbidden')) {
+    if (s.contains('Unauthorized') || s.contains('Forbidden')) {
       return errorMessages[authenticationError]!;
     }
     
-    if (error.toString().contains('FormatException') ||
-        error.toString().contains('Invalid')) {
+    if (s.contains('FormatException') || s.contains('Invalid')) {
       return errorMessages[validationError]!;
     }
     
     return errorMessages[unknownError]!;
+  }
+
+  static bool _isNetworkString(String s) {
+    final lower = s.toLowerCase();
+    return lower.contains('socketexception') ||
+        lower.contains('networkexception') ||
+        lower.contains('clientexception') ||
+        lower.contains('connection timed out') ||
+        lower.contains('connection refused') ||
+        lower.contains('network is unreachable') ||
+        lower.contains('failed host lookup') ||
+        lower.contains('timeoutexception') ||
+        lower.contains('handshakeexception') ||
+        lower.contains('errno = 110') ||
+        lower.contains('errno = 111') ||
+        lower.contains('no address associated') ||
+        (lower.contains('timeout') && lower.contains('future not completed'));
   }
   
   /// Log error for debugging
@@ -107,26 +122,23 @@ class ErrorHandler {
     _logger.i('Info in $context: $message');
   }
   
-  /// Get user-friendly error message
+  /// Get user-friendly error message (never returns raw technical text).
   static String getUserFriendlyMessage(dynamic error) {
     if (error is String) {
+      if (_isNetworkString(error)) return errorMessages[networkError]!;
+      final lower = error.toLowerCase();
+      if (lower.contains('auth') || lower.contains('token') || lower.contains('sesión')) return errorMessages[authenticationError]!;
+      if (lower.contains('exception:') || lower.contains('errno') || lower.contains('stacktrace')) return errorMessages[unknownError]!;
       return error;
     }
-    
-    final errorString = error.toString().toLowerCase();
-    
-    if (errorString.contains('network') || errorString.contains('connection')) {
-      return errorMessages[networkError]!;
-    }
-    
-    if (errorString.contains('auth') || errorString.contains('token')) {
-      return errorMessages[authenticationError]!;
-    }
-    
-    if (errorString.contains('validation') || errorString.contains('invalid')) {
-      return errorMessages[validationError]!;
-    }
-    
+
+    final s = error.toString();
+    if (_isNetworkString(s)) return errorMessages[networkError]!;
+
+    final lower = s.toLowerCase();
+    if (lower.contains('auth') || lower.contains('token')) return errorMessages[authenticationError]!;
+    if (lower.contains('validation') || lower.contains('invalid')) return errorMessages[validationError]!;
+
     return errorMessages[unknownError]!;
   }
 }

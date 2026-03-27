@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:zonix/features/screens/commerce/commerce_delivery_zone_form_page.dart';
 import 'package:zonix/features/services/commerce_delivery_zone_service.dart';
 import '../../utils/app_colors.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
@@ -109,34 +108,19 @@ class _CommerceDeliveryZonesPageState extends State<CommerceDeliveryZonesPage> {
                         'Radio: $radius km · Tarifa: \$${fee.toStringAsFixed(2)}'
                         '${time != null ? ' · $time min' : ''}',
                       ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CommerceDeliveryZoneFormPage(
-                              zoneId: z['id'] is int ? z['id'] as int? : int.tryParse(z['id']?.toString() ?? ''),
-                            ),
-                          ),
-                        );
-                      },
+                      trailing: const Icon(Icons.info_outline, color: AppColors.gray),
                     ),
                   );
                 },
               ),
             ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'commerce_delivery_zones_add',
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const CommerceDeliveryZoneFormPage(),
-            ),
-          );
-        },
-        backgroundColor: AppColors.orange,
-        child: const Icon(Icons.add),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          'Las zonas de entrega son configuradas por el administrador.',
+          style: TextStyle(fontSize: 13, color: AppColors.secondaryText(context)),
+          textAlign: TextAlign.center,
+        ),
       ),
     );
   }

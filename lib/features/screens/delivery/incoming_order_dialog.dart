@@ -111,8 +111,8 @@ class _IncomingOrderDialogState extends State<IncomingOrderDialog>
     try {
       final service = context.read<DeliveryService>();
       await service.rejectOrder(widget.orderId);
-    } catch (_) {
-      // Best-effort
+    } catch (e) {
+      debugPrint('Reject order failed: $e');
     }
     if (mounted) Navigator.of(context).pop(false);
   }

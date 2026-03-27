@@ -13,6 +13,7 @@ import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/widgets/osm_map_widget.dart';
+import 'package:flutter_map/flutter_map.dart' show Marker;
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zonix/l10n/app_strings.dart';
@@ -43,6 +44,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   bool _updating = false;
   double? _deliveryLat;
   double? _deliveryLng;
+  double? _customerLat;
+  double? _customerLng;
+  List<LatLng> _routePoints = [];
   bool _trackingSubscribed = false;
   StreamSubscription<Map<String, dynamic>>? _pusherSubscription;
   String? _selectedPaymentMethodLabel;
@@ -162,25 +166,38 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     if (_order == null || !_isTrackableStatus(_order!.status)) return;
     try {
       final data = await OrderService().getOrderTracking(widget.orderId);
-      final lat = data['latitude'] is double
-          ? data['latitude'] as double
-          : (data['latitude'] != null
-              ? double.tryParse(data['latitude'].toString())
-              : null);
-      final lng = data['longitude'] is double
-          ? data['longitude'] as double
-          : (data['longitude'] != null
-              ? double.tryParse(data['longitude'].toString())
-              : null);
-      if (mounted && lat != null && lng != null) {
+      final lat = _parseCoord(data['latitude']);
+      final lng = _parseCoord(data['longitude']);
+      final clat = _parseCoord(data['customer_latitude']);
+      final clng = _parseCoord(data['customer_longitude']);
+      List<LatLng> route = [];
+      final routeRaw = data['route_to_customer'];
+      if (routeRaw is List) {
+        for (final p in routeRaw) {
+          if (p is Map) {
+            final plat = _parseCoord(p['lat']);
+            final plng = _parseCoord(p['lng']);
+            if (plat != null && plng != null) route.add(LatLng(plat, plng));
+          }
+        }
+      }
+      if (mounted) {
         setState(() {
-          _deliveryLat = lat;
-          _deliveryLng = lng;
+          if (lat != null) _deliveryLat = lat;
+          if (lng != null) _deliveryLng = lng;
+          if (clat != null) _customerLat = clat;
+          if (clng != null) _customerLng = clng;
+          if (route.isNotEmpty) _routePoints = route;
         });
       }
-    } catch (_) {
-      // Sin ubicación inicial; se actualizará por Pusher
-    }
+    } catch (_) {}
+  }
+
+  double? _parseCoord(dynamic v) {
+    if (v is double) return v;
+    if (v is int) return v.toDouble();
+    if (v is String) return double.tryParse(v);
+    return null;
   }
 
   Future<void> _loadOrder() async {
@@ -1491,7 +1508,38 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   Widget _buildTrackingCard(Order order) {
     final hasLocation = _deliveryLat != null && _deliveryLng != null;
+    final hasCustomer = _customerLat != null && _customerLng != null;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final markers = <Marker>[];
+    if (hasLocation) {
+      markers.add(MapMarker.create(
+        point: LatLng(_deliveryLat!, _deliveryLng!),
+        iconData: Icons.two_wheeler,
+        color: AppColors.blue,
+        size: 36,
+      ));
+    }
+    if (hasCustomer) {
+      markers.add(MapMarker.create(
+        point: LatLng(_customerLat!, _customerLng!),
+        iconData: Icons.location_on,
+        color: AppColors.green,
+        size: 32,
+      ));
+    }
+
+    List<LatLng>? polyline;
+    if (_routePoints.isNotEmpty) {
+      polyline = _routePoints;
+    } else if (hasLocation && hasCustomer) {
+      polyline = [LatLng(_deliveryLat!, _deliveryLng!), LatLng(_customerLat!, _customerLng!)];
+    }
+
+    final center = hasLocation
+        ? LatLng(_deliveryLat!, _deliveryLng!)
+        : (hasCustomer ? LatLng(_customerLat!, _customerLng!) : const LatLng(10.16, -68.01));
+
     return Card(
       color: isDark ? null : AppColors.white,
       surfaceTintColor: AppColors.transparent,
@@ -1502,20 +1550,16 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           children: [
             Row(
               children: [
-                const Icon(Icons.delivery_dining,
-                    color: AppColors.green, size: 22),
+                const Icon(Icons.delivery_dining, color: AppColors.green, size: 22),
                 const SizedBox(width: 8),
                 Text(
                   AppStrings.deliveryTracking,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primaryText(context),
-                      ),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: AppColors.primaryText(context)),
                 ),
               ],
             ),
             const SizedBox(height: 12),
-            if (hasLocation)
+            if (hasLocation || hasCustomer)
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
@@ -1524,8 +1568,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     height: 200,
                     width: double.infinity,
                     child: OsmMapWidget(
-                      center: LatLng(_deliveryLat!, _deliveryLng!),
-                      zoom: 15.0,
+                      center: center,
+                      zoom: 14.0,
+                      markers: markers.isEmpty ? null : markers,
+                      polylinePoints: polyline,
+                      polylineColor: AppColors.blue,
+                      polylineStrokeWidth: 4,
                     ),
                   ),
                 ),
@@ -1535,31 +1583,21 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 height: 120,
                 width: double.infinity,
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.gray.withValues(alpha: 0.1)
-                      : AppColors.grayLight,
+                  color: isDark ? AppColors.gray.withValues(alpha: 0.1) : AppColors.grayLight,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.location_searching,
-                        size: 36, color: AppColors.gray),
+                    Icon(Icons.location_searching, size: 36, color: AppColors.gray),
                     SizedBox(height: 8),
-                    Text(
-                      AppStrings.waitingDeliveryLocation,
-                      style: TextStyle(color: AppColors.gray, fontSize: 13),
-                    ),
+                    Text(AppStrings.waitingDeliveryLocation, style: TextStyle(color: AppColors.gray, fontSize: 13)),
                   ],
                 ),
               ),
             if (order.status == 'shipped' || order.status == 'out_for_delivery') ...[
               const SizedBox(height: 12),
-              Text(
-                'Cuando el repartidor llegue, te pedirá mostrar tu QR',
-                style: TextStyle(fontSize: 13, color: AppColors.secondaryText(context)),
-                textAlign: TextAlign.center,
-              ),
+              Text('Cuando el repartidor llegue, te pedirá mostrar tu QR', style: TextStyle(fontSize: 13, color: AppColors.secondaryText(context)), textAlign: TextAlign.center),
             ],
             if (hasLocation) ...[
               const SizedBox(height: 12),
@@ -1569,12 +1607,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   icon: const Icon(Icons.navigation, size: 18),
                   label: const Text(AppStrings.openInGoogleMaps),
                   onPressed: () async {
-                    final url = Uri.parse(
-                      '${AppConfig.googleMapsPointUrl}=$_deliveryLat,$_deliveryLng',
-                    );
+                    final url = Uri.parse('${AppConfig.googleMapsPointUrl}=$_deliveryLat,$_deliveryLng');
                     if (await canLaunchUrl(url)) {
-                      await launchUrl(url,
-                          mode: LaunchMode.externalApplication);
+                      await launchUrl(url, mode: LaunchMode.externalApplication);
                     }
                   },
                 ),

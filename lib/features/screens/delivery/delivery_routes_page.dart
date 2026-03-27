@@ -2,6 +2,8 @@ import 'dart:convert' show json;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/services/delivery_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
@@ -190,6 +192,8 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
               ],
             ),
             const Divider(height: 24),
+            _infoRow(Icons.store, 'Comercio', route['commerce_address']?.toString() ?? commerceName),
+            const SizedBox(height: 4),
             _infoRow(Icons.location_on, 'Entregar en', deliveryAddress),
             const SizedBox(height: 8),
             Row(
@@ -222,10 +226,55 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
                 ),
               ],
             ),
+            const SizedBox(height: 10),
+            _buildNavButtons(route),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildNavButtons(Map<String, dynamic> route) {
+    final commerceLat = _parseNum(route['commerce_latitude']);
+    final commerceLng = _parseNum(route['commerce_longitude']);
+    final customerLat = _parseNum(route['delivery_latitude']);
+    final customerLng = _parseNum(route['delivery_longitude']);
+    final status = route['status']?.toString() ?? 'assigned';
+    final hasCommerce = commerceLat != 0 && commerceLng != 0;
+    final hasCustomer = customerLat != 0 && customerLng != 0;
+
+    return Row(
+      children: [
+        if (hasCommerce && status == 'assigned')
+          Expanded(child: _navButton('Ir al comercio', Icons.store, AppColors.orange, commerceLat, commerceLng)),
+        if (hasCommerce && status == 'assigned' && hasCustomer) const SizedBox(width: 8),
+        if (hasCustomer && status == 'shipped')
+          Expanded(child: _navButton('Ir al cliente', Icons.person_pin_circle, AppColors.green, customerLat, customerLng)),
+      ],
+    );
+  }
+
+  Widget _navButton(String label, IconData icon, Color color, double lat, double lng) {
+    return OutlinedButton.icon(
+      onPressed: () => _openGoogleMapsNav(lat, lng),
+      icon: Icon(icon, size: 16, color: color),
+      label: Text(label, style: TextStyle(fontSize: 12, color: color)),
+      style: OutlinedButton.styleFrom(
+        side: BorderSide(color: color),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+    );
+  }
+
+  Future<void> _openGoogleMapsNav(double lat, double lng) async {
+    final gNav = Uri.parse('google.navigation:q=$lat,$lng&mode=d');
+    if (await canLaunchUrl(gNav)) {
+      await launchUrl(gNav);
+    } else {
+      final web = Uri.parse('${AppConfig.googleMapsDirUrl}&destination=$lat,$lng');
+      await launchUrl(web, mode: LaunchMode.externalApplication);
+    }
   }
 
   Widget _infoRow(IconData icon, String label, String value) {

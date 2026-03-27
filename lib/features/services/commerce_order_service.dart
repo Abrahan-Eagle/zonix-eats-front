@@ -3,6 +3,8 @@ import 'package:http/http.dart' as http;
 import '../../models/commerce_order.dart';
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
+import 'cache_service.dart';
+import '../utils/http_retry.dart';
 
 class CommerceOrderService {
   static String get baseUrl => AppConfig.apiUrl;
@@ -27,25 +29,34 @@ class CommerceOrderService {
 
       final uri = Uri.parse('$baseUrl/api/commerce/orders').replace(queryParameters: queryParams);
       
-      final response = await http.get(
-        uri,
-        headers: headers,
-      );
+      final response = await withRetry(() => http.get(uri, headers: headers));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        
+        List<dynamic> list;
         if (data is List) {
-          return data.map((json) => CommerceOrder.fromJson(json)).toList();
+          list = data;
         } else if (data['data'] != null) {
-          return (data['data'] as List).map((json) => CommerceOrder.fromJson(json)).toList();
+          list = data['data'] as List;
+        } else {
+          return [];
         }
-        return [];
+        if (status == null) {
+          CacheService.setRawJson('commerce_orders', jsonEncode(list), expiration: const Duration(minutes: 10));
+        }
+        return list.map((json) => CommerceOrder.fromJson(json)).toList();
       } else {
         throw Exception('Error al obtener órdenes: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('Error al obtener órdenes: $e');
+      if (status == null) {
+        final cached = await CacheService.getRawJson('commerce_orders');
+        if (cached != null) {
+          final list = jsonDecode(cached) as List;
+          return list.map((j) => CommerceOrder.fromJson(j)).toList();
+        }
+      }
+      rethrow;
     }
   }
 

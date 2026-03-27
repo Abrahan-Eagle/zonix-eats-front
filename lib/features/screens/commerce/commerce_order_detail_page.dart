@@ -30,6 +30,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
   bool _pusherSubscribed = false;
   StreamSubscription<Map<String, dynamic>>? _pusherSubscription;
   String? _pickupQrPayload;
+  Future<void>? _loadOrderInFlight;
 
   static num _parseNum(dynamic value) {
     if (value == null) return 0;
@@ -80,6 +81,16 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
   }
 
   Future<void> _loadOrder() async {
+    if (_loadOrderInFlight != null) return _loadOrderInFlight!;
+    _loadOrderInFlight = _loadOrderImpl();
+    try {
+      await _loadOrderInFlight!;
+    } finally {
+      _loadOrderInFlight = null;
+    }
+  }
+
+  Future<void> _loadOrderImpl() async {
     setState(() {
       _loading = true;
       _error = null;

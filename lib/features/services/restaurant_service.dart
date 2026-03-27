@@ -6,6 +6,9 @@ import 'package:logger/logger.dart';
 import '../../models/restaurant.dart';
 import '../../helpers/auth_helper.dart';
 import '../../config/app_config.dart';
+import 'cache_service.dart';
+import 'connectivity_service.dart';
+import '../utils/http_retry.dart';
 
 class RestaurantService {
   final String apiUrl = '${AppConfig.apiUrl}/api/buyer/restaurants';
@@ -19,55 +22,49 @@ class RestaurantService {
     ),
   );
 
-  // GET /api/buyer/restaurants - Listar restaurantes
+  static const String _cacheKey = 'restaurants_list';
+
+  // GET /api/buyer/restaurants - Listar restaurantes (with cache + retry)
   Future<List<Restaurant>> fetchRestaurants() async {
     logger.i('Fetching restaurants list');
-    
+
+    if (!ConnectivityService.isConnected) {
+      final cached = await CacheService.getRawJson(_cacheKey);
+      if (cached != null) {
+        logger.i('Offline: returning cached restaurants');
+        return (jsonDecode(cached) as List).map((j) => Restaurant.fromJson(j)).toList();
+      }
+    }
+
     try {
       final headers = await AuthHelper.getAuthHeaders();
-      logger.d('Making GET request to: $apiUrl');
-      
-      final response = await http.get(
-        Uri.parse(apiUrl),
-        headers: headers,
-      ).timeout(Duration(milliseconds: AppConfig.requestTimeout));
-
-      logger.i('API Response Status: ${response.statusCode}');
+      final response = await withRetry(() => http.get(Uri.parse(apiUrl), headers: headers));
 
       if (response.statusCode == 200) {
-        logger.d('Processing successful response');
         final data = jsonDecode(response.body);
-        
-        // Backend Laravel: paginador { data: [...], current_page, ... } o array directo
         List<dynamic> restaurantsData;
         if (data is List) {
           restaurantsData = data;
         } else if (data is Map) {
-          if (data['data'] != null && data['data'] is List) {
-            restaurantsData = data['data'] as List;
-          } else if (data['success'] == true && data['data'] != null && data['data'] is List) {
-            restaurantsData = data['data'] as List;
-          } else {
-            restaurantsData = [];
-          }
+          restaurantsData = (data['data'] is List) ? data['data'] as List : [];
         } else {
           restaurantsData = [];
         }
-        
-        if (restaurantsData.isNotEmpty) {
-          logger.i('Successfully mapped ${restaurantsData.length} restaurants');
-          return restaurantsData.map((json) => Restaurant.fromJson(json)).toList();
-        } else {
-          logger.w('Empty restaurants list received');
-          return [];
-        }
+
+        logger.i('Successfully mapped ${restaurantsData.length} restaurants');
+        CacheService.setRawJson(_cacheKey, jsonEncode(restaurantsData), expiration: const Duration(hours: 2));
+        return restaurantsData.map((json) => Restaurant.fromJson(json)).toList();
       } else {
-        logger.e('API Error Response: Status: ${response.statusCode}, Body: ${response.body}');
         throw Exception('Failed to load restaurants: ${response.statusCode}');
       }
     } catch (e, stack) {
-      logger.e('Exception in fetchRestaurants', error: e, stackTrace: stack);
-      throw Exception('Restaurants fetch failed: ${e.toString()}');
+      logger.e('fetchRestaurants network error, trying cache', error: e, stackTrace: stack);
+      final cached = await CacheService.getRawJson(_cacheKey);
+      if (cached != null) {
+        final list = jsonDecode(cached) as List;
+        return list.map((j) => Restaurant.fromJson(j)).toList();
+      }
+      rethrow;
     }
   }
 

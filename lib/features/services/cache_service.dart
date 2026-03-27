@@ -235,6 +235,33 @@ class CacheService {
       _logger.e('Error cleaning expired cache', error: e);
     }
   }
+
+  /// Get raw JSON string (ignoring TTL -- for stale-while-revalidate; returns data even if expired).
+  static Future<String?> getRawJson(String key) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cached = prefs.getString(_cachePrefix + key);
+      if (cached == null) return null;
+      final decoded = json.decode(cached);
+      final data = decoded['data'];
+      return data != null ? json.encode(data) : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Set raw JSON string with TTL.
+  static Future<void> setRawJson(String key, String jsonString, {Duration expiration = _defaultExpiration}) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final wrapper = {
+        'data': json.decode(jsonString),
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+        'expiration': expiration.inMilliseconds,
+      };
+      await prefs.setString(_cachePrefix + key, json.encode(wrapper));
+    } catch (_) {}
+  }
 }
 
 // Cache helper for specific data types

@@ -17,15 +17,14 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
   String? _error;
   Map<String, dynamic> _overview = {};
   Map<String, dynamic> _products = {};
-  String _period = 'month';
-
   @override
   void initState() {
     super.initState();
-    _loadData();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
   }
 
   Future<void> _loadData() async {
+    if (!mounted) return;
     setState(() {
       _loading = true;
       _error = null;
@@ -96,18 +95,7 @@ class _CommerceReportsPageState extends State<CommerceReportsPage> {
               ),
             ),
           ),
-          DropdownButton<String>(
-            value: _period,
-            items: const [
-              DropdownMenuItem(value: 'today', child: Text('Hoy')),
-              DropdownMenuItem(value: 'week', child: Text('Semana')),
-              DropdownMenuItem(value: 'month', child: Text('Mes')),
-            ],
-            onChanged: (v) {
-              if (v != null) setState(() => _period = v);
-              _loadData();
-            },
-          ),
+          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadData),
         ],
       ),
       body: RefreshIndicator(

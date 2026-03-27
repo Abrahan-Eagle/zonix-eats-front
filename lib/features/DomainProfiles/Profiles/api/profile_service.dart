@@ -9,35 +9,67 @@ import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart
 import 'package:logger/logger.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
+import 'package:zonix/features/services/cache_service.dart';
+import 'package:zonix/features/services/connectivity_service.dart';
+import 'package:zonix/features/utils/http_retry.dart';
 
 final logger = Logger();
 
 class ProfileService {
   final _storage = const FlutterSecureStorage();
 
+  /// Evita GET /api/profile duplicado si [getMyProfile] se dispara en paralelo (p. ej. MainRouter + otra pantalla).
+  static Future<Profile?>? _getMyProfileInFlight;
+
   // Obtiene el token almacenado.
   Future<String?> _getToken() async {
     return await _storage.read(key: 'token');
   }
 
-  /// Perfil del usuario autenticado (GET /api/profile).
+  /// Perfil del usuario autenticado (GET /api/profile) con cache.
   Future<Profile?> getMyProfile() async {
+    if (_getMyProfileInFlight != null) {
+      return _getMyProfileInFlight!;
+    }
+    _getMyProfileInFlight = _getMyProfileImpl();
+    try {
+      return await _getMyProfileInFlight!;
+    } finally {
+      _getMyProfileInFlight = null;
+    }
+  }
+
+  Future<Profile?> _getMyProfileImpl() async {
     final token = await _getToken();
     if (token == null) return null;
-    final response = await http.get(
-      Uri.parse('${AppConfig.apiUrl}/api/profile'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Accept': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data is Map<String, dynamic>) {
-        return Profile.fromJson(data);
+
+    if (!ConnectivityService.isConnected) {
+      final cached = await CacheService.getRawJson('my_profile');
+      if (cached != null) {
+        final data = jsonDecode(cached);
+        if (data is Map<String, dynamic>) return Profile.fromJson(data);
       }
     }
-    return null;
+
+    final headers = {'Authorization': 'Bearer $token', 'Accept': 'application/json'};
+    try {
+      final response = await withRetry(() => http.get(Uri.parse('${AppConfig.apiUrl}/api/profile'), headers: headers));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is Map<String, dynamic>) {
+          CacheService.setRawJson('my_profile', jsonEncode(data), expiration: const Duration(hours: 2));
+          return Profile.fromJson(data);
+        }
+      }
+      return null;
+    } catch (e) {
+      final cached = await CacheService.getRawJson('my_profile');
+      if (cached != null) {
+        final data = jsonDecode(cached);
+        if (data is Map<String, dynamic>) return Profile.fromJson(data);
+      }
+      return null;
+    }
   }
 
   // Recupera un perfil por ID.

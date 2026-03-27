@@ -4,44 +4,57 @@ import 'package:logger/logger.dart';
 import 'package:zonix/models/product.dart';
 import 'package:zonix/helpers/auth_helper.dart';
 import 'package:zonix/config/app_config.dart';
+import 'cache_service.dart';
+import 'connectivity_service.dart';
+import '../utils/http_retry.dart';
 
 final Logger _logger = Logger();
 
 class ProductService {
   final String apiUrl = '${AppConfig.apiUrl}/api/buyer/products';
 
-  // GET /api/buyer/products - Listar productos (con filtro opcional por category_id)
+  static const String _cacheKey = 'products_list';
+
   Future<List<Product>> fetchProducts({int? categoryId}) async {
+    if (!ConnectivityService.isConnected && categoryId == null) {
+      final cached = await CacheService.getRawJson(_cacheKey);
+      if (cached != null) return (json.decode(cached) as List).map((j) => Product.fromJson(j)).toList();
+    }
+
     final headers = await AuthHelper.getAuthHeaders();
     String url = apiUrl;
-    if (categoryId != null) {
-      url += '?category_id=$categoryId';
-    }
+    if (categoryId != null) url += '?category_id=$categoryId';
     _logger.i('Llamando a $url');
-    final response = await http.get(
-      Uri.parse(url),
-      headers: headers,
-    );
-    _logger.i('Status code:  ${response.statusCode}');
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      _logger.i('Decoded data type: ${data.runtimeType}');
-      List<dynamic> productsData;
-      if (data['success'] == true && data['data'] != null) {
-        productsData = data['data'];
-      } else {
-        productsData = data is List ? data : [];
-      }
-      if (productsData.isNotEmpty) {
+
+    try {
+      final response = await withRetry(() => http.get(Uri.parse(url), headers: headers));
+      _logger.i('Status code:  ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        List<dynamic> productsData;
+        if (data['success'] == true && data['data'] != null) {
+          productsData = data['data'];
+        } else {
+          productsData = data is List ? data : [];
+        }
         _logger.i('Cantidad de productos recibidos: ${productsData.length}');
+        if (categoryId == null) {
+          CacheService.setRawJson(_cacheKey, jsonEncode(productsData), expiration: const Duration(hours: 2));
+        }
         return productsData.map((item) => Product.fromJson(item)).toList();
       } else {
-        _logger.w('La respuesta no contiene productos');
-        return [];
+        throw Exception('Error al cargar productos: ${response.statusCode}');
       }
-    } else {
-      _logger.e('Error al cargar productos: ${response.statusCode}');
-      throw Exception('Error al cargar productos: ${response.statusCode}');
+    } catch (e) {
+      _logger.e('fetchProducts network error, trying cache');
+      if (categoryId == null) {
+        final cached = await CacheService.getRawJson(_cacheKey);
+        if (cached != null) {
+          final list = json.decode(cached) as List;
+          return list.map((j) => Product.fromJson(j)).toList();
+        }
+      }
+      rethrow;
     }
   }
 

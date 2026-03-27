@@ -7,12 +7,33 @@ import '../../helpers/auth_helper.dart';
 class PromotionService {
   final Logger _logger = Logger();
 
+  /// Evita GET duplicados si varias pantallas llaman a la vez (arranque buyer).
+  static Future<List<Map<String, dynamic>>>? _activePromosInFlight;
+
   // GET /api/buyer/promotions/active - Obtener promociones activas
   Future<List<Map<String, dynamic>>> getActivePromotions({
     int? commerceId,
     String? type,
     double? minAmount,
     double? maxAmount,
+  }) async {
+    final hasFilters = commerceId != null || type != null || minAmount != null || maxAmount != null;
+    if (!hasFilters && _activePromosInFlight != null) {
+      return _activePromosInFlight!;
+    }
+    final future = _getActivePromotionsImpl(
+      commerceId: commerceId, type: type, minAmount: minAmount, maxAmount: maxAmount,
+    );
+    if (!hasFilters) _activePromosInFlight = future;
+    try {
+      return await future;
+    } finally {
+      if (!hasFilters) _activePromosInFlight = null;
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> _getActivePromotionsImpl({
+    int? commerceId, String? type, double? minAmount, double? maxAmount,
   }) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();

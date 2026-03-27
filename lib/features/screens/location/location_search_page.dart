@@ -34,8 +34,10 @@ class _LocationSearchPageState extends State<LocationSearchPage> {
   void initState() {
     super.initState();
     _loadCurrentLocation();
-    final provider = context.read<SearchRadiusProvider>();
-    _kmController.text = provider.radiusKm.round().toString();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<SearchRadiusProvider>();
+      _kmController.text = provider.radiusKm.round().toString();
+    });
   }
 
   @override

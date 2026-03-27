@@ -50,6 +50,9 @@ class UserProvider with ChangeNotifier {
   DateTime? _cacheTimestamp;
   static const Duration _cacheDuration = Duration(minutes: 1); // Cache válido por 1 minuto
 
+  /// Último `device_token` FCM registrado con éxito en el backend; evita POST duplicados (reintentos/delay).
+  String? _lastFcmRegisteredSuccessfully;
+
   // Getters para obtener la información del usuario
   bool get isAuthenticated => _isAuthenticated;
   bool get profileCreated => _profileCreated;
@@ -186,6 +189,10 @@ class UserProvider with ChangeNotifier {
         logger.w('FCM: no se registra (falta fcm_token; acepta notificaciones al abrir la app)');
         return;
       }
+      if (fcmToken == _lastFcmRegisteredSuccessfully) {
+        logger.d('FCM: mismo token ya registrado en backend esta sesión, omitiendo POST');
+        return;
+      }
 
       logger.i('FCM: registrando token en backend...');
       final response = await http.post(
@@ -197,6 +204,7 @@ class UserProvider with ChangeNotifier {
         body: jsonEncode({'device_token': fcmToken}),
       );
       if (response.statusCode >= 200 && response.statusCode < 300) {
+        _lastFcmRegisteredSuccessfully = fcmToken;
         logger.i('FCM token registrado en backend (push activo)');
       } else {
         logger.w('FCM registro falló: ${response.statusCode} ${response.body}');
@@ -463,6 +471,7 @@ class UserProvider with ChangeNotifier {
     _cachedUserDetails = null;
     _cacheTimestamp = null;
     _getUserDetailsFuture = null;
+    _lastFcmRegisteredSuccessfully = null;
 
     // Limpia en el almacenamiento seguro
     await _storage.delete(key: 'profileCreated');

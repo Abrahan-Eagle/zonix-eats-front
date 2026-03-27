@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zonix/models/order.dart';
 import 'package:zonix/features/services/order_service.dart';
+import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
@@ -94,6 +95,7 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                   _deliveryLat = lat;
                   _deliveryLng = lng;
                 });
+                _recalculateRoute(lat, lng);
               }
             }
             if (eventName.contains('OrderStatusChanged') && mounted) {
@@ -182,8 +184,36 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
       final order = await OrderService().getOrderById(widget.orderId);
       if (mounted) {
         setState(() => _order = order);
-        if (_isTrackableStatus(order.status) && _deliveryAgent == null) {
-          _loadDeliveryAgent();
+        if (_isTrackableStatus(order.status)) {
+          if (!_trackingSubscribed) _subscribeToTracking();
+          if (_deliveryAgent == null) _loadDeliveryAgent();
+          _loadInitialTracking();
+        }
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _recalculateRoute(double agentLat, double agentLng) async {
+    if (_customerLat == null || _customerLng == null) return;
+    try {
+      final result = await LocationService().calculateRoute(
+        originLat: agentLat,
+        originLng: agentLng,
+        destinationLat: _customerLat!,
+        destinationLng: _customerLng!,
+      );
+      final polyline = result['polyline'] as List?;
+      if (polyline != null && mounted) {
+        final points = <LatLng>[];
+        for (final p in polyline) {
+          if (p is Map) {
+            final plat = (p['lat'] is num) ? (p['lat'] as num).toDouble() : double.tryParse(p['lat']?.toString() ?? '');
+            final plng = (p['lng'] is num) ? (p['lng'] as num).toDouble() : double.tryParse(p['lng']?.toString() ?? '');
+            if (plat != null && plng != null) points.add(LatLng(plat, plng));
+          }
+        }
+        if (points.length >= 2 && mounted) {
+          setState(() => _routePoints = points);
         }
       }
     } catch (_) {}

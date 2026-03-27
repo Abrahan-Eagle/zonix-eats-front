@@ -6,6 +6,8 @@ import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 import '../utils/auth_utils.dart';
 import 'error_handler.dart';
+import 'cache_service.dart';
+import 'connectivity_service.dart';
 
 class DeliveryService extends ChangeNotifier {
   static String get baseUrl => AppConfig.apiUrl;
@@ -268,12 +270,18 @@ class DeliveryService extends ChangeNotifier {
     }
   }
 
+  static const String _ordersCacheKey = 'delivery_orders';
+
   Future<List<Map<String, dynamic>>> getDeliveryOrders() async {
+    if (!ConnectivityService.isConnected) {
+      final cached = await _getCachedJson(_ordersCacheKey);
+      if (cached != null) return List<Map<String, dynamic>>.from(cached);
+    }
     try {
-      final response = await http.get(
+      final response = await _httpWithRetry(() => http.get(
         Uri.parse('$baseUrl/api/delivery/orders'),
-        headers: await AuthHelper.getAuthHeaders(),
-      );
+        headers: _lastHeaders!,
+      ));
 
       if (response.statusCode == 401) {
         await _invalidateLocalSessionMarkers();
@@ -281,19 +289,58 @@ class DeliveryService extends ChangeNotifier {
       }
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        List<Map<String, dynamic>> result;
         if (data is Map && data['success'] == true && data['data'] != null) {
-          return List<Map<String, dynamic>>.from(data['data']);
+          result = List<Map<String, dynamic>>.from(data['data']);
+        } else if (data is List) {
+          result = List<Map<String, dynamic>>.from(data);
+        } else {
+          result = List<Map<String, dynamic>>.from(data['data'] ?? []);
         }
-        if (data is List) {
-          return List<Map<String, dynamic>>.from(data);
-        }
-        return List<Map<String, dynamic>>.from(data['data'] ?? []);
+        _cacheJson(_ordersCacheKey, result);
+        return result;
       } else {
         throw Exception('Error al obtener órdenes: ${response.statusCode}');
       }
     } catch (e) {
+      if (!_isAuthError(e)) {
+        final cached = await _getCachedJson(_ordersCacheKey);
+        if (cached != null) return List<Map<String, dynamic>>.from(cached);
+      }
       rethrow;
     }
+  }
+
+  Map<String, String>? _lastHeaders;
+
+  Future<http.Response> _httpWithRetry(Future<http.Response> Function() fn) async {
+    _lastHeaders = await AuthHelper.getAuthHeaders();
+    try {
+      return await fn();
+    } catch (e) {
+      if (_isNetworkError(e)) {
+        await Future.delayed(const Duration(seconds: 2));
+        return await fn();
+      }
+      rethrow;
+    }
+  }
+
+  bool _isNetworkError(Object e) {
+    final s = e.toString().toLowerCase();
+    return s.contains('socketexception') || s.contains('timeout') || s.contains('clientexception') || s.contains('connection');
+  }
+
+  bool _isAuthError(Object e) => e.toString().contains('Sesión inválida');
+
+  void _cacheJson(String key, dynamic data) {
+    CacheService.setRawJson(key, jsonEncode(data), expiration: const Duration(minutes: 10));
+  }
+
+  Future<dynamic> _getCachedJson(String key) async {
+    final raw = await CacheService.getRawJson(key);
+    if (raw == null) return null;
+    return jsonDecode(raw);
   }
 
   /// Obtiene una orden por ID (para detalle desde notificación FCM).
@@ -609,8 +656,7 @@ class DeliveryService extends ChangeNotifier {
     }
   }
 
-  // Update delivery location
-  Future<void> updateDeliveryLocation(int deliveryAgentId, double lat, double lng) async {
+  Future<void> updateDeliveryLocation(double lat, double lng) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/api/delivery/location/update'),

@@ -25,6 +25,7 @@ import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/screens/settings/commerce_data_page.dart';
 import 'package:zonix/features/screens/settings/commerce_schedule_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_promotions_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_promotion_form_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_zones_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_payment_methods_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_list_page.dart';
@@ -1319,7 +1320,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                     child: Column(
                       children: [
                         Text(
-                          count.toString(),
+                          snapshot.hasData ? snapshot.data!.where((p) => p['active'] == true || p['status'] == 'active').length.toString() : '0',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 28,
                             fontWeight: FontWeight.bold,
@@ -1416,7 +1417,7 @@ class _SettingsPage2State extends State<SettingsPage2> {
                 ),
                 const SizedBox(height: 32),
                 FilledButton.icon(
-                  onPressed: () {},
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CommercePromotionFormPage())),
                   icon: const Icon(Icons.add, size: 18),
                   label: const Text('Crear Promoción'),
                   style: FilledButton.styleFrom(

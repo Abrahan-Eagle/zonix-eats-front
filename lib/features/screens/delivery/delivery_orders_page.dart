@@ -29,6 +29,11 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
   StreamSubscription<Map<String, dynamic>>? _pusherSub;
   String? _pusherChannel;
   Timer? _debounceTimer;
+  /// Tras [_loadAll] manual o bootstrap; evita segundo refresh si Pusher dispara por el mismo cambio (~aceptar orden).
+  DateTime? _lastOrdersLoadAt;
+
+  /// Evita dos cargas en paralelo (aceptar orden + Pusher / doble listener): una sola ronda de GET.
+  Future<void>? _loadAllInFlight;
 
   @override
   void initState() {
@@ -45,9 +50,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
     await syncDeliverySessionAfterApi(context, d);
     if (!mounted) return;
     if (!context.read<UserProvider>().isAuthenticated) return;
-    await Future.wait([d.loadMyOrders(), d.loadAvailableOrders()]);
-    if (!mounted) return;
-    await syncDeliverySessionAfterApi(context, d);
+    await _loadAll();
     if (!mounted) return;
     if (!context.read<UserProvider>().isAuthenticated) return;
     await _loadWorkingStatus();
@@ -67,10 +70,23 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
   }
 
   Future<void> _loadAll() async {
+    if (_loadAllInFlight != null) {
+      return _loadAllInFlight!;
+    }
+    _loadAllInFlight = _loadAllImpl();
+    try {
+      await _loadAllInFlight!;
+    } finally {
+      _loadAllInFlight = null;
+    }
+  }
+
+  Future<void> _loadAllImpl() async {
     if (!mounted) return;
     final d = context.read<DeliveryService>();
     try {
       await Future.wait([d.loadMyOrders(), d.loadAvailableOrders()]);
+      _lastOrdersLoadAt = DateTime.now();
     } catch (e) {
       debugPrint('Error cargando órdenes delivery: $e');
     }
@@ -78,10 +94,17 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
     await syncDeliverySessionAfterApi(context, d);
   }
 
+  static const _debounceCoalesceWindow = Duration(milliseconds: 750);
+
   void _debouncedLoadAll() {
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      if (mounted) _loadAll();
+      if (!mounted) return;
+      final last = _lastOrdersLoadAt;
+      if (last != null && DateTime.now().difference(last) < _debounceCoalesceWindow) {
+        return;
+      }
+      _loadAll();
     });
   }
 

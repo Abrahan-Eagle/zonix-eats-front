@@ -67,15 +67,8 @@ class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.rocket_launch, color: AppColors.blue, size: 24),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Zonix Eats - Tu pedido más cerca'),
-                  backgroundColor: AppColors.blue,
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
+            tooltip: 'Zonix Eats',
+            onPressed: () {},
           ),
         ],
         bottom: PreferredSize(

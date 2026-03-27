@@ -51,6 +51,7 @@ import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/services/payment_service.dart';
 import 'package:zonix/features/services/commerce_analytics_service.dart';
 import 'package:zonix/features/services/admin_service.dart';
+import 'package:zonix/features/services/connectivity_service.dart';
 import 'package:zonix/features/screens/commerce/commerce_dashboard_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_orders_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_order_detail_page.dart';
@@ -397,6 +398,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => PaymentService()),
         ChangeNotifierProvider(create: (_) => CommerceAnalyticsService()),
         ChangeNotifierProvider(create: (_) => AdminService()),
+        ChangeNotifierProvider(create: (_) => ConnectivityService()),
       ],
       child: const MyApp(isIntegrationTest: isIntegrationTest),
     ),
@@ -405,27 +407,40 @@ Future<void> main() async {
 
 void initialization() async {
   logger.i('Initializing...');
-  await Future.delayed(const Duration(seconds: 3));
+  // Breve retardo para que el primer frame pinte; 3s fijos alargaban innecesariamente el arranque.
+  await Future.delayed(const Duration(milliseconds: 400));
   FlutterNativeSplash.remove();
 }
 
 // Theme extraído a lib/features/utils/app_theme.dart
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   final bool isIntegrationTest;
   const MyApp({super.key, this.isIntegrationTest = false});
 
   @override
-  Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
+  State<MyApp> createState() => _MyAppState();
+}
 
-    if (isIntegrationTest) {
-      // Forzar autenticación como comercio
-      userProvider.setAuthenticatedForTest(role: 'commerce');
+class _MyAppState extends State<MyApp> {
+  /// [checkAuthentication] no debe ir en [build]: cada notifyListeners duplicaba GET y FCM.
+  bool _initialAuthScheduled = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_initialAuthScheduled) return;
+    _initialAuthScheduled = true;
+
+    if (widget.isIntegrationTest) {
+      context.read<UserProvider>().setAuthenticatedForTest(role: 'commerce');
     } else {
-      userProvider.checkAuthentication();
+      context.read<UserProvider>().checkAuthentication();
     }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return MaterialApp(
       navigatorKey: navigatorKey,
       title: 'Zonix Eats',
@@ -433,6 +448,7 @@ class MyApp extends StatelessWidget {
       theme: buildStitchLightTheme(),
       darkTheme: buildStitchDarkTheme(),
       themeMode: ThemeMode.system,
+      builder: (context, child) => child ?? const SizedBox.shrink(),
       home: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
           logger.i('isAuthenticated: ${userProvider.isAuthenticated}');

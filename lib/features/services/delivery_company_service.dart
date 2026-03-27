@@ -4,6 +4,9 @@ import 'package:http/http.dart' as http;
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 import 'error_handler.dart';
+import 'cache_service.dart';
+import 'connectivity_service.dart';
+import '../utils/http_retry.dart';
 
 class DeliveryCompanyService extends ChangeNotifier {
   static String get _baseUrl => AppConfig.apiUrl;
@@ -17,24 +20,54 @@ class DeliveryCompanyService extends ChangeNotifier {
   bool get dashboardLoading => _dashboardLoading;
   String? get dashboardError => _dashboardError;
 
+  /// Evita doble GET dashboard si dos pantallas lo piden a la vez (dashboard + orders bootstrap).
+  Future<void>? _loadDashboardInFlight;
+
   Future<void> loadDashboard() async {
+    if (_loadDashboardInFlight != null) return _loadDashboardInFlight!;
+    _loadDashboardInFlight = _loadDashboardImpl();
+    try {
+      await _loadDashboardInFlight!;
+    } finally {
+      _loadDashboardInFlight = null;
+    }
+  }
+
+  Future<void> _loadDashboardImpl() async {
     _dashboardLoading = true;
     _dashboardError = null;
     notifyListeners();
+
+    if (!ConnectivityService.isConnected && _dashboardData.isEmpty) {
+      final cached = await CacheService.getRawJson('dc_dashboard');
+      if (cached != null) {
+        _dashboardData = Map<String, dynamic>.from(jsonDecode(cached));
+        _dashboardLoading = false;
+        notifyListeners();
+        return;
+      }
+    }
+
     try {
-      final res = await http.get(
+      final headers = await AuthHelper.getAuthHeaders();
+      final res = await withRetry(() => http.get(
         Uri.parse('$_baseUrl/api/delivery-company/dashboard'),
-        headers: await AuthHelper.getAuthHeaders(),
-      );
+        headers: headers,
+      ));
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
         if (body['success'] == true && body['data'] != null) {
           _dashboardData = Map<String, dynamic>.from(body['data']);
+          CacheService.setRawJson('dc_dashboard', jsonEncode(_dashboardData), expiration: const Duration(minutes: 10));
         }
       } else {
         _dashboardError = ErrorHandler.handleHttpResponse(res.statusCode, res.body);
       }
     } catch (e) {
+      final cached = await CacheService.getRawJson('dc_dashboard');
+      if (cached != null && _dashboardData.isEmpty) {
+        _dashboardData = Map<String, dynamic>.from(jsonDecode(cached));
+      }
       _dashboardError = ErrorHandler.getUserFriendlyMessage(e);
     } finally {
       _dashboardLoading = false;
@@ -56,19 +89,25 @@ class DeliveryCompanyService extends ChangeNotifier {
     _agentsError = null;
     notifyListeners();
     try {
-      final res = await http.get(
+      final agentHeaders = await AuthHelper.getAuthHeaders();
+      final res = await withRetry(() => http.get(
         Uri.parse('$_baseUrl/api/delivery-company/agents'),
-        headers: await AuthHelper.getAuthHeaders(),
-      );
+        headers: agentHeaders,
+      ));
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
         if (body['success'] == true && body['data'] != null) {
           _agents = List<Map<String, dynamic>>.from(body['data']);
+          CacheService.setRawJson('dc_agents', jsonEncode(_agents), expiration: const Duration(minutes: 5));
         }
       } else {
         _agentsError = ErrorHandler.handleHttpResponse(res.statusCode, res.body);
       }
     } catch (e) {
+      final cached = await CacheService.getRawJson('dc_agents');
+      if (cached != null && _agents.isEmpty) {
+        _agents = List<Map<String, dynamic>>.from(jsonDecode(cached));
+      }
       _agentsError = ErrorHandler.getUserFriendlyMessage(e);
     } finally {
       _agentsLoading = false;
@@ -94,7 +133,8 @@ class DeliveryCompanyService extends ChangeNotifier {
       if (status != null && status.isNotEmpty) params['status'] = status;
       final uri = Uri.parse('$_baseUrl/api/delivery-company/agents')
           .replace(queryParameters: params);
-      final res = await http.get(uri, headers: await AuthHelper.getAuthHeaders());
+      final headers = await AuthHelper.getAuthHeaders();
+      final res = await withRetry(() => http.get(uri, headers: headers));
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
         if (body['success'] == true && body['data'] != null) {
@@ -141,7 +181,8 @@ class DeliveryCompanyService extends ChangeNotifier {
       final uri = Uri.parse('$_baseUrl/api/delivery-company/orders').replace(
         queryParameters: status != null ? {'status': status} : null,
       );
-      final res = await http.get(uri, headers: await AuthHelper.getAuthHeaders());
+      final headers = await AuthHelper.getAuthHeaders();
+      final res = await withRetry(() => http.get(uri, headers: headers));
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
         if (body['success'] == true && body['data'] != null) {
@@ -177,10 +218,11 @@ class DeliveryCompanyService extends ChangeNotifier {
     _pendingOrdersError = null;
     notifyListeners();
     try {
-      final res = await http.get(
+      final headers = await AuthHelper.getAuthHeaders();
+      final res = await withRetry(() => http.get(
         Uri.parse('$_baseUrl/api/delivery-company/orders/pending'),
-        headers: await AuthHelper.getAuthHeaders(),
-      );
+        headers: headers,
+      ));
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
         if (body['success'] == true && body['data'] != null) {
@@ -212,20 +254,26 @@ class DeliveryCompanyService extends ChangeNotifier {
   List<Map<String, dynamic>> _availableAgentsForOrder = [];
   bool _availableAgentsLoading = false;
   String? _availableAgentsError;
+  int? _availableAgentsLoadInFlightOrderId;
 
   List<Map<String, dynamic>> get availableAgentsForOrder => _availableAgentsForOrder;
   bool get availableAgentsLoading => _availableAgentsLoading;
   String? get availableAgentsError => _availableAgentsError;
 
   Future<void> loadAvailableAgentsForOrder(int orderId) async {
+    if (_availableAgentsLoading && _availableAgentsLoadInFlightOrderId == orderId) {
+      return;
+    }
+    _availableAgentsLoadInFlightOrderId = orderId;
     _availableAgentsLoading = true;
     _availableAgentsError = null;
     notifyListeners();
     try {
-      final res = await http.get(
+      final headers = await AuthHelper.getAuthHeaders();
+      final res = await withRetry(() => http.get(
         Uri.parse('$_baseUrl/api/delivery-company/orders/$orderId/available-agents'),
-        headers: await AuthHelper.getAuthHeaders(),
-      );
+        headers: headers,
+      ));
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
         if (body['success'] == true && body['data'] != null) {
@@ -242,6 +290,7 @@ class DeliveryCompanyService extends ChangeNotifier {
       _availableAgentsForOrder = [];
     } finally {
       _availableAgentsLoading = false;
+      _availableAgentsLoadInFlightOrderId = null;
       notifyListeners();
     }
   }
@@ -279,10 +328,11 @@ class DeliveryCompanyService extends ChangeNotifier {
     _earningsError = null;
     notifyListeners();
     try {
-      final res = await http.get(
+      final headers = await AuthHelper.getAuthHeaders();
+      final res = await withRetry(() => http.get(
         Uri.parse('$_baseUrl/api/delivery-company/earnings'),
-        headers: await AuthHelper.getAuthHeaders(),
-      );
+        headers: headers,
+      ));
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
         if (body['success'] == true && body['data'] != null) {
@@ -386,10 +436,11 @@ class DeliveryCompanyService extends ChangeNotifier {
     _pendingPaymentOrdersError = null;
     notifyListeners();
     try {
-      final res = await http.get(
+      final headers = await AuthHelper.getAuthHeaders();
+      final res = await withRetry(() => http.get(
         Uri.parse('$_baseUrl/api/delivery-company/orders/pending-payment'),
-        headers: await AuthHelper.getAuthHeaders(),
-      );
+        headers: headers,
+      ));
       if (res.statusCode == 200) {
         final body = jsonDecode(res.body);
         if (body['success'] == true && body['data'] != null) {

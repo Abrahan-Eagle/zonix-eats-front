@@ -49,19 +49,18 @@ class _AccountDeletionPageState extends State<AccountDeletionPage> {
 
   Future<void> _loadDeletionStatus() async {
     try {
-      setState(() {
-        isLoading = true;
-      });
+      if (!mounted) return;
+      setState(() => isLoading = true);
 
       final status = await AccountDeletionService.getDeletionStatus();
+      if (!mounted) return;
       setState(() {
         deletionStatus = status;
         isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        isLoading = false;
-      });
+      if (!mounted) return;
+      setState(() => isLoading = false);
       _showErrorSnackBar('Error al cargar estado: $e');
     }
   }

@@ -21,7 +21,7 @@ class CheckoutPage extends StatefulWidget {
 class _CheckoutPageState extends State<CheckoutPage> {
   bool _loading = false;
   String? _error;
-  String _deliveryType = 'pickup';
+  String _deliveryType = 'delivery';
   String? _selectedAddress;
   double? _selectedDeliveryLat;
   double? _selectedDeliveryLng;
@@ -491,7 +491,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                             vertical: 10, horizontal: 4),
                         decoration: BoxDecoration(
                           color: _deliveryType == 'pickup'
-                              ? AppColors.cardBg(context)
+                              ? AppColors.green
                               : AppColors.transparent,
                           borderRadius: BorderRadius.circular(999),
                         ),
@@ -502,7 +502,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               Icons.storefront,
                               size: 18,
                               color: _deliveryType == 'pickup'
-                                  ? AppColors.primaryText(context)
+                                  ? AppColors.white
                                   : AppColors.secondaryText(context),
                             ),
                             const SizedBox(width: 6),
@@ -512,7 +512,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 color: _deliveryType == 'pickup'
-                                    ? AppColors.primaryText(context)
+                                    ? AppColors.white
                                     : AppColors.secondaryText(context),
                               ),
                             ),

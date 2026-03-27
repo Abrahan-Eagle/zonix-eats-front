@@ -277,15 +277,16 @@ class _OrderRatingPageState extends State<OrderRatingPage> {
     });
 
     try {
+      bool restaurantOk = false;
+      bool deliveryOk = false;
       try {
         await _reviewService.rateRestaurant(
           orderId: widget.order.id,
           rating: _restaurantRating,
           comment: _restaurantCommentController.text.trim(),
         );
-      } catch (_) {
-        // Puede fallar si ya calificó (400); continuar con delivery
-      }
+        restaurantOk = true;
+      } catch (_) {}
 
       if (widget.order.deliveryAgentId != null && _deliveryRating > 0) {
         try {
@@ -294,16 +295,24 @@ class _OrderRatingPageState extends State<OrderRatingPage> {
             rating: _deliveryRating,
             comment: _deliveryCommentController.text.trim(),
           );
-        } catch (_) {
-          // Puede fallar si ya calificó
-        }
+          deliveryOk = true;
+        } catch (_) {}
+      } else {
+        deliveryOk = true;
       }
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('¡Gracias por tu calificación!')),
-      );
-      Navigator.of(context).pop();
+      if (restaurantOk || deliveryOk) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('¡Gracias por tu calificación!')),
+        );
+        Navigator.of(context).pop();
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ya calificaste esta orden'), backgroundColor: AppColors.orange),
+        );
+        Navigator.of(context).pop();
+      }
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
