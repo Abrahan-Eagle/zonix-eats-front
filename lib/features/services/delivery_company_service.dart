@@ -76,6 +76,54 @@ class DeliveryCompanyService extends ChangeNotifier {
     }
   }
 
+  // --- Agents for map (with location + current order) ---
+  List<Map<String, dynamic>> _mapAgents = [];
+  bool _mapAgentsLoading = false;
+  String? _mapAgentsError;
+
+  List<Map<String, dynamic>> get mapAgents => _mapAgents;
+  bool get mapAgentsLoading => _mapAgentsLoading;
+  String? get mapAgentsError => _mapAgentsError;
+
+  Future<void> loadAgentsForMap({String? status}) async {
+    _mapAgentsLoading = true;
+    _mapAgentsError = null;
+    notifyListeners();
+    try {
+      final params = <String, String>{'active_only': 'true'};
+      if (status != null && status.isNotEmpty) params['status'] = status;
+      final uri = Uri.parse('$_baseUrl/api/delivery-company/agents')
+          .replace(queryParameters: params);
+      final res = await http.get(uri, headers: await AuthHelper.getAuthHeaders());
+      if (res.statusCode == 200) {
+        final body = jsonDecode(res.body);
+        if (body['success'] == true && body['data'] != null) {
+          _mapAgents = List<Map<String, dynamic>>.from(body['data']);
+        }
+      } else {
+        _mapAgentsError = ErrorHandler.handleHttpResponse(res.statusCode, res.body);
+      }
+    } catch (e) {
+      _mapAgentsError = ErrorHandler.getUserFriendlyMessage(e);
+    } finally {
+      _mapAgentsLoading = false;
+      notifyListeners();
+    }
+  }
+
+  void updateAgentLocation(int agentId, double lat, double lng) {
+    final idx = _mapAgents.indexWhere((a) => a['id'] == agentId);
+    if (idx != -1) {
+      _mapAgents[idx] = {
+        ..._mapAgents[idx],
+        'current_latitude': lat,
+        'current_longitude': lng,
+        'last_location_update': DateTime.now().toIso8601String(),
+      };
+      notifyListeners();
+    }
+  }
+
   // --- Orders ---
   List<Map<String, dynamic>> _orders = [];
   bool _ordersLoading = false;

@@ -67,7 +67,7 @@ import 'package:zonix/features/screens/delivery/delivery_earnings_page.dart';
 import 'package:zonix/features/screens/delivery_company/delivery_company_dashboard_page.dart';
 import 'package:zonix/features/screens/delivery_company/delivery_company_agents_page.dart';
 import 'package:zonix/features/screens/delivery_company/delivery_company_orders_page.dart';
-import 'package:zonix/features/screens/delivery_company/delivery_company_earnings_page.dart';
+import 'package:zonix/features/screens/delivery_company/delivery_company_map_page.dart';
 import 'package:zonix/features/screens/admin/admin_dashboard_page.dart';
 import 'package:zonix/features/screens/admin/admin_users_page.dart';
 import 'package:zonix/features/screens/admin/admin_orders_page.dart';
@@ -814,8 +814,8 @@ class MainRouterState extends State<MainRouter> {
             label: 'Órdenes',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet),
-            label: 'Ganancias',
+            icon: Icon(Icons.map_rounded),
+            label: 'Mapa',
           ),
         ];
         break;
@@ -1076,7 +1076,7 @@ class MainRouterState extends State<MainRouter> {
                     case 2:
                       return const DeliveryCompanyOrdersPage();
                     case 3:
-                      return const DeliveryCompanyEarningsPage();
+                      return const DeliveryCompanyMapPage();
                     default:
                       return const DeliveryCompanyDashboardPage();
                   }

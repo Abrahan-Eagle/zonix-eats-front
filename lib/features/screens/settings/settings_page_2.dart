@@ -31,6 +31,7 @@ import 'package:zonix/features/screens/commerce/commerce_list_page.dart';
 import 'package:zonix/features/screens/orders/orders_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_orders_page.dart';
 import 'package:zonix/features/services/commerce_post_service.dart';
+import 'package:zonix/features/screens/delivery_company/delivery_company_earnings_page.dart';
 
 final logger = Logger();
 
@@ -1532,6 +1533,16 @@ class _SettingsPage2State extends State<SettingsPage2> {
                     context,
                     MaterialPageRoute(
                         builder: (_) => const CommercePaymentMethodsPage()))),
+              if (isDeliveryCompany)
+                _MasTile(
+                  icon: Icons.account_balance_wallet,
+                  iconColor: AppColors.purple,
+                  title: 'Ganancias',
+                  subtitle: 'Resumen de ingresos y pagos',
+                  onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => const DeliveryCompanyEarningsPage()))),
             ],
           ),
         ],
