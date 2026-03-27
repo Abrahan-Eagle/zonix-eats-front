@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../config/app_config.dart';
 import '../../services/delivery_company_service.dart';
 import '../../services/pusher_service.dart';
+import '../../../helpers/auth_helper.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/safe_parse.dart';
 
@@ -73,6 +74,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
     );
     if (!mounted) return;
     _moveToRadius();
+    _preloadBusyRoutes(svc.mapAgents);
   }
 
   void _resolveHeadquarters(Map<String, dynamic> dashboard) {
@@ -94,20 +96,46 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
     _mapController.move(_headquarters!, zoom);
   }
 
-  Future<List<LatLng>> _fetchOsrmRoute(double fromLat, double fromLng, double toLat, double toLng) async {
+  void _preloadBusyRoutes(List<Map<String, dynamic>> agents) {
+    for (final a in agents) {
+      if (a['is_busy'] == true && a['destination'] is Map) {
+        _loadRouteForAgent(a);
+      }
+    }
+  }
+
+  Future<List<LatLng>> _fetchRoute(double fromLat, double fromLng, double toLat, double toLng) async {
     try {
-      final url = 'http://router.project-osrm.org/route/v1/driving/'
-          '$fromLng,$fromLat;$toLng,$toLat'
-          '?overview=full&geometries=geojson';
-      final res = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 8));
-      if (res.statusCode != 200) return [];
+      final headers = await AuthHelper.getAuthHeaders();
+      final res = await http.post(
+        Uri.parse('${AppConfig.apiUrl}/api/location/calculate-route'),
+        headers: headers,
+        body: jsonEncode({
+          'origin_lat': fromLat,
+          'origin_lng': fromLng,
+          'destination_lat': toLat,
+          'destination_lng': toLng,
+          'mode': 'driving',
+        }),
+      ).timeout(const Duration(seconds: 15));
+      if (res.statusCode != 200) {
+        debugPrint('Route API error: HTTP ${res.statusCode}');
+        return [];
+      }
       final data = jsonDecode(res.body);
-      final routes = data['routes'];
-      if (routes == null || routes is! List || routes.isEmpty) return [];
-      final coords = routes[0]['geometry']?['coordinates'];
-      if (coords == null || coords is! List) return [];
-      return coords.map<LatLng>((c) => LatLng((c[1] as num).toDouble(), (c[0] as num).toDouble())).toList();
-    } catch (_) {
+      if (data['success'] != true) return [];
+      final polyline = data['data']?['polyline'];
+      if (polyline == null || polyline is! List) return [];
+      final pts = polyline
+          .map<LatLng>((p) => LatLng(
+                (p['lat'] as num).toDouble(),
+                (p['lng'] as num).toDouble(),
+              ))
+          .toList();
+      debugPrint('Route API: ${pts.length} waypoints loaded');
+      return pts;
+    } catch (e) {
+      debugPrint('Route fetch error: $e');
       return [];
     }
   }
@@ -117,7 +145,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
     if (_routeCache.containsKey(agentId)) return;
     final dest = agent['destination'];
     if (dest == null || dest is! Map) return;
-    final pts = await _fetchOsrmRoute(
+    final pts = await _fetchRoute(
       safeDouble(agent['current_latitude']),
       safeDouble(agent['current_longitude']),
       safeDouble(dest['latitude']),
