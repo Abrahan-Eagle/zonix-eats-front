@@ -63,7 +63,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
     super.dispose();
   }
 
-  Future<void> _loadAgents() async {
+  Future<void> _loadAgents({bool preloadRoutes = true}) async {
     final svc = context.read<DeliveryCompanyService>();
     if (svc.dashboardData.isEmpty) await svc.loadDashboard();
 
@@ -74,7 +74,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
     );
     if (!mounted) return;
     _moveToRadius();
-    _preloadBusyRoutes(svc.mapAgents);
+    if (preloadRoutes) _preloadBusyRoutes(svc.mapAgents);
   }
 
   void _resolveHeadquarters(Map<String, dynamic> dashboard) {
@@ -117,25 +117,19 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
           'destination_lng': toLng,
           'mode': 'driving',
         }),
-      ).timeout(const Duration(seconds: 15));
-      if (res.statusCode != 200) {
-        debugPrint('Route API error: HTTP ${res.statusCode}');
-        return [];
-      }
+      ).timeout(const Duration(seconds: 8));
+      if (res.statusCode != 200) return [];
       final data = jsonDecode(res.body);
       if (data['success'] != true) return [];
       final polyline = data['data']?['polyline'];
       if (polyline == null || polyline is! List) return [];
-      final pts = polyline
+      return polyline
           .map<LatLng>((p) => LatLng(
                 (p['lat'] as num).toDouble(),
                 (p['lng'] as num).toDouble(),
               ))
           .toList();
-      debugPrint('Route API: ${pts.length} waypoints loaded');
-      return pts;
-    } catch (e) {
-      debugPrint('Route fetch error: $e');
+    } catch (_) {
       return [];
     }
   }
@@ -558,7 +552,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
     return GestureDetector(
       onTap: () {
         setState(() => _statusFilter = value);
-        _loadAgents();
+        _loadAgents(preloadRoutes: false);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
