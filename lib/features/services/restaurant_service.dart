@@ -24,6 +24,14 @@ class RestaurantService {
 
   static const String _cacheKey = 'restaurants_list';
 
+  /// Stale-while-revalidate: returns cached restaurant list instantly.
+  static Future<List<Restaurant>?> getCachedRestaurants() async {
+    final cached = await CacheService.getRawJson(_cacheKey);
+    if (cached == null) return null;
+    final list = jsonDecode(cached) as List;
+    return list.map((j) => Restaurant.fromJson(j as Map<String, dynamic>)).toList();
+  }
+
   // GET /api/buyer/restaurants - Listar restaurantes (with cache + retry)
   Future<List<Restaurant>> fetchRestaurants() async {
     logger.i('Fetching restaurants list');

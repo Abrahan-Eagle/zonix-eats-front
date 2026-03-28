@@ -42,7 +42,9 @@ void main() {
 
       expect(find.text('Seguir mi pedido'), findsOneWidget);
       await tester.tap(find.text('Seguir mi pedido'));
-      await tester.pumpAndSettle();
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
       expect(find.byType(OrderDetailPage), findsOneWidget);
     });
@@ -115,7 +117,7 @@ void main() {
           home: CurrentOrderDetailPage(orderId: order.id, order: order),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
       expect(find.text('Subir comprobante de pago'), findsOneWidget);
       expect(find.text('Pendiente de pago'), findsOneWidget);
@@ -129,10 +131,15 @@ void main() {
           home: CurrentOrderDetailPage(orderId: order.id, order: order),
         ),
       );
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 1));
 
-      await tester.tap(find.text('Subir comprobante de pago'));
-      await tester.pumpAndSettle();
+      final btn = find.text('Subir comprobante de pago');
+      await tester.scrollUntilVisible(btn, 100);
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(btn);
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
       expect(find.byType(OrderDetailPage), findsOneWidget);
     });

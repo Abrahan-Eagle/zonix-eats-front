@@ -5,6 +5,7 @@ import '../../models/commerce_product.dart';
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
+import 'cache_service.dart';
 
 /// Resultado paginado de productos (para "cargar más").
 class ProductsPageResult {
@@ -23,6 +24,15 @@ class ProductsPageResult {
 
 class CommerceProductService {
   static String get baseUrl => AppConfig.apiUrl;
+  static const String _cacheKey = 'commerce_products';
+
+  /// Stale-while-revalidate: returns cached commerce products instantly.
+  static Future<List<CommerceProduct>?> getCachedProducts() async {
+    final cached = await CacheService.getRawJson(_cacheKey);
+    if (cached == null) return null;
+    final list = jsonDecode(cached) as List;
+    return list.map((j) => CommerceProduct.fromJson(j as Map<String, dynamic>)).toList();
+  }
 
   /// Obtener una página de productos (para listado con "cargar más").
   static Future<ProductsPageResult> getProductsPage({
@@ -90,6 +100,13 @@ class CommerceProductService {
       sortBy: sortBy,
       sortOrder: sortOrder,
     );
+    if (search == null && available == null) {
+      CacheService.setRawJson(
+        _cacheKey,
+        jsonEncode(result.products.map((p) => p.toJson()).toList()),
+        expiration: const Duration(minutes: 10),
+      );
+    }
     return result.products;
   }
 

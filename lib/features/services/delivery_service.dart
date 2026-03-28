@@ -272,6 +272,15 @@ class DeliveryService extends ChangeNotifier {
 
   static const String _ordersCacheKey = 'delivery_orders';
 
+  /// Populates [_myOrders] from cache without showing loading spinner.
+  Future<void> loadCachedOrders() async {
+    final cached = await _getCachedJson(_ordersCacheKey);
+    if (cached != null) {
+      _myOrders = List<Map<String, dynamic>>.from(cached);
+      notifyListeners();
+    }
+  }
+
   Future<List<Map<String, dynamic>>> getDeliveryOrders() async {
     if (!ConnectivityService.isConnected) {
       final cached = await _getCachedJson(_ordersCacheKey);

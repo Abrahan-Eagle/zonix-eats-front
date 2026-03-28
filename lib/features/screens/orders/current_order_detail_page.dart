@@ -12,6 +12,7 @@ import 'package:zonix/features/screens/orders/buyer_order_chat_page.dart';
 import 'package:zonix/features/screens/orders/delivery_detail_page.dart';
 import 'package:zonix/features/screens/orders/order_detail_page.dart';
 import 'package:zonix/features/screens/help/help_and_faq_page.dart';
+import 'package:zonix/widgets/payment_timeline.dart';
 import 'package:flutter_map/flutter_map.dart' show Marker;
 import 'package:latlong2/latlong.dart';
 
@@ -341,9 +342,23 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                       _buildStatusSection(order, surfaceColor, borderColor,
                           primary, textPrimary, textSecondary),
                       if (order.status == 'pending_payment' ||
-                          order.status == 'pending')
+                          order.status == 'pending') ...[
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+                          child: PaymentTimeline(
+                            currentStep: PaymentTimeline.stepFromOrder(
+                              status: order.status,
+                              approvedForPayment: order.approvedForPayment,
+                              hasPaymentProof: order.paymentProof != null && order.paymentProof!.isNotEmpty,
+                              isPaymentValidated: order.paymentValidatedAt != null,
+                            ),
+                            createdAt: order.createdAt,
+                            compact: true,
+                          ),
+                        ),
                         _buildPendingPaymentCard(context, order, surfaceColor,
                             borderColor, primary, textPrimary),
+                      ],
                       if (order.isDeliveryOrder) ...[
                         _buildMapSection(
                             order, primary, surfaceColor, borderColor, isDark),

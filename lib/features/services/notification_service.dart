@@ -113,6 +113,16 @@ class NotificationService extends ChangeNotifier {
     }
   }
 
+  /// Populates [_items] from cache instantly without showing loading spinner.
+  Future<void> loadCachedNotifications() async {
+    final cached = await CacheService.getRawJson('notifications');
+    if (cached != null) {
+      final list = List<Map<String, dynamic>>.from(jsonDecode(cached));
+      _items = list.map((j) => NotificationItem.fromJson(j)).toList();
+      notifyListeners();
+    }
+  }
+
   Future<void> loadInitialData() async {
     if (_loadInitialDataInFlight != null) {
       return _loadInitialDataInFlight!;

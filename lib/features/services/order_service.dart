@@ -159,6 +159,14 @@ class OrderService extends ChangeNotifier {
 
   static const String _ordersCacheKey = 'buyer_orders';
 
+  /// Stale-while-revalidate: returns cached buyer orders instantly.
+  static Future<List<Order>?> getCachedOrders() async {
+    final cached = await CacheService.getRawJson(_ordersCacheKey);
+    if (cached == null) return null;
+    final list = jsonDecode(cached) as List;
+    return list.map<Order>((j) => Order.fromJson(j as Map<String, dynamic>)).toList();
+  }
+
   Future<List<Order>> fetchOrders() async {
     if (!ConnectivityService.isConnected) {
       final cached = await CacheService.getRawJson(_ordersCacheKey);

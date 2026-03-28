@@ -48,7 +48,19 @@ ThemeData buildStitchLightTheme() {
       style: ElevatedButton.styleFrom(
         backgroundColor: stitchPrimary,
         foregroundColor: AppColors.white,
+        minimumSize: const Size(0, 56),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(0, 48),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        minimumSize: const Size(0, 48),
       ),
     ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(
@@ -106,7 +118,19 @@ ThemeData buildStitchDarkTheme() {
       style: ElevatedButton.styleFrom(
         backgroundColor: stitchPrimary,
         foregroundColor: AppColors.white,
+        minimumSize: const Size(0, 56),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(0, 48),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        minimumSize: const Size(0, 48),
       ),
     ),
     floatingActionButtonTheme: const FloatingActionButtonThemeData(

@@ -3,10 +3,10 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
-/// Timeout por intento. 15 s permite descargar ~150 KB a 10 KB/s o ~450 KB a 30 KB/s,
-/// cubriendo payloads grandes (80 productos ≈ 200 KB). Con Wi-Fi/4G la respuesta
-/// llega en <1 s y el timeout nunca se alcanza.
-const Duration kCacheableTimeout = Duration(seconds: 15);
+/// Timeout por intento. 25 s permite descargar ~250 KB a 10 KB/s, cubriendo
+/// payloads grandes (80+ productos ≈ 200 KB) en redes venezolanas lentas
+/// (datos móviles 10-50 KB/s). Con Wi-Fi/4G la respuesta llega en <1 s.
+const Duration kCacheableTimeout = Duration(seconds: 25);
 
 /// Returns true if the error is a network/connectivity issue worth retrying.
 bool isNetworkError(Object e) {
@@ -22,8 +22,8 @@ bool isNetworkError(Object e) {
 }
 
 /// Wraps an async HTTP call with automatic retries on network errors.
-/// Backoff progresivo: 1 s → 2 s entre reintentos.
-Future<T> withRetry<T>(Future<T> Function() action, {int retries = 2}) async {
+/// Un solo reintento para no desperdiciar ancho de banda en redes lentas.
+Future<T> withRetry<T>(Future<T> Function() action, {int retries = 1}) async {
   for (int attempt = 0; attempt <= retries; attempt++) {
     try {
       return await action().timeout(kCacheableTimeout);

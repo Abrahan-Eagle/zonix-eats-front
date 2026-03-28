@@ -99,8 +99,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationService>().loadCachedNotifications();
       _loadNotifications();
-      // No marcar todo como leído al abrir: el badge de la campanita depende de _unreadCount.
     });
   }
 

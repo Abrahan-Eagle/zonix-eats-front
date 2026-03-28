@@ -5,9 +5,11 @@ import 'package:zonix/features/services/product_service.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
     if (!dotenv.isInitialized) {
       dotenv.testLoad(fileInput: '');
     }
@@ -26,13 +28,11 @@ void main() {
       ),
     );
 
-    // Verificar que la página se carga correctamente
+    // Advance past the 3s promo delay to avoid pending timer assertion
+    await tester.pump(const Duration(seconds: 4));
+
     expect(find.byType(ProductsPage), findsOneWidget);
-    
-    // Verificar que hay elementos de UI básicos
     expect(find.byType(Scaffold), findsOneWidget);
-    
-    // Verificar que la página no falla al inicializarse
     expect(tester.takeException(), isNull);
   });
 }

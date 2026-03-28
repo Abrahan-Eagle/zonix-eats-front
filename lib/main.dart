@@ -524,12 +524,13 @@ class MainRouterState extends State<MainRouter> {
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    Future.delayed(const Duration(seconds: 3), _loadProfile);
     _loadLastPosition();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _userDetailsFuture = context.read<UserProvider>().getUserDetails();
       final notifService = context.read<NotificationService>();
-      notifService.loadInitialData();
+      Future.delayed(
+          const Duration(seconds: 5), () => notifService.loadInitialData());
 
       // Escuchar nuevas notificaciones en tiempo real para mostrar feedback global
       _notificationSubscription = notifService.newNotificationStream.listen((n) {

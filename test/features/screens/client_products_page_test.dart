@@ -8,6 +8,7 @@ import 'package:zonix/features/services/product_service.dart';
 import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/utils/search_radius_provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MockLocationService extends LocationService {
   @override
@@ -135,6 +136,7 @@ class MockProductService implements ProductService {
 
 void main() {
   setUpAll(() async {
+    SharedPreferences.setMockInitialValues({});
     await dotenv.load(fileName: ".env");
   });
   
@@ -151,7 +153,9 @@ void main() {
         ),
       ),
     );
-    await tester.pumpAndSettle(const Duration(seconds: 5));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 3));
+    await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Hamburguesa'), findsAtLeastNWidgets(1));
     expect(find.text('Pizza'), findsAtLeastNWidgets(1));
     // No debe haber botones de gestión de productos (solo para comercio)

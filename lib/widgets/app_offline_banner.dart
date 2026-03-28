@@ -14,13 +14,14 @@ class AppOfflineBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ConnectivityService>(
       builder: (context, connectivity, _) {
+        final offline = !connectivity.hasNetwork;
+        final degraded = connectivity.hasNetwork && !connectivity.apiReachable;
         return Column(
           children: [
             AnimatedSize(
               duration: const Duration(milliseconds: 300),
-              child: connectivity.hasNetwork
-                  ? const SizedBox.shrink()
-                  : Container(
+              child: offline
+                  ? Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       color: AppColors.red,
@@ -30,13 +31,32 @@ class AppOfflineBanner extends StatelessWidget {
                           SizedBox(width: 8),
                           Expanded(
                             child: Text(
-                              'Sin conexión. Mostrando datos guardados.',
+                              'Sin conexión a internet',
                               style: TextStyle(color: AppColors.white, fontSize: 13, fontWeight: FontWeight.w500),
                             ),
                           ),
                         ],
                       ),
-                    ),
+                    )
+                  : degraded
+                      ? Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                          color: AppColors.orange.withValues(alpha: 0.15),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.signal_wifi_statusbar_connected_no_internet_4, color: AppColors.orange, size: 18),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  'Conexión inestable — algunos datos pueden no estar actualizados',
+                                  style: TextStyle(color: AppColors.orange, fontSize: 12, fontWeight: FontWeight.w500),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : const SizedBox.shrink(),
             ),
             Expanded(child: child),
           ],

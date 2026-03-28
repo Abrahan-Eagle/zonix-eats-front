@@ -50,7 +50,15 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadUsers());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initUsers());
+  }
+
+  Future<void> _initUsers() async {
+    final cached = await AdminService.getCachedUsers();
+    if (cached != null && cached.isNotEmpty && mounted) {
+      setState(() { _allUsers = cached; _applySearch(); _isLoading = false; });
+    }
+    _loadUsers();
   }
 
   @override

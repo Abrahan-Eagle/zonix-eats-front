@@ -309,14 +309,14 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
           ),
         ],
       ),
-      body: _updating
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _loadOrder,
-              child: SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(16),
-                child: Column(
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            onRefresh: _loadOrder,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Card(
@@ -562,27 +562,53 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                                 ),
                               if (order.isPendingPayment) ...[
                                 const SizedBox(height: 12),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    ElevatedButton.icon(
-                                      onPressed: () =>
-                                          _validatePayment(true),
-                                      icon: const Icon(Icons.check),
-                                      label: const Text('Validar'),
-                                      style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppColors.green),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton.icon(
+                                    onPressed: _updating ? null : () => _validatePayment(true),
+                                    icon: const Icon(Icons.check_circle),
+                                    label: const Text('Validar pago'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.green,
+                                      padding: const EdgeInsets.symmetric(vertical: 14),
                                     ),
-                                    ElevatedButton.icon(
-                                      onPressed: () =>
-                                          _validatePayment(false),
-                                      icon: const Icon(Icons.close),
-                                      label: const Text('Rechazar'),
-                                      style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppColors.red),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: OutlinedButton.icon(
+                                    onPressed: _updating
+                                        ? null
+                                        : () async {
+                                            final confirmed = await showDialog<bool>(
+                                              context: context,
+                                              builder: (ctx) => AlertDialog(
+                                                title: const Text('Rechazar pago'),
+                                                content: const Text(
+                                                    '¿Estás seguro de que quieres rechazar este comprobante de pago?'),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () => Navigator.pop(ctx, false),
+                                                    child: const Text('Cancelar'),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () => Navigator.pop(ctx, true),
+                                                    style: TextButton.styleFrom(foregroundColor: AppColors.red),
+                                                    child: const Text('Sí, rechazar'),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                            if (confirmed == true) _validatePayment(false);
+                                          },
+                                    icon: const Icon(Icons.close),
+                                    label: const Text('Rechazar pago'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppColors.red,
+                                      side: const BorderSide(color: AppColors.red),
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ],
                             ],
@@ -730,6 +756,15 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                 ),
               ),
             ),
+          if (_updating)
+            Positioned.fill(
+              child: Container(
+                color: AppColors.black.withValues(alpha: 0.3),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

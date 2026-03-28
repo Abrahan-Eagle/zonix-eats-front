@@ -18,6 +18,15 @@ final logger = Logger();
 class ProfileService {
   final _storage = const FlutterSecureStorage();
 
+  /// Stale-while-revalidate: returns cached profile instantly.
+  static Future<Profile?> getCachedProfile() async {
+    final cached = await CacheService.getRawJson('my_profile');
+    if (cached == null) return null;
+    final data = jsonDecode(cached);
+    if (data is Map<String, dynamic>) return Profile.fromJson(data);
+    return null;
+  }
+
   /// Evita GET /api/profile duplicado si [getMyProfile] se dispara en paralelo (p. ej. MainRouter + otra pantalla).
   static Future<Profile?>? _getMyProfileInFlight;
 

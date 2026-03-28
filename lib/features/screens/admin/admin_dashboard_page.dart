@@ -34,15 +34,22 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadData());
+    WidgetsBinding.instance.addPostFrameCallback((_) => _initData());
+  }
+
+  Future<void> _initData() async {
+    final cachedStats = await AdminService.getCachedStats();
+    if (cachedStats != null && cachedStats.isNotEmpty && mounted) {
+      setState(() { _stats = cachedStats; _isLoading = false; });
+    }
+    _loadData();
   }
 
   Future<void> _loadData() async {
     if (!mounted) return;
-    setState(() {
-      _isLoading = true;
-      _error = null;
-    });
+    if (_stats.isEmpty) {
+      setState(() { _isLoading = true; _error = null; });
+    }
 
     final service = context.read<AdminService>();
 

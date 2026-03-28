@@ -15,6 +15,14 @@ class ProductService {
 
   static const String _cacheKey = 'products_list';
 
+  /// Returns cached product list instantly (even if expired) for stale-while-revalidate.
+  static Future<List<Product>?> getCachedProducts() async {
+    final cached = await CacheService.getRawJson(_cacheKey);
+    if (cached == null) return null;
+    final list = json.decode(cached) as List;
+    return list.map((j) => Product.fromJson(j as Map<String, dynamic>)).toList();
+  }
+
   Future<List<Product>> fetchProducts({int? categoryId}) async {
     if (!ConnectivityService.isConnected && categoryId == null) {
       final cached = await CacheService.getRawJson(_cacheKey);

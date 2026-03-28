@@ -13,6 +13,7 @@ import 'package:zonix/features/utils/network_image_with_fallback.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
 import 'package:zonix/features/utils/search_radius_provider.dart';
 import 'package:zonix/models/product.dart';
+import 'package:zonix/widgets/app_skeleton.dart';
 import 'package:zonix/models/cart_item.dart';
 import 'product_detail_page.dart';
 
@@ -36,6 +37,13 @@ class _ProductsPageState extends State<ProductsPage> {
   Set<String> _favProductIds = {};
   static const _favProdKey = 'favorite_products';
 
+  /// Stale-while-revalidate: keeps cached products to avoid skeleton flash
+  /// when the background refresh reassigns [_productsFuture].
+  List<Product>? _cachedProducts;
+
+  static const _nearbyIdsKey = 'nearby_commerce_ids';
+  static const _nearbyIdsTsKey = 'nearby_commerce_ids_ts';
+
   static const List<({String id, String label, String emoji})> _categories = [
     (id: 'Popular', label: 'Popular', emoji: '🔥'),
     (id: 'Burgers', label: 'Burgers', emoji: '🍔'),
@@ -48,6 +56,53 @@ class _ProductsPageState extends State<ProductsPage> {
     setState(() {
       _productsFuture = _fetchProductsFilteredByLocation();
     });
+  }
+
+  /// Phase 1: return cached products instantly.
+  /// Phase 2: refresh from network in background and update UI.
+  Future<List<Product>> _initProducts() async {
+    final cached = await ProductService.getCachedProducts();
+    if (cached != null && cached.isNotEmpty) {
+      _cachedProducts = cached;
+      final filtered = await _applyCachedNearbyFilter(cached);
+      _refreshProductsInBackground();
+      return filtered;
+    }
+    return _fetchProductsFilteredByLocation();
+  }
+
+  /// Filters products using cached nearby commerce IDs (avoids HTTP call on
+  /// the critical path when cache is available).
+  Future<List<Product>> _applyCachedNearbyFilter(List<Product> products) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final ts = prefs.getInt(_nearbyIdsTsKey) ?? 0;
+      final age = DateTime.now().millisecondsSinceEpoch - ts;
+      if (age < 15 * 60 * 1000) {
+        final idStrings = prefs.getStringList(_nearbyIdsKey);
+        if (idStrings != null && idStrings.isNotEmpty) {
+          final ids = idStrings
+              .map((s) => int.tryParse(s))
+              .whereType<int>()
+              .toSet();
+          final filtered =
+              products.where((p) => ids.contains(p.commerceId)).toList();
+          return filtered.isEmpty ? products : filtered;
+        }
+      }
+    } catch (_) {}
+    return products;
+  }
+
+  void _refreshProductsInBackground() {
+    _fetchProductsFilteredByLocation().then((fresh) {
+      if (mounted && fresh.isNotEmpty) {
+        _cachedProducts = fresh;
+        setState(() {
+          _productsFuture = Future.value(fresh);
+        });
+      }
+    }).catchError((_) {});
   }
 
   Future<List<Product>> _fetchProductsFilteredByLocation() async {
@@ -77,13 +132,18 @@ class _ProductsPageState extends State<ProductsPage> {
       if (!mounted) return [];
       final commerceIds = nearbyPlaces.map((p) => safeInt(p['id'])).toSet();
 
+      // Persist nearby IDs for stale-while-revalidate on next visit
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setStringList(
+            _nearbyIdsKey, commerceIds.map((e) => e.toString()).toList());
+        prefs.setInt(_nearbyIdsTsKey, DateTime.now().millisecondsSinceEpoch);
+      });
+
       final allProducts = await productService.fetchProducts();
       if (!mounted) return [];
-      // Si no hay comercios cercanos, mostrar todos los productos
       if (commerceIds.isEmpty) return allProducts;
       final filtered =
           allProducts.where((p) => commerceIds.contains(p.commerceId)).toList();
-      // Si el filtro deja la lista vacía (comercios sin coords, etc.), mostrar todos
       return filtered.isEmpty ? allProducts : filtered;
     } catch (_) {
       return productService.fetchProducts();
@@ -114,10 +174,11 @@ class _ProductsPageState extends State<ProductsPage> {
   @override
   void initState() {
     super.initState();
-    _productsFuture = _fetchProductsFilteredByLocation();
-    _promosFuture = PromotionService()
-        .getActivePromotions()
-        .catchError((_) => <Map<String, dynamic>>[]);
+    _productsFuture = _initProducts();
+    _promosFuture = Future.delayed(
+      const Duration(seconds: 3),
+      () => PromotionService().getActivePromotions(),
+    ).catchError((_) => <Map<String, dynamic>>[]);
     _searchController.addListener(
         () => setState(() => _searchQuery = _searchController.text));
     _loadFavProducts();
@@ -250,11 +311,13 @@ class _ProductsPageState extends State<ProductsPage> {
               sliver: FutureBuilder<List<Product>>(
                 future: _productsFuture,
                 builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const SliverFillRemaining(
-                        child: Center(child: CircularProgressIndicator()));
+                  final data = snapshot.data ?? _cachedProducts;
+                  if (snapshot.connectionState == ConnectionState.waiting &&
+                      data == null) {
+                    return SliverFillRemaining(
+                        child: AppSkeleton.list(count: 5, useCards: true));
                   }
-                  if (snapshot.hasError) {
+                  if (snapshot.hasError && data == null) {
                     return SliverFillRemaining(
                       child: Center(
                         child: SingleChildScrollView(
@@ -283,7 +346,7 @@ class _ProductsPageState extends State<ProductsPage> {
                       ),
                     );
                   }
-                  final all = snapshot.data ?? [];
+                  final all = data ?? [];
                   final products = _filterProducts(all, _searchQuery);
                   if (products.isEmpty) {
                     return SliverFillRemaining(

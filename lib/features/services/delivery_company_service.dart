@@ -11,6 +11,24 @@ import '../utils/http_retry.dart';
 class DeliveryCompanyService extends ChangeNotifier {
   static String get _baseUrl => AppConfig.apiUrl;
 
+  /// Populates [_dashboardData] from cache without loading spinner.
+  Future<void> loadCachedDashboard() async {
+    final cached = await CacheService.getRawJson('dc_dashboard');
+    if (cached != null && _dashboardData.isEmpty) {
+      _dashboardData = Map<String, dynamic>.from(jsonDecode(cached));
+      notifyListeners();
+    }
+  }
+
+  /// Populates [_agents] from cache without loading spinner.
+  Future<void> loadCachedAgents() async {
+    final cached = await CacheService.getRawJson('dc_agents');
+    if (cached != null && _agents.isEmpty) {
+      _agents = List<Map<String, dynamic>>.from(jsonDecode(cached));
+      notifyListeners();
+    }
+  }
+
   // --- Dashboard ---
   Map<String, dynamic> _dashboardData = {};
   bool _dashboardLoading = false;

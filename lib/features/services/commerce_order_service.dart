@@ -9,6 +9,14 @@ import '../utils/http_retry.dart';
 class CommerceOrderService {
   static String get baseUrl => AppConfig.apiUrl;
 
+  /// Stale-while-revalidate: returns cached commerce orders instantly.
+  static Future<List<CommerceOrder>?> getCachedOrders() async {
+    final cached = await CacheService.getRawJson('commerce_orders');
+    if (cached == null) return null;
+    final list = jsonDecode(cached) as List;
+    return list.map((j) => CommerceOrder.fromJson(j as Map<String, dynamic>)).toList();
+  }
+
   // Obtener todas las órdenes del comercio
   static Future<List<CommerceOrder>> getOrders({
     String? status,

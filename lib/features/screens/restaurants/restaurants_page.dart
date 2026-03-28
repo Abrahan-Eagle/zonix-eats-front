@@ -29,6 +29,7 @@ class RestaurantsPage extends StatefulWidget {
 
 class _RestaurantsPageState extends State<RestaurantsPage> {
   Future<List<Restaurant>>? _restaurantsFuture;
+  List<Restaurant>? _cachedRestaurants;
   final Logger _logger = Logger();
   final _searchController = TextEditingController();
   final _scrollController = ScrollController();
@@ -44,12 +45,35 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   @override
   void initState() {
     super.initState();
-    _restaurantsFuture = RestaurantService().fetchRestaurants().then((list) {
+    _restaurantsFuture = _initRestaurants();
+    _scrollController.addListener(_onScroll);
+    _loadFavorites();
+  }
+
+  Future<List<Restaurant>> _initRestaurants() async {
+    final cached = await RestaurantService.getCachedRestaurants();
+    if (cached != null && cached.isNotEmpty) {
+      _cachedRestaurants = cached;
+      _extractCategories(cached);
+      _refreshRestaurantsInBackground();
+      return cached;
+    }
+    return RestaurantService().fetchRestaurants().then((list) {
       _extractCategories(list);
       return list;
     });
-    _scrollController.addListener(_onScroll);
-    _loadFavorites();
+  }
+
+  void _refreshRestaurantsInBackground() {
+    RestaurantService().fetchRestaurants().then((fresh) {
+      if (mounted && fresh.isNotEmpty) {
+        _cachedRestaurants = fresh;
+        _extractCategories(fresh);
+        setState(() {
+          _restaurantsFuture = Future.value(fresh);
+        });
+      }
+    }).catchError((_) {});
   }
 
   void _extractCategories(List<Restaurant> restaurants) {
@@ -587,15 +611,17 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
             child: FutureBuilder<List<Restaurant>>(
               future: _restaurantsFuture,
               builder: (context, snapshot) {
+                final data = snapshot.data ?? _cachedRestaurants;
                 if (_isRefreshing ||
-                    snapshot.connectionState == ConnectionState.waiting) {
+                    (snapshot.connectionState == ConnectionState.waiting &&
+                        data == null)) {
                   return _buildShimmerLoading();
-                } else if (snapshot.hasError) {
+                } else if (snapshot.hasError && data == null) {
                   return _buildErrorWidget(snapshot.error!);
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                } else if (data == null || data.isEmpty) {
                   return _buildEmptyState();
                 } else {
-                  final filtered = _filterRestaurants(snapshot.data!);
+                  final filtered = _filterRestaurants(data);
                   if (filtered.isEmpty) return _buildEmptyState();
                   return ListView.builder(
                     controller: _scrollController,

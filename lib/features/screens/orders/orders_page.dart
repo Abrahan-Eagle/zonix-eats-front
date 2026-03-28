@@ -13,6 +13,7 @@ import 'package:zonix/features/services/notification_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/models/order.dart';
+import 'package:zonix/widgets/app_skeleton.dart';
 
 /// Color primary del template (code1/code2 HTML): #3399ff
 const Color _templatePrimary = AppColors.blue;
@@ -35,7 +36,7 @@ class _OrdersPageState extends State<OrdersPage> {
   @override
   void initState() {
     super.initState();
-    _loadOrders();
+    _initOrders();
     _initializePusher();
   }
 
@@ -45,25 +46,41 @@ class _OrdersPageState extends State<OrdersPage> {
     super.dispose();
   }
 
-  Future<void> _loadOrders() async {
+  Future<void> _initOrders() async {
+    final cached = await OrderService.getCachedOrders();
+    if (cached != null && cached.isNotEmpty && mounted) {
+      setState(() { _orders = cached; _isLoading = false; });
+    }
+    _refreshOrders();
+  }
+
+  Future<void> _refreshOrders() async {
     if (!mounted) return;
+    if (_orders.isEmpty) {
+      setState(() { _isLoading = true; _error = null; });
+    }
     try {
-      setState(() {
-        _isLoading = true;
-        _error = null;
-      });
       final orders = await _orderService.getUserOrders();
       if (!mounted) return;
-      setState(() {
-        _orders = orders;
-        _isLoading = false;
-      });
+      setState(() { _orders = orders; _isLoading = false; });
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _error = e.toString();
-        _isLoading = false;
-      });
+      if (_orders.isEmpty) {
+        setState(() { _error = e.toString(); _isLoading = false; });
+      }
+    }
+  }
+
+  Future<void> _loadOrders() async {
+    if (!mounted) return;
+    setState(() { _isLoading = true; _error = null; });
+    try {
+      final orders = await _orderService.getUserOrders();
+      if (!mounted) return;
+      setState(() { _orders = orders; _isLoading = false; });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() { _error = e.toString(); _isLoading = false; });
     }
   }
 
@@ -242,7 +259,7 @@ class _OrdersPageState extends State<OrdersPage> {
             _buildTabs(context, theme, surfaceColor, borderColor),
             Expanded(
               child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? AppSkeleton.list(count: 5, useCards: true)
                   : _error != null
                       ? _buildError(theme)
                       : _orders.isEmpty

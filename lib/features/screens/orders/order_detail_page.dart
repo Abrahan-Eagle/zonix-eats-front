@@ -19,6 +19,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:zonix/l10n/app_strings.dart';
 import 'package:zonix/features/screens/orders/buyer_order_chat_page.dart';
 import 'package:zonix/features/screens/orders/order_rating_page.dart';
+import 'package:zonix/widgets/payment_timeline.dart';
+import 'package:zonix/widgets/app_skeleton.dart';
 
 class OrderDetailPage extends StatefulWidget {
   const OrderDetailPage({
@@ -255,7 +257,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     paymentMethod = result['method'];
     imagePath = result['image_path'];
     var rawRef = result['ref']?.trim() ?? '';
-    rawRef = rawRef.replaceAll(RegExp(r'\D'), '');
+    rawRef = rawRef.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '');
     referenceNumber = rawRef;
 
     if (paymentMethod == null || paymentMethod.isEmpty || referenceNumber.isEmpty || imagePath == null) {
@@ -363,7 +365,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     if (_loading) {
       return Scaffold(
         appBar: AppBar(title: const Text(AppStrings.orderDetailTitle)),
-        body: const Center(child: CircularProgressIndicator()),
+        body: AppSkeleton.list(count: 4, useCards: true),
       );
     }
     if (_error != null || _order == null) {
@@ -430,9 +432,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         scrolledUnderElevation: 1,
         surfaceTintColor: AppColors.transparent,
       ),
-      body: _updating
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
+      body: Stack(
+        children: [
+          RefreshIndicator(
               onRefresh: _loadOrder,
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
@@ -477,12 +479,31 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     ],
                     if (order.status == 'pending_payment') ...[
                       const SizedBox(height: 24),
+                      PaymentTimeline(
+                        currentStep: PaymentTimeline.stepFromOrder(
+                          status: order.status,
+                          approvedForPayment: order.approvedForPayment,
+                          hasPaymentProof: order.paymentProof != null && order.paymentProof!.isNotEmpty,
+                          isPaymentValidated: order.paymentValidatedAt != null,
+                        ),
+                        createdAt: order.createdAt,
+                      ),
+                      const SizedBox(height: 16),
                       _buildPendingPaymentActions(order),
                     ],
                   ],
                 ),
               ),
             ),
+          if (_updating)
+            Positioned.fill(
+              child: Container(
+                color: AppColors.black.withValues(alpha: 0.3),
+                child: const Center(child: CircularProgressIndicator()),
+              ),
+            ),
+        ],
+      ),
       bottomNavigationBar: order.paymentValidatedAt != null
           ? _buildBottomBar(order,
               surfaceColor: surfaceColor, borderColor: borderColor)
@@ -1675,11 +1696,36 @@ class _UploadProofDialogState extends State<_UploadProofDialog> {
   }
 
   Future<void> _pickImage() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Tomar foto'),
+              onTap: () => Navigator.pop(ctx, ImageSource.camera),
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Elegir de galería'),
+              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (source == null) return;
+
     setState(() => _pickingImage = true);
     try {
       final picker = ImagePicker();
       final XFile? file = await picker.pickImage(
-        source: ImageSource.gallery,
+        source: source,
         maxWidth: 1920,
         imageQuality: 85,
       );
@@ -1813,8 +1859,8 @@ class _UploadProofDialogState extends State<_UploadProofDialog> {
                   controller: _refController,
                   decoration: InputDecoration(
                     labelText: 'Número de referencia',
-                    hintText: 'Ej: 466511',
-                    helperText: 'Últimos 4-6 dígitos del pago',
+                    hintText: 'Ej: 466511 o ABC123',
+                    helperText: '4-20 caracteres del comprobante',
                     filled: true,
                     fillColor: AppColors.grayLight.withValues(alpha: 0.3),
                     border: OutlineInputBorder(
@@ -1823,10 +1869,10 @@ class _UploadProofDialogState extends State<_UploadProofDialog> {
                     ),
                     prefixIcon: const Icon(Icons.tag, size: 20),
                   ),
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.text,
                   inputFormatters: [
-                    FilteringTextInputFormatter.digitsOnly,
-                    LengthLimitingTextInputFormatter(6),
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z0-9]')),
+                    LengthLimitingTextInputFormatter(20),
                   ],
                 ),
                 const SizedBox(height: 24),

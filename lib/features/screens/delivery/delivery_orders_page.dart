@@ -48,6 +48,8 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
   Future<void> _bootstrapDeliveryTab() async {
     if (!mounted) return;
     final d = context.read<DeliveryService>();
+    // Show cached orders instantly while bootstrap runs
+    await d.loadCachedOrders();
     await d.getMyAgentId();
     if (!mounted) return;
     await syncDeliverySessionAfterApi(context, d);

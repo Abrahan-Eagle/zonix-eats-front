@@ -11,6 +11,7 @@ import 'package:zonix/widgets/app_skeleton.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
 import 'package:zonix/features/services/notification_service.dart';
+import 'package:zonix/main.dart' show showLocalNotification;
 
 class CommerceOrdersPage extends StatefulWidget {
   const CommerceOrdersPage({super.key});
@@ -45,9 +46,33 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(_onTabChanged);
-    _loadOrders();
+    _initOrders();
     _loadStatusCounts();
     WidgetsBinding.instance.addPostFrameCallback((_) => _subscribeToCommerceUpdates());
+  }
+
+  Future<void> _initOrders() async {
+    final cached = await CommerceOrderService.getCachedOrders();
+    if (cached != null && cached.isNotEmpty && mounted) {
+      setState(() { _orders = cached; _loading = false; });
+    }
+    _refreshOrdersBackground();
+  }
+
+  Future<void> _refreshOrdersBackground() async {
+    if (!mounted) return;
+    if (_orders.isEmpty) {
+      setState(() { _loading = true; _error = null; });
+    }
+    try {
+      final status = _currentFilter.isEmpty ? null : _currentFilter;
+      final orders = await CommerceOrderService.getOrders(status: status);
+      if (mounted) setState(() { _orders = orders; _loading = false; });
+    } catch (e) {
+      if (mounted && _orders.isEmpty) {
+        setState(() { _error = e.toString().replaceFirst('Exception: ', ''); _loading = false; });
+      }
+    }
   }
 
   @override
@@ -93,12 +118,34 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
           final orderId = eventData['order_id']?.toString() ?? '';
           if (eventName.contains('OrderCreated')) {
             HapticFeedback.heavyImpact();
-            notifService.showInAppNotification(context, {
-              'title': 'Nueva orden',
-              'message': 'Tienes una nueva orden #$orderId.',
-              'type': 'order',
-              'data': {'order_id': orderId},
-            });
+            showLocalNotification(
+              title: '🔔 Nueva orden',
+              body: 'Orden #$orderId recibida. Toca para ver.',
+            );
+            if (mounted) {
+              ScaffoldMessenger.of(context)
+                ..clearMaterialBanners()
+                ..showMaterialBanner(
+                  MaterialBanner(
+                    backgroundColor: AppColors.green.withValues(alpha: 0.15),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    leading: const Icon(Icons.notifications_active, color: AppColors.green, size: 28),
+                    content: Text(
+                      '¡Nueva orden #$orderId recibida!',
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => ScaffoldMessenger.of(context).clearMaterialBanners(),
+                        child: const Text('CERRAR'),
+                      ),
+                    ],
+                  ),
+                );
+              Future.delayed(const Duration(seconds: 8), () {
+                if (mounted) ScaffoldMessenger.of(context).clearMaterialBanners();
+              });
+            }
           } else if (eventName.contains('PaymentValidated')) {
             HapticFeedback.mediumImpact();
             final isValidated = eventData['is_validated'] == true;

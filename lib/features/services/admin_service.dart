@@ -10,6 +10,20 @@ import '../utils/http_retry.dart';
 class AdminService extends ChangeNotifier {
   static String get baseUrl => AppConfig.apiUrl;
 
+  /// Stale-while-revalidate: returns cached admin stats instantly.
+  static Future<Map<String, dynamic>?> getCachedStats() async {
+    final cached = await CacheService.getRawJson('admin_stats');
+    if (cached == null) return null;
+    return Map<String, dynamic>.from(jsonDecode(cached));
+  }
+
+  /// Stale-while-revalidate: returns cached admin users instantly.
+  static Future<List<Map<String, dynamic>>?> getCachedUsers() async {
+    final cached = await CacheService.getRawJson('admin_users');
+    if (cached == null) return null;
+    return List<Map<String, dynamic>>.from(jsonDecode(cached));
+  }
+
   // Get all users
   Future<List<Map<String, dynamic>>> getUsers({String? role, String? status}) async {
     if (!ConnectivityService.isConnected && role == null && status == null) {
