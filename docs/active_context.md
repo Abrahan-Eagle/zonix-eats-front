@@ -9,10 +9,10 @@
 
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
-- **Fecha:** 26 Marzo 2026
-- **Resumen:** Limpieza completa multi-rol + flujo pickup. Bugs corregidos (AdminService duplicado, context.read en initState, DeliveryService local, ScaffoldMessenger post-pop, filtros admin). Placeholders cerrados (4). Colores centralizados (~1100 en ~70 archivos). Sonido notificaciones Pusher. Flujo pickup buyer en 4 pantallas.
-- **Áreas tocadas:** `lib/models/order.dart`, pantallas orders/admin/commerce/delivery (~70 archivos), `notification_service.dart`, `main.dart`, `app_config.dart`.
-- **Próximos pasos sugeridos:** Prueba manual real (pickup + delivery) con ZonixDemoSeeder en dispositivo.
+- **Fecha:** 27 Marzo 2026
+- **Resumen:** Post-diagnóstico: overflow corregido en confirmación de pedido; registro FCM más robusto (fallback `getToken`); `MainRouter` sin recrear `Future` en cada rebuild; banner offline + widgets `app_skeleton` / `app_empty_state`; mejoras commerce/delivery (Pusher asignación, haptics, tabs con contadores, CTAs más táctiles).
+- **Áreas tocadas:** `order_confirmation_page.dart`, `user_provider.dart`, `main.dart`, `lib/widgets/app_*.dart`, `commerce_orders_page.dart`, `delivery_orders_page.dart`, `delivery_routes_page.dart`, `order_detail_page.dart`, `current_order_detail_page.dart`, `checkout_page.dart`.
+- **Próximos pasos sugeridos:** Si hace falta, `git push` de `dev` tras tu OK; seguir backlog en esta misma doc (ETA, tarifa delivery, aligerar `main.dart`).
 
 ---
 

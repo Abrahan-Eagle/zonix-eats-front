@@ -1206,19 +1206,23 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.orange.withValues(alpha: 0.4)),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.schedule, color: AppColors.orange, size: 24),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Esperando que el comercio acepte tu pedido. Cuando lo acepte, aparecerá el botón para subir el comprobante.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.primaryText(context),
+                Row(
+                  children: [
+                    const Icon(Icons.schedule, color: AppColors.orange, size: 24),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Esperando que el comercio acepte tu pedido. Cuando lo acepte, aparecerá el botón para subir el comprobante.',
+                        style: TextStyle(fontSize: 14, color: AppColors.primaryText(context)),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
+                const SizedBox(height: 8),
+                _WaitTimerChip(since: order.createdAt, color: AppColors.orange),
               ],
             ),
           ),
@@ -1230,19 +1234,23 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.green.withValues(alpha: 0.4)),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.check_circle_outline, color: AppColors.green, size: 24),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Comprobante subido y esperando validación.',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AppColors.primaryText(context),
+                Row(
+                  children: [
+                    const Icon(Icons.check_circle_outline, color: AppColors.green, size: 24),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'Comprobante subido y esperando validación del comercio.',
+                        style: TextStyle(fontSize: 14, color: AppColors.primaryText(context)),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
+                const SizedBox(height: 8),
+                _WaitTimerChip(since: order.updatedAt, color: AppColors.green),
               ],
             ),
           ),
@@ -2155,5 +2163,56 @@ class _UploadProofDialogState extends State<_UploadProofDialog> {
           return w[0].toUpperCase() + w.substring(1).toLowerCase();
         }).join(' ');
     }
+  }
+}
+
+/// Chip que muestra "Enviado hace X min" y se actualiza cada 30s.
+class _WaitTimerChip extends StatefulWidget {
+  const _WaitTimerChip({required this.since, required this.color});
+  final DateTime since;
+  final Color color;
+
+  @override
+  State<_WaitTimerChip> createState() => _WaitTimerChipState();
+}
+
+class _WaitTimerChipState extends State<_WaitTimerChip> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 30), (_) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String _elapsed() {
+    final diff = DateTime.now().difference(widget.since);
+    if (diff.inMinutes < 1) return 'hace un momento';
+    if (diff.inMinutes < 60) return 'hace ${diff.inMinutes} min';
+    final h = diff.inHours;
+    final m = diff.inMinutes % 60;
+    return m > 0 ? 'hace ${h}h ${m}min' : 'hace ${h}h';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(Icons.timer_outlined, size: 14, color: widget.color),
+        const SizedBox(width: 4),
+        Text(
+          _elapsed(),
+          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: widget.color),
+        ),
+      ],
+    );
   }
 }

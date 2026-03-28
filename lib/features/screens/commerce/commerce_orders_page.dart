@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/models/commerce_order.dart';
 import 'package:zonix/features/services/commerce_order_service.dart';
 import 'package:zonix/features/services/commerce_data_service.dart';
 import 'package:zonix/features/services/pusher_service.dart';
 import '../../utils/app_colors.dart';
+import 'package:zonix/widgets/app_skeleton.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
 import 'package:zonix/features/services/notification_service.dart';
@@ -27,6 +29,7 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
   bool _pusherSubscribed = false;
   int _commerceId = 0;
   StreamSubscription<Map<String, dynamic>>? _pusherSubscription;
+  Map<String, int> _statusCounts = {};
 
   final List<Map<String, String>> _tabs = [
     {'key': '', 'label': 'Todas'},
@@ -43,6 +46,7 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
     _tabController = TabController(length: _tabs.length, vsync: this);
     _tabController.addListener(_onTabChanged);
     _loadOrders();
+    _loadStatusCounts();
     WidgetsBinding.instance.addPostFrameCallback((_) => _subscribeToCommerceUpdates());
   }
 
@@ -81,12 +85,14 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
               eventName.contains('OrderCreated') ||
               eventName.contains('PaymentValidated')) {
             _loadOrders();
+            _loadStatusCounts();
           }
 
           if (!mounted) return;
           final notifService = context.read<NotificationService>();
           final orderId = eventData['order_id']?.toString() ?? '';
           if (eventName.contains('OrderCreated')) {
+            HapticFeedback.heavyImpact();
             notifService.showInAppNotification(context, {
               'title': 'Nueva orden',
               'message': 'Tienes una nueva orden #$orderId.',
@@ -94,6 +100,7 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
               'data': {'order_id': orderId},
             });
           } else if (eventName.contains('PaymentValidated')) {
+            HapticFeedback.mediumImpact();
             final isValidated = eventData['is_validated'] == true;
             notifService.showInAppNotification(context, {
               'title': isValidated ? 'Pago validado' : 'Pago rechazado',
@@ -103,6 +110,13 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
               'type': 'order',
               'data': {'order_id': orderId},
             });
+          } else if (eventName.contains('OrderStatusChanged')) {
+            final status = eventData['status']?.toString() ?? '';
+            if (status == 'cancelled') {
+              HapticFeedback.vibrate();
+            } else {
+              HapticFeedback.lightImpact();
+            }
           }
         });
         _pusherSubscribed = true;
@@ -117,6 +131,18 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
       setState(() => _currentFilter = _tabs[_tabController.index]['key']!);
       _loadOrders();
     }
+  }
+
+  Future<void> _loadStatusCounts() async {
+    try {
+      final all = await CommerceOrderService.getOrders();
+      if (!mounted) return;
+      final counts = <String, int>{};
+      for (final o in all) {
+        counts[o.status] = (counts[o.status] ?? 0) + 1;
+      }
+      setState(() => _statusCounts = counts);
+    } catch (_) {}
   }
 
   Future<void> _loadOrders() async {
@@ -178,7 +204,33 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          tabs: _tabs.map((t) => Tab(text: t['label'])).toList(),
+          tabs: _tabs.map((t) {
+            final key = t['key']!;
+            final label = t['label']!;
+            final count = key.isEmpty
+                ? _statusCounts.values.fold<int>(0, (a, b) => a + b)
+                : _statusCounts[key] ?? 0;
+            if (count > 0) {
+              return Tab(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(label),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: key == 'pending_payment' ? AppColors.red : AppColors.orange,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text('$count', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.white)),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return Tab(text: label);
+          }).toList(),
         ),
       ),
       body: _buildBody(),
@@ -187,7 +239,7 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return AppSkeleton.list(count: 5, cardHeight: 70);
     }
     if (_error != null) {
       return Center(

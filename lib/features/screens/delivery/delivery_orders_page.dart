@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/services/delivery_service.dart';
@@ -9,7 +10,9 @@ import 'package:zonix/features/services/pusher_service.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix/widgets/app_skeleton.dart';
 import 'package:zonix/features/screens/delivery/delivery_order_detail_page.dart';
+import 'package:zonix/features/screens/delivery/incoming_order_dialog.dart';
 import 'package:zonix/features/screens/delivery/qr_scanner_page.dart';
 
 class DeliveryOrdersPage extends StatefulWidget {
@@ -145,8 +148,13 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
         _pusherSub = PusherService.instance.eventStream.listen((event) {
           final eventName = event['eventName']?.toString() ?? '';
           final channelName = event['channelName']?.toString() ?? '';
-          if (channelName == channel && eventName.contains('OrderStatusChanged')) {
+          if (channelName != channel) return;
+          if (eventName.contains('OrderStatusChanged')) {
+            HapticFeedback.lightImpact();
             _debouncedLoadAll();
+          }
+          if (eventName.contains('OrderPendingAssignment')) {
+            _showIncomingOrderDialog(event['data']);
           }
         });
         _pusherSubscribed = true;
@@ -154,6 +162,37 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
     } catch (e) {
       debugPrint('Error suscribiendo Pusher delivery: $e');
     }
+  }
+
+  bool _incomingDialogOpen = false;
+
+  void _showIncomingOrderDialog(dynamic rawData) {
+    if (!mounted || _incomingDialogOpen) return;
+    final data = rawData is Map<String, dynamic>
+        ? rawData
+        : rawData is Map
+            ? Map<String, dynamic>.from(rawData)
+            : <String, dynamic>{};
+    final orderId = data['order_id'] is int
+        ? data['order_id'] as int
+        : int.tryParse(data['order_id']?.toString() ?? '');
+    if (orderId == null) return;
+
+    _incomingDialogOpen = true;
+    HapticFeedback.heavyImpact();
+    IncomingOrderDialog.show(
+      context,
+      orderId: orderId,
+      orderNumber: data['order_number']?.toString() ?? '#$orderId',
+      commerceName: data['commerce_name']?.toString(),
+      deliveryAddress: data['delivery_address']?.toString(),
+      deliveryFee: data['delivery_fee'] is num
+          ? (data['delivery_fee'] as num).toDouble()
+          : double.tryParse(data['delivery_fee']?.toString() ?? ''),
+    ).then((accepted) {
+      _incomingDialogOpen = false;
+      if (mounted) _loadAll();
+    });
   }
 
   Future<void> _acceptOrder(Map<String, dynamic> order) async {
@@ -367,7 +406,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
     return Consumer<DeliveryService>(
       builder: (context, service, _) {
         if (service.isLoading && service.availableOrdersMaps.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+          return AppSkeleton.list(count: 4, cardHeight: 160);
         }
         if (service.error != null && service.availableOrdersMaps.isEmpty) {
           return _buildErrorState(service.error!, () => service.loadAvailableOrders());
@@ -394,7 +433,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
     return Consumer<DeliveryService>(
       builder: (context, service, _) {
         if (service.isLoading && service.myOrders.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+          return AppSkeleton.list(count: 4, cardHeight: 180);
         }
         if (service.error != null && service.myOrders.isEmpty) {
           return _buildErrorState(service.error!, () => service.loadMyOrders());
@@ -472,14 +511,14 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
+              height: 56,
               child: ElevatedButton.icon(
                 onPressed: () => _acceptOrder(order),
-                icon: const Icon(Icons.check, color: AppColors.white),
-                label: const Text('Aceptar orden', style: TextStyle(color: AppColors.white)),
+                icon: const Icon(Icons.check, color: AppColors.white, size: 24),
+                label: const Text('Aceptar orden', style: TextStyle(color: AppColors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.green,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
               ),
             ),
@@ -507,7 +546,10 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _goToDetail(order),
+        child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -548,47 +590,47 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
               ],
             ),
             const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => _goToDetail(order),
-                    icon: const Icon(Icons.info_outline),
-                    label: const Text('Ver detalle'),
+            if (canScanPickup)
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton.icon(
+                  onPressed: () => _openScanQr(order, 'pickup'),
+                  icon: const Icon(Icons.qr_code_scanner, color: AppColors.white, size: 24),
+                  label: const Text('Escanear QR recogida', style: TextStyle(color: AppColors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.orange,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                 ),
-                if (canScanPickup) ...[
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _openScanQr(order, 'pickup'),
-                      icon: const Icon(Icons.qr_code_scanner, color: AppColors.white),
-                      label: const Text('QR recogida', style: TextStyle(color: AppColors.white)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.orange,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                    ),
+              )
+            else if (canNotifyArrived)
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton.icon(
+                  onPressed: () => _arrivedAndScan(order),
+                  icon: const Icon(Icons.location_on, color: AppColors.white, size: 24),
+                  label: const Text('Llegué al destino', style: TextStyle(color: AppColors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.green,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
-                ],
-                if (canNotifyArrived) ...[
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => _arrivedAndScan(order),
-                      icon: const Icon(Icons.location_on, color: AppColors.white),
-                      label: const Text('Llegué', style: TextStyle(color: AppColors.white)),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.green,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
+                ),
+              )
+            else
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: OutlinedButton.icon(
+                  onPressed: () => _goToDetail(order),
+                  icon: const Icon(Icons.info_outline),
+                  label: const Text('Ver detalle', style: TextStyle(fontSize: 16)),
+                ),
+              ),
           ],
         ),
+      ),
       ),
     );
   }

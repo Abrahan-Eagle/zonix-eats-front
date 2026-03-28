@@ -74,7 +74,8 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     if (s == 'shipped' ||
         s == 'out_for_delivery' ||
         s == 'processing' ||
-        s == 'paid') {
+        s == 'paid' ||
+        s == 'pending_payment') {
       final ok = await PusherService.instance.subscribeToOrderChat(widget.orderId);
       
       if (ok && mounted) {
@@ -98,7 +99,8 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                 _recalculateRoute(lat, lng);
               }
             }
-            if (eventName.contains('OrderStatusChanged') && mounted) {
+            if ((eventName.contains('OrderStatusChanged') ||
+                 eventName.contains('PaymentValidated')) && mounted) {
               _refreshOrder();
             }
           }

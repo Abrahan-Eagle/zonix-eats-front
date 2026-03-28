@@ -52,6 +52,7 @@ import 'package:zonix/features/services/payment_service.dart';
 import 'package:zonix/features/services/commerce_analytics_service.dart';
 import 'package:zonix/features/services/admin_service.dart';
 import 'package:zonix/features/services/connectivity_service.dart';
+import 'package:zonix/widgets/app_offline_banner.dart';
 import 'package:zonix/features/screens/commerce/commerce_dashboard_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_orders_page.dart';
 import 'package:zonix/features/screens/commerce/commerce_order_detail_page.dart';
@@ -516,9 +517,9 @@ class MainRouterState extends State<MainRouter> {
   int _bottomNavIndex = 0;
   List<int> _allowedLevels = [];
   String? _lastRole;
-  /// Rol para el que ya se cargó la posición guardada (evita recargas).
   String? _positionLoadedForRole;
   StreamSubscription<NotificationItem>? _notificationSubscription;
+  Future<Map<String, dynamic>>? _userDetailsFuture;
 
   @override
   void initState() {
@@ -526,6 +527,7 @@ class MainRouterState extends State<MainRouter> {
     _loadProfile();
     _loadLastPosition();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _userDetailsFuture = context.read<UserProvider>().getUserDetails();
       final notifService = context.read<NotificationService>();
       notifService.loadInitialData();
 
@@ -914,9 +916,10 @@ class MainRouterState extends State<MainRouter> {
     if (rawRole.isNotEmpty && _lastRole != role) {
       final wasUnset = _lastRole?.isEmpty ?? true;
       _lastRole = role;
-      _positionLoadedForRole = null; // cargar de nuevo para este rol
+      _positionLoadedForRole = null;
       _allowedLevels = levelsForRole(role);
       _selectedLevel = defaultLevelForRole(role);
+      _userDetailsFuture = userProvider.getUserDetails();
       if (!wasUnset) {
         _bottomNavIndex = 0;
         _saveLastPosition(0, role);
@@ -1016,23 +1019,18 @@ class MainRouterState extends State<MainRouter> {
           ),
         ],
       ),
-      body: Consumer<UserProvider>(
-        builder: (context, userProvider, child) {
-          return FutureBuilder<Map<String, dynamic>>(
-            future: userProvider.getUserDetails(),
+      body: AppOfflineBanner(child: FutureBuilder<Map<String, dynamic>>(
+            future: _userDetailsFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
                 if (snapshot.error is SessionRejectedByApiException) {
-                  // [UserProvider.getUserDetails] ya limpió sesión; el padre vuelve a SignInScreen.
                   return const Center(child: CircularProgressIndicator());
                 }
                 logger.e('Error fetching user details: ${snapshot.error}');
                 return Center(child: Text('Error: ${snapshot.error}'));
-              } // Dentro del FutureBuilder
-              else {
-                final role = userProvider.userRole;
+              } else {
                 logger.i('Role fetched: $role');
 
                 // Forzar SIEMPRE el nivel según el rol para evitar que quede en 0 por defecto
@@ -1120,8 +1118,7 @@ class MainRouterState extends State<MainRouter> {
                 );
               }
             },
-          );
-        },
+          ),
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:zonix/features/utils/auth_utils.dart';
@@ -173,21 +175,31 @@ class UserProvider with ChangeNotifier {
 
   Future<void> _registerFcmToken() async {
     try {
-      // El backend asocia FCM al perfil; sin profile_id aún (p. ej. antes de onboarding) no enviamos.
-      if (_profileId <= 0) {
-        return;
-      }
-      // Obtener auth token usando AuthUtils (mismo storage donde el login guarda)
+      if (_profileId <= 0) return;
+
       var token = await AuthUtils.getToken();
       token ??= await _storage.read(key: 'token');
-      final fcmToken = await _storage.read(key: 'fcm_token');
       if (token == null || token.isEmpty) {
         logger.w('FCM: no se registra (falta token de sesión)');
         return;
       }
+
+      var fcmToken = await _storage.read(key: 'fcm_token');
       if (fcmToken == null || fcmToken.isEmpty) {
-        logger.w('FCM: no se registra (falta fcm_token; acepta notificaciones al abrir la app)');
-        return;
+        if (!kIsWeb) {
+          try {
+            final fresh = await FirebaseMessaging.instance.getToken();
+            if (fresh != null && fresh.isNotEmpty) {
+              await _storage.write(key: 'fcm_token', value: fresh);
+              fcmToken = fresh;
+              logger.i('FCM: token obtenido de Firebase como fallback');
+            }
+          } catch (_) {}
+        }
+        if (fcmToken == null || fcmToken.isEmpty) {
+          logger.w('FCM: no se registra (falta fcm_token; acepta notificaciones al abrir la app)');
+          return;
+        }
       }
       if (fcmToken == _lastFcmRegisteredSuccessfully) {
         logger.d('FCM: mismo token ya registrado en backend esta sesión, omitiendo POST');

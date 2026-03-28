@@ -18,15 +18,16 @@
 | **Lenguaje**             | Dart 3.5.0+                              |
 | **Versión**              | 1.0.0                                    |
 | **Estado**               | ✅ MVP Completado - En desarrollo activo |
-| **Archivos Dart**        | 173                                      |
+| **Archivos Dart**        | 180                                      |
 | **Pantallas**            | 69                                       |
 | **Servicios**            | 49                                       |
-| **Tests**                | 250 pasaron ✅, 0 fallaron               |
+| **Tests**                | 167 pasaron ✅, 1 omitido, 0 fallaron    |
 | **Plataformas**          | Android + iOS                            |
-| **Última actualización** | 26 Marzo 2026                             |
+| **Última actualización** | 27 Marzo 2026                            |
 
 ### Cambios recientes (documentar aquí los avances)
 
+- **27 Mar 2026:** Cierre diagnóstico UX/rendimiento: (1) `OrderConfirmationPage` — contenido en `SingleChildScrollView` + lista con `shrinkWrap`/`NeverScrollableScrollPhysics`, `SafeArea` inferior único para CTAs (evita RenderFlex overflow en pantallas chicas/teclado). (2) `UserProvider._registerFcmToken` — si no hay `fcm_token` en almacenamiento, intenta `FirebaseMessaging.instance.getToken()` (no web) y persiste antes de registrar en API. (3) `MainRouter` — cache del `Future` de `getUserDetails()` en estado, refresco solo al cambiar rol; menos rebuilds del `FutureBuilder`. (4) `main.dart` — cuerpo del router envuelto en `AppOfflineBanner`. (5) Widgets reutilizables: `app_offline_banner.dart`, `app_skeleton.dart`, `app_empty_state.dart`. (6) Ajustes relacionados en órdenes commerce/delivery (Pusher `OrderPendingAssignment`, haptics, tabs con contadores, botones ~56px en rutas), `order_detail` / `current_order_detail`, `checkout_page`. Verificación: `flutter analyze` sin issues, `flutter test` 167 OK / 1 skip.
 - **26 Mar 2026:** Limpieza completa todos los roles + flujo pickup: (1) Bugs corregidos: AdminService duplicado en admin_users_page, context.read en initState de _AgentsList, DeliveryService() local en qr_scanner y incoming_order_dialog, ScaffoldMessenger tras pop en admin_orders/disputes, filtros de rol incompletos en admin_users. (2) Placeholders cerrados: botón "Ver todo" eliminado, eliminar comercio redirige a soporte, zonas commerce como vista solo lectura, historial notificaciones mejorado. (3) ~1100 Colors.* reemplazados por AppColors en ~70 archivos. (4) Contraste adaptivo en restaurants_page, URL soporte en AppConfig. (5) Fix overflow en network_image_with_fallback (fallback compacto <=80px). (6) Sonido en notificaciones Pusher: showLocalNotification() como backup de FCM. (7) Flujo pickup buyer: modelo Order con isPickup/isDeliveryOrder/commerceName/commerceAddress; 4 pantallas adaptadas (OrderDetailPage, CurrentOrderDetailPage, OrderHistoryDetailPage, OrderConfirmationPage) para mostrar "Retiro en tienda" sin mapa/repartidor. Tests: 167 frontend OK, 269 backend OK, 0 issues en analyze.
 - **20 Mar 2026:** Jarvis — Backlog producto/técnico documentado en `docs/active_context.md` (alineado con backend: backlog + prioridad sugerida ETA / rutas / tarifa). Sin cambios de código.
 - **19 Mar 2026:** Subida a dev: commits de cierre comprobante (Commerce) y feat Pusher Streams, notificaciones, auth, mejoras Android/iOS (google-services, sonido notificación, package com.zonix.eats). Documentación actualizada en AGENTS.md y active_context.
@@ -71,7 +72,7 @@ r                                    # Presionar 'r' en consola
 R                                    # Full restart
 
 # Testing
-flutter test                         # Todos (250 tests)
+flutter test                         # Todos (~167 tests + skips según entorno)
 flutter test test/services/order_service_test.dart
 
 # Análisis
@@ -602,7 +603,7 @@ AddressService.createAddress(..., role: 'commerce', commerceId: commerceId)
 ## Testing
 
 ```bash
-flutter test                         # Todos (250 tests)
+flutter test                         # Todos (~167 tests + skips según entorno)
 flutter test test/services/...       # Específico
 flutter analyze                      # Análisis estático
 ```

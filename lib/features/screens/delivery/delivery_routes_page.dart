@@ -255,14 +255,16 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
   }
 
   Widget _navButton(String label, IconData icon, Color color, double lat, double lng) {
-    return OutlinedButton.icon(
-      onPressed: () => _openGoogleMapsNav(lat, lng),
-      icon: Icon(icon, size: 16, color: color),
-      label: Text(label, style: TextStyle(fontSize: 12, color: color)),
-      style: OutlinedButton.styleFrom(
-        side: BorderSide(color: color),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    return SizedBox(
+      height: 56,
+      child: ElevatedButton.icon(
+        onPressed: () => _openGoogleMapsNav(lat, lng),
+        icon: Icon(icon, size: 22, color: AppColors.white),
+        label: Text(label, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.white)),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
       ),
     );
   }

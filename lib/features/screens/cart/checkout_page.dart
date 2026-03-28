@@ -8,7 +8,7 @@ import 'package:zonix/features/services/order_service.dart';
 import 'package:zonix/features/services/promotion_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
-import 'package:zonix/features/screens/orders/order_detail_page.dart';
+import 'package:zonix/features/screens/orders/order_confirmation_page.dart';
 import 'package:zonix/features/utils/network_image_with_fallback.dart';
 
 class CheckoutPage extends StatefulWidget {
@@ -222,11 +222,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
       });
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => OrderDetailPage(
-            orderId: order.id,
-            order: order,
-            showCreatedDialog: true,
-          ),
+          builder: (_) => OrderConfirmationPage(order: order),
         ),
       );
     } catch (e) {
