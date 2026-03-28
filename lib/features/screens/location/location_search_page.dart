@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:latlong2/latlong.dart' as lat_lng;
 import 'package:provider/provider.dart';
 import 'package:zonix/config/app_config.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/utils/search_radius_provider.dart';
 import 'package:zonix/features/utils/app_colors.dart';
@@ -143,17 +144,38 @@ class _LocationSearchPageState extends State<LocationSearchPage> {
   }
 
   Widget _buildError() {
+    final isGpsOff = _error?.contains('ubicación') == true ||
+        _error?.contains('Location') == true ||
+        _error is LocationDisabledException;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.location_off, size: 64, color: AppColors.red),
+            Icon(Icons.location_off, size: 64,
+                color: isGpsOff ? AppColors.orange : AppColors.red),
             const SizedBox(height: 16),
-            Text(_error!, textAlign: TextAlign.center),
+            Text(
+              isGpsOff
+                  ? 'Activa la ubicación para ver comercios cercanos'
+                  : _error!,
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 16),
-            ElevatedButton(
+            if (isGpsOff)
+              FilledButton.icon(
+                onPressed: () async {
+                  await Geolocator.openLocationSettings();
+                  await Future.delayed(const Duration(seconds: 1));
+                  _loadCurrentLocation();
+                },
+                icon: const Icon(Icons.settings),
+                label: const Text('Abrir ajustes de ubicación'),
+              ),
+            if (isGpsOff) const SizedBox(height: 8),
+            OutlinedButton(
               onPressed: _loadCurrentLocation,
               child: const Text('Reintentar'),
             ),

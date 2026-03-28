@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:zonix/features/screens/location/location_search_page.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
 import 'package:zonix/features/screens/settings/settings_page_2.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/services/notification_service.dart';
 import 'package:zonix/features/utils/search_radius_provider.dart';
@@ -57,9 +58,13 @@ class _BuyerShellState extends State<BuyerShell> {
             .read<SearchRadiusProvider>()
             .setDeliveryAddressLabel(label);
       }
-    } catch (_) {
-      // Silenciar fallo de ubicación
-    }
+    } on LocationDisabledException {
+      if (!mounted) return;
+      final provider = context.read<SearchRadiusProvider>();
+      if (provider.deliveryAddressLabel == null) {
+        provider.setDeliveryAddressLabel('Ubicación desactivada');
+      }
+    } catch (_) {}
   }
 
   Future<void> _onAddressTap() async {
@@ -99,8 +104,9 @@ class _BuyerShellState extends State<BuyerShell> {
 
   Widget _buildHeader(BuildContext context, bool isDark) {
     final radiusProvider = context.watch<SearchRadiusProvider>();
-    final addressLabel =
-        radiusProvider.deliveryAddressLabel ?? 'Cargando ubicación...';
+    final rawLabel = radiusProvider.deliveryAddressLabel;
+    final addressLabel = rawLabel ?? 'Cargando ubicación...';
+    final isLocationOff = addressLabel == 'Ubicación desactivada';
 
     return Container(
       padding: EdgeInsets.only(
@@ -125,18 +131,28 @@ class _BuyerShellState extends State<BuyerShell> {
             children: [
               Expanded(
                 child: InkWell(
-                  onTap: _onAddressTap,
+                  onTap: isLocationOff
+                      ? () async {
+                          await Geolocator.openLocationSettings();
+                          if (mounted) _loadDeliveryAddress();
+                        }
+                      : _onAddressTap,
                   borderRadius: BorderRadius.circular(12),
                   child: Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: _primary.withValues(alpha: 0.15),
+                          color: isLocationOff
+                              ? AppColors.orange.withValues(alpha: 0.15)
+                              : _primary.withValues(alpha: 0.15),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.location_on,
-                            color: _primary, size: 22),
+                        child: Icon(
+                          isLocationOff ? Icons.location_off : Icons.location_on,
+                          color: isLocationOff ? AppColors.orange : _primary,
+                          size: 22,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -144,10 +160,12 @@ class _BuyerShellState extends State<BuyerShell> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Entregando a',
+                              isLocationOff ? 'Toca para activar' : 'Entregando a',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: isDark ? AppColors.white54 : AppColors.black54,
+                                color: isLocationOff
+                                    ? AppColors.orange
+                                    : (isDark ? AppColors.white54 : AppColors.black54),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -156,9 +174,9 @@ class _BuyerShellState extends State<BuyerShell> {
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: isDark
-                                    ? AppColors.white
-                                    : AppColors.backgroundDark,
+                                color: isLocationOff
+                                    ? AppColors.orange
+                                    : (isDark ? AppColors.white : AppColors.backgroundDark),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -166,7 +184,11 @@ class _BuyerShellState extends State<BuyerShell> {
                           ],
                         ),
                       ),
-                      const Icon(Icons.expand_more, color: _primary, size: 20),
+                      Icon(
+                        isLocationOff ? Icons.settings : Icons.expand_more,
+                        color: isLocationOff ? AppColors.orange : _primary,
+                        size: 20,
+                      ),
                     ],
                   ),
                 ),

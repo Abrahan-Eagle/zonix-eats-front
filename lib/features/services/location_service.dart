@@ -8,6 +8,11 @@ import 'package:geolocator/geolocator.dart';
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 
+class LocationDisabledException implements Exception {
+  @override
+  String toString() => 'Los servicios de ubicación están desactivados';
+}
+
 class LocationService extends ChangeNotifier {
   static String get baseUrl => AppConfig.apiUrl;
   Timer? _locationTimer;
@@ -19,7 +24,7 @@ class LocationService extends ChangeNotifier {
       // Verificar permisos de ubicación
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
-        throw Exception('Location services are disabled');
+        throw LocationDisabledException();
       }
 
       LocationPermission permission = await Geolocator.checkPermission();

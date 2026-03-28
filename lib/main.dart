@@ -367,6 +367,7 @@ Future<void> main() async {
       id: message.hashCode % 0x7FFFFFFF,
       payload: payload,
     );
+    NotificationService.instance?.incrementUnreadFromFcm();
   });
 
   // App abierta desde notificación (estaba en background)
@@ -524,13 +525,14 @@ class MainRouterState extends State<MainRouter> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(const Duration(seconds: 3), _loadProfile);
     _loadLastPosition();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadProfile();
       _userDetailsFuture = context.read<UserProvider>().getUserDetails();
       final notifService = context.read<NotificationService>();
+      notifService.loadCachedNotifications();
       Future.delayed(
-          const Duration(seconds: 5), () => notifService.loadInitialData());
+          const Duration(seconds: 1), () => notifService.loadInitialData());
 
       // Escuchar nuevas notificaciones en tiempo real para mostrar feedback global
       _notificationSubscription = notifService.newNotificationStream.listen((n) {

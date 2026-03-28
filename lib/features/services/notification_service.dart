@@ -25,6 +25,8 @@ import 'pusher_service.dart';
 
 class NotificationService extends ChangeNotifier {
   static String get baseUrl => AppConfig.apiUrl;
+  static NotificationService? _instance;
+  static NotificationService? get instance => _instance;
 
   List<NotificationItem> _items = [];
   int _unreadCount = 0;
@@ -43,6 +45,7 @@ class NotificationService extends ChangeNotifier {
   Future<void>? _loadInitialDataInFlight;
 
   NotificationService() {
+    _instance = this;
     _initPusherListener();
   }
 
@@ -97,6 +100,7 @@ class NotificationService extends ChangeNotifier {
       _items.insert(0, newItem);
       if (newItem.isUnread) {
         _unreadCount++;
+        _lastPusherBump = DateTime.now();
         HapticFeedback.lightImpact();
         _newNotificationController.add(newItem);
 
@@ -111,6 +115,21 @@ class NotificationService extends ChangeNotifier {
     } catch (e) {
       debugPrint('Error handling new notification from Pusher: $e');
     }
+  }
+
+  /// Called from FCM foreground handler so the badge updates even if Pusher
+  /// hasn't delivered the event yet. Skips if Pusher already bumped the count
+  /// in the last 2 seconds (same logical notification).
+  DateTime? _lastPusherBump;
+
+  void incrementUnreadFromFcm() {
+    final now = DateTime.now();
+    if (_lastPusherBump != null &&
+        now.difference(_lastPusherBump!).inSeconds < 2) {
+      return;
+    }
+    _unreadCount++;
+    notifyListeners();
   }
 
   /// Populates [_items] from cache instantly without showing loading spinner.
@@ -145,9 +164,15 @@ class NotificationService extends ChangeNotifier {
         getNotificationCount(),
       ]);
 
-      _items = results[0] as List<NotificationItem>;
+      final fresh = results[0] as List<NotificationItem>;
+      final freshIds = fresh.map((n) => n.id).toSet();
+      final pusherOnly = _items
+          .where((n) => n.id != null && !freshIds.contains(n.id))
+          .toList();
+      _items = [...pusherOnly, ...fresh];
+
       final stats = results[1] as Map<String, dynamic>;
-      _unreadCount = stats['unread'] ?? 0;
+      _unreadCount = (stats['unread'] ?? 0) + pusherOnly.where((n) => n.isUnread).length;
     } catch (e) {
       _error = ErrorHandler.getUserFriendlyMessage(e);
       debugPrint('Error loading initial notification data: $e');

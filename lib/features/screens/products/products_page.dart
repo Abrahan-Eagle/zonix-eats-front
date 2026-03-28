@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/services/product_service.dart';
+import 'package:zonix/features/utils/gps_dialog_helper.dart';
 import 'package:zonix/features/services/promotion_service.dart';
 import 'package:zonix/features/utils/network_image_with_fallback.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
@@ -102,7 +103,16 @@ class _ProductsPageState extends State<ProductsPage> {
           _productsFuture = Future.value(fresh);
         });
       }
-    }).catchError((_) {});
+    }).catchError((e) {
+      if (e is LocationDisabledException && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Ubicación desactivada — mostrando todos los productos'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
+    });
   }
 
   Future<List<Product>> _fetchProductsFilteredByLocation() async {
@@ -145,6 +155,9 @@ class _ProductsPageState extends State<ProductsPage> {
       final filtered =
           allProducts.where((p) => commerceIds.contains(p.commerceId)).toList();
       return filtered.isEmpty ? allProducts : filtered;
+    } on LocationDisabledException {
+      if (mounted) showGpsDisabledDialog(context);
+      return productService.fetchProducts();
     } catch (_) {
       return productService.fetchProducts();
     }
