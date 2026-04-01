@@ -1,0 +1,91 @@
+import 'dart:collection';
+
+class RealtimeEventUtils {
+  static const String defaultSchemaVersion = 'legacy';
+
+  static String normalizeEventName(String eventName) {
+    if (eventName.contains('OrderStatusChanged')) return 'OrderStatusChanged';
+    if (eventName.contains('OrderCreated')) return 'OrderCreated';
+    if (eventName.contains('PaymentValidated')) return 'PaymentValidated';
+    if (eventName.contains('DeliveryLocationUpdated')) return 'DeliveryLocationUpdated';
+    if (eventName.contains('OrderPendingAssignment')) return 'OrderPendingAssignment';
+    if (eventName.contains('NotificationCreated')) return 'NotificationCreated';
+    if (eventName.contains('NewMessage')) return 'NewMessage';
+    return eventName;
+  }
+
+  static String? extractEventId(Map<String, dynamic> data) {
+    final raw = data['event_id'];
+    if (raw == null) return null;
+    final id = raw.toString().trim();
+    return id.isEmpty ? null : id;
+  }
+
+  static DateTime? extractOccurredAt(Map<String, dynamic> data) {
+    final raw = data['occurred_at'] ?? data['timestamp'] ?? data['created_at'];
+    if (raw == null) return null;
+    return DateTime.tryParse(raw.toString());
+  }
+
+  static String extractSchemaVersion(Map<String, dynamic> data) {
+    final raw = data['schema_version'];
+    final value = raw?.toString().trim();
+    return (value == null || value.isEmpty) ? defaultSchemaVersion : value;
+  }
+
+  static int? extractOrderId(Map<String, dynamic> data) {
+    final raw = data['order_id'];
+    if (raw == null) return null;
+    if (raw is int) return raw;
+    return int.tryParse(raw.toString());
+  }
+}
+
+class RealtimeEventDeduper {
+  RealtimeEventDeduper({
+    this.ttl = const Duration(minutes: 10),
+    this.maxEntries = 1500,
+  });
+
+  final Duration ttl;
+  final int maxEntries;
+  final LinkedHashMap<String, DateTime> _seenEventIds = LinkedHashMap<String, DateTime>();
+  final Map<String, DateTime> _latestByEntityKey = {};
+
+  bool shouldAccept({
+    required String canonicalEventName,
+    required Map<String, dynamic> data,
+    required DateTime now,
+  }) {
+    _cleanup(now);
+    final eventId = RealtimeEventUtils.extractEventId(data);
+    if (eventId != null) {
+      final seenAt = _seenEventIds[eventId];
+      if (seenAt != null && now.difference(seenAt) <= ttl) {
+        return false;
+      }
+      _seenEventIds[eventId] = now;
+      if (_seenEventIds.length > maxEntries) {
+        _seenEventIds.remove(_seenEventIds.keys.first);
+      }
+    }
+
+    final orderId = RealtimeEventUtils.extractOrderId(data);
+    final occurredAt = RealtimeEventUtils.extractOccurredAt(data);
+    if (orderId != null && occurredAt != null) {
+      final key = '$canonicalEventName:$orderId';
+      final latest = _latestByEntityKey[key];
+      if (latest != null && occurredAt.isBefore(latest)) {
+        return false;
+      }
+      _latestByEntityKey[key] = occurredAt;
+    }
+
+    return true;
+  }
+
+  void _cleanup(DateTime now) {
+    _seenEventIds.removeWhere((_, seenAt) => now.difference(seenAt) > ttl);
+    _latestByEntityKey.removeWhere((_, latestAt) => now.difference(latestAt) > ttl);
+  }
+}

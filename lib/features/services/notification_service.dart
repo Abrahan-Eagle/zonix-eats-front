@@ -106,12 +106,17 @@ class NotificationService extends ChangeNotifier {
         HapticFeedback.lightImpact();
         _newNotificationController.add(newItem);
 
-        final payload = newItem.data != null ? jsonEncode(newItem.data) : null;
-        showLocalNotification(
-          title: newItem.title,
-          body: newItem.body,
-          payload: payload,
-        );
+        final now = DateTime.now();
+        if (_lastLocalNotificationAt == null ||
+            now.difference(_lastLocalNotificationAt!).inSeconds >= 2) {
+          final payload = newItem.data != null ? jsonEncode(newItem.data) : null;
+          showLocalNotification(
+            title: newItem.title,
+            body: newItem.body,
+            payload: payload,
+          );
+          _lastLocalNotificationAt = now;
+        }
       }
       notifyListeners();
     } catch (e) {
@@ -123,6 +128,7 @@ class NotificationService extends ChangeNotifier {
   /// hasn't delivered the event yet. Skips if Pusher already bumped the count
   /// in the last 2 seconds (same logical notification).
   DateTime? _lastPusherBump;
+  DateTime? _lastLocalNotificationAt;
 
   void incrementUnreadFromFcm() {
     final now = DateTime.now();

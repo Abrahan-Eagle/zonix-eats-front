@@ -7,6 +7,7 @@ import 'package:pusher_channels_flutter/pusher_channels_flutter.dart';
 
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
+import 'realtime_event_utils.dart';
 
 /// Servicio de Pusher Channels para eventos en tiempo casi real (Orders, chat, etc.)
 ///
@@ -35,6 +36,7 @@ class PusherService {
   // Stream para eventos de dominio (Orders, chat, notificaciones, etc.)
   final _eventController = StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get eventStream => _eventController.stream;
+  final RealtimeEventDeduper _eventDeduper = RealtimeEventDeduper();
 
   bool get isConnected => _isConnected;
   bool get isInitialized => _isInitialized;
@@ -231,9 +233,26 @@ class PusherService {
               : Map<String, dynamic>.from(raw as Map));
 
       if (data.isNotEmpty) {
+        final canonicalEventName = RealtimeEventUtils.normalizeEventName(event.eventName);
+        final now = DateTime.now();
+        final shouldAccept = _eventDeduper.shouldAccept(
+          canonicalEventName: canonicalEventName,
+          data: data,
+          now: now,
+        );
+        if (!shouldAccept) {
+          // ignore: avoid_print
+          print('⏭️ Event deduplicated/dropped: $canonicalEventName');
+          return;
+        }
+
         _eventController.add({
           'eventName': event.eventName,
+          'canonicalEventName': canonicalEventName,
           'channelName': event.channelName,
+          'eventId': RealtimeEventUtils.extractEventId(data),
+          'schemaVersion': RealtimeEventUtils.extractSchemaVersion(data),
+          'occurredAt': RealtimeEventUtils.extractOccurredAt(data)?.toIso8601String(),
           'data': data,
         });
         

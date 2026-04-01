@@ -94,7 +94,7 @@ class _OrdersPageState extends State<OrdersPage> {
       final ok = await PusherService.instance.subscribeToUserChannel(userId);
       if (ok && mounted) {
         _pusherSubscription = PusherService.instance.eventStream.listen((event) {
-          final eventName = event['eventName']?.toString() ?? '';
+          final eventName = (event['canonicalEventName'] ?? event['eventName'])?.toString() ?? '';
           final channelName = event['channelName']?.toString() ?? '';
           final eventData = event['data'] is Map<String, dynamic>
               ? event['data'] as Map<String, dynamic>
@@ -115,16 +115,19 @@ class _OrdersPageState extends State<OrdersPage> {
   }
 
   String _mapPusherEventToType(String eventName) {
-    switch (eventName) {
-      case 'OrderStatusChanged':
-        return 'order_status_changed';
-      case 'OrderCreated':
-        return 'order_created';
-      case 'PaymentValidated':
-        return 'payment_validated';
-      default:
-        return eventName;
+    if (eventName.contains('OrderStatusChanged')) {
+      return 'order_status_changed';
     }
+    if (eventName.contains('OrderCreated')) {
+      return 'order_created';
+    }
+    if (eventName.contains('PaymentValidated')) {
+      return 'payment_validated';
+    }
+    if (eventName.contains('DeliveryLocationUpdated')) {
+      return 'delivery_location_updated';
+    }
+    return eventName;
   }
 
   void _handlePusherMessage(Map<String, dynamic> message) {

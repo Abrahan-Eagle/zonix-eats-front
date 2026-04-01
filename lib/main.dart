@@ -198,6 +198,7 @@ const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 /// ID del canal de notificaciones (sonido + vibración).
 const String _fcmNotificationChannelId = 'zonix_eats_fcm';
 const String _fcmNotificationChannelName = 'Notificaciones Zonix Eats';
+DateTime? _lastForegroundLocalNotificationAt;
 
 /// true = usa res/raw/zonix_notification.mp3; false = sonido por defecto del sistema.
 const bool _useCustomNotificationSound = true;
@@ -361,12 +362,17 @@ Future<void> main() async {
     final title = message.notification?.title ?? message.data['title'] ?? 'Zonix Eats';
     final body = message.notification?.body ?? message.data['body'] ?? 'Nueva notificación';
     final payload = message.data.isNotEmpty ? jsonEncode(message.data) : null;
-    _showFcmNotification(
-      title: title,
-      body: body,
-      id: message.hashCode % 0x7FFFFFFF,
-      payload: payload,
-    );
+    final now = DateTime.now();
+    if (_lastForegroundLocalNotificationAt == null ||
+        now.difference(_lastForegroundLocalNotificationAt!).inSeconds >= 2) {
+      _showFcmNotification(
+        title: title,
+        body: body,
+        id: message.hashCode % 0x7FFFFFFF,
+        payload: payload,
+      );
+      _lastForegroundLocalNotificationAt = now;
+    }
     NotificationService.instance?.incrementUnreadFromFcm();
   });
 

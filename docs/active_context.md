@@ -10,9 +10,9 @@
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
 - **Fecha:** 1 Abril 2026
-- **Resumen:** Módulo Métodos de Pago cerrado a 10/10 verificable en coordinación con backend. Se robusteció el contrato de cliente para comprobantes y validación: `OrderService.uploadPaymentProof` ahora acepta 2xx y parsea `message/errors`, y `CommerceOrderService.validatePayment` exige motivo en rechazos y mejora manejo de errores para feedback UX consistente. Se mantuvo compatibilidad durante transición con contrato canónico + alias legacy sin regresiones funcionales.
-- **Áreas tocadas:** `lib/features/services/order_service.dart`, `lib/features/services/commerce_order_service.dart`, `AGENTS.md`, `docs/active_context.md`.
-- **Próximos pasos sugeridos:** ejecutar smoke E2E en dispositivo para verificar flujo buyer->commerce de comprobantes (subir, validar, rechazar, reintentar) y mantener seguimiento de deprecación legacy desde backend hasta retiro final.
+- **Resumen:** Módulo Tiempo Real y Notificaciones reforzado para cierre técnico 9.6/10 y ruta segura a 10/10. Se centralizó normalización de eventos y dedupe fuerte por `event_id` en capa realtime (`realtime_event_utils.dart` + integración en `PusherService`), con compatibilidad para payload legacy y descarte básico de eventos fuera de orden por `order_id`. Se alineó consumo de eventos en pantallas buyer (`orders_page`, tracking en `order_detail/current_order_detail`), se mitigó ruido de notificaciones foreground (`main.dart` + `NotificationService`) y se retiró expectativa inválida de `OrderPendingAssignment` en delivery-agent. Validación técnica: tests específicos de dedupe/normalización en verde y analyze sin issues.
+- **Áreas tocadas:** `lib/features/services/pusher_service.dart`, `lib/features/services/realtime_event_utils.dart`, `lib/features/services/notification_service.dart`, `lib/main.dart`, `lib/features/screens/orders/orders_page.dart`, `lib/features/screens/orders/order_detail_page.dart`, `lib/features/screens/orders/current_order_detail_page.dart`, `lib/features/screens/delivery/delivery_orders_page.dart`, `test/features/services/realtime_event_utils_test.dart`, `AGENTS.md`.
+- **Próximos pasos sugeridos:** completar E2E de resiliencia por rol (reconexión, background/terminated, red inestable) y conectar métricas backend a alertado operativo para cerrar 10/10 en operación real.
 
 ---
 

@@ -12,7 +12,6 @@ import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/widgets/app_skeleton.dart';
 import 'package:zonix/features/screens/delivery/delivery_order_detail_page.dart';
-import 'package:zonix/features/screens/delivery/incoming_order_dialog.dart';
 import 'package:zonix/features/screens/delivery/qr_scanner_page.dart';
 
 class DeliveryOrdersPage extends StatefulWidget {
@@ -155,46 +154,12 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
             HapticFeedback.lightImpact();
             _debouncedLoadAll();
           }
-          if (eventName.contains('OrderPendingAssignment')) {
-            _showIncomingOrderDialog(event['data']);
-          }
         });
         _pusherSubscribed = true;
       }
     } catch (e) {
       debugPrint('Error suscribiendo Pusher delivery: $e');
     }
-  }
-
-  bool _incomingDialogOpen = false;
-
-  void _showIncomingOrderDialog(dynamic rawData) {
-    if (!mounted || _incomingDialogOpen) return;
-    final data = rawData is Map<String, dynamic>
-        ? rawData
-        : rawData is Map
-            ? Map<String, dynamic>.from(rawData)
-            : <String, dynamic>{};
-    final orderId = data['order_id'] is int
-        ? data['order_id'] as int
-        : int.tryParse(data['order_id']?.toString() ?? '');
-    if (orderId == null) return;
-
-    _incomingDialogOpen = true;
-    HapticFeedback.heavyImpact();
-    IncomingOrderDialog.show(
-      context,
-      orderId: orderId,
-      orderNumber: data['order_number']?.toString() ?? '#$orderId',
-      commerceName: data['commerce_name']?.toString(),
-      deliveryAddress: data['delivery_address']?.toString(),
-      deliveryFee: data['delivery_fee'] is num
-          ? (data['delivery_fee'] as num).toDouble()
-          : double.tryParse(data['delivery_fee']?.toString() ?? ''),
-    ).then((accepted) {
-      _incomingDialogOpen = false;
-      if (mounted) _loadAll();
-    });
   }
 
   Future<void> _acceptOrder(Map<String, dynamic> order) async {

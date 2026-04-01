@@ -90,8 +90,17 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
 
           if (channelName == 'private-orders.${widget.orderId}') {
             if (eventName.contains('DeliveryLocationUpdated')) {
-              final lat = double.tryParse(eventData['latitude']?.toString() ?? '');
-              final lng = double.tryParse(eventData['longitude']?.toString() ?? '');
+              final location = eventData['location'] is Map<String, dynamic>
+                  ? eventData['location'] as Map<String, dynamic>
+                  : eventData['location'] is Map
+                      ? Map<String, dynamic>.from(eventData['location'] as Map)
+                      : const <String, dynamic>{};
+              final lat = double.tryParse(
+                (eventData['latitude'] ?? location['latitude'])?.toString() ?? '',
+              );
+              final lng = double.tryParse(
+                (eventData['longitude'] ?? location['longitude'])?.toString() ?? '',
+              );
               if (lat != null && lng != null && mounted) {
                 setState(() {
                   _deliveryLat = lat;
