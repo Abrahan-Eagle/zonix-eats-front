@@ -17,6 +17,12 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
   Map<String, dynamic> _revenue = {};
   Map<String, dynamic> _orders = {};
   Map<String, dynamic> _kpi = {};
+  Map<String, dynamic> _deliveryObs = {};
+  List<Map<String, dynamic>> _deliveryIncidents = [];
+  List<Map<String, dynamic>> _deliveryHistory = [];
+  List<Map<String, dynamic>> _deliveryRunbooks = [];
+  String? _incidentTypeFilter;
+  int _obsWindowHours = 24;
   bool _isLoading = true;
   String? _error;
 
@@ -43,6 +49,16 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
         service.getAnalyticsRevenue(),
         service.getAnalyticsOrders(),
         service.getAnalyticsKpi(),
+        service.getDeliveryObservabilitySummary(windowHours: _obsWindowHours),
+        service.getDeliveryObservabilityIncidents(
+          type: _incidentTypeFilter,
+          windowHours: _obsWindowHours,
+        ),
+        service.getDeliveryObservabilityHistory(
+          perPage: 12,
+          windowHours: _obsWindowHours,
+        ),
+        service.getDeliveryObservabilityRunbooks(),
       ]);
 
       if (!mounted) return;
@@ -51,6 +67,22 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
         _revenue = results[1];
         _orders = results[2];
         _kpi = results[3];
+        _deliveryObs = results[4];
+        final incidentsPayload = results[5]['data'];
+        if (incidentsPayload is Map && incidentsPayload['items'] is List) {
+          _deliveryIncidents =
+              List<Map<String, dynamic>>.from(incidentsPayload['items']);
+        } else {
+          _deliveryIncidents = [];
+        }
+        final historyPayload = results[6]['data'];
+        _deliveryHistory = (historyPayload is Map && historyPayload['items'] is List)
+            ? List<Map<String, dynamic>>.from(historyPayload['items'])
+            : [];
+        final runbooksPayload = results[7]['data'];
+        _deliveryRunbooks = (runbooksPayload is Map && runbooksPayload['items'] is List)
+            ? List<Map<String, dynamic>>.from(runbooksPayload['items'])
+            : [];
         _isLoading = false;
       });
     } catch (e) {
@@ -123,6 +155,10 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
               _sectionTitle('KPIs'),
               const SizedBox(height: 12),
               _buildKpiSection(),
+              const SizedBox(height: 28),
+              _sectionTitle('Observabilidad Delivery'),
+              const SizedBox(height: 12),
+              _buildDeliveryObservabilitySection(),
             ],
           ),
         ),
@@ -507,6 +543,221 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
     );
   }
 
+  Widget _buildDeliveryObservabilitySection() {
+    final data = _deliveryObs['data'] is Map ? _deliveryObs['data'] : _deliveryObs;
+    final kpi = data['kpi'] is Map ? data['kpi'] as Map : {};
+    final ordersTotal = safeInt(kpi['orders_total']);
+    final unassigned = safeInt(kpi['unassigned_over_threshold']);
+    final frozen = safeInt(kpi['frozen_tracking_count']);
+    final timeoutRatio = safeDouble(kpi['timeout_ratio_percent']);
+    final avgAssign = safeDouble(kpi['avg_assignment_minutes']);
+    final avgDelivery = safeDouble(kpi['avg_delivery_minutes']);
+    final noResponse = safeDouble(kpi['agent_no_response_ratio_percent']);
+    final successRatio = safeDouble(kpi['success_ratio_percent']);
+    final cancelledRatio = safeDouble(kpi['cancelled_ratio_percent']);
+
+    return Column(
+      children: [
+        _card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _subsectionTitle('SLA delivery'),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                children: [
+                  ChoiceChip(
+                    label: const Text('24h'),
+                    selected: _obsWindowHours == 24,
+                    onSelected: (_) {
+                      setState(() => _obsWindowHours = 24);
+                      _loadData();
+                    },
+                  ),
+                  ChoiceChip(
+                    label: const Text('12h'),
+                    selected: _obsWindowHours == 12,
+                    onSelected: (_) {
+                      setState(() => _obsWindowHours = 12);
+                      _loadData();
+                    },
+                  ),
+                  ChoiceChip(
+                    label: const Text('6h'),
+                    selected: _obsWindowHours == 6,
+                    onSelected: (_) {
+                      setState(() => _obsWindowHours = 6);
+                      _loadData();
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  _obsChip('Órdenes (ventana)', '$ordersTotal'),
+                  _obsChip('Sin asignar', '$unassigned'),
+                  _obsChip('Tracking congelado', '$frozen'),
+                  _obsChip('Timeout %', '${timeoutRatio.toStringAsFixed(2)}%'),
+                  _obsChip('Asignación promedio', '${avgAssign.toStringAsFixed(2)} min'),
+                  _obsChip('Entrega promedio', '${avgDelivery.toStringAsFixed(2)} min'),
+                  _obsChip('No respuesta agente', '${noResponse.toStringAsFixed(2)}%'),
+                  _obsChip('Éxito', '${successRatio.toStringAsFixed(2)}%'),
+                  _obsChip('Canceladas', '${cancelledRatio.toStringAsFixed(2)}%'),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        _card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _subsectionTitle('Incidentes activos'),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  ChoiceChip(
+                    label: const Text('Todos'),
+                    selected: _incidentTypeFilter == null,
+                    onSelected: (_) {
+                      setState(() => _incidentTypeFilter = null);
+                      _loadData();
+                    },
+                  ),
+                  ChoiceChip(
+                    label: const Text('Sin asignar'),
+                    selected: _incidentTypeFilter == 'unassigned_order',
+                    onSelected: (_) {
+                      setState(() => _incidentTypeFilter = 'unassigned_order');
+                      _loadData();
+                    },
+                  ),
+                  ChoiceChip(
+                    label: const Text('Tracking congelado'),
+                    selected: _incidentTypeFilter == 'frozen_tracking',
+                    onSelected: (_) {
+                      setState(() => _incidentTypeFilter = 'frozen_tracking');
+                      _loadData();
+                    },
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (_deliveryIncidents.isEmpty)
+                Text(
+                  'No hay incidentes activos.',
+                  style: TextStyle(color: AppColors.secondaryText(context)),
+                )
+              else
+                for (final incident in _deliveryIncidents.take(12))
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Row(
+                      children: [
+                        Icon(
+                          safeString(incident['priority']) == 'high'
+                              ? Icons.warning_amber_rounded
+                              : Icons.info_outline_rounded,
+                          color: safeString(incident['priority']) == 'high'
+                              ? AppColors.red
+                              : AppColors.orange,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '${safeString(incident['event_code'])} · orden #${safeInt(incident['order_id'])}',
+                            style: TextStyle(color: AppColors.primaryText(context)),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => _openIncidentOrders(safeString(incident['type'])),
+                          child: const Text('Ver órdenes'),
+                        ),
+                      ],
+                    ),
+                  ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        _card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _subsectionTitle('Historico reciente (snapshots)'),
+              const SizedBox(height: 8),
+              if (_deliveryHistory.isEmpty)
+                Text(
+                  'Sin snapshots historicos.',
+                  style: TextStyle(color: AppColors.secondaryText(context)),
+                )
+              else
+                for (final snapshot in _deliveryHistory.take(6))
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text(
+                      '• ${safeString(snapshot['created_at'])} · TTA ${safeDouble(snapshot['avg_assignment_minutes']).toStringAsFixed(2)}m · TTD ${safeDouble(snapshot['avg_delivery_minutes']).toStringAsFixed(2)}m',
+                      style: TextStyle(color: AppColors.primaryText(context), fontSize: 12),
+                    ),
+                  ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        _card(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _subsectionTitle('Runbooks operativos'),
+              const SizedBox(height: 8),
+              if (_deliveryRunbooks.isEmpty)
+                Text(
+                  'Sin runbooks disponibles.',
+                  style: TextStyle(color: AppColors.secondaryText(context)),
+                )
+              else
+                for (final rb in _deliveryRunbooks)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Text(
+                      '• ${safeString(rb['title'])} (${safeString(rb['severity'])})',
+                      style: TextStyle(color: AppColors.primaryText(context), fontSize: 12),
+                    ),
+                  ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _obsChip(String label, String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: _isDark ? AppColors.grayDark : AppColors.grayLight,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: _isDark ? AppColors.white12 : AppColors.black12),
+      ),
+      child: RichText(
+        text: TextSpan(
+          style: TextStyle(color: AppColors.primaryText(context), fontSize: 13),
+          children: [
+            TextSpan(text: '$label: ', style: const TextStyle(fontWeight: FontWeight.w600)),
+            TextSpan(text: value),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _kpiGroup(
       String title, IconData icon, Color color, Map kpiMap) {
     return _card(
@@ -733,6 +984,44 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
       return value.toStringAsFixed(2);
     }
     return safeString(value, '—');
+  }
+
+  Future<void> _openIncidentOrders(String type) async {
+    final service = context.read<AdminService>();
+    try {
+      final response = await service.getDeliveryObservabilityIncidentOrders(
+        type: type,
+        windowHours: _obsWindowHours,
+        perPage: 30,
+      );
+      final payload = response['data'];
+      final items = (payload is Map && payload['items'] is List)
+          ? List<Map<String, dynamic>>.from(payload['items'])
+          : <Map<String, dynamic>>[];
+      if (!mounted) return;
+      showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        builder: (ctx) => SafeArea(
+          child: SizedBox(
+            height: MediaQuery.of(ctx).size.height * 0.7,
+            child: items.isEmpty
+                ? const Center(child: Text('No hay órdenes para este incidente'))
+                : ListView.builder(
+                    itemCount: items.length,
+                    itemBuilder: (_, i) {
+                      final order = items[i];
+                      final commerce = order['commerce'] is Map ? order['commerce'] as Map : {};
+                      return ListTile(
+                        title: Text('Orden #${safeInt(order['id'])}'),
+                        subtitle: Text('${safeString(order['status'])} · ${safeString(commerce['business_name'])}'),
+                      );
+                    },
+                  ),
+          ),
+        ),
+      );
+    } catch (_) {}
   }
 }
 

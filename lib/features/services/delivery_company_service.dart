@@ -33,10 +33,22 @@ class DeliveryCompanyService extends ChangeNotifier {
   Map<String, dynamic> _dashboardData = {};
   bool _dashboardLoading = false;
   String? _dashboardError;
+  Map<String, dynamic> _observabilitySummary = {};
+  List<Map<String, dynamic>> _observabilityIncidents = [];
+  bool _observabilityLoading = false;
+  String? _observabilityError;
+  List<Map<String, dynamic>> _observabilityHistory = [];
+  List<Map<String, dynamic>> _observabilityRunbooks = [];
 
   Map<String, dynamic> get dashboardData => _dashboardData;
   bool get dashboardLoading => _dashboardLoading;
   String? get dashboardError => _dashboardError;
+  Map<String, dynamic> get observabilitySummary => _observabilitySummary;
+  List<Map<String, dynamic>> get observabilityIncidents => _observabilityIncidents;
+  bool get observabilityLoading => _observabilityLoading;
+  String? get observabilityError => _observabilityError;
+  List<Map<String, dynamic>> get observabilityHistory => _observabilityHistory;
+  List<Map<String, dynamic>> get observabilityRunbooks => _observabilityRunbooks;
 
   /// Evita doble GET dashboard si dos pantallas lo piden a la vez (dashboard + orders bootstrap).
   Future<void>? _loadDashboardInFlight;
@@ -89,6 +101,102 @@ class DeliveryCompanyService extends ChangeNotifier {
       _dashboardError = ErrorHandler.getUserFriendlyMessage(e);
     } finally {
       _dashboardLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadObservability({
+    String? type,
+    String? priority,
+    int? windowHours,
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    _observabilityLoading = true;
+    _observabilityError = null;
+    notifyListeners();
+    try {
+      final headers = await AuthHelper.getAuthHeaders();
+      final responses = await Future.wait([
+        withRetry(() => http.get(
+              Uri.parse('$_baseUrl/api/delivery-company/observability/summary').replace(
+                queryParameters: {
+                  if (windowHours != null) 'window_hours': '$windowHours',
+                },
+              ),
+              headers: headers,
+            )),
+        withRetry(() => http.get(
+              Uri.parse('$_baseUrl/api/delivery-company/observability/incidents').replace(
+                queryParameters: {
+                  'page': '$page',
+                  'per_page': '$perPage',
+                  if (type != null && type.isNotEmpty) 'type': type,
+                  if (priority != null && priority.isNotEmpty) 'priority': priority,
+                  if (windowHours != null) 'window_hours': '$windowHours',
+                },
+              ),
+              headers: headers,
+            )),
+      ]);
+
+      final summaryRes = responses[0];
+      final incidentsRes = responses[1];
+
+      if (summaryRes.statusCode == 200) {
+        final body = jsonDecode(summaryRes.body);
+        if (body['success'] == true && body['data'] != null) {
+          _observabilitySummary = Map<String, dynamic>.from(body['data']);
+        }
+      } else {
+        _observabilityError = ErrorHandler.handleHttpResponse(summaryRes.statusCode, summaryRes.body);
+      }
+
+      if (incidentsRes.statusCode == 200) {
+        final body = jsonDecode(incidentsRes.body);
+        final data = body['data'];
+        if (body['success'] == true && data is Map && data['items'] is List) {
+          _observabilityIncidents = List<Map<String, dynamic>>.from(data['items']);
+        } else {
+          _observabilityIncidents = [];
+        }
+      } else {
+        _observabilityError = _observabilityError ?? ErrorHandler.handleHttpResponse(incidentsRes.statusCode, incidentsRes.body);
+      }
+
+      final historyRes = await withRetry(() => http.get(
+            Uri.parse('$_baseUrl/api/delivery-company/observability/history').replace(
+              queryParameters: {
+                'page': '1',
+                'per_page': '12',
+                if (windowHours != null) 'window_hours': '$windowHours',
+              },
+            ),
+            headers: headers,
+          ));
+      if (historyRes.statusCode == 200) {
+        final body = jsonDecode(historyRes.body);
+        final data = body['data'];
+        if (body['success'] == true && data is Map && data['items'] is List) {
+          _observabilityHistory = List<Map<String, dynamic>>.from(data['items']);
+        }
+      }
+
+      final runbooksRes = await withRetry(() => http.get(
+            Uri.parse('$_baseUrl/api/delivery-company/observability/runbooks'),
+            headers: headers,
+          ));
+      if (runbooksRes.statusCode == 200) {
+        final body = jsonDecode(runbooksRes.body);
+        final data = body['data'];
+        if (body['success'] == true && data is Map && data['items'] is List) {
+          _observabilityRunbooks = List<Map<String, dynamic>>.from(data['items']);
+        }
+      }
+    } catch (e) {
+      _observabilityError = ErrorHandler.getUserFriendlyMessage(e);
+    } finally {
+      _observabilityLoading = false;
       notifyListeners();
     }
   }

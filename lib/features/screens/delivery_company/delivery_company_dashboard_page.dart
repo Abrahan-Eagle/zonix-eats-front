@@ -13,11 +13,15 @@ class DeliveryCompanyDashboardPage extends StatefulWidget {
 }
 
 class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardPage> {
+  int _obsWindowHours = 24;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<DeliveryCompanyService>().loadDashboard();
+      final service = context.read<DeliveryCompanyService>();
+      service.loadDashboard();
+      service.loadObservability(windowHours: _obsWindowHours);
     });
   }
 
@@ -47,9 +51,19 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
           final weekEarnings = _num(data['week_earnings']);
           final monthEarnings = _num(data['month_earnings']);
           final avgRating = _num(data['average_rating']);
+          final obsSummary = service.observabilitySummary;
+          final obsKpi = obsSummary['kpi'] is Map
+              ? obsSummary['kpi'] as Map<String, dynamic>
+              : <String, dynamic>{};
+          final obsIncidents = service.observabilityIncidents;
+          final obsHistory = service.observabilityHistory;
+          final obsRunbooks = service.observabilityRunbooks;
 
           return RefreshIndicator(
-            onRefresh: () => service.loadDashboard(),
+            onRefresh: () async {
+              await service.loadDashboard();
+              await service.loadObservability(windowHours: _obsWindowHours);
+            },
             child: ResponsiveCenter(
               maxWidth: 1000,
               child: ListView(
@@ -84,6 +98,40 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
                       _metricCard('Mes', '\$${monthEarnings.toStringAsFixed(2)}', AppColors.purple, isDark),
                     ],
                   ),
+                  const SizedBox(height: 16),
+                  _buildSectionTitle('Observabilidad Delivery'),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      ChoiceChip(
+                        label: const Text('24h'),
+                        selected: _obsWindowHours == 24,
+                        onSelected: (_) {
+                          setState(() => _obsWindowHours = 24);
+                          service.loadObservability(windowHours: _obsWindowHours);
+                        },
+                      ),
+                      ChoiceChip(
+                        label: const Text('12h'),
+                        selected: _obsWindowHours == 12,
+                        onSelected: (_) {
+                          setState(() => _obsWindowHours = 12);
+                          service.loadObservability(windowHours: _obsWindowHours);
+                        },
+                      ),
+                      ChoiceChip(
+                        label: const Text('6h'),
+                        selected: _obsWindowHours == 6,
+                        onSelected: (_) {
+                          setState(() => _obsWindowHours = 6);
+                          service.loadObservability(windowHours: _obsWindowHours);
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  _buildObservabilityCard(obsKpi, obsIncidents, obsHistory, obsRunbooks, isDark),
                 ],
               ),
             ),
@@ -285,6 +333,103 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
             ElevatedButton.icon(onPressed: retry, icon: const Icon(Icons.refresh), label: const Text('Reintentar')),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildObservabilityCard(
+    Map<String, dynamic> kpi,
+    List<Map<String, dynamic>> incidents,
+    List<Map<String, dynamic>> history,
+    List<Map<String, dynamic>> runbooks,
+    bool isDark,
+  ) {
+    final unassigned = safeInt(kpi['unassigned_over_threshold']);
+    final frozen = safeInt(kpi['frozen_tracking_count']);
+    final timeoutRatio = safeDouble(kpi['timeout_ratio_percent']);
+    final avgAssign = safeDouble(kpi['avg_assignment_minutes']);
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.grayDark : AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: isDark ? AppColors.white12 : AppColors.black12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Wrap(
+            spacing: 10,
+            runSpacing: 8,
+            children: [
+              _statusChip('Sin asignar: $unassigned', AppColors.red),
+              _statusChip('Tracking congelado: $frozen', AppColors.orange),
+              _statusChip('Timeout: ${timeoutRatio.toStringAsFixed(2)}%', AppColors.purple),
+              _statusChip('Asignación: ${avgAssign.toStringAsFixed(2)} min', AppColors.blue),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Incidentes activos (${incidents.length})',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          if (incidents.isEmpty)
+            Text(
+              'Sin incidentes activos.',
+              style: TextStyle(color: AppColors.secondaryText(context)),
+            )
+          else
+            for (final incident in incidents.take(8))
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Text(
+                  '• ${safeString(incident['event_code'])} (orden #${safeInt(incident['order_id'])})',
+                  style: TextStyle(color: AppColors.primaryText(context), fontSize: 13),
+                ),
+              ),
+          const SizedBox(height: 10),
+          const Text(
+            'Historico reciente',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          if (history.isEmpty)
+            Text(
+              'Sin snapshots historicos.',
+              style: TextStyle(color: AppColors.secondaryText(context)),
+            )
+          else
+            for (final snapshot in history.take(3))
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Text(
+                  '• ${safeString(snapshot['created_at'])} · TTA ${safeDouble(snapshot['avg_assignment_minutes']).toStringAsFixed(2)}m',
+                  style: TextStyle(color: AppColors.primaryText(context), fontSize: 12),
+                ),
+              ),
+          const SizedBox(height: 10),
+          const Text(
+            'Runbooks',
+            style: TextStyle(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 6),
+          if (runbooks.isEmpty)
+            Text(
+              'Sin runbooks.',
+              style: TextStyle(color: AppColors.secondaryText(context)),
+            )
+          else
+            for (final rb in runbooks.take(2))
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 3),
+                child: Text(
+                  '• ${safeString(rb['title'])}',
+                  style: TextStyle(color: AppColors.primaryText(context), fontSize: 12),
+                ),
+              ),
+        ],
       ),
     );
   }

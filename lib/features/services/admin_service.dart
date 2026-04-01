@@ -594,4 +594,102 @@ class AdminService extends ChangeNotifier {
     if (response.statusCode == 200) return Map<String, dynamic>.from(jsonDecode(response.body));
     throw Exception('Error: ${response.statusCode}');
   }
+
+  Future<Map<String, dynamic>> getDeliveryObservabilitySummary({int? windowHours}) async {
+    final queryParams = <String, String>{};
+    if (windowHours != null) queryParams['window_hours'] = '$windowHours';
+    final uri = Uri.parse('$baseUrl/api/admin/delivery/observability/summary')
+        .replace(queryParameters: queryParams.isEmpty ? null : queryParams);
+    final response = await http.get(
+      uri,
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(jsonDecode(response.body));
+    }
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> getDeliveryObservabilityIncidents({
+    String? type,
+    String? priority,
+    int? windowHours,
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    final queryParams = <String, String>{
+      'page': '$page',
+      'per_page': '$perPage',
+    };
+    if (type != null && type.isNotEmpty) queryParams['type'] = type;
+    if (priority != null && priority.isNotEmpty) queryParams['priority'] = priority;
+    if (windowHours != null) queryParams['window_hours'] = '$windowHours';
+    final uri = Uri.parse('$baseUrl/api/admin/delivery/observability/incidents')
+        .replace(queryParameters: queryParams);
+    final response = await http.get(
+      uri,
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(jsonDecode(response.body));
+    }
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> getDeliveryObservabilityIncidentOrders({
+    String? type,
+    int? windowHours,
+    int page = 1,
+    int perPage = 20,
+  }) async {
+    final queryParams = <String, String>{
+      'page': '$page',
+      'per_page': '$perPage',
+    };
+    if (type != null && type.isNotEmpty) queryParams['type'] = type;
+    if (windowHours != null) queryParams['window_hours'] = '$windowHours';
+    final uri = Uri.parse('$baseUrl/api/admin/delivery/observability/incident-orders')
+        .replace(queryParameters: queryParams);
+    final response = await http.get(
+      uri,
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(jsonDecode(response.body));
+    }
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> getDeliveryObservabilityHistory({
+    int? windowHours,
+    int page = 1,
+    int perPage = 24,
+  }) async {
+    final queryParams = <String, String>{
+      'page': '$page',
+      'per_page': '$perPage',
+    };
+    if (windowHours != null) queryParams['window_hours'] = '$windowHours';
+    final uri = Uri.parse('$baseUrl/api/admin/delivery/observability/history')
+        .replace(queryParameters: queryParams);
+    final response = await http.get(
+      uri,
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(jsonDecode(response.body));
+    }
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<Map<String, dynamic>> getDeliveryObservabilityRunbooks() async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/admin/delivery/observability/runbooks'),
+      headers: await AuthHelper.getAuthHeaders(),
+    );
+    if (response.statusCode == 200) {
+      return Map<String, dynamic>.from(jsonDecode(response.body));
+    }
+    throw Exception('Error: ${response.statusCode}');
+  }
 }
