@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import '../../helpers/auth_helper.dart';
@@ -170,7 +171,9 @@ class CommerceDataService {
           if (errs.isNotEmpty) msg = '$msg ${errs.first}';
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[CommerceDataService] error parse: $e');
+    }
     throw Exception('$msg (${response.statusCode})');
   }
 

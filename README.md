@@ -10,20 +10,22 @@ Frontend de la aplicación Zonix Eats desarrollado en Flutter. Aplicación móvi
 | ----------------- | ---------------------------------------------- |
 | **Versión**       | 1.0.0                                          |
 | **Flutter SDK**   | >=3.5.0 <4.0.0                                 |
-| **Archivos Dart** | 173                                            |
-| **Pantallas**     | 69                                             |
-| **Servicios**     | 49 (2 legacy eliminados)                       |
-| **Tests**         | 250 pasaron ✅, 0 fallaron                     |
-| **Roles**         | 4 (Standard: Buyer, Commerce, Delivery, Admin) |
+| **Archivos Dart** | 183                                            |
+| **Pantallas**     | 79                                             |
+| **Servicios**     | 32                                              |
+| **Tests**         | 167 pasaron ✅, 1 omitido, 0 fallaron           |
+| **Roles**         | 6 (ver tabla debajo)                           |
 
 ### Terminología Estándar de Roles
 
-| Nivel | Código en BD | Nombre Estándar | Alias aceptados            |
-| ----- | ------------ | --------------- | -------------------------- |
-| 0     | `users`      | **Buyer**       | Comprador, Cliente         |
-| 1     | `commerce`   | **Commerce**    | Comercio, Restaurante      |
-| 2     | `delivery`   | **Delivery**    | Delivery Agent, Repartidor |
-| 3     | `admin`      | **Admin**       | Administrador              |
+| Código en BD       | Nombre Estándar     | Descripción                                              |
+| ------------------ | ------------------- | -------------------------------------------------------- |
+| `users`            | **Buyer**           | Comprador, Cliente                                       |
+| `commerce`         | **Commerce**        | Comercio, Restaurante                                    |
+| `delivery_company` | **Delivery Company**| Empresa que administra repartidores                      |
+| `delivery_agent`   | **Delivery Agent**  | Repartidor vinculado a empresa (`company_id` no nulo)    |
+| `delivery`         | **Delivery**        | Repartidor autónomo (sin empresa, `company_id` nulo)     |
+| `admin`            | **Admin**           | Administrador                                            |
 
 ### Cambios Recientes (Mar 2026)
 

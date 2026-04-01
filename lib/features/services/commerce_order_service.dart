@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../models/commerce_order.dart';
 import '../../config/app_config.dart';
@@ -128,7 +129,9 @@ class CommerceOrderService {
           final body = jsonDecode(response.body);
           final msg = body['message']?.toString();
           if (msg != null && msg.isNotEmpty) message = msg;
-        } catch (_) {}
+        } catch (e) {
+          debugPrint('[CommerceOrderService] error parse: $e');
+        }
         throw Exception(message);
       }
     } catch (e) {
@@ -239,19 +242,16 @@ class CommerceOrderService {
     return getOrders(status: 'pending_payment');
   }
 
-  // Obtener órdenes en preparación
   static Future<List<CommerceOrder>> getPreparingOrders() async {
-    return getOrders(status: 'preparing');
+    return getOrders(status: 'processing');
   }
 
-  // Obtener órdenes listas para entrega
   static Future<List<CommerceOrder>> getReadyOrders() async {
-    return getOrders(status: 'ready');
+    return getOrders(status: 'processing');
   }
 
-  // Obtener órdenes en camino
   static Future<List<CommerceOrder>> getOnWayOrders() async {
-    return getOrders(status: 'on_way');
+    return getOrders(status: 'shipped');
   }
 
   // Obtener órdenes entregadas

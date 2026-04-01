@@ -134,7 +134,7 @@ class Order {
       commerceId: json['commerce_id'] ?? 0,
       deliveryAgentId: json['delivery_agent_id'],
       orderNumber: json['order_number'] ?? '${json['id'] ?? ''}',
-      status: (json['status'] ?? 'pending').toString(),
+      status: (json['status'] ?? 'pending_payment').toString(),
       subtotal: _parseDouble(json['subtotal']) > 0
           ? _parseDouble(json['subtotal'])
           : (parsedItems.isNotEmpty
@@ -316,32 +316,34 @@ class Order {
     return '';
   }
 
-  bool get isPending => status == 'pending' || status == 'pending_payment';
-  bool get isConfirmed => status == 'confirmed';
-  bool get isPreparing => status == 'preparing';
-  bool get isReady => status == 'ready';
-  bool get isOutForDelivery => status == 'out_for_delivery';
+  bool get isPending => status == 'pending_payment' || status == 'pending';
+  bool get isPendingPayment => status == 'pending_payment' || status == 'pending';
+  bool get isPaid => status == 'paid';
+  bool get isConfirmed => status == 'paid';
+  bool get isPreparing => status == 'processing' || status == 'preparing';
+  bool get isProcessing => status == 'processing' || status == 'preparing';
+  bool get isReady => status == 'processing' || status == 'ready';
+  bool get isShipped => status == 'shipped';
+  bool get isOutForDelivery => status == 'shipped' || status == 'out_for_delivery';
   bool get isDelivered => status == 'delivered';
   bool get isCancelled => status == 'cancelled';
 
   String get statusText {
     switch (status) {
-      case 'pending':
       case 'pending_payment':
+      case 'pending':
         return 'Pendiente de pago';
       case 'paid':
-        return 'Pagado';
       case 'confirmed':
-        return 'Confirmado';
-      case 'preparing':
-        return 'Preparando';
-      case 'ready':
+        return 'Pagado';
       case 'processing':
-        return status == 'processing' ? 'En preparación' : 'Listo';
+      case 'preparing':
+      case 'ready':
+        return 'En preparación';
       case 'shipped':
-        return isPickup ? 'Listo para recoger' : 'En camino';
       case 'out_for_delivery':
-        return isPickup ? 'Listo para recoger' : 'En Camino';
+      case 'on_way':
+        return isPickup ? 'Listo para recoger' : 'En camino';
       case 'delivered':
         return isPickup ? 'Recogido' : 'Entregado';
       case 'cancelled':
@@ -353,18 +355,19 @@ class Order {
 
   String get statusColor {
     switch (status) {
+      case 'pending_payment':
       case 'pending':
         return '#FFA500';
+      case 'paid':
       case 'confirmed':
         return '#2196F3';
-      case 'preparing':
-        return '#FF9800';
-      case 'ready':
-      case 'paid':
       case 'processing':
+      case 'preparing':
+      case 'ready':
+        return '#FF9800';
       case 'shipped':
-        return '#4CAF50';
       case 'out_for_delivery':
+      case 'on_way':
         return '#9C27B0';
       case 'delivered':
         return '#4CAF50';

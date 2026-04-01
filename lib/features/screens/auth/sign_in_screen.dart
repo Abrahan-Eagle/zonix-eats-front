@@ -75,15 +75,21 @@ class SignInScreenState extends State<SignInScreen> {
         final photoUrl = user.photoUrl;
         await AuthUtils.saveUserPhotoUrl(photoUrl?.isNotEmpty == true ? photoUrl : '');
 
-        String? savedOnboardingString = await _storage.read(key: 'userCompletedOnboarding');
-        bool onboardingCompleted = savedOnboardingString == '1';
+        if (!mounted) return;
+
+        final userProvider = context.read<UserProvider>();
+        await userProvider.checkAuthentication();
 
         if (!mounted) return;
 
-        // Sincronizar UserProvider (datos, Pusher, registro FCM) antes de ir a home
-        await context.read<UserProvider>().checkAuthentication();
+        if (!userProvider.isAuthenticated || userProvider.userId <= 0) {
+          setState(() {
+            _loginError = 'No se pudo validar la sesión con el servidor.';
+          });
+          return;
+        }
 
-        if (!mounted) return;
+        final onboardingCompleted = userProvider.completedOnboarding;
 
         if (!onboardingCompleted) {
           Navigator.pushReplacement(

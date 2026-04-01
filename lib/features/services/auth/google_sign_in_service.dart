@@ -30,10 +30,7 @@ class GoogleSignInService {
         return null; // Retorna null si no hay ni accessToken ni idToken
       }
 
-      // Guardar tokens de Google
-      if (accessToken != null) {
-        await AuthUtils.saveToken(accessToken, 3600); // Ajusta el tiempo de expiración
-      }
+      // Guardar tokens de Google (id token) solo como referencia local temporal.
       if (idToken != null) {
         await _storage.write(key: 'google_idToken', value: idToken);
       }
@@ -80,14 +77,17 @@ class GoogleSignInService {
           return user; // Retorna el usuario autenticado
         } else {
           logger.e('Error al enviar el token al backend: ${response.statusCode}');
+          await AuthUtils.clearTokens();
           return null; // Retorna null si hay error al enviar el token al backend
         }
       } else {
         logger.e('Error al obtener los datos del perfil: ${profileResponse.statusCode}');
+        await AuthUtils.clearTokens();
         return null; // Retorna null si no se pueden obtener los datos del perfil
       }
     } catch (error) {
       logger.e('Error durante el inicio de sesión con Google: $error');
+      await AuthUtils.clearTokens();
       return null; // Retorna null si hay una excepción
     }
   }

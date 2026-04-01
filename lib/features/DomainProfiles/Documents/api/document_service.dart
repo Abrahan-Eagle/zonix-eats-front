@@ -66,10 +66,10 @@ class DocumentService {
 
   Future<void> createDocument(
     Document document,
-    int userId, {
+    int profileId, {
     File? frontImageFile,
   }) async {
-    logger.i('Creating document for profile ID: $userId');
+    logger.i('Creating document for profile ID: $profileId');
 
     try {
       final token = await AuthHelper.getToken();
@@ -83,7 +83,7 @@ class DocumentService {
       // Headers: no Content-Type (multipart sets boundary); Auth + Accept
       request.headers['Authorization'] = 'Bearer $token';
       request.headers['Accept'] = 'application/json';
-      request.fields['profile_id'] = userId.toString();
+      request.fields['profile_id'] = profileId.toString();
       request.fields['type'] = document.type ?? '';
       request.fields['issued_at'] = document.issuedAt?.toIso8601String() ?? '';
       request.fields['expires_at'] = document.expiresAt?.toIso8601String() ?? '';
@@ -130,10 +130,10 @@ class DocumentService {
   /// Actualiza un documento. Devuelve el documento actualizado si la respuesta lo incluye.
   Future<Document?> updateDocument(
     Document document,
-    int userId, {
+    int profileId, {
     File? frontImageFile,
   }) async {
-    logger.i('Updating document ID: ${document.id} for profile ID: $userId');
+    logger.i('Updating document ID: ${document.id} for profile ID: $profileId');
 
     try {
       final token = await AuthHelper.getToken();
@@ -147,7 +147,7 @@ class DocumentService {
       request.headers['Authorization'] = 'Bearer $token';
       request.headers['Accept'] = 'application/json';
       request.fields['_method'] = 'PUT'; // Laravel method override
-      request.fields['profile_id'] = userId.toString();
+      request.fields['profile_id'] = profileId.toString();
       request.fields['type'] = document.type ?? '';
       request.fields['issued_at'] = document.issuedAt?.toIso8601String() ?? '';
       request.fields['expires_at'] = document.expiresAt?.toIso8601String() ?? '';

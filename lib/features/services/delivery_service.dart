@@ -97,7 +97,9 @@ class DeliveryService extends ChangeNotifier {
   Future<void> _invalidateLocalSessionMarkers() async {
     try {
       await AuthUtils.clearTokens();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[DeliveryService] clearTokens error: $e');
+    }
     _agentId = null;
     _lastAuthTokenSnapshot = null;
     _sessionInvalidated = true;

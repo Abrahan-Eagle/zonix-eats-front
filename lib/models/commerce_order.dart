@@ -62,7 +62,7 @@ class CommerceOrder {
       profileId: json['profile_id'] ?? 0,
       commerceId: json['commerce_id'] ?? 0,
       deliveryType: json['delivery_type'] ?? 'pickup',
-      status: json['status'] ?? 'pending',
+      status: json['status'] ?? 'pending_payment',
       total: (json['total'] is String)
           ? double.tryParse(json['total']) ?? 0.0
           : (json['total'] ?? 0.0).toDouble(),
@@ -204,9 +204,11 @@ class CommerceOrder {
 
   bool get isPendingPayment => status == 'pending_payment';
   bool get isPaid => status == 'paid';
-  bool get isPreparing => status == 'preparing';
-  bool get isReady => status == 'ready';
-  bool get isOnWay => status == 'on_way';
+  bool get isPreparing => status == 'processing' || status == 'preparing';
+  bool get isProcessing => status == 'processing' || status == 'preparing';
+  bool get isReady => status == 'processing' || status == 'ready';
+  bool get isShipped => status == 'shipped';
+  bool get isOnWay => status == 'shipped' || status == 'on_way';
   bool get isDelivered => status == 'delivered';
   bool get isCancelled => status == 'cancelled';
 

@@ -1,249 +1,128 @@
 ---
 name: zonix-onboarding
-description: Flujo de registro y onboarding de Zonix Eats por rol. Pasos de registro, creación de perfiles, documentos, y configuración inicial.
-trigger: Cuando se trabaje con registro de usuarios, onboarding, creación de perfiles de comercio, delivery agents, o proceso de activación.
-scope: lib/features/screens/auth/, lib/features/screens/onboarding/, lib/features/services/auth_service.dart
+description: Flujo de registro y onboarding de Zonix Eats. Solo Buyer y Commerce van por onboarding movil. Delivery Company y Delivery Agent se registran desde paneles admin/company (modulos separados).
+trigger: Cuando se trabaje con registro de usuarios, onboarding, creacion de perfiles, o proceso de activacion de Commerce.
+scope: lib/features/screens/auth/, lib/features/screens/onboarding/, lib/features/services/auth/
 author: Zonix Team
-version: 2.0
+version: 3.0
+updated: 2026-03-31
 ---
 
-# 🚀 Onboarding - Zonix Eats (Flutter)
+# Onboarding - Zonix Eats (Flutter)
 
-## Roles (Terminología Estándar)
+## Roles del sistema (6)
 
-| Nivel | Código en BD | Nombre Estándar | Alias aceptados            |
-| ----- | ------------ | --------------- | -------------------------- |
-| 0     | `users`      | **Buyer**       | Comprador, Cliente         |
-| 1     | `commerce`   | **Commerce**    | Comercio, Restaurante      |
-| 2     | `delivery`   | **Delivery**    | Delivery Agent, Repartidor |
-| 3     | `admin`      | **Admin**       | Administrador              |
+| Codigo en BD       | Nombre Estandar     | Onboarding movil? | Como se registra |
+| ------------------ | ------------------- | ----------------- | ---------------- |
+| `users`            | **Buyer**           | SI (2 pasos)      | Google OAuth o email |
+| `commerce`         | **Commerce**        | SI (4 pasos)      | Google OAuth o email + aprobacion admin |
+| `delivery_company` | **Delivery Company**| NO                | Admin envia link invitacion, empresa se registra, admin aprueba |
+| `delivery_agent`   | **Delivery Agent**  | NO                | Company crea agente o envia link, company aprueba |
+| `delivery`         | **Delivery**        | NO (no MVP)       | Repartidor autonomo, pendiente de implementar |
+| `admin`            | **Admin**           | NO                | Creado internamente |
 
-## 1. Flujo de Registro por Rol
+## 1. Flujo de Onboarding Movil
 
-### Buyer (Compradores)
-
-```
-Login/Register → Datos Básicos → Dirección → ¡Listo!
-```
-
-**Pasos:**
-
-1. **Registro:** Email + Password, o Google OAuth (`POST /api/auth/google`)
-2. **Datos básicos:** Nombre, apellido, teléfono (se actualiza Profile: `PUT /api/onboarding/{id}`)
-3. **Dirección:** Calle, ciudad, estado, país, coordenadas GPS
-4. **Activación automática:** El usuario puede comprar inmediatamente
-
-### Commerce (Restaurantes/Comercios)
+### Buyer (2 pasos)
 
 ```
-Login → Datos Personales → Crear Comercio → Documentos → Logo → Activación por Admin
+Google Sign-In → Carrusel (4 pags) → Seleccionar "Soy Cliente"
+→ Paso 1: Datos personales + foto (obligatoria) + telefono
+→ Paso 2: Direccion (mapa + GPS)
+→ PUT /api/onboarding/{id} (completed_onboarding=true, role=users)
+→ MainRouter (dashboard buyer)
 ```
 
-**Pasos:**
-
-1. **Registro:** Misma autenticación que users
-2. **Perfil:** Crear perfil con rol commerce (`POST /api/profiles/commerce`)
-3. **Datos del comercio:**
-   - `business_name` (requerido)
-   - `business_type` (requerido)
-   - `tax_id` (requerido — RIF)
-   - Categoría del comercio
-   - Horarios de operación
-4. **Documentos:** RIF, permisos sanitarios (`POST /api/documents`)
-5. **Logo:** Subir logo del comercio (`POST /api/commerce/logo`)
-6. **Activación:** Admin debe aprobar antes de activar
-
-### Delivery (Repartidores)
+### Commerce (4 pasos)
 
 ```
-Login → Datos Personales → Crear Perfil Delivery → Documentos → Vehículo → Activación por Admin
+Google Sign-In → Carrusel → Seleccionar "Soy Comercio"
+→ Paso 1: Datos personales + foto + telefono (igual que Buyer)
+→ Paso 2: Direccion personal
+→ Paso 3: Datos del comercio (nombre, telefono local, horario)
+→ Paso 4: Direccion del establecimiento
+→ PUT /api/onboarding/{id} (completed_onboarding=true, role=commerce)
+→ Commerce queda con status=pending_review
+→ Admin aprueba → status=approved → visible en busquedas
 ```
 
-**Pasos:**
+## 2. Flujos que NO van en onboarding movil
 
-1. **Registro:** Misma autenticación
-2. **Perfil:** Crear delivery agent (`POST /api/profiles/delivery-agent`)
-3. **Datos:**
-   - Nombre completo
-   - Cédula de identidad
-   - Teléfono
-4. **Documentos:**
-   - Cédula (foto frente y reverso)
-   - Licencia de conducir
-   - Registro del vehículo
-5. **Vehículo:** `vehicle_type` (requerido), `license_number` (requerido)
-6. **Activación:** Admin debe aprobar
+### Delivery Company (modulo dashboard admin)
+- Admin envia link de invitacion a la empresa.
+- La empresa se registra usando el link.
+- Admin revisa datos y aprueba/rechaza/edita.
+- Punto de acceso: dashboard admin (movil + web Blade).
 
-## 2. Tablas y Campos por Rol (DB Schemas)
-
-### Rol 0 (Comprador) — Onboarding
-
-| Tabla         | Campos a registrar                                                | Notas                                               |
-| ------------- | ----------------------------------------------------------------- | --------------------------------------------------- |
-| **profiles**  | `firstName`, `lastName`, `photo_users`                            | `user_id` lo asigna backend. `status` = notverified |
-| **phones**    | `operator_code_id`, `number` (7 dígitos), `is_primary = true`     | Front muestra selector de operador (0412, 0414…)    |
-| **addresses** | `street`, `latitude`, `longitude`, `city_id`, `is_default = true` | Opcionales: `house_number`, `postal_code`           |
-
-**Después:** middleName, secondLastName, date_of_birth, sex, maritalStatus, fcm_device_token, segunda dirección (entrega), payment_methods.
-
-### Rol 1 (Commerce) — Onboarding
-
-| Tabla         | Campos a registrar                                | Notas                                            |
-| ------------- | ------------------------------------------------- | ------------------------------------------------ |
-| **profiles**  | `firstName`, `lastName`, `photo_users`, `address` | Dirección del titular (texto)                    |
-| **phones**    | `operator_code_id`, `number`, `is_primary = true` | Helper crea Phone al registrar comercio          |
-| **commerces** | `business_name`, `business_type`, `tax_id`        | Opcional: `image`, `address`, `open`, `schedule` |
-
-**Después:** addresses (lat/lng del local), documents (RIF/fiscal), payment_methods (para recibir dinero), completar image/schedule.
-
-### Tabla `profiles` (esquema completo)
-
-| Campo                      | Tipo            | Onboarding | Notas                      |
-| -------------------------- | --------------- | ---------- | -------------------------- |
-| `firstName`                | string          | ✅ Req     |                            |
-| `lastName`                 | string          | ✅ Req     |                            |
-| `photo_users`              | string nullable | ✅ Req     | Required para crear orden  |
-| `middleName`               | string nullable | Después    |                            |
-| `secondLastName`           | string nullable | Después    |                            |
-| `date_of_birth`            | date nullable   | Después    |                            |
-| `sex`                      | enum (F,M,O)    | Opcional   | default M                  |
-| `maritalStatus`            | enum            | Opcional   | default single             |
-| `status`                   | enum            | Backend    | notverified → completeData |
-| `fcm_device_token`         | string nullable | Después    | Al usar la app             |
-| `notification_preferences` | json nullable   | Después    |                            |
-
-### Tabla `phones` (esquema completo)
-
-| Campo              | Tipo      | Notas                                |
-| ------------------ | --------- | ------------------------------------ |
-| `profile_id`       | FK        | Backend lo asigna                    |
-| `operator_code_id` | FK        | Ref a `operator_codes` (0412, 0414…) |
-| `number`           | string(7) | Solo la parte local                  |
-| `is_primary`       | boolean   | default false, onboarding = true     |
-| `status`           | boolean   | default true                         |
-| `approved`         | boolean   | default false, para verificación     |
-
-### Tabla `addresses` (esquema completo)
-
-| Campo          | Tipo          | Notas                                     |
-| -------------- | ------------- | ----------------------------------------- |
-| `profile_id`   | FK            | Backend lo asigna                         |
-| `street`       | string        | Requerido                                 |
-| `house_number` | string null   | Opcional                                  |
-| `postal_code`  | string null   | Opcional                                  |
-| `latitude`     | decimal(10,7) | Para geolocalización                      |
-| `longitude`    | decimal(10,7) | Para geolocalización                      |
-| `city_id`      | FK cities     | Requiere catálogo cities>states>countries |
-| `is_default`   | boolean       | true = casa, false = entrega              |
-| `status`       | enum          | notverified, completeData, etc.           |
+### Delivery Agent (modulo dashboard company)
+- La Delivery Company puede crear agentes directamente desde su panel.
+- O puede enviar un link al repartidor para que se registre.
+- La empresa revisa datos y aprueba/rechaza.
+- Punto de acceso: dashboard delivery company.
 
 ## 3. API Endpoints de Onboarding
 
-### Autenticación:
-
+### Autenticacion (publicas, con throttle)
 ```
-POST /api/auth/register   → { name, email, password, password_confirmation }
+POST /api/auth/register   → { name, email, password, password_confirmation, role }
 POST /api/auth/login      → { email, password }
-POST /api/auth/google     → { id_token }
-POST /api/auth/logout     → (auth:sanctum)
-POST /api/auth/refresh    → Refresh token
+POST /api/auth/google     → { id_token } (crea User si no existe, completed_onboarding=false)
 ```
 
-### Perfil y Onboarding:
-
+### Cierre de onboarding (auth:sanctum)
 ```
-PUT  /api/onboarding/{id} → Actualizar datos de onboarding
-GET  /api/profile         → Ver perfil actual
-PUT  /api/profile         → Actualizar perfil
-POST /api/profiles        → Crear perfil básico
-POST /api/profiles/commerce       → Crear perfil de comercio
-POST /api/profiles/delivery-agent → Crear perfil de delivery
-POST /api/profiles/add-commerce   → Agregar comercio a perfil existente
+PUT /api/onboarding/{id}  → { completed_onboarding: true, role?: "users"|"commerce" }
 ```
+IMPORTANTE: Este endpoint SOLO acepta `completed_onboarding` (boolean, required) y `role` (opcional, in:users,commerce). NO acepta datos de perfil.
 
-### Teléfonos:
-
+### Creacion de datos durante onboarding (auth:sanctum)
 ```
-GET  /api/phones              → Listar teléfonos
-GET  /api/phones/operator-codes → Códigos de operador (Venezuela)
-POST /api/phones              → Agregar teléfono
-PUT  /api/phones/{id}         → Actualizar
-DELETE /api/phones/{id}       → Eliminar
+POST /api/profiles          → Crear perfil (firstName, lastName, photo_users, etc.)
+POST /api/profiles/add-commerce → Crear comercio asociado a perfil existente
+POST /api/phones            → Crear telefono (operator_code_id, number)
+POST /api/addresses         → Crear direccion (street, city_id, latitude, longitude)
+GET  /api/profile           → Ver perfil del usuario autenticado
+PUT  /api/profile           → Actualizar perfil del usuario autenticado
 ```
 
-### Direcciones:
+## 4. Archivos clave (Flutter)
 
-```
-GET    /api/addresses     → Listar direcciones
-POST   /api/addresses     → Crear dirección
-PUT    /api/addresses/{id} → Actualizar dirección
-DELETE /api/addresses/{id} → Eliminar dirección
-POST   /api/addresses/getCountries       → Obtener países
-POST   /api/addresses/get-states-by-country → Estados por país
-POST   /api/addresses/get-cities-by-state   → Ciudades por estado
-```
+| Archivo | Responsabilidad |
+|---------|----------------|
+| `lib/features/screens/auth/sign_in_screen.dart` | Google Sign-In, bifurcacion onboarding vs MainRouter |
+| `lib/features/screens/onboarding/onboarding_screen.dart` | Carrusel 4 paginas |
+| `lib/features/screens/onboarding/onboarding_page3.dart` | Seleccion de rol (users / commerce) |
+| `lib/features/screens/onboarding/client_onboarding_flow.dart` | Flujo completo Buyer (2 pasos) y Commerce (4 pasos, via isCommerce) |
+| `lib/features/screens/onboarding/commerce_onboarding_flow.dart` | Wrapper que extiende ClientOnboardingFlow con isCommerce=true |
+| `lib/features/screens/onboarding/onboarding_service.dart` | PUT /api/onboarding/{id} |
+| `lib/features/screens/onboarding/onboarding_provider.dart` | Estado en memoria (paso, rol, datos, foto) |
 
-### Documentos:
+## 5. Tablas involucradas
 
-```
-GET    /api/documents     → Listar documentos del perfil
-POST   /api/documents     → Subir nuevo documento
-GET    /api/documents/{id} → Ver documento
-PUT    /api/documents/{id} → Actualizar documento
-DELETE /api/documents/{id} → Eliminar documento
-```
+| Tabla | Campos de onboarding | FK |
+|-------|---------------------|-----|
+| `users` | `completed_onboarding` (bool), `role` (enum 6 valores) | - |
+| `profiles` | `firstName`, `lastName`, `photo_users`, `date_of_birth`, `sex` | `user_id` |
+| `phones` | `operator_code_id`, `number` (7 digitos), `is_primary` | `profile_id` |
+| `addresses` | `street`, `house_number`, `postal_code`, `city_id`, `latitude`, `longitude`, `is_default` | `profile_id` |
+| `commerces` | `business_name`, `schedule`, `status` (pending_review/approved/rejected/suspended) | `profile_id` |
 
-## 4. Teléfonos Venezuela
+Campos legacy a ignorar: `profiles.address` (usar tabla `addresses`), `profiles.phone` (accessor que lee de `phones`).
 
-Operadoras soportadas (tabla `operator_codes`):
+## 6. Reglas de negocio
 
-- **0412** — Digitel
-- **0414** — Movistar
-- **0424** — Movistar
-- **0416** — Movilnet
-- **0426** — Movilnet
-
-**Patrón en Flutter:** Selector de operador (dropdown) + campo de 7 dígitos.
-
-## 5. Reglas de Negocio del Onboarding
-
-1. **Un usuario puede tener MÚLTIPLES roles** (ej: ser buyer Y commerce)
-2. **Commerce puede tener MÚLTIPLES comercios** (multi-negocio)
-3. **Solo Admin activa** perfiles Commerce y Delivery
-4. **Google OAuth** crea el usuario automáticamente si no existe
-5. **Tokens** se generan con Laravel Sanctum y se guardan en SecureStorage
-6. **El onboarding es progresivo** — funcionalidades básicas disponibles mientras completa pasos
-7. **Teléfono unificado en tabla `phones`** — ya no se usa `profiles.phone` (deprecado). Se lee vía accessor del perfil
-8. **Dirección `profiles.address`** es legacy — dirección canónica es tabla `addresses`
-
-## 6. Patrón de Service en Flutter
-
-```dart
-class AuthService {
-    Future<Map<String, dynamic>> login(String email, String password) async {
-        final response = await http.post(
-            Uri.parse('${AppConfig.apiUrl}/auth/login'),
-            body: { 'email': email, 'password': password },
-        );
-        await _storage.write(key: 'auth_token', value: data['token']);
-        return data;
-    }
-
-    Future<Map<String, dynamic>> googleLogin() async {
-        final googleUser = await GoogleSignIn().signIn();
-        final googleAuth = await googleUser.authentication;
-        final response = await http.post(
-            Uri.parse('${AppConfig.apiUrl}/auth/google'),
-            body: { 'id_token': googleAuth.idToken },
-        );
-        return data;
-    }
-}
-```
+1. Cada usuario tiene **un unico rol fijo** (no multi-rol).
+2. Commerce necesita **aprobacion admin** para operar (status en tabla commerces).
+3. Commerce con `pending_review` puede configurar todo (productos, horarios) pero NO aparece en busquedas de buyers.
+4. Google OAuth crea User automaticamente si no existe (`completed_onboarding = false`).
+5. **Foto de perfil es obligatoria** para avanzar en el onboarding (bloquea paso 1).
+6. Telefono unificado en tabla `phones` (no en `profiles.phone`).
+7. Profile se crea DURANTE el onboarding, no en el registro.
 
 ## 7. Cross-references
 
-- **Estados de orden:** `zonix-order-lifecycle` § 1-2
-- **Patrones API:** `zonix-api-patterns` § 1 (response format)
-- **Eventos al registrar:** `zonix-realtime-events` § 7 (fcm_device_token)
-- **Pagos post-onboarding:** `zonix-payments` § 3 (payment_methods polimórfico)
+- **Estados de orden:** `zonix-order-lifecycle`
+- **Patrones API:** `zonix-api-patterns` (response format)
+- **Eventos FCM:** `zonix-realtime-events` (fcm_device_token)
+- **Pagos post-onboarding:** `zonix-payments` (payment_methods)
+- **UI patterns:** `zonix-ui-design` (colores, cards, botones)

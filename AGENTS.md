@@ -18,17 +18,20 @@
 | **Lenguaje**             | Dart 3.5.0+                              |
 | **Versión**              | 1.0.0                                    |
 | **Estado**               | ✅ MVP Completado - En desarrollo activo |
-| **Archivos Dart**        | 180                                      |
-| **Pantallas**            | 69                                       |
-| **Servicios**            | 49                                       |
+| **Archivos Dart**        | 183                                      |
+| **Pantallas**            | 79                                       |
+| **Servicios**            | 32                                       |
 | **Tests**                | 167 pasaron ✅, 1 omitido, 0 fallaron    |
 | **Plataformas**          | Android + iOS                            |
-| **Última actualización** | 27 Marzo 2026                            |
+| **Última actualización** | 31 Marzo 2026                            |
 
 ### Cambios recientes (documentar aquí los avances)
 
+- **31 Mar 2026:** Corrección integral de bugs (frontend): (1) onboarding commerce ahora exige `house_number` en paso 4 (validator + payload limpio), (2) `AddressService` mejora parseo de errores backend por campo y elimina falso éxito por `409` con substring, (3) `client_onboarding_flow` separa operador telefónico personal vs comercio para evitar contaminación de payload, (4) login social endurecido: navegación solo si sesión backend queda autenticada (`isAuthenticated` + `userId` válido), (5) `GoogleSignInService` evita persistir token local antes de confirmar backend. Certificación: `flutter test` completo 167 OK / 1 skip.
+- **31 Mar 2026:** Cierre módulo Onboarding Buyer+Commerce (frontend): (1) contrato de identidad alineado para onboarding (`createAddress`/`createDocument` usan `profileId` canónico), (2) en commerce onboarding ya no se silencian fallos críticos de CI/teléfono del comercio, evitando completar flujo con datos incompletos, (3) `OnboardingService` mejora propagación de errores HTTP/backend para feedback real. Verificación: `flutter test test/features/screens/onboarding` OK.
+- **31 Mar 2026:** Diagnóstico y remediación: (1) Modelo `Order` y `CommerceOrder` — default `'pending_payment'`, getters alineados al enum canónico (backward-compatible con legacy). (2) `commerce_order_service` — filtros de estado corregidos a `processing`/`shipped`. (3) ~18 dependencias muertas eliminadas de `pubspec.yaml`. (4) Catches vacíos reemplazados con `debugPrint` en 10 servicios. (5) Métricas AGENTS.md actualizadas a conteos reales.
 - **27 Mar 2026:** Cierre diagnóstico UX/rendimiento: (1) `OrderConfirmationPage` — contenido en `SingleChildScrollView` + lista con `shrinkWrap`/`NeverScrollableScrollPhysics`, `SafeArea` inferior único para CTAs (evita RenderFlex overflow en pantallas chicas/teclado). (2) `UserProvider._registerFcmToken` — si no hay `fcm_token` en almacenamiento, intenta `FirebaseMessaging.instance.getToken()` (no web) y persiste antes de registrar en API. (3) `MainRouter` — cache del `Future` de `getUserDetails()` en estado, refresco solo al cambiar rol; menos rebuilds del `FutureBuilder`. (4) `main.dart` — cuerpo del router envuelto en `AppOfflineBanner`. (5) Widgets reutilizables: `app_offline_banner.dart`, `app_skeleton.dart`, `app_empty_state.dart`. (6) Ajustes relacionados en órdenes commerce/delivery (Pusher `OrderPendingAssignment`, haptics, tabs con contadores, botones ~56px en rutas), `order_detail` / `current_order_detail`, `checkout_page`. Verificación: `flutter analyze` sin issues, `flutter test` 167 OK / 1 skip.
-- **26 Mar 2026:** Limpieza completa todos los roles + flujo pickup: (1) Bugs corregidos: AdminService duplicado en admin_users_page, context.read en initState de _AgentsList, DeliveryService() local en qr_scanner y incoming_order_dialog, ScaffoldMessenger tras pop en admin_orders/disputes, filtros de rol incompletos en admin_users. (2) Placeholders cerrados: botón "Ver todo" eliminado, eliminar comercio redirige a soporte, zonas commerce como vista solo lectura, historial notificaciones mejorado. (3) ~1100 Colors.* reemplazados por AppColors en ~70 archivos. (4) Contraste adaptivo en restaurants_page, URL soporte en AppConfig. (5) Fix overflow en network_image_with_fallback (fallback compacto <=80px). (6) Sonido en notificaciones Pusher: showLocalNotification() como backup de FCM. (7) Flujo pickup buyer: modelo Order con isPickup/isDeliveryOrder/commerceName/commerceAddress; 4 pantallas adaptadas (OrderDetailPage, CurrentOrderDetailPage, OrderHistoryDetailPage, OrderConfirmationPage) para mostrar "Retiro en tienda" sin mapa/repartidor. Tests: 167 frontend OK, 269 backend OK, 0 issues en analyze.
+- **26 Mar 2026:** Limpieza completa todos los roles + flujo pickup: (1) Bugs corregidos: AdminService duplicado en admin_users_page, context.read en initState de \_AgentsList, DeliveryService() local en qr_scanner y incoming_order_dialog, ScaffoldMessenger tras pop en admin_orders/disputes, filtros de rol incompletos en admin_users. (2) Placeholders cerrados: botón "Ver todo" eliminado, eliminar comercio redirige a soporte, zonas commerce como vista solo lectura, historial notificaciones mejorado. (3) ~1100 Colors.\* reemplazados por AppColors en ~70 archivos. (4) Contraste adaptivo en restaurants_page, URL soporte en AppConfig. (5) Fix overflow en network_image_with_fallback (fallback compacto <=80px). (6) Sonido en notificaciones Pusher: showLocalNotification() como backup de FCM. (7) Flujo pickup buyer: modelo Order con isPickup/isDeliveryOrder/commerceName/commerceAddress; 4 pantallas adaptadas (OrderDetailPage, CurrentOrderDetailPage, OrderHistoryDetailPage, OrderConfirmationPage) para mostrar "Retiro en tienda" sin mapa/repartidor. Tests: 167 frontend OK, 269 backend OK, 0 issues en analyze.
 - **20 Mar 2026:** Jarvis — Backlog producto/técnico documentado en `docs/active_context.md` (alineado con backend: backlog + prioridad sugerida ETA / rutas / tarifa). Sin cambios de código.
 - **19 Mar 2026:** Subida a dev: commits de cierre comprobante (Commerce) y feat Pusher Streams, notificaciones, auth, mejoras Android/iOS (google-services, sonido notificación, package com.zonix.eats). Documentación actualizada en AGENTS.md y active_context.
 - **19 Mar 2026:** Cierre flujo comprobante (Commerce): en detalle de orden se quitaron los enlaces "Ver comprobante" y "Ver comprobante (PDF)" (se mantiene imagen táctil y diálogo; PDF solo icono + texto). Botones Validar/Rechazar solo se muestran si la orden está en `pending_payment`; si la orden está cancelada no se muestran. Al rechazar el pago, tras éxito de la API se hace `Navigator.pop(context)` para volver al dashboard; si la API devuelve 400 (orden ya cancelada), se recarga la orden y también se hace pop. Eliminado import `url_launcher`. Archivo: `commerce_order_detail_page.dart`.
@@ -119,39 +122,39 @@ flutter clean && flutter pub get     # Reset completo
 
 ### Custom Skills
 
-| Skill                   | Descripción                         | Ruta                                                                                           |
-| ----------------------- | ----------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `zonix-onboarding`      | Flujo de registro por rol, pasos    | [.agents/skills/zonix-onboarding/SKILL.md](.agents/skills/zonix-onboarding/SKILL.md)           |
-| `zonix-order-lifecycle` | Estados de orden, transiciones      | [.agents/skills/zonix-order-lifecycle/SKILL.md](.agents/skills/zonix-order-lifecycle/SKILL.md) |
-| `zonix-realtime-events` | Pusher, FCM, notificaciones push    | [.agents/skills/zonix-realtime-events/SKILL.md](.agents/skills/zonix-realtime-events/SKILL.md) |
-| `zonix-ui-design`       | Paleta, cards, layouts, componentes | [.agents/skills/zonix-ui-design/SKILL.md](.agents/skills/zonix-ui-design/SKILL.md)             |
-| `context-updater`       | Resumir sesión en docs/active_context  | [.agents/skills/context-updater/SKILL.md](.agents/skills/context-updater/SKILL.md)             |
-| `documentar-avances`   | Proponer texto para Cambios recientes | [.agents/skills/documentar-avances/SKILL.md](.agents/skills/documentar-avances/SKILL.md)     |
+| Skill                   | Descripción                           | Ruta                                                                                           |
+| ----------------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `zonix-onboarding`      | Flujo de registro por rol, pasos      | [.agents/skills/zonix-onboarding/SKILL.md](.agents/skills/zonix-onboarding/SKILL.md)           |
+| `zonix-order-lifecycle` | Estados de orden, transiciones        | [.agents/skills/zonix-order-lifecycle/SKILL.md](.agents/skills/zonix-order-lifecycle/SKILL.md) |
+| `zonix-realtime-events` | Pusher, FCM, notificaciones push      | [.agents/skills/zonix-realtime-events/SKILL.md](.agents/skills/zonix-realtime-events/SKILL.md) |
+| `zonix-ui-design`       | Paleta, cards, layouts, componentes   | [.agents/skills/zonix-ui-design/SKILL.md](.agents/skills/zonix-ui-design/SKILL.md)             |
+| `context-updater`       | Resumir sesión en docs/active_context | [.agents/skills/context-updater/SKILL.md](.agents/skills/context-updater/SKILL.md)             |
+| `documentar-avances`    | Proponer texto para Cambios recientes | [.agents/skills/documentar-avances/SKILL.md](.agents/skills/documentar-avances/SKILL.md)       |
 
 ---
 
 ## Auto-invoke Skills
 
-| Acción                                 | Skill                            |
-| -------------------------------------- | -------------------------------- |
-| Crear/modificar pantallas o widgets    | `flutter-expert`                 |
-| Crear/modificar servicios              | `flutter-expert`                 |
-| Diseñar UI/UX de pantallas             | `ui-ux-pro-max`                  |
-| Implementar diseño responsivo          | `responsive-design`              |
-| Refactorizar arquitectura              | `clean-architecture`             |
-| Funcionalidades específicas de mobile  | `mobile-developer`               |
-| Crear o modificar tests                | `test-driven-development`        |
-| Debuggear un error                     | `systematic-debugging`           |
-| Revisar código de un PR                | `code-review-playbook`           |
-| Implementar animaciones o transiciones | `flutter-animations`             |
-| Hacer git commit                       | `git-commit`                     |
-| Implementar registro/onboarding        | `zonix-onboarding` (custom)      |
-| Trabajar con estados/flujo de órdenes  | `zonix-order-lifecycle` (custom) |
-| Implementar Pusher o notificaciones    | `zonix-realtime-events` (custom) |
-| Diseñar/construir UI o componentes     | `zonix-ui-design` (custom)       |
-| Crear nuevas skills para el proyecto   | `skill-creator`                  |
-| Cerrar sesión con cambios relevantes  | `context-updater` (actualizar docs/active_context.md) |
-| Finalizar tarea y documentar avances | `documentar-avances` (proponer Cambios recientes)     |
+| Acción                                 | Skill                                                 |
+| -------------------------------------- | ----------------------------------------------------- |
+| Crear/modificar pantallas o widgets    | `flutter-expert`                                      |
+| Crear/modificar servicios              | `flutter-expert`                                      |
+| Diseñar UI/UX de pantallas             | `ui-ux-pro-max`                                       |
+| Implementar diseño responsivo          | `responsive-design`                                   |
+| Refactorizar arquitectura              | `clean-architecture`                                  |
+| Funcionalidades específicas de mobile  | `mobile-developer`                                    |
+| Crear o modificar tests                | `test-driven-development`                             |
+| Debuggear un error                     | `systematic-debugging`                                |
+| Revisar código de un PR                | `code-review-playbook`                                |
+| Implementar animaciones o transiciones | `flutter-animations`                                  |
+| Hacer git commit                       | `git-commit`                                          |
+| Implementar registro/onboarding        | `zonix-onboarding` (custom)                           |
+| Trabajar con estados/flujo de órdenes  | `zonix-order-lifecycle` (custom)                      |
+| Implementar Pusher o notificaciones    | `zonix-realtime-events` (custom)                      |
+| Diseñar/construir UI o componentes     | `zonix-ui-design` (custom)                            |
+| Crear nuevas skills para el proyecto   | `skill-creator`                                       |
+| Cerrar sesión con cambios relevantes   | `context-updater` (actualizar docs/active_context.md) |
+| Finalizar tarea y documentar avances   | `documentar-avances` (proponer Cambios recientes)     |
 
 ---
 
@@ -718,4 +721,4 @@ FORMATO DE SALIDA:
 
 **Documentación completa:** Ver `README.md`
 **Backend API:** Ver `zonix-eats-back/AGENTS.md`
-**Última actualización:** 19 Marzo 2026
+**Última actualización:** 31 Marzo 2026

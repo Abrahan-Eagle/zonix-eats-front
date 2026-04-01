@@ -24,23 +24,25 @@ import 'package:zonix/features/DomainProfiles/Addresses/models/models.dart';
 import 'package:zonix/features/DomainProfiles/Addresses/api/adresse_service.dart';
 import 'package:zonix/features/DomainProfiles/Phones/models/phone.dart';
 import 'package:zonix/features/DomainProfiles/Phones/api/phone_service.dart';
+import 'package:zonix/features/DomainProfiles/Documents/api/document_service.dart';
+import 'package:zonix/features/DomainProfiles/Documents/models/document.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/main.dart';
 
-/// Flujo completo de onboarding para CLIENTE (`users`).
+/// Flujo de onboarding para Buyer (2 pasos) y Commerce (4 pasos).
 ///
-/// - Paso 1: datos personales mínimos (solo memoria).
-/// - Paso 2: dirección principal (solo memoria + GPS para autocompletar).
-/// - Paso 3: teléfono de contacto (solo memoria).
+/// **Buyer (`isCommerce = false`):**
+/// - Paso 1: datos personales + foto (obligatoria) + teléfono.
+/// - Paso 2: dirección principal (mapa + GPS).
 ///
-/// No se escribe nada en la base de datos hasta que el usuario pulsa "Finalizar"
-/// en el último paso. Hasta entonces todo se guarda solo en memoria
-/// (OnboardingProvider y controladores). Al finalizar se hacen las únicas
-/// llamadas de escritura al backend: crear Profile, Address, Phone y marcar
-/// completed_onboarding.
+/// **Commerce (`isCommerce = true`):**
+/// - Pasos 1-2: igual que Buyer.
+/// - Paso 3: datos del comercio (nombre, teléfono local, horario).
+/// - Paso 4: dirección del establecimiento.
 ///
-/// El parámetro [isCommerce] permite reutilizar este flujo para el rol
-/// comerciante, cambiando solo el paso final (navegación).
+/// Todo se guarda en memoria (OnboardingProvider) hasta el submit final.
+/// Al finalizar se crean: Profile, Phone, Address y opcionalmente Commerce
+/// + dirección de comercio, y se marca `completed_onboarding = true`.
 class ClientOnboardingFlow extends StatefulWidget {
   const ClientOnboardingFlow({super.key, this.isCommerce = false});
 
@@ -111,7 +113,8 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
   // STEP 1 incluye teléfono; mismo _operatorCodes se usa en último formulario (Teléfono del local)
   final _phoneController = TextEditingController();
   List<Map<String, dynamic>> _operatorCodes = [];
-  Map<String, dynamic>? _selectedOperator;
+  Map<String, dynamic>? _selectedPersonalOperator;
+  Map<String, dynamic>? _selectedCommerceOperator;
   bool _isLoadingOperators = false;
   bool _operatorCodesReloadedForStep3 = false;
 
@@ -201,9 +204,9 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
     final provider = context.read<OnboardingProvider>();
     if (provider.street == null && provider.houseNumber == null && provider.postalCode == null) return;
     setState(() {
-      if (provider.street != null) _streetController.text = provider.street!;
-      if (provider.houseNumber != null) _houseNumberController.text = provider.houseNumber!;
-      if (provider.postalCode != null) _postalCodeController.text = provider.postalCode!;
+      if (provider.street != null) _streetCommerceController.text = provider.street!;
+      if (provider.houseNumber != null) _houseNumberCommerceController.text = provider.houseNumber!;
+      if (provider.postalCode != null) _postalCodeCommerceController.text = provider.postalCode!;
       if (provider.latitude != null) _latitude = provider.latitude;
       if (provider.longitude != null) _longitude = provider.longitude;
       _step4PrefilledFromUser = true;
@@ -419,13 +422,15 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       setState(() {
         _operatorCodes = codes.isNotEmpty ? codes : _fallbackOperatorCodes();
         // Que el usuario esté obligado a elegir un código explícitamente.
-        _selectedOperator = null;
+        _selectedPersonalOperator = null;
+        _selectedCommerceOperator = null;
       });
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _operatorCodes = _fallbackOperatorCodes();
-        _selectedOperator = null;
+        _selectedPersonalOperator = null;
+        _selectedCommerceOperator = null;
       });
     } finally {
       if (mounted) {
@@ -828,6 +833,14 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         );
         return;
       }
+      if (_selectedPhoto == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('La foto de perfil es obligatoria para continuar.'),
+          ),
+        );
+        return;
+      }
 
       final provider = context.read<OnboardingProvider>();
       provider.setProfileData(
@@ -1001,12 +1014,12 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         cityId: onboarding.cityId ?? _cityId ?? 0,
       );
       final addressService = AddressService();
-      await addressService.createAddress(address, userId);
+      await addressService.createAddress(address, profileId);
 
       // 3) Crear teléfono (exactamente 7 dígitos)
       final number = _phoneController.text.trim();
       if (number.length == 7) {
-        final op = _selectedOperator ?? (_operatorCodes.isNotEmpty ? _operatorCodes.first : null);
+        final op = _selectedPersonalOperator ?? (_operatorCodes.isNotEmpty ? _operatorCodes.first : null);
         final operatorId = op?['id'] ?? 0;
         final operatorName = op?['code']?.toString() ?? op?['name']?.toString() ?? '';
 
@@ -1157,12 +1170,12 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         cityId: onboarding.cityId ?? _cityId ?? 0,
       );
       final addressService = AddressService();
-      await addressService.createAddress(addressOwner, userId);
+      await addressService.createAddress(addressOwner, profileId);
 
       // 3) Teléfono
       final number = _phoneController.text.trim();
       if (number.length == 7) {
-        final op = _selectedOperator ?? (_operatorCodes.isNotEmpty ? _operatorCodes.first : null);
+        final op = _selectedPersonalOperator ?? (_operatorCodes.isNotEmpty ? _operatorCodes.first : null);
         final operatorId = op?['id'] ?? 0;
         final operatorName = op?['code']?.toString() ?? op?['name']?.toString() ?? '';
         if (operatorId > 0) {
@@ -1183,10 +1196,10 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       }
 
       // 4) Crear comercio (tabla commerces; la dirección va en addresses con role commerce)
-      final addressEstablishmentStr = '${_streetController.text.trim()} ${_houseNumberController.text.trim()}'.trim();
+      final addressEstablishmentStr = '${_streetCommerceController.text.trim()} ${_houseNumberCommerceController.text.trim()}'.trim();
       // Teléfono del comercio: mismo formato que el del usuario (0 + código + 7 dígitos)
       String commercePhone = _commercePhoneController.text.trim();
-      final opCommerce = _selectedOperator ?? (_operatorCodes.isNotEmpty ? _operatorCodes.first : null);
+      final opCommerce = _selectedCommerceOperator ?? (_operatorCodes.isNotEmpty ? _operatorCodes.first : null);
       final opCode = opCommerce?['code']?.toString();
       if (opCode != null && opCode.isNotEmpty && commercePhone.length == 7) {
         commercePhone = '0$opCode$commercePhone';
@@ -1200,9 +1213,8 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
               ? 'N/A'
               : _commerceTaxIdController.text.trim(),
           'address': addressEstablishmentStr,
-          'open': _commerceOpen,
+          'open': false,
           'schedule': _commerceSchedule.isEmpty ? '' : jsonEncode(_commerceSchedule),
-          'owner_ci': _commerceOwnerCiController.text.trim(),
         },
       );
       if (commerceResult['success'] != true) {
@@ -1215,12 +1227,53 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
               ? int.tryParse(commerceResult['data']['id'].toString())
               : null);
 
-      // 5) Dirección del establecimiento (formulario 4) en addresses con role commerce y commerce_id.
+      // 5) CI del titular → tabla documents (type=ci)
+      final ownerCi = _commerceOwnerCiController.text.trim();
+      if (ownerCi.isNotEmpty) {
+        final ciDigits = ownerCi.replaceAll(RegExp(r'\D'), '');
+        if (ciDigits.isEmpty) {
+          throw Exception('La cédula del titular no es válida.');
+        }
+        final doc = Document(
+          id: 0,
+          type: 'ci',
+          numberCi: ciDigits,
+          approved: false,
+          status: true,
+        );
+        await DocumentService().createDocument(doc, profileId);
+      }
+
+      // 6) Teléfono del comercio → tabla phones (context=commerce)
+      if (commerceId != null && commerceId > 0) {
+        final commercePhoneDigits = _commercePhoneController.text.trim();
+        final opCommerce = _selectedCommerceOperator ?? (_operatorCodes.isNotEmpty ? _operatorCodes.first : null);
+        final opId = opCommerce?['id'];
+        if (commercePhoneDigits.length == 7 && opId != null) {
+          final opName = opCommerce?['name']?.toString() ?? '';
+          final commercePhoneObj = Phone(
+            id: 0,
+            profileId: profileId,
+            operatorCodeId: opId is int ? opId : int.tryParse(opId.toString()) ?? 0,
+            operatorCodeName: opName,
+            number: commercePhoneDigits,
+            isPrimary: true,
+            status: true,
+            context: 'commerce',
+            commerceId: commerceId,
+          );
+          await PhoneService().createPhone(commercePhoneObj, userId);
+        } else {
+          throw Exception('El teléfono del comercio no es válido.');
+        }
+      }
+
+      // 7) Dirección del establecimiento (formulario 4) en addresses con role commerce y commerce_id.
       final addressEstablishment = Address(
         id: null,
-        street: _streetController.text.trim(),
-        houseNumber: _houseNumberController.text.trim().isEmpty ? '' : _houseNumberController.text.trim(),
-        postalCode: _postalCodeController.text.trim().isEmpty ? '' : _postalCodeController.text.trim(),
+        street: _streetCommerceController.text.trim(),
+        houseNumber: _houseNumberCommerceController.text.trim(),
+        postalCode: _postalCodeCommerceController.text.trim().isEmpty ? '' : _postalCodeCommerceController.text.trim(),
         latitude: _latitude ?? 0.0,
         longitude: _longitude ?? 0.0,
         status: 'notverified',
@@ -1229,7 +1282,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       );
       await addressService.createAddress(
         addressEstablishment,
-        userId,
+        profileId,
         role: 'commerce',
         commerceId: commerceId,
       );
@@ -1790,7 +1843,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                       SizedBox(
                         width: 100,
                         child: DropdownButtonFormField<Map<String, dynamic>>(
-                          initialValue: _selectedOperator,
+                          initialValue: _selectedPersonalOperator,
                           isExpanded: true,
                           dropdownColor: AppColors.grayDark,
                           decoration: InputDecoration(
@@ -1826,7 +1879,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                               .toList(),
                           validator: (v) => v == null ? 'Código' : null,
                           autovalidateMode: AutovalidateMode.onUserInteraction,
-                          onChanged: (v) => setState(() => _selectedOperator = v),
+                          onChanged: (v) => setState(() => _selectedPersonalOperator = v),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -2543,7 +2596,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                   Expanded(
                     flex: 1,
                     child: DropdownButtonFormField<Map<String, dynamic>>(
-                      initialValue: _selectedOperator,
+                      initialValue: _selectedCommerceOperator,
                       isExpanded: true,
                       dropdownColor: AppColors.grayDark,
                       icon: Icon(Icons.arrow_drop_down, color: AppColors.white.withValues(alpha: 0.6)),
@@ -2588,7 +2641,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                           .toList(),
                       validator: (v) => v == null ? 'Código' : null,
                       autovalidateMode: AutovalidateMode.onUserInteraction,
-                      onChanged: (v) => setState(() => _selectedOperator = v),
+                      onChanged: (v) => setState(() => _selectedCommerceOperator = v),
                     ),
                   ),
                   SizedBox(width: isSmall ? 12 : 16),
@@ -2614,136 +2667,6 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
                   ),
                 ],
               ),
-            SizedBox(height: isSmall ? 20 : 24),
-            // Sección: Estado de la tienda (card estilo Stitch 8)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              decoration: BoxDecoration(
-                color: AppColors.grayDark,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.black.withValues(alpha: 0.2),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppColors.blue.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: const Icon(Icons.door_front_door_outlined, color: AppColors.blue, size: 22),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Estado de la tienda',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.white,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Abierto para recibir pedidos',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: AppColors.white.withValues(alpha: 0.6),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Switch(
-                    value: _commerceOpen,
-                    onChanged: (v) => setState(() => _commerceOpen = v),
-                    activeThumbColor: AppColors.blue,
-                    activeTrackColor: AppColors.blue.withValues(alpha: 0.5),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: isSmall ? 12 : 16),
-            // Sección: Horarios de atención (expandable estilo Stitch 8)
-            Theme(
-              data: Theme.of(context).copyWith(dividerColor: AppColors.transparent),
-              child: ExpansionTile(
-                tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                backgroundColor: AppColors.grayDark,
-                collapsedBackgroundColor: AppColors.grayDark,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                collapsedShape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Icon(Icons.schedule, color: AppColors.white.withValues(alpha: 0.7), size: 22),
-                ),
-                title: Text(
-                  'Horarios de atención',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.white,
-                  ),
-                ),
-                trailing: Icon(
-                  Icons.expand_more,
-                  color: AppColors.white.withValues(alpha: 0.6),
-                ),
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Edita el horario en el siguiente paso o desde tu panel de comercio.',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: AppColors.white.withValues(alpha: 0.6),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: double.infinity,
-                          child: TextButton(
-                            onPressed: () {},
-                            style: TextButton.styleFrom(
-                              backgroundColor: AppColors.blue.withValues(alpha: 0.15),
-                              foregroundColor: AppColors.blue,
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                            child: Text(
-                              'Editar Horario Semanal',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
             SizedBox(height: isSmall ? 20 : 24),
             // Sección: Información de Pago (estilo Stitch 8)
             Text(
@@ -2845,7 +2768,7 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             const SizedBox(height: 12),
             _buildCommerceInput(
               icon: Icons.signpost_outlined,
-              controller: _streetController,
+              controller: _streetCommerceController,
               hint: 'Ej: Av. Principal, Local 1',
               validator: (v) {
                 if (v == null || v.trim().isEmpty) return 'Ingresa una dirección';
@@ -2856,13 +2779,17 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             const SizedBox(height: 12),
             _buildCommerceInput(
               icon: Icons.tag_outlined,
-              controller: _houseNumberController,
+              controller: _houseNumberCommerceController,
               hint: 'Número / Local',
+              validator: (v) {
+                if (v == null || v.trim().isEmpty) return 'Ingresa número o local';
+                return null;
+              },
             ),
             const SizedBox(height: 12),
             _buildCommerceInput(
               icon: Icons.markunread_mailbox_outlined,
-              controller: _postalCodeController,
+              controller: _postalCodeCommerceController,
               hint: 'Código postal',
               keyboardType: TextInputType.number,
             ),

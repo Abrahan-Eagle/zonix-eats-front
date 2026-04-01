@@ -24,6 +24,7 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
   bool _hasMore = true;
   String _search = '';
   bool? _filterOpen;
+  String? _filterStatus;
 
   @override
   void initState() {
@@ -60,6 +61,7 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
             page: 1,
             search: _search.isNotEmpty ? _search : null,
             open: _filterOpen,
+            status: _filterStatus,
           );
       final list = List<Map<String, dynamic>>.from(result['data'] ?? []);
       final lastPage = safeInt(result['last_page'], 1);
@@ -86,6 +88,7 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
             page: _page,
             search: _search.isNotEmpty ? _search : null,
             open: _filterOpen,
+            status: _filterStatus,
           );
       final list = List<Map<String, dynamic>>.from(result['data'] ?? []);
       final lastPage = safeInt(result['last_page'], 1);
@@ -113,6 +116,16 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
   }
 
   Color _openBadgeColor(bool open) => open ? AppColors.green : AppColors.red;
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'pending_review': return 'Pendiente de revisión';
+      case 'approved': return 'Aprobado';
+      case 'rejected': return 'Rechazado';
+      case 'suspended': return 'Suspendido';
+      default: return status;
+    }
+  }
 
   String _ownerName(Map<String, dynamic> c) {
     final profile = c['profile'] as Map<String, dynamic>?;
@@ -205,54 +218,97 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
                       safeString(commerce['category']),
                     ),
                     const SizedBox(height: 20),
+                    _detailRow(Icons.verified, 'Estado', _statusLabel(safeString(commerce['status'], 'approved'))),
+                    const SizedBox(height: 16),
+                    if (safeString(commerce['status']) == 'pending_review') ...[
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                try {
+                                  await context.read<AdminService>().updateCommerceApproval(id, 'approved');
+                                  if (!ctx.mounted) return;
+                                  Navigator.pop(ctx);
+                                  _loadData();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Comercio aprobado'), backgroundColor: AppColors.green),
+                                  );
+                                } catch (e) {
+                                  if (!ctx.mounted) return;
+                                  ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('Error: $e')));
+                                }
+                              },
+                              icon: const Icon(Icons.check, size: 18),
+                              label: const Text('Aprobar'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.green,
+                                foregroundColor: AppColors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () async {
+                                try {
+                                  await context.read<AdminService>().updateCommerceApproval(id, 'rejected', rejectionReason: 'Datos incompletos o incorrectos');
+                                  if (!ctx.mounted) return;
+                                  Navigator.pop(ctx);
+                                  _loadData();
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(content: Text('Comercio rechazado'), backgroundColor: AppColors.orange),
+                                  );
+                                } catch (e) {
+                                  if (!ctx.mounted) return;
+                                  ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('Error: $e')));
+                                }
+                              },
+                              icon: const Icon(Icons.close, size: 18),
+                              label: const Text('Rechazar'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.red,
+                                foregroundColor: AppColors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                    ],
                     Row(
                       children: [
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: _openBadgeColor(currentOpen)
-                                .withValues(alpha: 0.15),
+                            color: _openBadgeColor(currentOpen).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
                             currentOpen ? 'Abierto' : 'Cerrado',
-                            style: TextStyle(
-                              color: _openBadgeColor(currentOpen),
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: TextStyle(color: _openBadgeColor(currentOpen), fontWeight: FontWeight.w600),
                           ),
                         ),
                         const Spacer(),
                         ElevatedButton.icon(
                           onPressed: () async {
                             try {
-                              await context
-                                  .read<AdminService>()
-                                  .updateCommerceStatus(id, !currentOpen);
+                              await context.read<AdminService>().toggleCommerceOpen(id, !currentOpen);
                               setSheetState(() => currentOpen = !currentOpen);
                               _loadData();
                             } catch (e) {
                               if (!ctx.mounted) return;
-                              ScaffoldMessenger.of(ctx).showSnackBar(
-                                SnackBar(content: Text('Error: $e')),
-                              );
+                              ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('Error: $e')));
                             }
                           },
-                          icon: Icon(
-                            currentOpen ? Icons.lock : Icons.lock_open,
-                            size: 18,
-                          ),
+                          icon: Icon(currentOpen ? Icons.lock : Icons.lock_open, size: 18),
                           label: Text(currentOpen ? 'Cerrar' : 'Abrir'),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor:
-                                currentOpen ? AppColors.red : AppColors.green,
+                            backgroundColor: currentOpen ? AppColors.red : AppColors.green,
                             foregroundColor: AppColors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                         ),
                       ],
@@ -348,15 +404,36 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
               children: [
-                _filterChip('Todos', _filterOpen == null, () {
+                _filterChip('Todos', _filterStatus == null && _filterOpen == null, () {
+                  _filterStatus = null;
                   _onFilterChanged(null);
                 }),
                 const SizedBox(width: 8),
+                _filterChip('Pendientes', _filterStatus == 'pending_review', () {
+                  _filterStatus = 'pending_review';
+                  _filterOpen = null;
+                  _loadData();
+                }),
+                const SizedBox(width: 8),
+                _filterChip('Aprobados', _filterStatus == 'approved', () {
+                  _filterStatus = 'approved';
+                  _filterOpen = null;
+                  _loadData();
+                }),
+                const SizedBox(width: 8),
+                _filterChip('Rechazados', _filterStatus == 'rejected', () {
+                  _filterStatus = 'rejected';
+                  _filterOpen = null;
+                  _loadData();
+                }),
+                const SizedBox(width: 8),
                 _filterChip('Abiertos', _filterOpen == true, () {
+                  _filterStatus = null;
                   _onFilterChanged(true);
                 }),
                 const SizedBox(width: 8),
                 _filterChip('Cerrados', _filterOpen == false, () {
+                  _filterStatus = null;
                   _onFilterChanged(false);
                 }),
               ],
@@ -462,6 +539,7 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final name = safeString(commerce['business_name'], 'Sin nombre');
     final isOpen = commerce['open'] == true || commerce['open'] == 1;
+    final status = safeString(commerce['status'], 'approved');
     final owner = _ownerName(commerce);
 
     return GestureDetector(
@@ -507,21 +585,42 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
                   ],
                 ),
               ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _openBadgeColor(isOpen).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  isOpen ? 'Abierto' : 'Cerrado',
-                  style: TextStyle(
-                    color: _openBadgeColor(isOpen),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (status != 'approved')
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      margin: const EdgeInsets.only(bottom: 4),
+                      decoration: BoxDecoration(
+                        color: (status == 'pending_review' ? AppColors.orange : AppColors.red).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        status == 'pending_review' ? 'Pendiente' : status == 'rejected' ? 'Rechazado' : 'Suspendido',
+                        style: TextStyle(
+                          color: status == 'pending_review' ? AppColors.orange : AppColors.red,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: _openBadgeColor(isOpen).withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      isOpen ? 'Abierto' : 'Cerrado',
+                      style: TextStyle(
+                        color: _openBadgeColor(isOpen),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ],
           ),

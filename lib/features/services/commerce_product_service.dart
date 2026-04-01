@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../models/commerce_product.dart';
 import '../../config/app_config.dart';
@@ -190,7 +191,9 @@ class CommerceProductService {
           final errorData = jsonDecode(response.body);
           if (errorData['message'] != null) errorMsg += '\n${errorData['message']}';
           if (errorData['errors'] != null) errorMsg += '\n${errorData['errors'].toString()}';
-        } catch (_) {}
+        } catch (e) {
+          debugPrint('[CommerceProductService] createProduct parse error: $e');
+        }
         throw Exception(errorMsg);
       }
     } catch (e) {
@@ -255,7 +258,9 @@ class CommerceProductService {
           final errorData = jsonDecode(response.body);
           if (errorData['message'] != null) errorMsg += '\n${errorData['message']}';
           if (errorData['errors'] != null) errorMsg += '\n${errorData['errors'].toString()}';
-        } catch (_) {}
+        } catch (e) {
+          debugPrint('[CommerceProductService] updateProduct parse error: $e');
+        }
         throw Exception(errorMsg);
       }
     } catch (e) {

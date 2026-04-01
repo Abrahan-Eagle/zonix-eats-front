@@ -411,10 +411,11 @@ class AdminService extends ChangeNotifier {
   }
 
   // ---- Commerces ----
-  Future<Map<String, dynamic>> getCommerces({int page = 1, String? search, bool? open}) async {
+  Future<Map<String, dynamic>> getCommerces({int page = 1, String? search, bool? open, String? status}) async {
     final params = <String, String>{'page': '$page'};
     if (search != null && search.isNotEmpty) params['search'] = search;
     if (open != null) params['open'] = open ? '1' : '0';
+    if (status != null && status.isNotEmpty) params['status'] = status;
     final uri = Uri.parse('$baseUrl/api/admin/commerces').replace(queryParameters: params);
     final response = await http.get(uri, headers: await AuthHelper.getAuthHeaders());
     if (response.statusCode == 200) return Map<String, dynamic>.from(jsonDecode(response.body));
@@ -430,9 +431,23 @@ class AdminService extends ChangeNotifier {
     throw Exception('Error: ${response.statusCode}');
   }
 
-  Future<void> updateCommerceStatus(int id, bool open) async {
+  Future<void> updateCommerceApproval(int id, String status, {String? rejectionReason}) async {
+    final body = <String, dynamic>{'status': status};
+    if (rejectionReason != null && rejectionReason.isNotEmpty) {
+      body['rejection_reason'] = rejectionReason;
+    }
     final response = await http.put(
       Uri.parse('$baseUrl/api/admin/commerces/$id/status'),
+      headers: await AuthHelper.getAuthHeaders(),
+      body: jsonEncode(body),
+    );
+    if (response.statusCode == 200) { notifyListeners(); return; }
+    throw Exception('Error: ${response.statusCode}');
+  }
+
+  Future<void> toggleCommerceOpen(int id, bool open) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/api/admin/commerces/$id/toggle-open'),
       headers: await AuthHelper.getAuthHeaders(),
       body: jsonEncode({'open': open}),
     );

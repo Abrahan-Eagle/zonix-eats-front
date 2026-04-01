@@ -128,10 +128,41 @@ class AddressService {
     }
   }
 
-  /// Crea una dirección. [userId] es el user_id del usuario (el backend lo espera en profile_id).
+  /// Crea una dirección.
+  /// [profileId] debe ser el id real de profiles.id (canónico).
+  /// Por compatibilidad legacy, el backend también puede resolver por user_id.
   /// [role] opcional: 'users', 'commerce', 'delivery_company', 'delivery_agent', 'delivery', 'admin'.
   /// [commerceId] opcional: cuando la dirección es del establecimiento (role commerce), vincula a este comercio.
-  Future<void> createAddress(Address address, int userId,
+  String _extractApiErrorMessage(String responseBody) {
+    try {
+      final decoded = jsonDecode(responseBody);
+      if (decoded is Map<String, dynamic>) {
+        final message = decoded['message'];
+        if (message is String && message.trim().isNotEmpty) {
+          final errors = decoded['errors'];
+          if (errors is Map<String, dynamic>) {
+            final firstEntry = errors.entries.firstWhere(
+              (entry) => entry.value is List && (entry.value as List).isNotEmpty,
+              orElse: () => const MapEntry<String, dynamic>('', null),
+            );
+            if (firstEntry.key.isNotEmpty && firstEntry.value is List) {
+              final firstError = (firstEntry.value as List).first;
+              if (firstError is String && firstError.trim().isNotEmpty) {
+                return '$message ($firstError)';
+              }
+            }
+          }
+          return message;
+        }
+      }
+    } catch (_) {
+      // Si el body no es JSON, se usa fallback.
+    }
+
+    return responseBody;
+  }
+
+  Future<void> createAddress(Address address, int profileId,
       {String? role, int? commerceId}) async {
     final token = await _getToken();
     try {
@@ -150,7 +181,7 @@ class AddressService {
         body['commerce_id'] = commerceId;
         body['role'] = role ?? 'commerce';
       } else {
-        body['profile_id'] = userId;
+        body['profile_id'] = profileId;
         if (role != null && role.isNotEmpty) body['role'] = role;
       }
 
@@ -169,16 +200,10 @@ class AddressService {
       if (response.statusCode == 201) {
         return;
       }
-      if (response.statusCode == 409) {
-        final resBody = response.body;
-        if (resBody.contains('Ya tiene un registro guardado') ||
-            (resBody.isNotEmpty && resBody.contains('registro guardado'))) {
-          return;
-        }
-      }
+      final errorMessage = _extractApiErrorMessage(response.body);
       logger.e(
-          'Error al crear la dirección: ${response.statusCode} ${response.body}');
-      throw ApiException('al crear la dirección: ${response.body}');
+          'Error al crear la dirección: ${response.statusCode} $errorMessage');
+      throw ApiException('al crear la dirección: $errorMessage');
     } catch (e) {
       if (e is ApiException) rethrow;
       logger.e('Error en la solicitud de creación de dirección: $e');

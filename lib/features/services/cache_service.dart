@@ -260,7 +260,9 @@ class CacheService {
         'expiration': expiration.inMilliseconds,
       };
       await prefs.setString(_cachePrefix + key, json.encode(wrapper));
-    } catch (_) {}
+    } catch (e) {
+      _logger.w('[CacheService] set error: $e');
+    }
   }
 }
 

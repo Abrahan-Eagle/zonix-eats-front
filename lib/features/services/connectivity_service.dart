@@ -33,7 +33,9 @@ class ConnectivityService extends ChangeNotifier {
     try {
       final results = await _connectivity.checkConnectivity();
       _updateNetwork(results);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[ConnectivityService] init check error: $e');
+    }
     _sub = _connectivity.onConnectivityChanged.listen(_updateNetwork);
     // Defer first health-check 15s so it doesn't compete with initial data
     // fetches (products, profile, etc.) on slow networks.

@@ -34,7 +34,9 @@ class OrderService extends ChangeNotifier {
           return Map<String, dynamic>.from(data['data']);
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[OrderService] calculateDeliveryFee error: $e');
+    }
     return null;
   }
 
@@ -153,7 +155,9 @@ class OrderService extends ChangeNotifier {
           return Map<String, dynamic>.from(data['data']);
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[OrderService] getPaymentInfo error: $e');
+    }
     return null;
   }
 
@@ -511,7 +515,9 @@ class OrderService extends ChangeNotifier {
             }
           }
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[OrderService] uploadPaymentProof parse error: $e');
+      }
     }
     throw Exception(errMsg);
   }

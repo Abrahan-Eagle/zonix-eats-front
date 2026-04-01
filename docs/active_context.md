@@ -9,10 +9,10 @@
 
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
-- **Fecha:** 27 Marzo 2026
-- **Resumen:** Post-diagnóstico: overflow corregido en confirmación de pedido; registro FCM más robusto (fallback `getToken`); `MainRouter` sin recrear `Future` en cada rebuild; banner offline + widgets `app_skeleton` / `app_empty_state`; mejoras commerce/delivery (Pusher asignación, haptics, tabs con contadores, CTAs más táctiles).
-- **Áreas tocadas:** `order_confirmation_page.dart`, `user_provider.dart`, `main.dart`, `lib/widgets/app_*.dart`, `commerce_orders_page.dart`, `delivery_orders_page.dart`, `delivery_routes_page.dart`, `order_detail_page.dart`, `current_order_detail_page.dart`, `checkout_page.dart`.
-- **Próximos pasos sugeridos:** Si hace falta, `git push` de `dev` tras tu OK; seguir backlog en esta misma doc (ETA, tarifa delivery, aligerar `main.dart`).
+- **Fecha:** 31 Marzo 2026
+- **Resumen:** Corrección integral repo-wide en frontend con foco en onboarding y autenticación: bug `house_number` en commerce corregido, separación de estado de operador telefónico personal/comercio, login social con gate de sesión backend, y manejo de errores de dirección más explícito (sin falsos positivos por `409`).
+- **Áreas tocadas:** `lib/features/screens/onboarding/client_onboarding_flow.dart`, `lib/features/DomainProfiles/Addresses/api/adresse_service.dart`, `lib/features/screens/auth/sign_in_screen.dart`, `lib/features/services/auth/google_sign_in_service.dart`, `AGENTS.md`.
+- **Próximos pasos sugeridos:** Prueba manual en dispositivo del flujo Commerce completo (paso 4) validando mensajes de error por campo y navegación post-login; si hay clientes legacy, revisar compatibilidad con cambios de error parsing en direcciones.
 
 ---
 

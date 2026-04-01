@@ -20,7 +20,9 @@ class PaymentService extends ChangeNotifier {
         if (first is List && first.isNotEmpty) return first.first.toString();
         if (first is String) return first;
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('[PaymentService] error parse: $e');
+    }
     return 'Error ${response.statusCode}';
   }
 

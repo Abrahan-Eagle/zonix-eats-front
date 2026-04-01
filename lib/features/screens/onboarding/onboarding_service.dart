@@ -54,13 +54,19 @@ class OnboardingService {
         debugPrint("Onboarding completado con éxito.");
         logger.i("Onboarding completado con éxito.");
       } else {
-        // Manejo de error
         logger.e("Error al completar el onboarding: ${response.statusCode} - ${response.body}");
-        throw Exception("Error al completar el onboarding: ${response.statusCode}");
+        String backendMessage = 'Error al completar el onboarding';
+        try {
+          final decoded = jsonDecode(response.body);
+          if (decoded is Map<String, dynamic>) {
+            backendMessage = (decoded['message'] ?? decoded['error'] ?? backendMessage).toString();
+          }
+        } catch (_) {}
+        throw Exception("$backendMessage (${response.statusCode})");
       }
     } catch (e) {
       logger.e("Excepción al hacer la solicitud de onboarding: $e");
-      throw Exception("Error en la solicitud de onboarding");
+      rethrow;
     }
   }
 }

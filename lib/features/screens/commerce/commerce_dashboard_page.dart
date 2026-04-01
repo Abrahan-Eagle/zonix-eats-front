@@ -33,6 +33,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
   List<dynamic> _recentOrders = [];
   bool _commerceOpen = false;
   int _commerceId = 0;
+  String _commerceStatus = 'approved';
   bool _pusherSubscribed = false;
   StreamSubscription<Map<String, dynamic>>? _pusherSubscription;
   Timer? _debounceTimer;
@@ -92,9 +93,11 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
         final commerceData = await CommerceDataService.getCommerceData();
         _commerceOpen = commerceData['open'] == true;
         _commerceId = commerceData['id'] ?? 0;
+        _commerceStatus = (commerceData['status'] ?? 'approved').toString();
       } catch (_) {
         _commerceOpen = false;
         _commerceId = 0;
+        _commerceStatus = 'approved';
       }
 
       if (!mounted) return;
@@ -258,6 +261,54 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              if (_commerceStatus != 'approved')
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: _commerceStatus == 'rejected'
+                        ? AppColors.red.withValues(alpha: 0.1)
+                        : _commerceStatus == 'suspended'
+                            ? AppColors.orange.withValues(alpha: 0.1)
+                            : AppColors.blue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: _commerceStatus == 'rejected'
+                          ? AppColors.red.withValues(alpha: 0.3)
+                          : _commerceStatus == 'suspended'
+                              ? AppColors.orange.withValues(alpha: 0.3)
+                              : AppColors.blue.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _commerceStatus == 'rejected'
+                            ? Icons.cancel_outlined
+                            : _commerceStatus == 'suspended'
+                                ? Icons.pause_circle_outline
+                                : Icons.hourglass_top,
+                        color: _commerceStatus == 'rejected'
+                            ? AppColors.red
+                            : _commerceStatus == 'suspended'
+                                ? AppColors.orange
+                                : AppColors.blue,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _commerceStatus == 'pending_review'
+                              ? 'Tu comercio está en revisión. Puedes configurar todo mientras el administrador aprueba tu solicitud.'
+                              : _commerceStatus == 'rejected'
+                                  ? 'Tu solicitud fue rechazada. Contacta soporte para más información.'
+                                  : 'Tu comercio está suspendido temporalmente.',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(16),

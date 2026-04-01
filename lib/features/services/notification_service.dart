@@ -84,7 +84,9 @@ class NotificationService extends ChangeNotifier {
         if (decoded is Map) {
           return Map<String, dynamic>.from(decoded);
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('[NotificationService] Pusher data parse error: $e');
+      }
     }
     return {};
   }

@@ -2,7 +2,6 @@ import 'package:zonix/features/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import './form/commerce_registration_page.dart';
 import 'onboarding_provider.dart';
 import 'client_onboarding_flow.dart';
 import 'commerce_onboarding_flow.dart';
@@ -345,8 +344,6 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
                     MaterialPageRoute(
                         builder: (context) => const CommerceOnboardingFlow()),
                   );
-                } else {
-                  _navigateToRegistration(selectedRole!);
                 }
               }
             : null,
@@ -379,38 +376,4 @@ class _OnboardingPage3State extends State<OnboardingPage3> {
     );
   }
 
-  void _navigateToRegistration(String role) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Navegando al registro para ${_getRoleTitle(role)}'),
-        backgroundColor: AppColors.blue,
-        duration: const Duration(seconds: 1),
-      ),
-    );
-    if (role == 'commerce') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-            builder: (context) => const CommerceRegistrationPage()),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Rol no reconocido'),
-          backgroundColor: AppColors.red,
-        ),
-      );
-    }
-  }
-
-  String _getRoleTitle(String role) {
-    switch (role) {
-      case 'users':
-        return 'Cliente';
-      case 'commerce':
-        return 'Comercio';
-      default:
-        return '';
-    }
-  }
 }

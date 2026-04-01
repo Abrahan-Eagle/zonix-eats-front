@@ -31,6 +31,16 @@
       "sourceType": "github",
       "computedHash": "d0920fc7a5d128c964827498d86a28094ff99acbf61a3f8d99ef464d6e1805da"
     },
+    "playwright-skill": {
+      "source": "lackeyjb/playwright-skill",
+      "sourceType": "github",
+      "computedHash": "3a284d9eee004bcbcf17f58a08550146021d43efb02c9f411d65cacca889fb25"
+    },
+    "qa-testing-playwright": {
+      "source": "vasilyu1983/ai-agents-public",
+      "sourceType": "github",
+      "computedHash": "21517e74a691204be335bbec72b9ab8d1c6a347751ef9407ee5c72380de70086"
+    },
     "responsive-design": {
       "source": "wshobson/agents",
       "sourceType": "github",
