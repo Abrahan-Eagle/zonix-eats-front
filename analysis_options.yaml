@@ -15,6 +15,7 @@ analyzer:
     - .agents/**
     - "**/skills/**"
     - "skills/**"
+    - "lib/features/screens/onboarding/form/_archive/**"
   errors:
     todo: ignore
 

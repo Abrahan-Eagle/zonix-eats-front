@@ -28,7 +28,7 @@ class RestaurantsPage extends StatefulWidget {
 }
 
 class _RestaurantsPageState extends State<RestaurantsPage> {
-  Future<List<Restaurant>>? _restaurantsFuture;
+  final List<Restaurant> _restaurants = [];
   List<Restaurant>? _cachedRestaurants;
   final Logger _logger = Logger();
   final _searchController = TextEditingController();
@@ -39,41 +39,45 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   List<String> _businessCategories = ['Todos'];
   Set<String> _favoriteIds = {};
   final _debouncer = Debouncer(milliseconds: 500);
+  bool _isInitialLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  int _currentPage = 1;
+  static const int _perPage = 12;
 
   static const _favKey = 'favorite_restaurants';
 
   @override
   void initState() {
     super.initState();
-    _restaurantsFuture = _initRestaurants();
+    _initRestaurants();
     _scrollController.addListener(_onScroll);
     _loadFavorites();
   }
 
-  Future<List<Restaurant>> _initRestaurants() async {
+  Future<void> _initRestaurants() async {
     final cached = await RestaurantService.getCachedRestaurants();
     if (cached != null && cached.isNotEmpty) {
       _cachedRestaurants = cached;
       _extractCategories(cached);
+      _restaurants
+        ..clear()
+        ..addAll(cached);
+      if (mounted) {
+        setState(() {
+          _isInitialLoading = false;
+          _hasMore = true;
+          _currentPage = 1;
+        });
+      }
       _refreshRestaurantsInBackground();
-      return cached;
+      return;
     }
-    return RestaurantService().fetchRestaurants().then((list) {
-      _extractCategories(list);
-      return list;
-    });
+    await _loadRestaurants(reset: true);
   }
 
   void _refreshRestaurantsInBackground() {
-    RestaurantService().fetchRestaurants().then((fresh) {
-      if (mounted && fresh.isNotEmpty) {
-        _cachedRestaurants = fresh;
-        _extractCategories(fresh);
-        setState(() {
-          _restaurantsFuture = Future.value(fresh);
-        });
-      }
-    }).catchError((_) {});
+    _loadRestaurants(reset: true, silent: true);
   }
 
   void _extractCategories(List<Restaurant> restaurants) {
@@ -124,36 +128,90 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels ==
-        _scrollController.position.maxScrollExtent) {
-      _logger.d('🔄 Llegamos al final de la lista');
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      _loadRestaurants();
     }
   }
 
-  Future<void> _loadRestaurants() async {
-    _logger.i('🔄 Cargando restaurantes...');
-    setState(() => _isRefreshing = true);
+  Future<void> _loadRestaurants({bool reset = false, bool silent = false}) async {
+    if (_isLoadingMore) return;
+    if (!reset && !_hasMore) return;
+
+    final nextPage = reset ? 1 : _currentPage + 1;
+    _logger.i('🔄 Cargando restaurantes page=$nextPage...');
+
     setState(() {
-      _restaurantsFuture = RestaurantService().fetchRestaurants().then((list) {
-        _extractCategories(list);
-        return list;
-      });
+      if (!silent && reset) {
+        _isRefreshing = true;
+        _isInitialLoading = _restaurants.isEmpty;
+      }
+      _isLoadingMore = true;
     });
-    _restaurantsFuture!
-        .then((r) => _logger.d('✅ ${r.length} restaurantes'))
-        .catchError((e) => _logger.e('❌ $e'))
-        .whenComplete(() => setState(() => _isRefreshing = false));
-    await _loadFavorites();
+
+    try {
+      final result = _searchQuery.trim().isNotEmpty
+          ? await RestaurantService().fetchSearchRestaurantsPage(
+              page: nextPage,
+              perPage: _perPage,
+              search: _searchQuery,
+            )
+          : await RestaurantService().fetchRestaurantsPage(
+              page: nextPage,
+              perPage: _perPage,
+            );
+
+      if (!mounted) return;
+      setState(() {
+        if (reset) {
+          _restaurants
+            ..clear()
+            ..addAll(result.restaurants);
+        } else {
+          _restaurants.addAll(result.restaurants);
+        }
+        _extractCategories(_restaurants);
+        _currentPage = result.currentPage;
+        _hasMore = result.hasMore;
+        _isInitialLoading = false;
+      });
+      _logger.d('✅ ${result.restaurants.length} restaurantes (page=$nextPage)');
+    } catch (e) {
+      _logger.e('❌ $e');
+      if (!mounted) return;
+      if (_restaurants.isEmpty && _cachedRestaurants != null) {
+        setState(() {
+          _restaurants
+            ..clear()
+            ..addAll(_cachedRestaurants!);
+          _isInitialLoading = false;
+        });
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error cargando restaurantes: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+          _isRefreshing = false;
+        });
+      }
+      await _loadFavorites();
+    }
   }
 
   List<Restaurant> _filterRestaurants(List<Restaurant> restaurants) {
     return restaurants.where((r) {
-      final matchSearch = _searchQuery.isEmpty ||
-          r.nombreLocal.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          r.direccion.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-          (r.businessType ?? '')
-              .toLowerCase()
-              .contains(_searchQuery.toLowerCase());
+      // Si ya hay búsqueda remota activa, evitamos doble filtrado local.
+      final matchSearch = _searchQuery.isEmpty
+          ? (r.nombreLocal.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              r.direccion.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+              (r.businessType ?? '')
+                  .toLowerCase()
+                  .contains(_searchQuery.toLowerCase()))
+          : true;
       final matchCategory = _selectedCategory == 'Todos' ||
           _capitalizeCategory(r.businessType ?? '') == _selectedCategory;
       return matchSearch && matchCategory;
@@ -178,43 +236,6 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildErrorWidget(Object error) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, size: 48, color: AppColors.red),
-          const SizedBox(height: 16),
-          Text(
-            'Ocurrió un error',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: isDark ? AppColors.white : AppColors.gray,
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              error.toString(),
-              textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
-                  color: isDark ? AppColors.white70 : AppColors.textMutedGray),
-            ),
-          ),
-          FilledButton(
-            onPressed: _loadRestaurants,
-            style: FilledButton.styleFrom(
-                backgroundColor: _TemplateColors.primary),
-            child:
-                const Text('Reintentar', style: TextStyle(color: AppColors.white)),
-          ),
-        ],
       ),
     );
   }
@@ -526,7 +547,10 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
               ),
               onChanged: (value) {
                 _debouncer.run(() {
-                  setState(() => _searchQuery = value);
+                  final nextQuery = value;
+                  if (_searchQuery == nextQuery) return;
+                  setState(() => _searchQuery = nextQuery);
+                  _loadRestaurants(reset: true);
                 });
               },
             ),
@@ -608,30 +632,32 @@ class _RestaurantsPageState extends State<RestaurantsPage> {
           ),
           const SizedBox(height: 8),
           Expanded(
-            child: FutureBuilder<List<Restaurant>>(
-              future: _restaurantsFuture,
-              builder: (context, snapshot) {
-                final data = snapshot.data ?? _cachedRestaurants;
-                if (_isRefreshing ||
-                    (snapshot.connectionState == ConnectionState.waiting &&
-                        data == null)) {
+            child: Builder(
+              builder: (context) {
+                if (_isInitialLoading || _isRefreshing) {
                   return _buildShimmerLoading();
-                } else if (snapshot.hasError && data == null) {
-                  return _buildErrorWidget(snapshot.error!);
-                } else if (data == null || data.isEmpty) {
-                  return _buildEmptyState();
-                } else {
-                  final filtered = _filterRestaurants(data);
-                  if (filtered.isEmpty) return _buildEmptyState();
-                  return ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-                    itemCount: filtered.length,
-                    itemBuilder: (context, index) {
-                      return _buildRestaurantCard(filtered[index], index);
-                    },
-                  );
                 }
+                if (_restaurants.isEmpty) {
+                  return _buildEmptyState();
+                }
+
+                final filtered = _filterRestaurants(_restaurants);
+                if (filtered.isEmpty) return _buildEmptyState();
+
+                return ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                  itemCount: filtered.length + (_isLoadingMore ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index >= filtered.length) {
+                      return const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Center(child: CircularProgressIndicator()),
+                      );
+                    }
+                    return _buildRestaurantCard(filtered[index], index);
+                  },
+                );
               },
             ),
           ),

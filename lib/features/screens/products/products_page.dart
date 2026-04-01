@@ -8,11 +8,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/services/product_service.dart';
+import 'package:zonix/features/services/commerce_product_service.dart';
 import 'package:zonix/features/utils/gps_dialog_helper.dart';
 import 'package:zonix/features/services/promotion_service.dart';
 import 'package:zonix/features/utils/network_image_with_fallback.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
 import 'package:zonix/features/utils/search_radius_provider.dart';
+import 'package:zonix/features/utils/debouncer.dart';
 import 'package:zonix/models/product.dart';
 import 'package:zonix/widgets/app_skeleton.dart';
 import 'package:zonix/models/cart_item.dart';
@@ -30,46 +32,52 @@ class ProductsPage extends StatefulWidget {
 }
 
 class _ProductsPageState extends State<ProductsPage> {
-  late Future<List<Product>> _productsFuture;
   late Future<List<Map<String, dynamic>>> _promosFuture;
+  final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
-  String _selectedCategory = 'Popular';
+  String _selectedCategory = 'Todos';
   Set<String> _favProductIds = {};
+  final Debouncer _debouncer = Debouncer(milliseconds: 400);
   static const _favProdKey = 'favorite_products';
 
   /// Stale-while-revalidate: keeps cached products to avoid skeleton flash
   /// when the background refresh reassigns [_productsFuture].
+  final List<Product> _products = [];
   List<Product>? _cachedProducts;
+  Set<int>? _nearbyCommerceIds;
+  bool _isInitialLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  int _currentPage = 1;
+  static const int _perPage = 16;
 
   static const _nearbyIdsKey = 'nearby_commerce_ids';
   static const _nearbyIdsTsKey = 'nearby_commerce_ids_ts';
 
-  static const List<({String id, String label, String emoji})> _categories = [
-    (id: 'Popular', label: 'Popular', emoji: '🔥'),
-    (id: 'Burgers', label: 'Burgers', emoji: '🍔'),
-    (id: 'Pizza', label: 'Pizza', emoji: '🍕'),
-    (id: 'Sushi', label: 'Sushi', emoji: '🍣'),
-    (id: 'Otros', label: 'Otros', emoji: '🍽️'),
-  ];
-
-  Future<void> _loadProducts() async {
-    setState(() {
-      _productsFuture = _fetchProductsFilteredByLocation();
-    });
-  }
+  List<String> _categories = const ['Todos'];
 
   /// Phase 1: return cached products instantly.
   /// Phase 2: refresh from network in background and update UI.
-  Future<List<Product>> _initProducts() async {
+  Future<void> _initProducts() async {
     final cached = await ProductService.getCachedProducts();
     if (cached != null && cached.isNotEmpty) {
       _cachedProducts = cached;
       final filtered = await _applyCachedNearbyFilter(cached);
+      _products
+        ..clear()
+        ..addAll(filtered);
+      if (mounted) {
+        setState(() {
+          _isInitialLoading = false;
+          _currentPage = 1;
+          _hasMore = true;
+        });
+      }
       _refreshProductsInBackground();
-      return filtered;
+      return;
     }
-    return _fetchProductsFilteredByLocation();
+    await _loadProductsPage(reset: true);
   }
 
   /// Filters products using cached nearby commerce IDs (avoids HTTP call on
@@ -96,12 +104,10 @@ class _ProductsPageState extends State<ProductsPage> {
   }
 
   void _refreshProductsInBackground() {
-    _fetchProductsFilteredByLocation().then((fresh) {
+    _loadProductsPage(reset: true, silent: true).then((_) {
+      final fresh = _products;
       if (mounted && fresh.isNotEmpty) {
-        _cachedProducts = fresh;
-        setState(() {
-          _productsFuture = Future.value(fresh);
-        });
+        _cachedProducts = List<Product>.from(fresh);
       }
     }).catchError((e) {
       if (e is LocationDisabledException && mounted) {
@@ -115,16 +121,15 @@ class _ProductsPageState extends State<ProductsPage> {
     });
   }
 
-  Future<List<Product>> _fetchProductsFilteredByLocation() async {
-    if (!mounted) return [];
-    final productService = widget.productService ?? ProductService();
+  Future<void> _ensureNearbyCommerceIds() async {
+    if (_nearbyCommerceIds != null) return;
     final locationService = context.read<LocationService>();
     final radiusProvider = context.read<SearchRadiusProvider>();
     final radius = radiusProvider.effectiveRadiusKm;
 
     try {
       final loc = await locationService.getCurrentLocation();
-      if (!mounted) return [];
+      if (!mounted) return;
       final lat = (loc['latitude'] as num).toDouble();
       final lng = (loc['longitude'] as num).toDouble();
       if (mounted) {
@@ -139,8 +144,9 @@ class _ProductsPageState extends State<ProductsPage> {
         longitude: lng,
         radius: radius,
       );
-      if (!mounted) return [];
+      if (!mounted) return;
       final commerceIds = nearbyPlaces.map((p) => safeInt(p['id'])).toSet();
+      _nearbyCommerceIds = commerceIds;
 
       // Persist nearby IDs for stale-while-revalidate on next visit
       SharedPreferences.getInstance().then((prefs) {
@@ -149,51 +155,147 @@ class _ProductsPageState extends State<ProductsPage> {
         prefs.setInt(_nearbyIdsTsKey, DateTime.now().millisecondsSinceEpoch);
       });
 
-      final allProducts = await productService.fetchProducts();
-      if (!mounted) return [];
-      if (commerceIds.isEmpty) return allProducts;
-      final filtered =
-          allProducts.where((p) => commerceIds.contains(p.commerceId)).toList();
-      return filtered.isEmpty ? allProducts : filtered;
     } on LocationDisabledException {
       if (mounted) showGpsDisabledDialog(context);
-      return productService.fetchProducts();
+      _nearbyCommerceIds = <int>{};
     } catch (_) {
-      return productService.fetchProducts();
+      _nearbyCommerceIds = <int>{};
+      final fallback = await _applyCachedNearbyFilter(_cachedProducts ?? []);
+      if (fallback.isNotEmpty && mounted && _products.isEmpty) {
+        setState(() {
+          _products
+            ..clear()
+            ..addAll(fallback);
+          _isInitialLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _loadProductsPage({bool reset = false, bool silent = false}) async {
+    if (_isLoadingMore) return;
+    if (!reset && !_hasMore) return;
+    final nextPage = reset ? 1 : _currentPage + 1;
+    final productService = widget.productService ?? ProductService();
+
+    setState(() {
+      if (!silent && reset) {
+        _isInitialLoading = _products.isEmpty;
+      }
+      _isLoadingMore = true;
+    });
+
+    try {
+      await _ensureNearbyCommerceIds();
+      final search = _searchQuery.trim();
+      final pageResult = search.isNotEmpty
+          ? await productService.fetchSearchProductsPage(
+              page: nextPage,
+              perPage: _perPage,
+              search: search,
+            )
+          : await productService.fetchProductsPage(
+              page: nextPage,
+              perPage: _perPage,
+            );
+
+      var pageProducts = pageResult.products;
+      if (search.isEmpty) {
+        final nearbyIds = _nearbyCommerceIds;
+        if (nearbyIds != null && nearbyIds.isNotEmpty) {
+          final filtered = pageProducts.where((p) => nearbyIds.contains(p.commerceId)).toList();
+          pageProducts = filtered.isEmpty && nextPage == 1 ? pageResult.products : filtered;
+        }
+      }
+
+      if (!mounted) return;
+      setState(() {
+        if (reset) {
+          _products
+            ..clear()
+            ..addAll(pageProducts);
+        } else {
+          _products.addAll(pageProducts);
+        }
+        _currentPage = pageResult.currentPage;
+        _hasMore = pageResult.hasMore;
+        _isInitialLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      if (_products.isEmpty && _cachedProducts != null) {
+        setState(() {
+          _products
+            ..clear()
+            ..addAll(_cachedProducts!);
+          _isInitialLoading = false;
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoadingMore = false;
+        });
+      }
     }
   }
 
   List<Product> _filterProducts(List<Product> list, String searchQuery) {
     var out = list;
-    if (searchQuery.isNotEmpty) {
-      final q = searchQuery.toLowerCase();
-      out = out.where((p) => p.name.toLowerCase().contains(q)).toList();
-    }
-    if (_selectedCategory != 'Popular') {
+    // Cuando hay búsqueda server-side activa, evitamos doble filtrado local.
+    if (_selectedCategory != 'Todos') {
       final cat = _selectedCategory.toLowerCase();
       out = out.where((p) {
         final c = p.category.toLowerCase();
-        if (cat == 'otros') {
-          return !c.contains('burger') &&
-              !c.contains('pizza') &&
-              !c.contains('sushi');
-        }
         return c.contains(cat);
       }).toList();
     }
     return out;
   }
 
+  Future<void> _loadDynamicCategories() async {
+    try {
+      final categories = await CommerceProductService.getProductCategories();
+      final labels = categories
+          .map((c) => (c['name'] ?? '').toString().trim())
+          .where((name) => name.isNotEmpty)
+          .toList();
+      if (!mounted || labels.isEmpty) return;
+      setState(() {
+        _categories = ['Todos', ...labels.toSet()];
+        if (!_categories.contains(_selectedCategory)) {
+          _selectedCategory = 'Todos';
+        }
+      });
+    } catch (_) {
+      // fallback: mantener categorías por defecto
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    _productsFuture = _initProducts();
+    _initProducts();
+    _loadDynamicCategories();
     _promosFuture = Future.delayed(
       const Duration(seconds: 3),
       () => PromotionService().getActivePromotions(),
     ).catchError((_) => <Map<String, dynamic>>[]);
-    _searchController.addListener(
-        () => setState(() => _searchQuery = _searchController.text));
+    _searchController.addListener(() {
+      _debouncer.run(() {
+        if (!mounted) return;
+        final nextQuery = _searchController.text;
+        if (_searchQuery == nextQuery) return;
+        setState(() => _searchQuery = nextQuery);
+        _loadProductsPage(reset: true);
+      });
+    });
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 300) {
+        _loadProductsPage();
+      }
+    });
     _loadFavProducts();
   }
 
@@ -225,7 +327,9 @@ class _ProductsPageState extends State<ProductsPage> {
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _searchController.dispose();
+    _debouncer.dispose();
     super.dispose();
   }
 
@@ -239,6 +343,7 @@ class _ProductsPageState extends State<ProductsPage> {
       body: ScrollConfiguration(
         behavior: ScrollConfiguration.of(context).copyWith(scrollbars: false),
         child: CustomScrollView(
+          controller: _scrollController,
           slivers: [
             // Barra de búsqueda
             SliverToBoxAdapter(
@@ -255,7 +360,7 @@ class _ProductsPageState extends State<ProductsPage> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: _categories.map((c) {
-                      final sel = _selectedCategory == c.id;
+                      final sel = _selectedCategory == c;
                       return Padding(
                         padding: const EdgeInsets.only(right: 12),
                         child: FilterChip(
@@ -263,13 +368,11 @@ class _ProductsPageState extends State<ProductsPage> {
                           label: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(c.emoji),
-                              const SizedBox(width: 6),
-                              Text(c.label)
+                              Text(c)
                             ],
                           ),
                           onSelected: (_) =>
-                              setState(() => _selectedCategory = c.id),
+                              setState(() => _selectedCategory = c),
                           backgroundColor:
                               isDark ? AppColors.grayDark : AppColors.white,
                           selectedColor: _primary,
@@ -321,72 +424,51 @@ class _ProductsPageState extends State<ProductsPage> {
             // Grid de productos
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-              sliver: FutureBuilder<List<Product>>(
-                future: _productsFuture,
-                builder: (context, snapshot) {
-                  final data = snapshot.data ?? _cachedProducts;
-                  if (snapshot.connectionState == ConnectionState.waiting &&
-                      data == null) {
-                    return SliverFillRemaining(
-                        child: AppSkeleton.list(count: 5, useCards: true));
-                  }
-                  if (snapshot.hasError && data == null) {
-                    return SliverFillRemaining(
-                      child: Center(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.error,
-                                  color: AppColors.red, size: 48),
-                              const SizedBox(height: 8),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 24),
-                                child: Text('Error: ${snapshot.error}',
-                                    style:
-                                        const TextStyle(color: AppColors.red),
-                                    textAlign: TextAlign.center),
+              sliver: _isInitialLoading
+                  ? SliverFillRemaining(
+                      child: AppSkeleton.list(count: 5, useCards: true))
+                  : Builder(
+                      builder: (context) {
+                        final products = _filterProducts(_products, _searchQuery);
+                        if (products.isEmpty) {
+                          return SliverFillRemaining(
+                            child: Center(
+                                child: Text('No hay productos',
+                                    style: TextStyle(
+                                        color: isDark
+                                            ? AppColors.white54
+                                            : AppColors.black54))),
+                          );
+                        }
+                        return SliverMainAxisGroup(
+                          slivers: [
+                            SliverGrid(
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 16,
+                                crossAxisSpacing: 16,
+                                childAspectRatio: 0.68,
                               ),
-                              const SizedBox(height: 8),
-                              ElevatedButton(
-                                  onPressed: _loadProducts,
-                                  child: const Text('Reintentar')),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }
-                  final all = data ?? [];
-                  final products = _filterProducts(all, _searchQuery);
-                  if (products.isEmpty) {
-                    return SliverFillRemaining(
-                      child: Center(
-                          child: Text('No hay productos',
-                              style: TextStyle(
-                                  color: isDark
-                                      ? AppColors.white54
-                                      : AppColors.black54))),
-                    );
-                  }
-                  return SliverGrid(
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      childAspectRatio: 0.68,
+                              delegate: SliverChildBuilderDelegate(
+                                (context, index) => _buildProductCard(
+                                    context, products[index], cartService, isDark),
+                                childCount: products.length,
+                              ),
+                            ),
+                            SliverToBoxAdapter(
+                              child: _isLoadingMore
+                                  ? const Padding(
+                                      padding: EdgeInsets.symmetric(vertical: 16),
+                                      child: Center(
+                                          child: CircularProgressIndicator()),
+                                    )
+                                  : const SizedBox.shrink(),
+                            ),
+                          ],
+                        );
+                      },
                     ),
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) => _buildProductCard(
-                          context, products[index], cartService, isDark),
-                      childCount: products.length,
-                    ),
-                  );
-                },
-              ),
             ),
           ],
         ),
@@ -652,18 +734,34 @@ class _ProductsPageState extends State<ProductsPage> {
                         color: _accentYellow)),
                 GestureDetector(
                   onTap: () {
-                    final replaced = cartService.addToCart(CartItem(
+                    if (!product.isAvailable ||
+                        (product.hasStockLimit && product.stock <= 0)) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Producto no disponible o sin stock'),
+                      ));
+                      return;
+                    }
+                    final result = cartService.addToCart(CartItem(
                         id: product.id,
                         nombre: product.name,
                         precio: product.price,
                         quantity: 1,
                         image: product.image,
+                        stock: product.hasStockLimit ? product.stock : null,
+                        category: product.category,
                         commerceId: product.commerceId));
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                      content: Text(replaced
-                          ? 'Carrito actualizado. Solo puedes tener productos de un comercio a la vez.'
-                          : 'Producto agregado al carrito'),
-                    ));
+                    final message = switch (result.status) {
+                      CartAddStatus.replacedCommerce =>
+                        'Carrito actualizado. Solo puedes tener productos de un comercio a la vez.',
+                      CartAddStatus.blockedLimit =>
+                        'No puedes agregar mas de 100 unidades',
+                      CartAddStatus.blockedStock =>
+                        'Cantidad no disponible por stock',
+                      _ => 'Producto agregado al carrito',
+                    };
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(message)),
+                    );
                   },
                   child: Container(
                     width: 32,

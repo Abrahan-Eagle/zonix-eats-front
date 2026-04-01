@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:zonix/features/services/cart_service.dart';
+import 'package:zonix/features/services/product_service.dart';
 import 'package:zonix/models/product.dart';
 import 'package:zonix/models/cart_item.dart';
 import 'package:zonix/models/restaurant.dart';
@@ -32,12 +33,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   final TextEditingController _instructionsController = TextEditingController();
   int _quantity = 1;
   bool _isLoading = false;
+  bool _isHydratingProduct = false;
   late Future<Restaurant?> _restaurantFuture;
   Restaurant? _restaurant;
+  Product? _resolvedProduct;
   final Set<int> _selectedExtraIds = {};
   final Set<int> _selectedPreferenceIds = {};
   bool _isFavProduct = false;
   static const _favProdKey = 'favorite_products';
+
+  Product get _product => _resolvedProduct ?? widget.product;
 
   bool _isDark(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark;
@@ -59,16 +64,37 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   @override
   void initState() {
     super.initState();
+    _hydrateProductIfNeeded();
     _restaurantFuture = _loadRestaurant();
     _loadFav();
+  }
+
+  Future<void> _hydrateProductIfNeeded() async {
+    if (widget.product.extras.isNotEmpty || widget.product.preferences.isNotEmpty) {
+      return;
+    }
+
+    setState(() => _isHydratingProduct = true);
+    try {
+      final fullProduct = await ProductService().getProductById(widget.product.id);
+      if (!mounted) return;
+      setState(() {
+        _resolvedProduct = fullProduct;
+      });
+    } catch (e, stack) {
+      logger.w('No se pudo hidratar producto completo', error: e, stackTrace: stack);
+    } finally {
+      if (mounted) {
+        setState(() => _isHydratingProduct = false);
+      }
+    }
   }
 
   Future<void> _loadFav() async {
     final prefs = await SharedPreferences.getInstance();
     final ids = prefs.getStringList(_favProdKey) ?? [];
     if (mounted) {
-      setState(
-          () => _isFavProduct = ids.contains(widget.product.id.toString()));
+      setState(() => _isFavProduct = ids.contains(_product.id.toString()));
     }
   }
 
@@ -76,7 +102,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     await HapticFeedback.lightImpact();
     final prefs = await SharedPreferences.getInstance();
     final ids = prefs.getStringList(_favProdKey) ?? [];
-    final idStr = widget.product.id.toString();
+    final idStr = _product.id.toString();
     if (ids.contains(idStr)) {
       ids.remove(idStr);
       _isFavProduct = false;
@@ -91,11 +117,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   void _shareProduct() {
-    final link = '${AppConfig.apiUrl}/product/${widget.product.id}';
+    final link = '${AppConfig.apiUrl}/product/${_product.id}';
     final restName = _restaurant?.nombreLocal ?? '';
     final text =
-        '🛒 *${widget.product.name}* - \$${widget.product.price.toStringAsFixed(2)}\n'
-        '${widget.product.description.isNotEmpty ? '${widget.product.description}\n' : ''}'
+        '🛒 *${_product.name}* - \$${_product.price.toStringAsFixed(2)}\n'
+        '${_product.description.isNotEmpty ? '${_product.description}\n' : ''}'
         '${restName.isNotEmpty ? '🍽️ En *$restName* - Zonix Eats\n' : ''}'
         '\n👉 $link';
     SharePlus.instance.share(ShareParams(text: text));
@@ -109,27 +135,27 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   double get _extrasTotal {
     double sum = 0;
-    for (final e in widget.product.extras) {
+    for (final e in _product.extras) {
       if (_selectedExtraIds.contains(e.id)) sum += e.price;
     }
     return sum;
   }
 
-  double get _unitTotal => widget.product.price + _extrasTotal;
+  double get _unitTotal => _product.price + _extrasTotal;
 
   double get _total => _unitTotal * _quantity;
 
   String _buildNotes() {
     final parts = <String>[];
     if (_selectedExtraIds.isNotEmpty) {
-      final names = widget.product.extras
+      final names = _product.extras
           .where((e) => _selectedExtraIds.contains(e.id))
           .map((e) => e.name)
           .join(', ');
       if (names.isNotEmpty) parts.add('Extras: $names');
     }
     if (_selectedPreferenceIds.isNotEmpty) {
-      final names = widget.product.preferences
+      final names = _product.preferences
           .where((p) => _selectedPreferenceIds.contains(p.id))
           .map((p) => p.name)
           .join(', ');
@@ -143,10 +169,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Future<Restaurant?> _loadRestaurant() async {
+    if (_product.commerceId <= 0) {
+      logger.w(
+          'Skipping restaurant load: invalid commerceId ${_product.commerceId}');
+      return null;
+    }
+
     try {
       final restaurantService = RestaurantService();
       return await restaurantService
-          .fetchRestaurantDetails2(widget.product.commerceId);
+          .fetchRestaurantDetails2(_product.commerceId);
     } catch (e, stack) {
       logger.e('Error loading restaurant', error: e, stackTrace: stack);
       return null;
@@ -263,8 +295,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           fit: StackFit.expand,
           children: [
             ProductImage(
-              imageUrl: widget.product.image,
-              productName: widget.product.name,
+              imageUrl: _product.image,
+              productName: _product.name,
               width: double.infinity,
               height: height,
             ),
@@ -368,7 +400,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           children: [
             Expanded(
               child: Text(
-                widget.product.name,
+                _product.name,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -398,7 +430,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     const Icon(Icons.star, size: 16, color: _kAccent),
                     const SizedBox(width: 4),
                     Text(
-                      '${widget.product.rating > 0 ? widget.product.rating.toStringAsFixed(1) : '-'} (${widget.product.reviewCount > 0 ? _formatCount(widget.product.reviewCount) : '0'})',
+                      '${_product.rating > 0 ? _product.rating.toStringAsFixed(1) : '-'} (${_product.reviewCount > 0 ? _formatCount(_product.reviewCount) : '0'})',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         color: _textSecondary(context),
@@ -410,7 +442,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ),
           ],
         ),
-        if (widget.product.category.isNotEmpty) ...[
+        if (_product.category.isNotEmpty) ...[
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -419,7 +451,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              widget.product.category,
+              _product.category,
               style: const TextStyle(
                   fontSize: 12, fontWeight: FontWeight.w600, color: _kAccent),
             ),
@@ -436,8 +468,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   Widget _buildDescription(BuildContext context) {
     return Text(
-      widget.product.description.isNotEmpty
-          ? widget.product.description
+      _product.description.isNotEmpty
+          ? _product.description
           : 'Sin descripción',
       style: GoogleFonts.plusJakartaSans(
         fontSize: 14,
@@ -449,11 +481,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   Widget _buildTags(BuildContext context) {
     final tags = <String>[];
-    if (widget.product.rating >= 4.5) tags.add('Popular');
-    if (widget.product.category.isNotEmpty) tags.add(widget.product.category);
-    if (widget.product.preparationTime > 0) {
+    if (_product.rating >= 4.5) tags.add('Popular');
+    if (_product.category.isNotEmpty) tags.add(_product.category);
+    if (_product.preparationTime > 0) {
       tags.add(
-          '${widget.product.preparationTime}-${widget.product.preparationTime + 10} min');
+          '${_product.preparationTime}-${_product.preparationTime + 10} min');
     }
     if (tags.isEmpty) tags.addAll(['Popular', '20-30 min']);
 
@@ -559,7 +591,21 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget _buildCustomizationSection(BuildContext context) {
-    if (widget.product.extras.isEmpty) return const SizedBox.shrink();
+    if (_isHydratingProduct) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: SizedBox(
+            height: 18,
+            width: 18,
+            child: CircularProgressIndicator(strokeWidth: 2, color: _kPrimary),
+          ),
+        ),
+      );
+    }
+
+    if (_product.extras.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -591,7 +637,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           ],
         ),
         const SizedBox(height: 16),
-        ...widget.product.extras.map((e) => _buildOptionTile(
+        ..._product.extras.map((e) => _buildOptionTile(
               context,
               e.name,
               '+ \$${e.price.toStringAsFixed(2)}',
@@ -609,7 +655,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget _buildPreferencesSection(BuildContext context) {
-    if (widget.product.preferences.isEmpty) return const SizedBox.shrink();
+    if (_product.preferences.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -622,7 +668,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           ),
         ),
         const SizedBox(height: 16),
-        ...widget.product.preferences.map((p) => _buildOptionTile(
+        ..._product.preferences.map((p) => _buildOptionTile(
               context,
               p.name,
               null,
@@ -800,7 +846,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   IconButton(
                     icon:
                         Icon(Icons.add, color: _textPrimary(context), size: 20),
-                    onPressed: () => setState(() => _quantity++),
+                    onPressed: () {
+                      if (_product.hasStockLimit &&
+                          _product.stock > 0 &&
+                          _quantity >= _product.stock) {
+                        return;
+                      }
+                      setState(() => _quantity++);
+                    },
                     style: IconButton.styleFrom(
                       minimumSize: const Size(40, 40),
                       padding: EdgeInsets.zero,
@@ -816,22 +869,40 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 borderRadius: BorderRadius.circular(12),
                 child: InkWell(
                   onTap: () {
+                    if (!_product.isAvailable ||
+                        (_product.hasStockLimit &&
+                            _product.stock <= 0)) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Producto no disponible o sin stock'),
+                        ),
+                      );
+                      return;
+                    }
                     final notes = _buildNotes();
-                    final replaced = cartService.addToCart(CartItem(
-                      id: widget.product.id,
-                      nombre: widget.product.name,
+                    final result = cartService.addToCart(CartItem(
+                      id: _product.id,
+                      nombre: _product.name,
                       precio: _unitTotal,
                       quantity: _quantity,
-                      image: widget.product.image,
+                      image: _product.image,
+                      stock:
+                          _product.hasStockLimit ? _product.stock : null,
+                      category: _product.category,
                       notes: notes.isEmpty ? null : notes,
-                      commerceId: widget.product.commerceId,
+                      commerceId: _product.commerceId,
                     ));
+                    final message = switch (result.status) {
+                      CartAddStatus.replacedCommerce =>
+                        'Carrito actualizado. Solo puedes tener productos de un comercio a la vez.',
+                      CartAddStatus.blockedLimit =>
+                        'No puedes agregar mas de 100 unidades',
+                      CartAddStatus.blockedStock =>
+                        'Cantidad no disponible por stock',
+                      _ => 'Producto añadido al carrito',
+                    };
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(replaced
-                            ? 'Carrito actualizado. Solo puedes tener productos de un comercio a la vez.'
-                            : 'Producto añadido al carrito'),
-                      ),
+                      SnackBar(content: Text(message)),
                     );
                   },
                   borderRadius: BorderRadius.circular(12),

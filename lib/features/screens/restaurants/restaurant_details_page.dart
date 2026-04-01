@@ -18,6 +18,7 @@ import 'package:zonix/config/app_config.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:zonix/widgets/osm_map_widget.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
+import 'package:zonix/features/utils/debouncer.dart';
 
 class RestaurantDetailsPage extends StatefulWidget {
   final int commerceId;
@@ -69,9 +70,14 @@ class RestaurantDetailsPage extends StatefulWidget {
 }
 
 class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
-  late Future<List<Product>> _productsFuture;
   late Future<List<Map<String, dynamic>>> _promotionsFuture;
   late Future<List<Map<String, dynamic>>> _reviewsFuture;
+  final List<Product> _products = [];
+  bool _isLoadingProducts = true;
+  bool _isLoadingMoreProducts = false;
+  bool _hasMoreProducts = true;
+  int _currentProductsPage = 1;
+  static const int _productsPerPage = 20;
   bool _isFavorite = false;
   int _totalReviews = 0;
   double _averageRating = 0.0;
@@ -80,6 +86,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   String _searchQuery = '';
   bool _showSearch = false;
   final TextEditingController _searchController = TextEditingController();
+  final Debouncer _debouncer = Debouncer(milliseconds: 350);
 
   static const Color _accent = AppColors.amber;
   static const Color _primary = AppColors.blue;
@@ -97,31 +104,74 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     );
     _scrollController.addListener(() {
       _scrollOffsets[widget.commerceId] = _scrollController.offset;
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 250) {
+        _loadMoreProducts();
+      }
     });
-    _productsFuture = _loadProducts();
+    _loadProducts(reset: true);
     _promotionsFuture =
         PromotionService().getActivePromotions(commerceId: widget.commerceId);
     _reviewsFuture =
         BuyerReviewService().getRestaurantReviews(widget.commerceId);
     _loadFavorite();
-    _loadReviewStats();
+    _loadReviewStatsFromFuture();
   }
 
-  Future<List<Product>> _loadProducts() async {
-    final allProducts = await ProductService().fetchProducts();
-    final commerceProducts =
-        allProducts.where((p) => p.commerceId == widget.commerceId).toList();
-    final categories = commerceProducts
-        .map((p) => p.category.trim())
-        .where((c) => c.isNotEmpty)
-        .toSet()
-        .toList();
-    if (mounted) {
+  Future<void> _loadProducts({bool reset = false}) async {
+    if (_isLoadingMoreProducts) return;
+    if (!reset && !_hasMoreProducts) return;
+
+    final nextPage = reset ? 1 : _currentProductsPage + 1;
+    setState(() {
+      if (reset) {
+        _isLoadingProducts = true;
+      } else {
+        _isLoadingMoreProducts = true;
+      }
+    });
+
+    try {
+      final page = await ProductService().fetchProductsByCommercePage(
+        commerceId: widget.commerceId,
+        page: nextPage,
+        perPage: _productsPerPage,
+        search: _searchQuery.trim().isEmpty ? null : _searchQuery.trim(),
+      );
+
+      if (!mounted) return;
       setState(() {
+        if (reset) {
+          _products
+            ..clear()
+            ..addAll(page.products);
+        } else {
+          _products.addAll(page.products);
+        }
+        _currentProductsPage = page.currentPage;
+        _hasMoreProducts = page.hasMore;
+        _isLoadingProducts = false;
+        _isLoadingMoreProducts = false;
+
+        final categories = _products
+            .map((p) => p.category.trim())
+            .where((c) => c.isNotEmpty)
+            .toSet()
+            .toList();
         _categories = ['Todos', ...categories];
       });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingProducts = false;
+        _isLoadingMoreProducts = false;
+      });
     }
-    return commerceProducts;
+  }
+
+  void _loadMoreProducts() {
+    if (_searchQuery.trim().isNotEmpty) return;
+    _loadProducts(reset: false);
   }
 
   static const _favKey = 'favorite_restaurants';
@@ -181,9 +231,8 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
     );
   }
 
-  Future<void> _loadReviewStats() async {
-    final reviews =
-        await BuyerReviewService().getRestaurantReviews(widget.commerceId);
+  Future<void> _loadReviewStatsFromFuture() async {
+    final reviews = await _reviewsFuture;
     _totalReviews = reviews.length;
     if (_totalReviews > 0) {
       _averageRating = reviews
@@ -341,11 +390,14 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                                 ? AppColors.stitchSlate400
                                                 : AppColors.stitchSlate),
                                         suffixIcon: GestureDetector(
-                                          onTap: () => setState(() {
-                                            _showSearch = false;
-                                            _searchController.clear();
-                                            _searchQuery = '';
-                                          }),
+                                          onTap: () {
+                                            setState(() {
+                                              _showSearch = false;
+                                              _searchController.clear();
+                                              _searchQuery = '';
+                                            });
+                                            _loadProducts(reset: true);
+                                          },
                                           child: Icon(Icons.close,
                                               size: 18,
                                               color: isDark
@@ -357,8 +409,13 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                                             const EdgeInsets.symmetric(
                                                 vertical: 10),
                                       ),
-                                      onChanged: (v) =>
-                                          setState(() => _searchQuery = v),
+                                      onChanged: (v) => _debouncer.run(() {
+                                        if (!mounted) return;
+                                        final next = v;
+                                        if (_searchQuery == next) return;
+                                        setState(() => _searchQuery = next);
+                                        _loadProducts(reset: true);
+                                      }),
                                     ),
                                   )
                                 : Row(
@@ -712,20 +769,16 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
 
           // ── 5. PRODUCTOS ──
           SliverToBoxAdapter(
-            child: FutureBuilder<List<Product>>(
-              future: _productsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
+            child: Builder(
+              builder: (context) {
+                if (_isLoadingProducts) {
                   return _buildShimmerList(cardColor, borderColor);
-                } else if (snapshot.hasError) {
-                  return _emptyState(Icons.error_outline,
-                      'Error al cargar productos', textSecondary);
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                } else if (_products.isEmpty) {
                   return _emptyState(Icons.shopping_bag_outlined,
                       'No hay productos disponibles', textSecondary);
                 }
 
-                final filtered = _filterProducts(snapshot.data!);
+                final filtered = _filterProducts(_products);
                 if (filtered.isEmpty) {
                   return _emptyState(Icons.search_off,
                       'No se encontraron productos', textSecondary);
@@ -769,6 +822,11 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                           );
                         },
                       ),
+                      if (_isLoadingMoreProducts)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 12),
+                          child: Center(child: CircularProgressIndicator()),
+                        ),
                     ],
                   ),
                 );
@@ -1466,8 +1524,11 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   Widget _buildCartBar(bool isDark) {
     return Consumer<CartService>(
       builder: (context, cartService, child) {
-        final int total = cartService.items.fold(0, (s, i) => s + i.quantity);
-        final double amount = cartService.items
+        final commerceItems = cartService.items
+            .where((i) => i.commerceId == widget.commerceId)
+            .toList();
+        final int total = commerceItems.fold(0, (s, i) => s + i.quantity);
+        final double amount = commerceItems
             .fold<double>(0, (s, i) => s + ((i.precio ?? 0) * i.quantity));
         if (total == 0) return const SizedBox.shrink();
         return SafeArea(
@@ -1627,12 +1688,24 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                             ),
                           ],
                           _qtyBtn(Icons.add, () {
+                            if (!product.isAvailable ||
+                                (product.hasStockLimit && product.stock <= 0)) {
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(const SnackBar(
+                                content:
+                                    Text('Producto no disponible o sin stock'),
+                              ));
+                              return;
+                            }
                             cartService.addToCart(CartItem(
                               id: product.id,
                               nombre: product.name,
                               precio: product.price,
                               quantity: 1,
                               imagen: product.image,
+                              stock:
+                                  product.hasStockLimit ? product.stock : null,
+                              category: product.category,
                               commerceId: product.commerceId,
                             ));
                           }),
@@ -1699,6 +1772,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
   void dispose() {
     _searchController.dispose();
     _scrollController.dispose();
+    _debouncer.dispose();
     super.dispose();
   }
 }

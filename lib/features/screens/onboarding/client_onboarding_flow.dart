@@ -101,7 +101,6 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
   final _commerceTaxIdController = TextEditingController();
   final _commerceOwnerCiController = TextEditingController();
   final _commercePhoneController = TextEditingController();
-  bool _commerceOpen = false;
   Map<String, Map<String, String>> _commerceSchedule = {};
 
   // STEP 4 (solo commerce) – Dirección del establecimiento (misma vista que paso 2, role commerce)

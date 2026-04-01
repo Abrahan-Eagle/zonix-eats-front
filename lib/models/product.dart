@@ -44,6 +44,7 @@ class Product {
   final String image;
   final String category;
   final bool isAvailable;
+  final bool hasStockLimit;
   final int stock;
   final List<String> tags;
   final Map<String, dynamic>? nutritionalInfo;
@@ -69,6 +70,7 @@ class Product {
     required this.image,
     required this.category,
     required this.isAvailable,
+    this.hasStockLimit = false,
     required this.stock,
     required this.tags,
     this.nutritionalInfo,
@@ -101,19 +103,38 @@ class Product {
       return 0.0;
     }
 
+    int parseCommerceId(Map<String, dynamic> payload) {
+      final direct = payload['commerce_id'];
+      if (direct is int) return direct;
+      if (direct is String) return int.tryParse(direct) ?? 0;
+
+      final nested = payload['commerce'];
+      if (nested is Map) {
+        final nestedId = nested['id'];
+        if (nestedId is int) return nestedId;
+        if (nestedId is String) return int.tryParse(nestedId) ?? 0;
+      }
+      return 0;
+    }
+
     return Product(
       id: json['id'] ?? 0,
-      commerceId: json['commerce_id'] ?? 0,
+      commerceId: parseCommerceId(json),
       name: json['name'] ?? '',
       description: json['description'] ?? '',
       price: parseDouble(json['price']),
       originalPrice: json['original_price'] != null ? parseDouble(json['original_price']) : null,
-      image: json['image'] ?? '',
-      category: json['category'] is Map
-          ? (json['category']['name'] ?? '')
-          : (json['category']?.toString() ?? ''),
+      image: (json['image'] ?? json['image_url'] ?? '').toString(),
+      category: (json['category_name'] ??
+              (json['category'] is Map
+                  ? (json['category']['name'] ?? '')
+                  : (json['category']?.toString() ?? '')))
+          .toString(),
       isAvailable: json['available'] ?? json['is_available'] ?? false,
-      stock: json['stock'] ?? 0,
+      hasStockLimit: json['stock_quantity'] != null || json['stock'] != null,
+      stock: (json['stock_quantity'] ?? json['stock'] ?? 0) is int
+          ? (json['stock_quantity'] ?? json['stock'] ?? 0)
+          : int.tryParse((json['stock_quantity'] ?? json['stock'] ?? 0).toString()) ?? 0,
       tags: List<String>.from(json['tags'] ?? []),
       nutritionalInfo: json['nutritional_info'],
       allergens: List<String>.from(json['allergens'] ?? []),
@@ -147,6 +168,7 @@ class Product {
       'image': image,
       'category': category,
       'is_available': isAvailable,
+      'has_stock_limit': hasStockLimit,
       'stock': stock,
       'tags': tags,
       'nutritional_info': nutritionalInfo,
@@ -172,6 +194,7 @@ class Product {
     String? image,
     String? category,
     bool? isAvailable,
+    bool? hasStockLimit,
     int? stock,
     List<String>? tags,
     Map<String, dynamic>? nutritionalInfo,
@@ -197,6 +220,7 @@ class Product {
       image: image ?? this.image,
       category: category ?? this.category,
       isAvailable: isAvailable ?? this.isAvailable,
+      hasStockLimit: hasStockLimit ?? this.hasStockLimit,
       stock: stock ?? this.stock,
       tags: tags ?? this.tags,
       nutritionalInfo: nutritionalInfo ?? this.nutritionalInfo,

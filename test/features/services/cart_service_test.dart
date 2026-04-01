@@ -103,8 +103,8 @@ void main() {
       cartService.addToCart(item2);
       expect(cartService.items.length, 2);
 
-      final replaced = cartService.addToCart(item3);
-      expect(replaced, true);
+      final result = cartService.addToCart(item3);
+      expect(result.status, CartAddStatus.replacedCommerce);
       expect(cartService.items.length, 1);
       expect(cartService.items.first.id, 3);
       expect(cartService.items.first.nombre, 'Hamburguesa');
@@ -115,8 +115,77 @@ void main() {
       final item2 = CartItem(id: 2, nombre: 'Pizza B', precio: 12.0, quantity: 1, imagen: 'b.jpg', commerceId: 1);
 
       cartService.addToCart(item1);
-      final replaced = cartService.addToCart(item2);
-      expect(replaced, false);
+      final result = cartService.addToCart(item2);
+      expect(result.status, CartAddStatus.added);
+      expect(cartService.items.length, 2);
+    });
+
+    test('No incrementa cuando supera stock local', () {
+      final item = CartItem(
+        id: 1,
+        nombre: 'Pizza A',
+        precio: 10.0,
+        quantity: 1,
+        imagen: 'a.jpg',
+        stock: 1,
+        commerceId: 1,
+      );
+
+      cartService.addToCart(item);
+      cartService.incrementQuantity(item);
+
+      expect(cartService.items.first.quantity, 1);
+    });
+
+    test('Bloquea agregar cuando supera limite de 100 unidades', () {
+      final item = CartItem(
+        id: 1,
+        nombre: 'Pizza A',
+        precio: 10.0,
+        quantity: 100,
+        imagen: 'a.jpg',
+        commerceId: 1,
+      );
+
+      cartService.addToCart(item);
+      final result = cartService.addToCart(
+        CartItem(
+          id: 1,
+          nombre: 'Pizza A',
+          precio: 10.0,
+          quantity: 1,
+          imagen: 'a.jpg',
+          commerceId: 1,
+        ),
+      );
+
+      expect(result.status, CartAddStatus.blockedLimit);
+      expect(cartService.items.first.quantity, 100);
+    });
+
+    test('No fusiona personalizaciones distintas del mismo producto', () {
+      final base = CartItem(
+        id: 1,
+        nombre: 'Pizza A',
+        precio: 10.0,
+        quantity: 1,
+        imagen: 'a.jpg',
+        commerceId: 1,
+        notes: 'Extras: queso',
+      );
+      final variante = CartItem(
+        id: 1,
+        nombre: 'Pizza A',
+        precio: 10.0,
+        quantity: 1,
+        imagen: 'a.jpg',
+        commerceId: 1,
+        notes: 'Extras: tocineta',
+      );
+
+      cartService.addToCart(base);
+      cartService.addToCart(variante);
+
       expect(cartService.items.length, 2);
     });
   });

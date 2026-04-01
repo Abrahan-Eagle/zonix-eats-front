@@ -9,10 +9,10 @@
 
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
-- **Fecha:** 31 Marzo 2026
-- **Resumen:** Corrección integral repo-wide en frontend con foco en onboarding y autenticación: bug `house_number` en commerce corregido, separación de estado de operador telefónico personal/comercio, login social con gate de sesión backend, y manejo de errores de dirección más explícito (sin falsos positivos por `409`).
-- **Áreas tocadas:** `lib/features/screens/onboarding/client_onboarding_flow.dart`, `lib/features/DomainProfiles/Addresses/api/adresse_service.dart`, `lib/features/screens/auth/sign_in_screen.dart`, `lib/features/services/auth/google_sign_in_service.dart`, `AGENTS.md`.
-- **Próximos pasos sugeridos:** Prueba manual en dispositivo del flujo Commerce completo (paso 4) validando mensajes de error por campo y navegación post-login; si hay clientes legacy, revisar compatibilidad con cambios de error parsing en direcciones.
+- **Fecha:** 1 Abril 2026
+- **Resumen:** Cierre de coordinación frontend-backend para saneamiento de Factories/Seeders en backend. No se requirieron cambios de código frontend en esta iteración; se confirmó estabilidad del flujo de pruebas integradas con datos demo regenerados (`migrate:fresh --seed`) y sin regresiones en análisis/tests críticos previamente certificados.
+- **Áreas tocadas:** `AGENTS.md` y `docs/active_context.md` (frontend, actualización documental de cierre); referencia de coordinación en backend: `database/factories/*` y `database/seeders/*`.
+- **Próximos pasos sugeridos:** ejecutar smoke E2E en dispositivo tras cada regeneración de datos demo para validar onboarding, catálogo, carrito, órdenes y pagos contra dataset semilla vigente.
 
 ---
 

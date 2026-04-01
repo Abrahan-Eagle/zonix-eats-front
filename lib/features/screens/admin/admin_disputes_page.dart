@@ -89,7 +89,11 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
                 : null,
           );
       final list = List<Map<String, dynamic>>.from(result['data'] ?? []);
-      final lastPage = safeInt(result['last_page'], 1);
+      final pagination = result['pagination'];
+      final lastPage = safeInt(
+        pagination is Map ? pagination['last_page'] : null,
+        safeInt(result['last_page'], 1),
+      );
       if (!mounted) return;
       setState(() {
         _disputes = list;
@@ -116,7 +120,11 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
                 : null,
           );
       final list = List<Map<String, dynamic>>.from(result['data'] ?? []);
-      final lastPage = safeInt(result['last_page'], 1);
+      final pagination = result['pagination'];
+      final lastPage = safeInt(
+        pagination is Map ? pagination['last_page'] : null,
+        safeInt(result['last_page'], 1),
+      );
       if (!mounted) return;
       setState(() {
         _disputes.addAll(list);

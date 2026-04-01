@@ -192,7 +192,22 @@ class OrderService extends ChangeNotifier {
         List<dynamic> ordersData;
         if (data is Map<String, dynamic>) {
           if (data['success'] == true && data['data'] != null) {
-            ordersData = data['data'];
+            final payload = data['data'];
+            if (payload is List) {
+              ordersData = payload;
+            } else if (payload is Map<String, dynamic>) {
+              if (payload['items'] is List) {
+                ordersData = payload['items'] as List<dynamic>;
+              } else if (payload['data'] is List) {
+                ordersData = payload['data'] as List<dynamic>;
+              } else if (payload['orders'] is List) {
+                ordersData = payload['orders'] as List<dynamic>;
+              } else {
+                return [];
+              }
+            } else {
+              return [];
+            }
           } else if (data.containsKey('data') && data['data'] is List) {
             ordersData = data['data'] as List<dynamic>;
           } else if (data.containsKey('orders')) {
@@ -419,29 +434,16 @@ class OrderService extends ChangeNotifier {
     return Map<String, dynamic>.from(data['data'] as Map);
   }
 
-  // POST /api/buyer/orders/{id}/tracking/location - Actualizar ubicación del tracking
+  @Deprecated(
+    'Endpoint buyer tracking/location removido. '
+    'La ubicacion la actualiza solo el delivery agent via /api/delivery/location/update.',
+  )
+  // Endpoint removido en backend buyer; se mantiene para compatibilidad.
   Future<void> updateTrackingLocation(int orderId, double latitude, double longitude) async {
-    final headers = await AuthHelper.getAuthHeaders();
-    final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders/$orderId/tracking/location');
-    final response = await http.post(
-      url,
-      body: jsonEncode({
-        'latitude': latitude,
-        'longitude': longitude,
-      }),
-      headers: headers,
+    throw UnsupportedError(
+      'updateTrackingLocation no aplica para buyer. '
+      'Usar flujo de tracking de delivery agent.',
     );
-    
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['success'] == true) {
-        return;
-      } else {
-        throw Exception(data['message'] ?? 'Error al actualizar ubicación');
-      }
-    } else {
-      throw Exception('Error al actualizar ubicación: ${response.statusCode}');
-    }
   }
 
   // GET /api/buyer/orders/{orderId}/messages - Obtener mensajes de la orden

@@ -80,6 +80,60 @@ class MockProductService implements ProductService {
     ];
   }
 
+  @override
+  Future<BuyerProductsPageResult> fetchProductsPage({
+    required int page,
+    int perPage = 20,
+    int? categoryId,
+  }) async {
+    final items = await fetchProducts(categoryId: categoryId);
+    return BuyerProductsPageResult(
+      products: items,
+      currentPage: 1,
+      lastPage: 1,
+      total: items.length,
+    );
+  }
+
+  @override
+  Future<List<Product>> fetchProductsByCommerce(int commerceId) async {
+    return fetchProducts();
+  }
+
+  @override
+  Future<BuyerProductsPageResult> fetchProductsByCommercePage({
+    required int commerceId,
+    required int page,
+    int perPage = 20,
+    String? search,
+  }) async {
+    final items = await fetchProducts();
+    return BuyerProductsPageResult(
+      products: items,
+      currentPage: 1,
+      lastPage: 1,
+      total: items.length,
+    );
+  }
+
+  @override
+  Future<BuyerProductsPageResult> fetchSearchProductsPage({
+    required int page,
+    int perPage = 20,
+    String? search,
+    int? commerceId,
+    int? categoryId,
+    bool? available,
+  }) async {
+    final items = await fetchProducts(categoryId: categoryId);
+    return BuyerProductsPageResult(
+      products: items,
+      currentPage: 1,
+      lastPage: 1,
+      total: items.length,
+    );
+  }
+
   Future<Product?> fetchProduct(int id) async {
     return Product(
       id: id,

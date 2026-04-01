@@ -231,7 +231,7 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
                                   if (!ctx.mounted) return;
                                   Navigator.pop(ctx);
                                   _loadData();
-                                  ScaffoldMessenger.of(context).showSnackBar(
+                                  ScaffoldMessenger.of(ctx).showSnackBar(
                                     const SnackBar(content: Text('Comercio aprobado'), backgroundColor: AppColors.green),
                                   );
                                 } catch (e) {
@@ -257,7 +257,7 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
                                   if (!ctx.mounted) return;
                                   Navigator.pop(ctx);
                                   _loadData();
-                                  ScaffoldMessenger.of(context).showSnackBar(
+                                  ScaffoldMessenger.of(ctx).showSnackBar(
                                     const SnackBar(content: Text('Comercio rechazado'), backgroundColor: AppColors.orange),
                                   );
                                 } catch (e) {

@@ -11,6 +11,18 @@ class CartItem {
   final String? notes;
   /// ID del comercio (requerido para crear orden)
   final int? commerceId;
+  /// Identificador estable de línea remota para diferenciar personalizaciones.
+  final String? lineId;
+
+  /// Clave logica de linea para distinguir personalizaciones del mismo producto.
+  /// Dos lineas con el mismo producto pero notas distintas NO deben fusionarse.
+  String get lineKey {
+    if (lineId != null && lineId!.trim().isNotEmpty) {
+      return lineId!.trim();
+    }
+    final normalizedNotes = (notes ?? '').trim();
+    return '$id|$normalizedNotes';
+  }
 
   CartItem({
     required this.id,
@@ -23,6 +35,7 @@ class CartItem {
     this.image,
     this.notes,
     this.commerceId,
+    this.lineId,
   });
 
   factory CartItem.fromJson(Map<String, dynamic> json) {
@@ -43,6 +56,7 @@ class CartItem {
       image: json['image'] ?? json['imagen'],
       notes: json['notes'],
       commerceId: json['commerce_id'],
+      lineId: json['line_id']?.toString(),
     );
   }
 
@@ -59,7 +73,8 @@ class CartItem {
         other.category == category &&
         other.image == image &&
         other.notes == notes &&
-        other.commerceId == commerceId;
+        other.commerceId == commerceId &&
+        other.lineId == lineId;
   }
 
   @override
@@ -73,7 +88,8 @@ class CartItem {
         category.hashCode ^
         image.hashCode ^
         notes.hashCode ^
-        commerceId.hashCode;
+        commerceId.hashCode ^
+        lineId.hashCode;
   }
 
   @override
