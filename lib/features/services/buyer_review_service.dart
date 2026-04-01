@@ -1,8 +1,50 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
+import 'package:flutter/foundation.dart';
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
+
+@visibleForTesting
+List<Map<String, dynamic>> normalizeReviewsResponseData(dynamic responseData) {
+  if (responseData is List) {
+    return List<Map<String, dynamic>>.from(responseData);
+  }
+  if (responseData is Map<String, dynamic>) {
+    if (responseData.containsKey('reviews') && responseData['reviews'] is List) {
+      return List<Map<String, dynamic>>.from(responseData['reviews']);
+    }
+  }
+  return [];
+}
+
+@visibleForTesting
+String extractApiMessage(String responseBody, String fallbackMessage) {
+  return extractApiError(responseBody, fallbackMessage)['message']!;
+}
+
+@visibleForTesting
+Map<String, String> extractApiError(String responseBody, String fallbackMessage) {
+  try {
+    final decoded = jsonDecode(responseBody);
+    if (decoded is Map<String, dynamic>) {
+      final message = decoded['message']?.toString().trim();
+      final errorCode = decoded['error_code']?.toString().trim();
+      if (message != null && message.isNotEmpty) {
+        return {
+          'message': message,
+          'error_code': (errorCode == null || errorCode.isEmpty) ? 'UNKNOWN' : errorCode,
+        };
+      }
+    }
+  } catch (_) {
+    // fallback below
+  }
+  return {
+    'message': fallbackMessage,
+    'error_code': 'UNKNOWN',
+  };
+}
 
 class BuyerReviewService {
   final Logger _logger = Logger();
@@ -39,7 +81,11 @@ class BuyerReviewService {
           throw Exception(data['message'] ?? 'Error al calificar restaurante');
         }
       } else {
-        throw Exception('Error al calificar restaurante: ${response.statusCode}');
+        final apiError = extractApiError(
+          response.body,
+          'Error al calificar restaurante: ${response.statusCode}',
+        );
+        throw Exception('${apiError['error_code']}|${apiError['message']}');
       }
     } catch (e) {
       _logger.e('Error en rateRestaurant: $e');
@@ -79,7 +125,11 @@ class BuyerReviewService {
           throw Exception(data['message'] ?? 'Error al calificar agente de delivery');
         }
       } else {
-        throw Exception('Error al calificar agente de delivery: ${response.statusCode}');
+        final apiError = extractApiError(
+          response.body,
+          'Error al calificar agente de delivery: ${response.statusCode}',
+        );
+        throw Exception('${apiError['error_code']}|${apiError['message']}');
       }
     } catch (e) {
       _logger.e('Error en rateDeliveryAgent: $e');
@@ -113,21 +163,7 @@ class BuyerReviewService {
         final data = jsonDecode(response.body);
         if (data['success'] == true && data['data'] != null) {
           final responseData = data['data'];
-          
-          // Verificar si la respuesta es una lista
-          if (responseData is List) {
-            return List<Map<String, dynamic>>.from(responseData);
-          }
-          // Si es un Map, verificar si tiene una propiedad 'reviews' o similar
-          else if (responseData is Map<String, dynamic>) {
-            if (responseData.containsKey('reviews') && responseData['reviews'] is List) {
-              return List<Map<String, dynamic>>.from(responseData['reviews']);
-            }
-            // Si no tiene 'reviews', devolver una lista vacía
-            return [];
-          }
-          // Si no es ni List ni Map, devolver lista vacía
-          return [];
+          return normalizeReviewsResponseData(responseData);
         }
         return [];
       } else {
@@ -165,7 +201,8 @@ class BuyerReviewService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true && data['data'] != null) {
-          return List<Map<String, dynamic>>.from(data['data']);
+          final responseData = data['data'];
+          return normalizeReviewsResponseData(responseData);
         }
         return [];
       } else {

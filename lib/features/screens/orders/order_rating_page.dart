@@ -279,6 +279,7 @@ class _OrderRatingPageState extends State<OrderRatingPage> {
     try {
       bool restaurantOk = false;
       bool deliveryOk = false;
+      String? lastErrorMessage;
       try {
         await _reviewService.rateRestaurant(
           orderId: widget.order.id,
@@ -286,7 +287,9 @@ class _OrderRatingPageState extends State<OrderRatingPage> {
           comment: _restaurantCommentController.text.trim(),
         );
         restaurantOk = true;
-      } catch (_) {}
+      } catch (e) {
+        lastErrorMessage = _sanitizeErrorMessage(e);
+      }
 
       if (widget.order.deliveryAgentId != null && _deliveryRating > 0) {
         try {
@@ -296,7 +299,9 @@ class _OrderRatingPageState extends State<OrderRatingPage> {
             comment: _deliveryCommentController.text.trim(),
           );
           deliveryOk = true;
-        } catch (_) {}
+        } catch (e) {
+          lastErrorMessage = _sanitizeErrorMessage(e);
+        }
       } else {
         deliveryOk = true;
       }
@@ -309,9 +314,14 @@ class _OrderRatingPageState extends State<OrderRatingPage> {
         Navigator.of(context).pop();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ya calificaste esta orden'), backgroundColor: AppColors.orange),
+          SnackBar(
+            content: Text(lastErrorMessage ?? 'No se pudo enviar la calificación. Intenta nuevamente.'),
+            backgroundColor: AppColors.orange,
+          ),
         );
-        Navigator.of(context).pop();
+        setState(() {
+          _submitting = false;
+        });
       }
     } catch (e) {
       if (!mounted) return;
@@ -327,6 +337,20 @@ class _OrderRatingPageState extends State<OrderRatingPage> {
         _submitting = false;
       });
     }
+  }
+
+  String _sanitizeErrorMessage(Object error) {
+    final raw = error.toString().replaceFirst('Exception: ', '').trim();
+    if (raw.isEmpty) return 'No se pudo enviar la calificación. Intenta nuevamente.';
+    final parts = raw.split('|');
+    if (parts.length >= 2) {
+      final code = parts.first.trim();
+      final message = parts.sublist(1).join('|').trim();
+      if (code == 'REVIEWS_DUPLICATE_REVIEW') return 'Ya calificaste esta orden.';
+      if (message.isNotEmpty) return message;
+    }
+    if (raw.contains('409')) return 'Ya calificaste esta orden.';
+    return raw;
   }
 }
 
