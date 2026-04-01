@@ -73,7 +73,6 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     }
     final s = _order!.status;
     if (s == 'shipped' ||
-        s == 'out_for_delivery' ||
         s == 'processing' ||
         s == 'paid' ||
         s == 'pending_payment') {
@@ -89,6 +88,11 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
               : <String, dynamic>{};
 
           if (channelName == 'private-orders.${widget.orderId}') {
+            if (eventName == 'RealtimeEventDropped' &&
+                event['dropReason'] == 'out_of_order' &&
+                mounted) {
+              _refreshOrder();
+            }
             if (eventName.contains('DeliveryLocationUpdated')) {
               final location = eventData['location'] is Map<String, dynamic>
                   ? eventData['location'] as Map<String, dynamic>
@@ -187,7 +191,6 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
 
   bool _isTrackableStatus(String s) =>
       s == 'shipped' ||
-      s == 'out_for_delivery' ||
       s == 'processing' ||
       s == 'paid';
 
@@ -245,46 +248,27 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
     final s = order.status.toLowerCase();
     switch (s) {
       case 'pending_payment':
-      case 'pending':
       case 'paid':
         return 0;
       case 'processing':
-      case 'preparing':
-      case 'ready':
         return 1;
       case 'shipped':
-      case 'out_for_delivery':
-      case 'on_way':
         return 2;
       case 'delivered':
         return 3;
       default:
-        // Fallback por si el backend envía otro valor (ej. "en camino")
-        if (s.contains('camino') ||
-            s.contains('shipped') ||
-            s.contains('delivery')) {
-          return 2;
-        }
-        if (s.contains('prepar') ||
-            s.contains('process') ||
-            s.contains('ready')) {
-          return 1;
-        }
-        if (s.contains('entreg') || s.contains('delivered')) {
-          return 3;
-        }
         return 0;
     }
   }
 
   String _etaMessage(Order order) {
-    if (order.status == 'pending_payment' || order.status == 'pending') {
+    if (order.status == 'pending_payment') {
       return 'Sube tu comprobante de pago para que el comercio confirme tu orden.';
     }
-    if (order.status == 'processing' || order.status == 'preparing') {
+    if (order.status == 'processing') {
       return 'Se está preparando tu pedido';
     }
-    if (order.status == 'shipped' || order.status == 'out_for_delivery') {
+    if (order.status == 'shipped') {
       if (order.isPickup) return 'Tu pedido está listo para recoger';
       final m = order.estimatedDeliveryMinutes;
       if (m != null && m > 0) return 'Llegada estimada en ~$m min';
@@ -350,8 +334,7 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                     children: [
                       _buildStatusSection(order, surfaceColor, borderColor,
                           primary, textPrimary, textSecondary),
-                      if (order.status == 'pending_payment' ||
-                          order.status == 'pending') ...[
+                      if (order.status == 'pending_payment') ...[
                         Padding(
                           padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
                           child: PaymentTimeline(

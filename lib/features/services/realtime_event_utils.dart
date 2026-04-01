@@ -51,6 +51,13 @@ class RealtimeEventDeduper {
   final int maxEntries;
   final LinkedHashMap<String, DateTime> _seenEventIds = LinkedHashMap<String, DateTime>();
   final Map<String, DateTime> _latestByEntityKey = {};
+  String? _lastDropReason;
+
+  String? consumeLastDropReason() {
+    final value = _lastDropReason;
+    _lastDropReason = null;
+    return value;
+  }
 
   bool shouldAccept({
     required String canonicalEventName,
@@ -58,10 +65,12 @@ class RealtimeEventDeduper {
     required DateTime now,
   }) {
     _cleanup(now);
+    _lastDropReason = null;
     final eventId = RealtimeEventUtils.extractEventId(data);
     if (eventId != null) {
       final seenAt = _seenEventIds[eventId];
       if (seenAt != null && now.difference(seenAt) <= ttl) {
+        _lastDropReason = 'duplicate_event_id';
         return false;
       }
       _seenEventIds[eventId] = now;
@@ -76,6 +85,7 @@ class RealtimeEventDeduper {
       final key = '$canonicalEventName:$orderId';
       final latest = _latestByEntityKey[key];
       if (latest != null && occurredAt.isBefore(latest)) {
+        _lastDropReason = 'out_of_order';
         return false;
       }
       _latestByEntityKey[key] = occurredAt;

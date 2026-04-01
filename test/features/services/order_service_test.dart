@@ -13,6 +13,8 @@ class MockOrderService extends OrderService {
     String? deliveryAddress,
     double? deliveryLatitude,
     double? deliveryLongitude,
+    String? couponCode,
+    String? idempotencyKey,
     double deliveryFee = 0.0,
   }) async {
     // Simula una respuesta exitosa

@@ -60,7 +60,9 @@ void main() {
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Seguir mi pedido'));
-      await tester.pumpAndSettle();
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
       expect(find.byType(OrderDetailPage), findsOneWidget);
     });

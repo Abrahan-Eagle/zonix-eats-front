@@ -71,12 +71,14 @@ class MockOrderService extends _i1.Mock implements _i3.OrderService {
 
   @override
   _i4.Future<_i2.Order> createOrder(
-    List<_i5.CartItem>? items, {
-    required String? deliveryType,
+    List<_i5.CartItem> items, {
+    required String deliveryType,
     String? deliveryAddress,
     double? deliveryLatitude,
     double? deliveryLongitude,
-    double? deliveryFee = 0.0,
+    String? couponCode,
+    String? idempotencyKey,
+    double deliveryFee = 0.0,
   }) =>
       (super.noSuchMethod(
         Invocation.method(
@@ -87,6 +89,8 @@ class MockOrderService extends _i1.Mock implements _i3.OrderService {
             #deliveryAddress: deliveryAddress,
             #deliveryLatitude: deliveryLatitude,
             #deliveryLongitude: deliveryLongitude,
+            #couponCode: couponCode,
+            #idempotencyKey: idempotencyKey,
             #deliveryFee: deliveryFee,
           },
         ),
@@ -100,6 +104,8 @@ class MockOrderService extends _i1.Mock implements _i3.OrderService {
               #deliveryAddress: deliveryAddress,
               #deliveryLatitude: deliveryLatitude,
               #deliveryLongitude: deliveryLongitude,
+              #couponCode: couponCode,
+              #idempotencyKey: idempotencyKey,
               #deliveryFee: deliveryFee,
             },
           ),

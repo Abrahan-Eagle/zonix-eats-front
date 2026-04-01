@@ -549,7 +549,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 ElevatedButton(
                   onPressed: _appliedCoupon != null || _validatingCoupon
                       ? null
-                      : () => _validateCoupon(subtotal),
+                      : () => _validateCoupon(subtotal + delivery),
                   child: _validatingCoupon
                       ? const SizedBox(
                           height: 18,
@@ -978,7 +978,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     );
   }
 
-  Future<void> _validateCoupon(double subtotal) async {
+  Future<void> _validateCoupon(double orderAmount) async {
     final code = _couponController.text.trim();
     if (code.isEmpty) return;
 
@@ -990,10 +990,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
           : null;
       final result = await _promotionService.validateCoupon(
         couponCode: code,
-        orderAmount: subtotal,
+        orderAmount: orderAmount,
         commerceId: commerceId,
       );
-      final discount = safeDouble(result['discount']);
+      final discount = safeDouble(result['discount_amount'] ?? result['discount']);
       setState(() {
         _appliedCoupon = result;
         _couponDiscount = discount;

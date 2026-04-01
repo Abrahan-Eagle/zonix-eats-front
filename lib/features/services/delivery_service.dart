@@ -412,7 +412,16 @@ class DeliveryService extends ChangeNotifier {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true && data['data'] != null) {
-          return (data['data'] as List).map((json) => Order.fromJson(json)).toList();
+          final payload = data['data'];
+          if (payload is List) {
+            return payload.map((json) => Order.fromJson(json)).toList();
+          }
+          if (payload is Map<String, dynamic>) {
+            final rawItems = payload['items'] ?? payload['data'] ?? [];
+            if (rawItems is List) {
+              return rawItems.map((json) => Order.fromJson(json)).toList();
+            }
+          }
         }
         return [];
       } else {
@@ -434,7 +443,16 @@ class DeliveryService extends ChangeNotifier {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true && data['data'] != null) {
-          return (data['data'] as List).map((json) => Order.fromJson(json)).toList();
+          final payload = data['data'];
+          if (payload is List) {
+            return payload.map((json) => Order.fromJson(json)).toList();
+          }
+          if (payload is Map<String, dynamic>) {
+            final rawItems = payload['items'] ?? payload['data'] ?? [];
+            if (rawItems is List) {
+              return rawItems.map((json) => Order.fromJson(json)).toList();
+            }
+          }
         }
         return [];
       } else {
@@ -593,7 +611,16 @@ class DeliveryService extends ChangeNotifier {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['success'] == true && data['data'] != null) {
-          return (data['data'] as List).map((json) => Order.fromJson(json)).toList();
+          final payload = data['data'];
+          if (payload is List) {
+            return payload.map((json) => Order.fromJson(json)).toList();
+          }
+          if (payload is Map<String, dynamic>) {
+            final rawItems = payload['items'] ?? payload['data'] ?? [];
+            if (rawItems is List) {
+              return rawItems.map((json) => Order.fromJson(json)).toList();
+            }
+          }
         }
         return [];
       } else {

@@ -50,7 +50,7 @@ void main() {
       };
       final order = Order.fromJson(json);
       expect(order.id, 1);
-      expect(order.status, 'pending');
+      expect(order.status, 'pending_payment');
       expect(order.total, 25.0);
       expect(order.items, isEmpty);
       expect(order.estimatedDeliveryMinutes, 25);
@@ -79,6 +79,38 @@ void main() {
       final order = Order.fromJson(json);
       expect(order.total, 25.0);
       expect(order.estimatedDeliveryMinutes, 25);
+    });
+
+    test('Normaliza aliases legacy a estado canónico', () {
+      final legacyAliases = {
+        'pending': 'pending_payment',
+        'confirmed': 'paid',
+        'preparing': 'processing',
+        'ready': 'processing',
+        'on_way': 'shipped',
+        'out_for_delivery': 'shipped',
+      };
+
+      legacyAliases.forEach((legacy, canonical) {
+        final order = Order.fromJson({
+          'id': 90,
+          'user_id': 1,
+          'commerce_id': 1,
+          'order_number': 'ORD-ALIAS',
+          'status': legacy,
+          'subtotal': 1,
+          'delivery_fee': 0,
+          'tax': 0,
+          'total': 1,
+          'payment_method': 'cash',
+          'payment_status': 'pending',
+          'delivery_address': 'X',
+          'created_at': '2024-01-01T00:00:00.000Z',
+          'updated_at': '2024-01-01T00:00:00.000Z',
+          'items': [],
+        });
+        expect(order.status, canonical);
+      });
     });
 
     test('Maneja total como string en JSON', () {

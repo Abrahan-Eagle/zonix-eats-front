@@ -112,7 +112,6 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     }
     final s = _order!.status;
     final shouldSubscribe = s == 'shipped' ||
-        s == 'out_for_delivery' ||
         s == 'processing' ||
         s == 'paid' ||
         s == 'pending_payment';
@@ -136,6 +135,12 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         }
 
         if (channelName != 'private-orders.${widget.orderId}') return;
+
+        if (eventName == 'RealtimeEventDropped' &&
+            event['dropReason'] == 'out_of_order') {
+          _loadOrder();
+          return;
+        }
 
         if (eventName.contains('DeliveryLocationUpdated')) {
           final location = data['location'] is Map<String, dynamic>
@@ -1307,23 +1312,15 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     final s = order.status.toLowerCase();
     switch (s) {
       case 'pending_payment':
-      case 'pending':
       case 'paid':
         return 0;
       case 'processing':
-      case 'preparing':
-      case 'ready':
         return 1;
       case 'shipped':
-      case 'out_for_delivery':
-      case 'on_way':
         return 2;
       case 'delivered':
         return 3;
       default:
-        if (s.contains('camino') || s.contains('shipped') || s.contains('delivery')) return 2;
-        if (s.contains('prepar') || s.contains('process') || s.contains('ready')) return 1;
-        if (s.contains('entreg') || s.contains('delivered')) return 3;
         return 0;
     }
   }
@@ -1539,7 +1536,6 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   bool _isTrackableStatus(String status) {
     return status == 'pending_payment' ||
         status == 'shipped' ||
-        status == 'out_for_delivery' ||
         status == 'processing' ||
         status == 'paid';
   }
@@ -1633,7 +1629,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   ],
                 ),
               ),
-            if (order.status == 'shipped' || order.status == 'out_for_delivery') ...[
+            if (order.status == 'shipped') ...[
               const SizedBox(height: 12),
               Text('Cuando el repartidor llegue, te pedirá mostrar tu QR', style: TextStyle(fontSize: 13, color: AppColors.secondaryText(context)), textAlign: TextAlign.center),
             ],

@@ -45,8 +45,12 @@ class CommerceOrderService {
         List<dynamic> list;
         if (data is List) {
           list = data;
-        } else if (data['data'] != null) {
+        } else if (data is Map<String, dynamic> && data['data'] is List) {
           list = data['data'] as List;
+        } else if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
+          final payload = data['data'] as Map<String, dynamic>;
+          final rawItems = payload['items'] ?? payload['data'] ?? [];
+          list = rawItems is List ? rawItems : <dynamic>[];
         } else {
           return [];
         }
@@ -80,7 +84,10 @@ class CommerceOrderService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return CommerceOrder.fromJson(data);
+        if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
+          return CommerceOrder.fromJson(data['data'] as Map<String, dynamic>);
+        }
+        return CommerceOrder.fromJson(data as Map<String, dynamic>);
       } else {
         throw Exception('Error al obtener orden: ${response.statusCode}');
       }

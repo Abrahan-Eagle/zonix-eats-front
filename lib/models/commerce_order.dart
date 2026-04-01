@@ -1,4 +1,5 @@
 import 'package:zonix/features/utils/safe_parse.dart';
+import 'package:zonix/models/order.dart' show canonicalOrderStatus;
 
 int? _etaMinutesFromJson(dynamic v) {
   if (v == null) return null;
@@ -62,7 +63,7 @@ class CommerceOrder {
       profileId: json['profile_id'] ?? 0,
       commerceId: json['commerce_id'] ?? 0,
       deliveryType: json['delivery_type'] ?? 'pickup',
-      status: json['status'] ?? 'pending_payment',
+      status: canonicalOrderStatus((json['status'] ?? 'pending_payment').toString()),
       total: (json['total'] is String)
           ? double.tryParse(json['total']) ?? 0.0
           : (json['total'] ?? 0.0).toDouble(),
@@ -204,11 +205,11 @@ class CommerceOrder {
 
   bool get isPendingPayment => status == 'pending_payment';
   bool get isPaid => status == 'paid';
-  bool get isPreparing => status == 'processing' || status == 'preparing';
-  bool get isProcessing => status == 'processing' || status == 'preparing';
-  bool get isReady => status == 'processing' || status == 'ready';
+  bool get isPreparing => status == 'processing';
+  bool get isProcessing => status == 'processing';
+  bool get isReady => status == 'processing';
   bool get isShipped => status == 'shipped';
-  bool get isOnWay => status == 'shipped' || status == 'on_way';
+  bool get isOnWay => status == 'shipped';
   bool get isDelivered => status == 'delivered';
   bool get isCancelled => status == 'cancelled';
 
@@ -225,12 +226,8 @@ class CommerceOrder {
       case 'paid':
         return 'Pagado';
       case 'processing':
-      case 'preparing':
         return 'En Preparación';
-      case 'ready':
-        return 'Listo';
       case 'shipped':
-      case 'on_way':
         return 'En Camino';
       case 'delivered':
         return 'Entregado';

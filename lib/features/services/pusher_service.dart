@@ -241,8 +241,17 @@ class PusherService {
           now: now,
         );
         if (!shouldAccept) {
+          final dropReason = _eventDeduper.consumeLastDropReason();
+          _eventController.add({
+            'eventName': 'RealtimeEventDropped',
+            'canonicalEventName': 'RealtimeEventDropped',
+            'channelName': event.channelName,
+            'dropReason': dropReason,
+            'originalCanonicalEventName': canonicalEventName,
+            'data': data,
+          });
           // ignore: avoid_print
-          print('⏭️ Event deduplicated/dropped: $canonicalEventName');
+          print('⏭️ Event deduplicated/dropped: $canonicalEventName ($dropReason)');
           return;
         }
 
