@@ -190,20 +190,34 @@ class CommerceOrderService {
   // Validar comprobante de pago
   static Future<Map<String, dynamic>> validatePayment(int orderId, bool isValid, {String? reason}) async {
     try {
+      if (!isValid && (reason == null || reason.trim().isEmpty)) {
+        throw Exception('Debes indicar un motivo de rechazo.');
+      }
+
       final headers = await AuthHelper.getAuthHeaders();
       final response = await http.post(
         Uri.parse('$baseUrl/api/commerce/orders/$orderId/validate-payment'),
         headers: headers,
         body: jsonEncode({
           'is_valid': isValid,
-          'rejection_reason': reason,
+          'rejection_reason': reason?.trim(),
         }),
       );
 
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
-        throw Exception('Error al validar pago: ${response.statusCode}');
+        final data = response.body.isNotEmpty ? jsonDecode(response.body) : null;
+        final message = data is Map
+            ? (data['message'] ??
+                data['error'] ??
+                (data['errors'] is Map
+                    ? (data['errors'].values.first is List
+                        ? (data['errors'].values.first as List).first
+                        : data['errors'].values.first)
+                    : null))
+            : null;
+        throw Exception((message ?? 'Error al validar pago: ${response.statusCode}').toString());
       }
     } catch (e) {
       throw Exception('Error al validar pago: $e');

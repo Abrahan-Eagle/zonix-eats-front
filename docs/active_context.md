@@ -10,9 +10,9 @@
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
 - **Fecha:** 1 Abril 2026
-- **Resumen:** Cierre de coordinación frontend-backend para saneamiento de Factories/Seeders en backend. No se requirieron cambios de código frontend en esta iteración; se confirmó estabilidad del flujo de pruebas integradas con datos demo regenerados (`migrate:fresh --seed`) y sin regresiones en análisis/tests críticos previamente certificados.
-- **Áreas tocadas:** `AGENTS.md` y `docs/active_context.md` (frontend, actualización documental de cierre); referencia de coordinación en backend: `database/factories/*` y `database/seeders/*`.
-- **Próximos pasos sugeridos:** ejecutar smoke E2E en dispositivo tras cada regeneración de datos demo para validar onboarding, catálogo, carrito, órdenes y pagos contra dataset semilla vigente.
+- **Resumen:** Módulo Métodos de Pago cerrado a 10/10 verificable en coordinación con backend. Se robusteció el contrato de cliente para comprobantes y validación: `OrderService.uploadPaymentProof` ahora acepta 2xx y parsea `message/errors`, y `CommerceOrderService.validatePayment` exige motivo en rechazos y mejora manejo de errores para feedback UX consistente. Se mantuvo compatibilidad durante transición con contrato canónico + alias legacy sin regresiones funcionales.
+- **Áreas tocadas:** `lib/features/services/order_service.dart`, `lib/features/services/commerce_order_service.dart`, `AGENTS.md`, `docs/active_context.md`.
+- **Próximos pasos sugeridos:** ejecutar smoke E2E en dispositivo para verificar flujo buyer->commerce de comprobantes (subir, validar, rechazar, reintentar) y mantener seguimiento de deprecación legacy desde backend hasta retiro final.
 
 ---
 

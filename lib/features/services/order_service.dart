@@ -292,17 +292,44 @@ class OrderService extends ChangeNotifier {
     
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
-    
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['success'] == true) {
-        return;
-      } else {
-        throw Exception(data['message'] ?? 'Error al subir comprobante de pago');
+
+    Map<String, dynamic>? data;
+    if (response.body.isNotEmpty) {
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        data = decoded;
       }
-    } else {
-      throw Exception('Error al subir comprobante de pago: ${response.statusCode}');
     }
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      if (data == null || data['success'] == true) {
+        return;
+      }
+      throw Exception(data['message']?.toString() ?? 'Error al subir comprobante de pago');
+    }
+
+    final message = _extractApiErrorMessage(data, 'Error al subir comprobante de pago: ${response.statusCode}');
+    throw Exception(message);
+  }
+
+  String _extractApiErrorMessage(Map<String, dynamic>? data, String fallback) {
+    if (data == null) return fallback;
+    final msg = data['message'] ?? data['error'];
+    if (msg is String && msg.trim().isNotEmpty) return msg.trim();
+
+    final errors = data['errors'];
+    if (errors is Map) {
+      for (final value in errors.values) {
+        if (value is List && value.isNotEmpty) {
+          final first = value.first?.toString();
+          if (first != null && first.trim().isNotEmpty) return first.trim();
+        } else if (value is String && value.trim().isNotEmpty) {
+          return value.trim();
+        }
+      }
+    }
+
+    return fallback;
   }
 
   Future<String?> getDeliveryQrPayload(int orderId) async {
