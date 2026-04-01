@@ -64,7 +64,11 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
             status: _filterStatus,
           );
       final list = List<Map<String, dynamic>>.from(result['data'] ?? []);
-      final lastPage = safeInt(result['last_page'], 1);
+      final pagination = result['pagination'];
+      final lastPage = safeInt(
+        pagination is Map ? pagination['last_page'] : null,
+        safeInt(result['last_page'], 1),
+      );
       if (!mounted) return;
       setState(() {
         _commerces = list;
@@ -91,7 +95,11 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
             status: _filterStatus,
           );
       final list = List<Map<String, dynamic>>.from(result['data'] ?? []);
-      final lastPage = safeInt(result['last_page'], 1);
+      final pagination = result['pagination'];
+      final lastPage = safeInt(
+        pagination is Map ? pagination['last_page'] : null,
+        safeInt(result['last_page'], 1),
+      );
       if (!mounted) return;
       setState(() {
         _commerces.addAll(list);

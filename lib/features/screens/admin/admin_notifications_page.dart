@@ -37,6 +37,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage> {
     'users': 'Compradores',
     'commerce': 'Comercios',
     'delivery': 'Delivery',
+    'delivery_agent': 'Agentes delivery',
     'delivery_company': 'Empresas',
     'admin': 'Administradores',
   };

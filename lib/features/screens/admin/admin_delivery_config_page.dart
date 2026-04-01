@@ -539,9 +539,9 @@ class _DeliveryZonesTabState extends State<_DeliveryZonesTab>
     final isEditing = zone != null;
     final nameCtrl = TextEditingController(text: safeString(zone?['name']));
     final latCtrl =
-        TextEditingController(text: safeString(zone?['center_lat']));
+        TextEditingController(text: safeString(zone?['center_latitude']));
     final lngCtrl =
-        TextEditingController(text: safeString(zone?['center_lng']));
+        TextEditingController(text: safeString(zone?['center_longitude']));
     final radiusCtrl = TextEditingController(text: safeString(zone?['radius']));
     final feeCtrl =
         TextEditingController(text: safeString(zone?['delivery_fee']));
@@ -677,13 +677,14 @@ class _DeliveryZonesTabState extends State<_DeliveryZonesTab>
     required String desc,
     required bool active,
   }) async {
+    final parsedDeliveryTime = time.isNotEmpty ? int.tryParse(time) : null;
     final body = <String, dynamic>{
       'name': name,
-      if (lat.isNotEmpty) 'center_lat': double.tryParse(lat),
-      if (lng.isNotEmpty) 'center_lng': double.tryParse(lng),
+      if (lat.isNotEmpty) 'center_latitude': double.tryParse(lat),
+      if (lng.isNotEmpty) 'center_longitude': double.tryParse(lng),
       'radius': double.tryParse(radius) ?? 0,
       'delivery_fee': double.tryParse(fee) ?? 0,
-      if (time.isNotEmpty) 'delivery_time': time,
+      if (parsedDeliveryTime != null) 'delivery_time': parsedDeliveryTime,
       if (desc.isNotEmpty) 'description': desc,
       'is_active': active,
     };

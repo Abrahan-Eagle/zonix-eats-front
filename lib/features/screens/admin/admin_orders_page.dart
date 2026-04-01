@@ -69,8 +69,14 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                 ? _filterStatus
                 : null,
           );
-      final list = List<Map<String, dynamic>>.from(result['data'] ?? []);
-      final lastPage = safeInt(result['last_page'], 1);
+      final data = result['data'];
+      final listSource = data is Map ? (data['items'] ?? data['data']) : data;
+      final list = List<Map<String, dynamic>>.from(listSource ?? []);
+      final pagination = data is Map ? data['pagination'] : null;
+      final lastPage = safeInt(
+        pagination is Map ? pagination['last_page'] : null,
+        safeInt(result['last_page'], 1),
+      );
       if (!mounted) return;
       setState(() {
         _orders = list;
@@ -96,8 +102,14 @@ class _AdminOrdersPageState extends State<AdminOrdersPage> {
                 ? _filterStatus
                 : null,
           );
-      final list = List<Map<String, dynamic>>.from(result['data'] ?? []);
-      final lastPage = safeInt(result['last_page'], 1);
+      final data = result['data'];
+      final listSource = data is Map ? (data['items'] ?? data['data']) : data;
+      final list = List<Map<String, dynamic>>.from(listSource ?? []);
+      final pagination = data is Map ? data['pagination'] : null;
+      final lastPage = safeInt(
+        pagination is Map ? pagination['last_page'] : null,
+        safeInt(result['last_page'], 1),
+      );
       if (!mounted) return;
       setState(() {
         _orders.addAll(list);

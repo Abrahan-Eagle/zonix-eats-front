@@ -62,7 +62,11 @@ class _AdminDeliveryCompaniesPageState
             search: _search.isNotEmpty ? _search : null,
           );
       final list = List<Map<String, dynamic>>.from(result['data'] ?? []);
-      final lastPage = safeInt(result['last_page'], 1);
+      final pagination = result['pagination'];
+      final lastPage = safeInt(
+        pagination is Map ? pagination['last_page'] : null,
+        safeInt(result['last_page'], 1),
+      );
       if (!mounted) return;
       setState(() {
         _companies = list;
@@ -87,7 +91,11 @@ class _AdminDeliveryCompaniesPageState
             search: _search.isNotEmpty ? _search : null,
           );
       final list = List<Map<String, dynamic>>.from(result['data'] ?? []);
-      final lastPage = safeInt(result['last_page'], 1);
+      final pagination = result['pagination'];
+      final lastPage = safeInt(
+        pagination is Map ? pagination['last_page'] : null,
+        safeInt(result['last_page'], 1),
+      );
       if (!mounted) return;
       setState(() {
         _companies.addAll(list);
@@ -141,7 +149,10 @@ class _AdminDeliveryCompaniesPageState
                 ),
                 Text(
                   safeString(company['company_name'],
-                      safeString(company['business_name'], 'Empresa')),
+                  safeString(
+                    company['business_name'],
+                    safeString(company['name'], 'Empresa'),
+                  )),
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -330,7 +341,10 @@ class _AdminDeliveryCompaniesPageState
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final name = safeString(
       company['company_name'],
-      safeString(company['business_name'], 'Empresa'),
+      safeString(
+        company['business_name'],
+        safeString(company['name'], 'Empresa'),
+      ),
     );
     final agentCount =
         safeInt(company['agents_count'], safeInt(company['agent_count']));
