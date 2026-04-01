@@ -189,6 +189,10 @@ class PromotionService {
       }
 
       final message = data['message'] as String? ?? 'Error al aplicar cupón (${response.statusCode})';
+      final code = data['error_code'] as String?;
+      if (response.statusCode == 410 || code == 'COUPON_FLOW_DEPRECATED') {
+        throw Exception('Actualiza la app. El cupón ahora se aplica al confirmar el pedido.');
+      }
       final errors = data['errors'];
       if (errors is Map<String, dynamic>) {
         final parts = errors.values.expand((e) => e is List ? e : [e]);

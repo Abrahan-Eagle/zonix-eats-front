@@ -21,5 +21,6 @@ void main() {
     await tester.pumpAndSettle();
     // El texto exacto que muestra CheckoutPage
     expect(find.text('Resumen del pedido'), findsOneWidget);
+    expect(find.text('Impuestos (8%)'), findsNothing);
   });
 }

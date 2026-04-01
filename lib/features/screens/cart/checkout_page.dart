@@ -36,6 +36,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   double? _calculatedDeliveryFee;
   int? _deliveryTimeMinutes;
   bool _deliveryFeeLoading = false;
+  String? _currentIdempotencyKey;
 
   @override
   void initState() {
@@ -178,6 +179,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
       _loading = true;
       _error = null;
     });
+    _currentIdempotencyKey ??=
+        'chk_${DateTime.now().millisecondsSinceEpoch}_${DateTime.now().microsecondsSinceEpoch}';
     final cartService = Provider.of<CartService>(context, listen: false);
     final orderService = Provider.of<OrderService>(context, listen: false);
     try {
@@ -204,18 +207,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
         deliveryLongitude:
             _deliveryType == 'delivery' ? _selectedDeliveryLng : null,
         deliveryFee: deliveryFee,
+        couponCode: _appliedCoupon?['code']?.toString(),
+        idempotencyKey: _currentIdempotencyKey,
       );
-      if (_appliedCoupon != null) {
-        final cid = _appliedCoupon!['coupon_id'];
-        if (cid != null) {
-          final couponId = cid is int ? cid : int.tryParse(cid.toString());
-          if (couponId != null) {
-            await _promotionService.applyCouponToOrder(
-                couponId: couponId, orderId: order.id);
-          }
-        }
-      }
       cartService.clearCart();
+      _currentIdempotencyKey = null;
       if (!mounted) return;
       setState(() {
         _loading = false;
@@ -240,11 +236,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final cartItems = cartService.items;
     final subtotal = cartItems.fold<double>(
         0, (sum, item) => sum + (item.precio ?? 0) * item.quantity);
-    const tax = 0.0;
     final delivery = _deliveryType == 'delivery'
         ? (_calculatedDeliveryFee ?? AppConfig.defaultDeliveryFee)
         : 0.0;
-    final totalPayment = (subtotal + tax + delivery - _couponDiscount)
+    final totalPayment = (subtotal + delivery - _couponDiscount)
         .clamp(0.0, double.infinity);
     return Scaffold(
       backgroundColor: AppColors.scaffoldBg(context),
@@ -900,10 +895,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       'Tiempo estimado',
                       '~${_deliveryTimeMinutes!} min',
                     ),
-                  _buildSummaryRow(
-                    'Impuestos (8%)',
-                    '\$${tax.toStringAsFixed(2)}',
-                  ),
+                  _buildSummaryRow('Impuestos', 'No aplican en este pedido'),
                   if (_couponDiscount > 0)
                     _buildSummaryRow(
                       'Descuento cupón',

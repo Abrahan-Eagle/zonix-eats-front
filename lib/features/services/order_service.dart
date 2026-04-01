@@ -53,6 +53,8 @@ class OrderService extends ChangeNotifier {
     double? deliveryLatitude,
     double? deliveryLongitude,
     double deliveryFee = 0.0,
+    String? couponCode,
+    String? idempotencyKey,
   }) async {
     if (items.isEmpty) {
       throw Exception('El carrito está vacío');
@@ -71,6 +73,11 @@ class OrderService extends ChangeNotifier {
         .map((i) => '${i.nombre}: ${i.notes}')
         .join('; ');
     final headers = await AuthHelper.getAuthHeaders();
+    final requestHeaders = {
+      ...headers,
+      if (idempotencyKey != null && idempotencyKey.trim().isNotEmpty)
+        'Idempotency-Key': idempotencyKey.trim(),
+    };
     final url = Uri.parse('${AppConfig.apiUrl}/api/buyer/orders');
     final body = jsonEncode({
       'commerce_id': commerceId,
@@ -78,6 +85,8 @@ class OrderService extends ChangeNotifier {
       'delivery_type': deliveryType,
       'total': total,
       'delivery_fee': deliveryFee,
+      if (couponCode != null && couponCode.trim().isNotEmpty)
+        'coupon_code': couponCode.trim(),
       if (orderNotes.isNotEmpty) 'notes': orderNotes,
       if (deliveryType == 'delivery') ...{
         'delivery_address': deliveryAddress?.trim() ?? '',
@@ -89,7 +98,7 @@ class OrderService extends ChangeNotifier {
     final response = await http.post(
       url,
       body: body,
-      headers: headers,
+      headers: requestHeaders,
     );
     
     if (response.statusCode == 200 || response.statusCode == 201) {
@@ -115,11 +124,19 @@ class OrderService extends ChangeNotifier {
       String errorMessage = 'Error al crear la orden: ${response.statusCode}';
       
       if (data != null && data['message'] != null) {
+        final code = data['error_code']?.toString();
         errorMessage = data['message'];
         // Detectar si falta photo_users
         if (data['missing_field'] == 'photo_users' || 
             (errorMessage.contains('photo_users') || errorMessage.contains('foto'))) {
           errorMessage = 'Se requiere una foto de perfil para crear una orden. Por favor, completa tu perfil.';
+        } else if (code == 'ORDER_TOTAL_MISMATCH') {
+          final recalculated = data['recalculated_total'];
+          if (recalculated != null) {
+            errorMessage = 'El total cambió durante el checkout. Nuevo total: \$${recalculated.toString()}';
+          }
+        } else if (code == 'ORDER_IDEMPOTENCY_CONFLICT') {
+          errorMessage = 'Se detectó un reintento inválido de compra. Intenta de nuevo.';
         }
       }
       

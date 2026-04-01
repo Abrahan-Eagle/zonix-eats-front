@@ -1697,7 +1697,7 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               ));
                               return;
                             }
-                            cartService.addToCart(CartItem(
+                            final result = cartService.addToCart(CartItem(
                               id: product.id,
                               nombre: product.name,
                               precio: product.price,
@@ -1708,6 +1708,18 @@ class _RestaurantDetailsPageState extends State<RestaurantDetailsPage> {
                               category: product.category,
                               commerceId: product.commerceId,
                             ));
+                            final message = switch (result.status) {
+                              CartAddStatus.replacedCommerce =>
+                                'Carrito actualizado. Solo puedes tener productos de un comercio a la vez.',
+                              CartAddStatus.blockedLimit =>
+                                'No puedes agregar mas de 100 unidades',
+                              CartAddStatus.blockedStock =>
+                                'Cantidad no disponible por stock',
+                              _ => 'Producto agregado al carrito',
+                            };
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(message)),
+                            );
                           }),
                         ],
                       ),
