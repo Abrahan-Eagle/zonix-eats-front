@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/services/address_service.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/location_service.dart';
@@ -194,9 +193,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
           });
           return;
         }
+        if (_deliveryFeeLoading || _calculatedDeliveryFee == null) {
+          setState(() {
+            _error = 'Aun no se pudo calcular la tarifa de delivery. Revisa la direccion e intenta de nuevo.';
+            _loading = false;
+          });
+          return;
+        }
       }
       final deliveryFee = _deliveryType == 'delivery'
-          ? (_calculatedDeliveryFee ?? AppConfig.defaultDeliveryFee)
+          ? (_calculatedDeliveryFee ?? 0.0)
           : 0.0;
       final order = await orderService.createOrder(
         cartService.items.toList(),
@@ -237,7 +243,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final subtotal = cartItems.fold<double>(
         0, (sum, item) => sum + (item.precio ?? 0) * item.quantity);
     final delivery = _deliveryType == 'delivery'
-        ? (_calculatedDeliveryFee ?? AppConfig.defaultDeliveryFee)
+        ? (_calculatedDeliveryFee ?? 0.0)
         : 0.0;
     final totalPayment = (subtotal + delivery - _couponDiscount)
         .clamp(0.0, double.infinity);
@@ -928,7 +934,11 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                onPressed: _loading ? null : _handleCheckout,
+                onPressed: (_loading ||
+                        (_deliveryType == 'delivery' &&
+                            (_deliveryFeeLoading || _calculatedDeliveryFee == null)))
+                    ? null
+                    : _handleCheckout,
                 child: _loading
                     ? const SizedBox(
                         height: 24,
