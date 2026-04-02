@@ -10,6 +10,7 @@ import 'package:zonix/config/app_config.dart';
 import 'package:zonix/widgets/osm_map_widget.dart';
 import 'package:zonix/features/screens/orders/buyer_order_chat_page.dart';
 import 'package:zonix/features/screens/orders/delivery_detail_page.dart';
+import 'package:zonix/features/screens/orders/buyer_disputes_page.dart';
 import 'package:zonix/features/screens/orders/order_detail_page.dart';
 import 'package:zonix/features/screens/help/help_and_faq_page.dart';
 import 'package:zonix/widgets/payment_timeline.dart';
@@ -410,6 +411,16 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
                 ),
               ],
             ),
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => BuyerDisputesPage(initialOrderId: widget.orderId),
+                ),
+              );
+            },
+            icon: Icon(Icons.support_agent_outlined, color: primary),
           ),
           IconButton(
             onPressed: () {

@@ -10,6 +10,30 @@ import '../utils/http_retry.dart';
 class AdminService extends ChangeNotifier {
   static String get baseUrl => AppConfig.apiUrl;
 
+  String _extractErrorMessage(http.Response response, {required String fallback}) {
+    try {
+      if (response.body.isEmpty) return '$fallback: ${response.statusCode}';
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        final message = decoded['message']?.toString();
+        if (message != null && message.trim().isNotEmpty) {
+          return message.trim();
+        }
+        final errors = decoded['errors'];
+        if (errors is Map) {
+          for (final value in errors.values) {
+            if (value is List && value.isNotEmpty) {
+              final first = value.first?.toString();
+              if (first != null && first.trim().isNotEmpty) return first.trim();
+            }
+            if (value is String && value.trim().isNotEmpty) return value.trim();
+          }
+        }
+      }
+    } catch (_) {}
+    return '$fallback: ${response.statusCode}';
+  }
+
   /// Stale-while-revalidate: returns cached admin stats instantly.
   static Future<Map<String, dynamic>?> getCachedStats() async {
     final cached = await CacheService.getRawJson('admin_stats');
@@ -546,7 +570,10 @@ class AdminService extends ChangeNotifier {
       }),
     );
     if (response.statusCode == 200) { notifyListeners(); return; }
-    throw Exception('Error: ${response.statusCode}');
+    throw Exception(_extractErrorMessage(
+      response,
+      fallback: 'No se pudo resolver la disputa',
+    ));
   }
 
   // ---- Analytics (detailed endpoints) ----

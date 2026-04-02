@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../../config/app_config.dart';
 import '../../services/admin_service.dart';
+import '../../services/pusher_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/safe_parse.dart';
+import '../../utils/user_provider.dart';
 import '../../utils/responsive_helper.dart';
 
 class AdminDisputesPage extends StatefulWidget {
@@ -24,6 +29,9 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
   int _page = 1;
   bool _hasMore = true;
   String? _filterStatus;
+  StreamSubscription<Map<String, dynamic>>? _pusherSubscription;
+  int? _subscribedUserId;
+  DateTime? _lastRealtimeRefreshAt;
 
   static const _statusFilters = <String, String>{
     '': 'Todos',
@@ -48,13 +56,64 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
       _loadStats();
+      _initRealtime();
     });
   }
 
   @override
   void dispose() {
+    _pusherSubscription?.cancel();
+    if (_subscribedUserId != null) {
+      PusherService.instance
+          .unsubscribeFromChannel('private-user.$_subscribedUserId');
+    }
     _scrollController.dispose();
     super.dispose();
+  }
+
+  Future<void> _initRealtime() async {
+    if (!AppConfig.enablePusher) return;
+    try {
+      final userId = context.read<UserProvider>().userId;
+      if (userId <= 0) return;
+      _subscribedUserId = userId;
+
+      final ok = await PusherService.instance.subscribeToUserChannel(userId);
+      if (!ok || !mounted) return;
+
+      _pusherSubscription?.cancel();
+      _pusherSubscription = PusherService.instance.eventStream.listen((event) {
+        final eventName =
+            (event['canonicalEventName'] ?? event['eventName'])?.toString() ??
+                '';
+        final channelName = event['channelName']?.toString() ?? '';
+        if (!eventName.contains('NotificationCreated')) return;
+        if (channelName != 'private-user.$userId') return;
+
+        final eventData = event['data'] is Map<String, dynamic>
+            ? event['data'] as Map<String, dynamic>
+            : <String, dynamic>{};
+        final type = (eventData['type'] ?? '').toString();
+        if (type != 'dispute') return;
+
+        final now = DateTime.now();
+        if (_lastRealtimeRefreshAt != null &&
+            now.difference(_lastRealtimeRefreshAt!).inSeconds < 2) {
+          return;
+        }
+        _lastRealtimeRefreshAt = now;
+
+        _loadData();
+        _loadStats();
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Novedad en disputas: lista actualizada'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      });
+    } catch (_) {}
   }
 
   void _onScroll() {
@@ -474,6 +533,38 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
     final resolved =
         safeInt(_stats['resolved'], safeInt(_stats['data']?['resolved']));
     final total = safeInt(_stats['total'], safeInt(_stats['data']?['total']));
+    final avgResolutionMinutes = safeInt(
+      _stats['avg_resolution_minutes'],
+      safeInt(_stats['data']?['avg_resolution_minutes']),
+    );
+    final pendingOlderThan24h = safeInt(
+      _stats['pending_older_than_24h'],
+      safeInt(_stats['data']?['pending_older_than_24h']),
+    );
+    final pendingOlderThan72h = safeInt(
+      _stats['pending_older_than_72h'],
+      safeInt(_stats['data']?['pending_older_than_72h']),
+    );
+    final pendingOlderThan12h = safeInt(
+      _stats['pending_older_than_12h'],
+      safeInt(_stats['data']?['pending_older_than_12h']),
+    );
+    final p95ResolutionMinutes = safeInt(
+      _stats['p95_resolution_minutes'],
+      safeInt(_stats['data']?['p95_resolution_minutes']),
+    );
+    final p99ResolutionMinutes = safeInt(
+      _stats['p99_resolution_minutes'],
+      safeInt(_stats['data']?['p99_resolution_minutes']),
+    );
+
+    final slaLevel = _slaLevel(
+      pendingOlderThan12h: pendingOlderThan12h,
+      pendingOlderThan24h: pendingOlderThan24h,
+      pendingOlderThan72h: pendingOlderThan72h,
+    );
+    final slaColor = _slaColor(slaLevel);
+    final slaLabel = _slaLabel(slaLevel);
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
@@ -482,16 +573,140 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
         color: isDark ? AppColors.grayDark : AppColors.grayLight,
         borderRadius: BorderRadius.circular(14),
       ),
-      child: Row(
+      child: Column(
         children: [
-          _statItem('Pendientes', '$pending', AppColors.orange),
-          _statDivider(),
-          _statItem('Resueltas', '$resolved', AppColors.green),
-          _statDivider(),
-          _statItem('Total', '$total', AppColors.blue),
+          Row(
+            children: [
+              _statItem('Pendientes', '$pending', AppColors.orange),
+              _statDivider(),
+              _statItem('Resueltas', '$resolved', AppColors.green),
+              _statDivider(),
+              _statItem('Total', '$total', AppColors.blue),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _statItem(
+                'SLA prom.',
+                avgResolutionMinutes > 0 ? '${avgResolutionMinutes}m' : '—',
+                AppColors.blueDark,
+              ),
+              _statDivider(),
+              _statItem(
+                '>24h',
+                '$pendingOlderThan24h',
+                pendingOlderThan24h > 0 ? AppColors.orange : AppColors.green,
+              ),
+              _statDivider(),
+              _statItem(
+                '>72h',
+                '$pendingOlderThan72h',
+                pendingOlderThan72h > 0 ? AppColors.red : AppColors.green,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              _statItem(
+                'P95',
+                p95ResolutionMinutes > 0 ? '${p95ResolutionMinutes}m' : '—',
+                AppColors.blueDark,
+              ),
+              _statDivider(),
+              _statItem(
+                'P99',
+                p99ResolutionMinutes > 0 ? '${p99ResolutionMinutes}m' : '—',
+                AppColors.stitchSlate,
+              ),
+              _statDivider(),
+              _statItem(
+                'Nivel SLA',
+                slaLabel,
+                slaColor,
+              ),
+            ],
+          ),
+          if (slaLevel != 'ok') ...[
+            const SizedBox(height: 10),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: slaColor.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Text(
+                _slaMessage(
+                  level: slaLevel,
+                  pendingOlderThan12h: pendingOlderThan12h,
+                  pendingOlderThan24h: pendingOlderThan24h,
+                  pendingOlderThan72h: pendingOlderThan72h,
+                ),
+                style: TextStyle(
+                  color: slaColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  String _slaLevel({
+    required int pendingOlderThan12h,
+    required int pendingOlderThan24h,
+    required int pendingOlderThan72h,
+  }) {
+    if (pendingOlderThan72h > 0) return 'critical';
+    if (pendingOlderThan24h >= 3) return 'high';
+    if (pendingOlderThan12h >= 5) return 'warning';
+    return 'ok';
+  }
+
+  Color _slaColor(String level) {
+    switch (level) {
+      case 'critical':
+        return AppColors.red;
+      case 'high':
+        return AppColors.orange;
+      case 'warning':
+        return AppColors.blue;
+      default:
+        return AppColors.green;
+    }
+  }
+
+  String _slaLabel(String level) {
+    switch (level) {
+      case 'critical':
+        return 'Crítico';
+      case 'high':
+        return 'Alto';
+      case 'warning':
+        return 'Vigilancia';
+      default:
+        return 'OK';
+    }
+  }
+
+  String _slaMessage({
+    required String level,
+    required int pendingOlderThan12h,
+    required int pendingOlderThan24h,
+    required int pendingOlderThan72h,
+  }) {
+    if (level == 'critical') {
+      return 'Alerta crítica: hay $pendingOlderThan72h disputas >72h.';
+    }
+    if (level == 'high') {
+      return 'Alerta alta: hay $pendingOlderThan24h disputas >24h.';
+    }
+    return 'Vigilancia: hay $pendingOlderThan12h disputas >12h.';
   }
 
   Widget _statItem(String label, String value, Color color) {

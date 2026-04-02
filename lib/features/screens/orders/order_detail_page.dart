@@ -18,6 +18,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:zonix/l10n/app_strings.dart';
 import 'package:zonix/features/screens/orders/buyer_order_chat_page.dart';
+import 'package:zonix/features/screens/orders/buyer_disputes_page.dart';
 import 'package:zonix/features/screens/orders/order_rating_page.dart';
 import 'package:zonix/widgets/payment_timeline.dart';
 import 'package:zonix/widgets/app_skeleton.dart';
@@ -428,6 +429,17 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                 fontSize: 18, fontWeight: FontWeight.bold, color: textPrimary)),
         centerTitle: true,
         actions: [
+          IconButton(
+            tooltip: 'Reportar incidencia',
+            icon: Icon(Icons.support_agent_outlined, color: textPrimary),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => BuyerDisputesPage(initialOrderId: order.id),
+                ),
+              );
+            },
+          ),
           IconButton(
             tooltip: 'Chat con el comercio',
             icon: Icon(Icons.chat_bubble_outline, color: textPrimary),
