@@ -160,9 +160,8 @@ class _CommerceListPageState extends State<CommerceListPage> {
             children: [
               Icon(
                 Icons.error_outline,
-                color: Theme.of(context).brightness == Brightness.dark
-                    ? AppColors.white54
-                    : AppColors.textMutedGray,
+                size: 64,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
               const SizedBox(height: 16),
               Text(_error!, textAlign: TextAlign.center),

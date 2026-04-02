@@ -271,7 +271,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage> {
       decoration: InputDecoration(
         prefixIcon: const Icon(Icons.group_rounded),
         filled: true,
-        fillColor: _isDark ? AppColors.grayDark : AppColors.grayLight,
+        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -355,7 +355,7 @@ class _AdminNotificationsPageState extends State<AdminNotificationsPage> {
       hintText: hint,
       prefixIcon: Icon(icon),
       filled: true,
-      fillColor: _isDark ? AppColors.grayDark : AppColors.grayLight,
+      fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,

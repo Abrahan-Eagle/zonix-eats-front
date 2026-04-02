@@ -232,7 +232,7 @@ class _AdminDeliveryCompaniesPageState
       backgroundColor: AppColors.scaffoldBg(context),
       appBar: AppBar(
         title: const Text('Empresas de delivery'),
-        backgroundColor: isDark ? AppColors.grayDark : AppColors.blueDark,
+        backgroundColor: isDark ? Theme.of(context).colorScheme.surfaceContainerHigh : AppColors.blueDark,
         foregroundColor: AppColors.white,
         elevation: 0,
       ),
@@ -260,7 +260,7 @@ class _AdminDeliveryCompaniesPageState
                       )
                     : null,
                 filled: true,
-                fillColor: isDark ? AppColors.grayDark : AppColors.grayLight,
+                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -276,7 +276,11 @@ class _AdminDeliveryCompaniesPageState
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: CircularProgressIndicator(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      );
     }
     if (_error != null) {
       return Center(

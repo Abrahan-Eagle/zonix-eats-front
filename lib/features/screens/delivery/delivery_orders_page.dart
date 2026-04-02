@@ -295,8 +295,6 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mis entregas'),
@@ -323,7 +321,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
       ),
       body: Column(
         children: [
-          _buildWorkingToggle(isDark),
+          _buildWorkingToggle(context),
           Expanded(
             child: TabBarView(
               controller: _tabController,
@@ -338,18 +336,20 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
     );
   }
 
-  Widget _buildWorkingToggle(bool isDark) {
+  Widget _buildWorkingToggle(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final muted = cs.onSurfaceVariant;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.grayDark : AppColors.grayLight,
-        border: Border(bottom: BorderSide(color: AppColors.textMutedGray.withValues(alpha: 0.2))),
+        color: cs.surfaceContainerHighest,
+        border: Border(bottom: BorderSide(color: cs.outline.withValues(alpha: 0.2))),
       ),
       child: Row(
         children: [
           Icon(
             _isWorking ? Icons.delivery_dining : Icons.pause_circle_outline,
-            color: _isWorking ? AppColors.green : AppColors.textMutedGray,
+            color: _isWorking ? AppColors.green : muted,
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -357,12 +357,19 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
               _isWorking ? 'Disponible para entregas' : 'No disponible',
               style: TextStyle(
                 fontWeight: FontWeight.w600,
-                color: _isWorking ? AppColors.green : AppColors.textMutedGray,
+                color: _isWorking ? AppColors.green : muted,
               ),
             ),
           ),
           if (_loadingWorking)
-            const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: cs.primary,
+              ),
+            )
           else
             Switch(
               value: _isWorking,
@@ -384,7 +391,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
           return _buildErrorState(service.error!, () => service.loadAvailableOrders());
         }
         if (service.availableOrdersMaps.isEmpty) {
-          return _buildEmptyState('No hay órdenes disponibles', Icons.inbox);
+          return _buildEmptyState(context, 'No hay órdenes disponibles', Icons.inbox);
         }
         return RefreshIndicator(
           onRefresh: () => service.loadAvailableOrders(),
@@ -393,7 +400,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
             itemCount: service.availableOrdersMaps.length,
             itemBuilder: (context, index) {
               final order = service.availableOrdersMaps[index];
-              return _buildAvailableCard(order);
+              return _buildAvailableCard(context, order);
             },
           ),
         );
@@ -411,7 +418,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
           return _buildErrorState(service.error!, () => service.loadMyOrders());
         }
         if (service.myOrders.isEmpty) {
-          return _buildEmptyState('No tienes órdenes asignadas', Icons.delivery_dining);
+          return _buildEmptyState(context, 'No tienes órdenes asignadas', Icons.delivery_dining);
         }
         return RefreshIndicator(
           onRefresh: () => service.loadMyOrders(),
@@ -420,7 +427,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
             itemCount: service.myOrders.length,
             itemBuilder: (context, index) {
               final order = service.myOrders[index];
-              return _buildMyOrderCard(order);
+              return _buildMyOrderCard(context, order);
             },
           ),
         );
@@ -428,7 +435,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
     );
   }
 
-  Widget _buildAvailableCard(Map<String, dynamic> order) {
+  Widget _buildAvailableCard(BuildContext context, Map<String, dynamic> order) {
     final commerce = order['commerce'] as Map<String, dynamic>?;
     final commerceName = commerce?['name']?.toString() ?? 'Comercio';
     final address = order['delivery_address']?.toString() ?? order['shipping_address']?.toString() ?? 'Sin dirección';
@@ -462,7 +469,13 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
                     children: [
                       Text('Orden $orderNumber', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       const SizedBox(height: 2),
-                      Text(commerceName, style: const TextStyle(color: AppColors.gray, fontSize: 14)),
+                      Text(
+                        commerceName,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontSize: 14,
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -470,13 +483,13 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
               ],
             ),
             const Divider(height: 24),
-            _buildInfoRow(Icons.store, 'Recoger en', commerceName),
+            _buildInfoRow(context, Icons.store, 'Recoger en', commerceName),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.location_on, 'Entregar en', address),
+            _buildInfoRow(context, Icons.location_on, 'Entregar en', address),
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(child: _buildInfoRow(Icons.shopping_bag, 'Productos', '$itemCount items')),
+                Expanded(child: _buildInfoRow(context, Icons.shopping_bag, 'Productos', '$itemCount items')),
                 Text('\$${total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ],
             ),
@@ -500,7 +513,7 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
     );
   }
 
-  Widget _buildMyOrderCard(Map<String, dynamic> order) {
+  Widget _buildMyOrderCard(BuildContext context, Map<String, dynamic> order) {
     final status = order['status']?.toString() ?? '';
     final hasDelivery = order['order_delivery'] != null;
     final commerce = order['commerce'] as Map<String, dynamic>?;
@@ -543,7 +556,13 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
                     children: [
                       Text('Orden $orderNumber', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                       if (customerName.isNotEmpty)
-                        Text(customerName, style: const TextStyle(color: AppColors.gray, fontSize: 14)),
+                        Text(
+                          customerName,
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            fontSize: 14,
+                          ),
+                        ),
                     ],
                   ),
                 ),
@@ -551,13 +570,20 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
               ],
             ),
             const Divider(height: 24),
-            _buildInfoRow(Icons.store, 'Comercio', commerceName),
+            _buildInfoRow(context, Icons.store, 'Comercio', commerceName),
             const SizedBox(height: 8),
-            _buildInfoRow(Icons.location_on, 'Dirección', address),
+            _buildInfoRow(context, Icons.location_on, 'Dirección', address),
             const SizedBox(height: 8),
             Row(
               children: [
-                Expanded(child: _buildInfoRow(Icons.access_time, 'Creada', _formatDate(order['created_at']?.toString() ?? ''))),
+                Expanded(
+                  child: _buildInfoRow(
+                    context,
+                    Icons.access_time,
+                    'Creada',
+                    _formatDate(order['created_at']?.toString() ?? ''),
+                  ),
+                ),
                 Text('\$${total.toStringAsFixed(2)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               ],
             ),
@@ -615,27 +641,44 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
+  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value) {
+    final cs = Theme.of(context).colorScheme;
     return Row(
       children: [
-        Icon(icon, size: 16, color: AppColors.gray),
+        Icon(icon, size: 16, color: cs.onSurfaceVariant),
         const SizedBox(width: 6),
-        Text('$label: ', style: const TextStyle(fontSize: 13, color: AppColors.gray)),
+        Text(
+          '$label: ',
+          style: TextStyle(fontSize: 13, color: cs.onSurfaceVariant),
+        ),
         Expanded(
-          child: Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500), maxLines: 2, overflow: TextOverflow.ellipsis),
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: cs.onSurface,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildEmptyState(String message, IconData icon) {
+  Widget _buildEmptyState(BuildContext context, String message, IconData icon) {
+    final cs = Theme.of(context).colorScheme;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 64, color: AppColors.textMutedGray),
+          Icon(icon, size: 64, color: cs.onSurfaceVariant),
           const SizedBox(height: 16),
-          Text(message, style: const TextStyle(fontSize: 16, color: AppColors.gray)),
+          Text(
+            message,
+            style: TextStyle(fontSize: 16, color: cs.onSurfaceVariant),
+          ),
         ],
       ),
     );

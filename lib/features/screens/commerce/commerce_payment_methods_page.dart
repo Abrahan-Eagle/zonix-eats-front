@@ -148,10 +148,11 @@ class _CommercePaymentMethodsPageState
       await paymentService.deletePaymentMethod(safeInt(method['id']));
       await _loadData();
       if (mounted) {
+        final bg = Theme.of(context).colorScheme.surfaceContainerHighest;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Método eliminado'),
-            backgroundColor: AppColors.gray,
+          SnackBar(
+            content: const Text('Método eliminado'),
+            backgroundColor: bg,
           ),
         );
       }
@@ -197,8 +198,10 @@ class _CommercePaymentMethodsPageState
     if (_loading) {
       return Scaffold(
         backgroundColor: bg,
-        body: const Center(
-          child: CircularProgressIndicator(color: AppColors.blue),
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ),
         ),
       );
     }
@@ -236,7 +239,7 @@ class _CommercePaymentMethodsPageState
           ? _buildEmptyState(secondaryText)
           : RefreshIndicator(
               onRefresh: _loadData,
-              color: AppColors.blue,
+              color: Theme.of(context).colorScheme.primary,
               child: CustomScrollView(
                 slivers: [
                   SliverPadding(
@@ -262,7 +265,7 @@ class _CommercePaymentMethodsPageState
                               : AppColors.blueLight50;
                           final iconColor = isActive
                               ? (_isDark ? AppColors.blueLight400 : AppColors.blue)
-                              : AppColors.gray;
+                              : Theme.of(context).colorScheme.onSurfaceVariant;
 
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 16),

@@ -168,7 +168,11 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
 
   Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: CircularProgressIndicator(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      );
     }
     if (_error != null) {
       return Center(
@@ -188,13 +192,18 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
       );
     }
     if (_messages.isEmpty) {
-      return const Center(
+      final muted = Theme.of(context).colorScheme.onSurfaceVariant;
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.chat_bubble_outline, size: 64, color: AppColors.textMutedGray),
-            SizedBox(height: 16),
-            Text('No hay mensajes. Escribe para iniciar la conversación.'),
+            Icon(Icons.chat_bubble_outline, size: 64, color: muted),
+            const SizedBox(height: 16),
+            Text(
+              'No hay mensajes. Escribe para iniciar la conversación.',
+              style: TextStyle(color: muted),
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       );
@@ -232,7 +241,11 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
                     padding: const EdgeInsets.only(left: 4, bottom: 2),
                     child: Text(
                       roleLabel,
-                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _roleBadgeColor(senderType)),
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: _roleBadgeColor(context, senderType),
+                      ),
                     ),
                   ),
                 Container(
@@ -242,7 +255,9 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
                     maxWidth: MediaQuery.of(context).size.width * 0.75,
                   ),
                   decoration: BoxDecoration(
-                    color: isOwn ? AppColors.blue : AppColors.textMutedGray,
+                    color: isOwn
+                        ? AppColors.blue
+                        : Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Column(
@@ -251,7 +266,9 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
                       Text(
                         content,
                         style: TextStyle(
-                          color: isOwn ? AppColors.white : AppColors.black87,
+                          color: isOwn
+                              ? AppColors.white
+                              : Theme.of(context).colorScheme.onSurface,
                           fontSize: 15,
                         ),
                       ),
@@ -259,7 +276,9 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
                       Text(
                         time,
                         style: TextStyle(
-                          color: isOwn ? AppColors.white70 : AppColors.black54,
+                          color: isOwn
+                              ? AppColors.white70
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
                           fontSize: 11,
                         ),
                       ),
@@ -290,7 +309,7 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
     }
   }
 
-  Color _roleBadgeColor(String senderType) {
+  Color _roleBadgeColor(BuildContext context, String senderType) {
     switch (senderType) {
       case 'restaurant':
         return AppColors.orange;
@@ -301,7 +320,7 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
       case 'customer':
         return AppColors.blue;
       default:
-        return AppColors.textMutedGray;
+        return Theme.of(context).colorScheme.onSurfaceVariant;
     }
   }
 
@@ -310,11 +329,11 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Theme.of(context).scaffoldBackgroundColor,
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: AppColors.black12,
+            color: Theme.of(context).colorScheme.shadow.withValues(alpha: 0.12),
             blurRadius: 4,
-            offset: Offset(0, -2),
+            offset: const Offset(0, -2),
           ),
         ],
       ),

@@ -27,14 +27,16 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(title: const Text('Mi Empresa')),
       body: Consumer<DeliveryCompanyService>(
         builder: (context, service, _) {
           if (service.dashboardLoading && service.dashboardData.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            );
           }
           if (service.dashboardError != null && service.dashboardData.isEmpty) {
             return _buildError(service.dashboardError!, () => service.loadDashboard());
@@ -69,21 +71,21 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  _buildCompanyHeader(company, isDark),
+                  _buildCompanyHeader(context, company),
                   const SizedBox(height: 16),
-                  _buildDefaultPayoutCard(company, isDark),
+                  _buildDefaultPayoutCard(context, company),
                   const SizedBox(height: 16),
-                  _buildStatusRow(agentsCount, activeAgents, avgRating, isDark),
+                  _buildStatusRow(context, agentsCount, activeAgents, avgRating),
                   const SizedBox(height: 16),
                   _buildSectionTitle('Entregas'),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      _metricCard('Hoy', '$todayDeliveries', AppColors.green, isDark),
+                      _metricCard(context, 'Hoy', '$todayDeliveries', AppColors.green),
                       const SizedBox(width: 8),
-                      _metricCard('Semana', '$weekDeliveries', AppColors.blue, isDark),
+                      _metricCard(context, 'Semana', '$weekDeliveries', AppColors.blue),
                       const SizedBox(width: 8),
-                      _metricCard('Mes', '$monthDeliveries', AppColors.purple, isDark),
+                      _metricCard(context, 'Mes', '$monthDeliveries', AppColors.purple),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -91,11 +93,11 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      _metricCard('Hoy', '\$${todayEarnings.toStringAsFixed(2)}', AppColors.green, isDark),
+                      _metricCard(context, 'Hoy', '\$${todayEarnings.toStringAsFixed(2)}', AppColors.green),
                       const SizedBox(width: 8),
-                      _metricCard('Semana', '\$${weekEarnings.toStringAsFixed(2)}', AppColors.blue, isDark),
+                      _metricCard(context, 'Semana', '\$${weekEarnings.toStringAsFixed(2)}', AppColors.blue),
                       const SizedBox(width: 8),
-                      _metricCard('Mes', '\$${monthEarnings.toStringAsFixed(2)}', AppColors.purple, isDark),
+                      _metricCard(context, 'Mes', '\$${monthEarnings.toStringAsFixed(2)}', AppColors.purple),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -131,7 +133,7 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
                     ],
                   ),
                   const SizedBox(height: 8),
-                  _buildObservabilityCard(obsKpi, obsIncidents, obsHistory, obsRunbooks, isDark),
+                  _buildObservabilityCard(context, obsKpi, obsIncidents, obsHistory, obsRunbooks),
                 ],
               ),
             ),
@@ -141,7 +143,8 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
     );
   }
 
-  Widget _buildDefaultPayoutCard(Map<String, dynamic> company, bool isDark) {
+  Widget _buildDefaultPayoutCard(BuildContext context, Map<String, dynamic> company) {
+    final cs = Theme.of(context).colorScheme;
     final defaultPct = safeDouble(company['default_payout_percentage'], 70.0);
     return InkWell(
       onTap: () => _showEditDefaultPayoutDialog(context, defaultPct),
@@ -149,9 +152,9 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.grayDark : AppColors.white,
+          color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isDark ? AppColors.white12 : AppColors.black12),
+          border: Border.all(color: cs.outline.withValues(alpha: 0.25)),
         ),
         child: Row(
           children: [
@@ -211,7 +214,8 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
     );
   }
 
-  Widget _buildCompanyHeader(Map<String, dynamic> company, bool isDark) {
+  Widget _buildCompanyHeader(BuildContext context, Map<String, dynamic> company) {
+    final cs = Theme.of(context).colorScheme;
     final name = company['name'] ?? 'Mi Empresa';
     final isOpen = company['open'] == true;
     final isActive = company['active'] == true;
@@ -219,9 +223,9 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.grayDark : AppColors.white,
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isDark ? AppColors.white12 : AppColors.black12),
+        border: Border.all(color: cs.outline.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
@@ -241,7 +245,10 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
                   children: [
                     _statusChip(isOpen ? 'Abierto' : 'Cerrado', isOpen ? AppColors.green : AppColors.red),
                     const SizedBox(width: 8),
-                    _statusChip(isActive ? 'Activo' : 'Inactivo', isActive ? AppColors.blue : AppColors.gray),
+                    _statusChip(
+                      isActive ? 'Activo' : 'Inactivo',
+                      isActive ? AppColors.blue : cs.onSurfaceVariant,
+                    ),
                   ],
                 ),
               ],
@@ -263,24 +270,30 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
     );
   }
 
-  Widget _buildStatusRow(int total, int active, double rating, bool isDark) {
+  Widget _buildStatusRow(BuildContext context, int total, int active, double rating) {
     return Row(
       children: [
-        _statCard(Icons.people, '$total', 'Agentes', AppColors.blue, isDark),
+        _statCard(context, Icons.people, '$total', 'Agentes', AppColors.blue),
         const SizedBox(width: 8),
-        _statCard(Icons.circle, '$active', 'Activos', AppColors.green, isDark),
+        _statCard(context, Icons.circle, '$active', 'Activos', AppColors.green),
         const SizedBox(width: 8),
-        _statCard(Icons.star, rating.toStringAsFixed(1), 'Rating', AppColors.orange, isDark),
+        _statCard(context, Icons.star, rating.toStringAsFixed(1), 'Rating', AppColors.orange),
       ],
     );
   }
 
-  Widget _statCard(IconData icon, String value, String label, Color color, bool isDark) {
+  Widget _statCard(
+    BuildContext context,
+    IconData icon,
+    String value,
+    String label,
+    Color color,
+  ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.grayDark : AppColors.grayLight,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -295,12 +308,17 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
     );
   }
 
-  Widget _metricCard(String label, String value, Color color, bool isDark) {
+  Widget _metricCard(
+    BuildContext context,
+    String label,
+    String value,
+    Color color,
+  ) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.grayDark : AppColors.white,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
@@ -338,23 +356,24 @@ class _DeliveryCompanyDashboardPageState extends State<DeliveryCompanyDashboardP
   }
 
   Widget _buildObservabilityCard(
+    BuildContext context,
     Map<String, dynamic> kpi,
     List<Map<String, dynamic>> incidents,
     List<Map<String, dynamic>> history,
     List<Map<String, dynamic>> runbooks,
-    bool isDark,
   ) {
     final unassigned = safeInt(kpi['unassigned_over_threshold']);
     final frozen = safeInt(kpi['frozen_tracking_count']);
     final timeoutRatio = safeDouble(kpi['timeout_ratio_percent']);
     final avgAssign = safeDouble(kpi['avg_assignment_minutes']);
 
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.grayDark : AppColors.white,
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isDark ? AppColors.white12 : AppColors.black12),
+        border: Border.all(color: cs.outline.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

@@ -128,7 +128,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: CircularProgressIndicator(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      );
     }
 
     if (_error != null) {
@@ -185,7 +189,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
 
     return RefreshIndicator(
       onRefresh: _loadData,
-      color: AppColors.blue,
+      color: Theme.of(context).colorScheme.primary,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
@@ -222,11 +226,19 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     final score = safeInt(_health['performance_score']);
 
     final Color startColor = isHealthy
-        ? (_isDark ? const Color(0xFF0D4A2E) : AppColors.greenLight100)
-        : (_isDark ? const Color(0xFF4A0D0D) : const Color(0xFFFEE2E2));
+        ? (_isDark
+            ? AppColors.adminHealthPositiveStartDark
+            : AppColors.greenLight100)
+        : (_isDark
+            ? AppColors.adminHealthNegativeStartDark
+            : AppColors.adminHealthNegativeStartLight);
     final Color endColor = isHealthy
-        ? (_isDark ? const Color(0xFF064E3B) : const Color(0xFFA7F3D0))
-        : (_isDark ? const Color(0xFF7F1D1D) : const Color(0xFFFCA5A5));
+        ? (_isDark
+            ? AppColors.adminHealthPositiveEndDark
+            : AppColors.adminHealthPositiveEndLight)
+        : (_isDark
+            ? AppColors.adminHealthNegativeEndDark
+            : AppColors.adminHealthNegativeEndLight);
     final Color accentColor = isHealthy ? AppColors.green : AppColors.red;
     final Color textColor =
         _isDark ? AppColors.white : AppColors.blueDark;

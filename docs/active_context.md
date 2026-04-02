@@ -9,10 +9,10 @@
 
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
-- **Fecha:** 1 Abril 2026
-- **Resumen:** Cierre final del hardening frontend con foco en contratos/realtime: listeners críticos de commerce/delivery/company alineados a evento canónico, eliminación de recargas espurias por canal no relevante en delivery company, y parsing de respuestas normalizado en `OrderService`, `CommerceOrderService` y `AdminService` para reducir variabilidad canónico/legacy y mejorar robustez de errores.
-- **Áreas tocadas:** `lib/features/screens/commerce/commerce_orders_page.dart`, `lib/features/screens/delivery/delivery_orders_page.dart`, `lib/features/screens/delivery_company/delivery_company_orders_page.dart`, `lib/features/services/order_service.dart`, `lib/features/services/commerce_order_service.dart`, `lib/features/services/admin_service.dart`, `AGENTS.md`.
-- **Próximos pasos sugeridos:** cerrar deuda E2E por rol en `integration_test` y, tras estabilización, retirar aliases legacy de respuesta no usados.
+- **Fecha:** 2 Abril 2026
+- **Resumen:** Cierre formal del módulo UI/tema (Bloque B): pantallas admin, commerce, delivery y delivery_company alineadas a tema claro/oscuro con `AppColors` y `colorScheme`; tokens `adminHealth*` para el banner de salud en admin dashboard; documentación de prompts maestros y verificación solo estética en `docs/`.
+- **Áreas tocadas:** `lib/features/screens/admin/*`, `commerce/*`, `delivery/*`, `delivery_company/*`, `lib/features/utils/app_colors.dart`, `AGENTS.md`, `docs/PROMPT_MAESTRO_*.md`, `docs/PROMPT_VERIFICACION_SOLO_ESTETICA.md`.
+- **Próximos pasos sugeridos:** smoke manual por rol (claro/oscuro) si falta; E2E por rol en `integration_test` cuando se priorice; retirar aliases legacy de respuesta en servicios cuando toque hardening de parsing.
 
 ---
 

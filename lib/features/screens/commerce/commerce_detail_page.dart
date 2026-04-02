@@ -243,8 +243,8 @@ class _InfoRow extends StatelessWidget {
             width: 100,
             child: Text(
               label,
-              style: const TextStyle(
-                color: AppColors.gray,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 13,
               ),
             ),
@@ -283,9 +283,9 @@ class _StatChip extends StatelessWidget {
         ),
         Text(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12,
-            color: AppColors.gray,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
       ],

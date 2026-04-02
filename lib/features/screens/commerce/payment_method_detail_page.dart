@@ -491,7 +491,7 @@ class PaymentMethodDetailPage extends StatelessWidget {
                           Text(
                             'Cuenta Principal',
                             style: TextStyle(
-                              color: isDark ? AppColors.white70 : AppColors.gray,
+                              color: AppColors.secondaryText(context),
                               fontSize: 14,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -958,7 +958,10 @@ class PaymentMethodDetailPage extends StatelessWidget {
       await Provider.of<PaymentService>(context, listen: false).deletePaymentMethod(safeInt(method['id']));
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Método eliminado'), backgroundColor: AppColors.gray),
+          SnackBar(
+            content: const Text('Método eliminado'),
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+          ),
         );
         Navigator.pop(context, true);
       }

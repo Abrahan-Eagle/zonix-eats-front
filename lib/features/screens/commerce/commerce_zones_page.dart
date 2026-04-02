@@ -143,7 +143,7 @@ class _CommerceZonesPageState extends State<CommerceZonesPage> {
         color: AppColors.cardBg(context),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: isDark ? AppColors.white12 : AppColors.black12,
+          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.35),
         ),
       ),
       child: Column(

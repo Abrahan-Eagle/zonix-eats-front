@@ -129,7 +129,11 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
       body: Consumer<DeliveryCompanyService>(
         builder: (context, service, _) {
           if (service.ordersLoading && service.orders.isEmpty && service.pendingOrders.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            );
           }
 
           if (service.ordersError != null && service.orders.isEmpty) {
@@ -137,7 +141,7 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.cloud_off, size: 64, color: AppColors.textMutedGray),
+                  Icon(Icons.cloud_off, size: 64, color: Theme.of(context).colorScheme.onSurfaceVariant),
                   const SizedBox(height: 16),
                   Text(service.ordersError!, style: const TextStyle(fontSize: 16)),
                   const SizedBox(height: 16),
@@ -177,7 +181,11 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
 
   Widget _buildPendingPaymentTab(DeliveryCompanyService service) {
     if (service.pendingPaymentOrdersLoading && service.pendingPaymentOrders.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: CircularProgressIndicator(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      );
     }
     if (service.pendingPaymentOrders.isEmpty) {
       return Center(
@@ -208,7 +216,7 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
   }
 
   Widget _buildPaymentOrderCard(Map<String, dynamic> order, DeliveryCompanyService service) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
     final orderNumber = order['order_number'] ?? '#${order['id']}';
     final deliveryFee = _num(order['delivery_fee']);
     final orderId = safeInt(order['id']);
@@ -223,7 +231,7 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.grayDark : AppColors.white,
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.blue.withValues(alpha: 0.6)),
       ),
@@ -294,7 +302,11 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
 
   Widget _buildPendingTab(DeliveryCompanyService service) {
     if (service.pendingOrdersLoading && service.pendingOrders.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: CircularProgressIndicator(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      );
     }
     if (service.pendingOrdersError != null && service.pendingOrders.isEmpty) {
       return _buildError(service.pendingOrdersError!, () {
@@ -336,7 +348,7 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
   }
 
   Widget _buildPendingOrderCard(Map<String, dynamic> order, DeliveryCompanyService service) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cs = Theme.of(context).colorScheme;
     final orderNumber = order['order_number'] ?? '#${order['id']}';
     final total = _num(order['total']);
     final deliveryFee = _num(order['delivery_fee']);
@@ -357,7 +369,7 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.grayDark : AppColors.white,
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.orange.withValues(alpha: 0.6)),
       ),
@@ -420,8 +432,6 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
   }
 
   Widget _buildOrderList(List<Map<String, dynamic>> orders, String emptyMsg) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     if (orders.isEmpty) {
       return Center(
         child: Column(
@@ -442,13 +452,14 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
         child: ListView.builder(
           padding: const EdgeInsets.all(16),
           itemCount: orders.length,
-          itemBuilder: (context, i) => _buildOrderCard(orders[i], isDark),
+            itemBuilder: (context, i) => _buildOrderCard(orders[i]),
         ),
       ),
     );
   }
 
-  Widget _buildOrderCard(Map<String, dynamic> order, bool isDark) {
+  Widget _buildOrderCard(Map<String, dynamic> order) {
+    final cs = Theme.of(context).colorScheme;
     final orderNumber = order['order_number'] ?? '#${order['id']}';
     final status = order['status'] as String? ?? '';
     final total = _num(order['total']);
@@ -478,9 +489,9 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.grayDark : AppColors.white,
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isDark ? AppColors.white12 : AppColors.black12),
+        border: Border.all(color: cs.outline.withValues(alpha: 0.25)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -676,8 +687,6 @@ class _AssignOrderPageState extends State<_AssignOrderPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Asignar orden ${widget.orderNumber}'),
@@ -685,7 +694,11 @@ class _AssignOrderPageState extends State<_AssignOrderPage> {
       body: Consumer<DeliveryCompanyService>(
         builder: (context, service, _) {
           if (service.availableAgentsLoading && service.availableAgentsForOrder.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            );
           }
           if (service.availableAgentsError != null && service.availableAgentsForOrder.isEmpty) {
             return Center(
@@ -719,6 +732,7 @@ class _AssignOrderPageState extends State<_AssignOrderPage> {
             padding: const EdgeInsets.all(16),
             itemCount: service.availableAgentsForOrder.length,
             itemBuilder: (context, i) {
+              final cs = Theme.of(context).colorScheme;
               final agent = service.availableAgentsForOrder[i];
               final name = agent['name'] as String? ?? 'Sin nombre';
               final distanceKm = safeDouble(agent['distance_km']);
@@ -730,9 +744,9 @@ class _AssignOrderPageState extends State<_AssignOrderPage> {
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.grayDark : AppColors.white,
+                  color: cs.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: isDark ? AppColors.white12 : AppColors.black12),
+                  border: Border.all(color: cs.outline.withValues(alpha: 0.25)),
                 ),
                 child: Row(
                   children: [

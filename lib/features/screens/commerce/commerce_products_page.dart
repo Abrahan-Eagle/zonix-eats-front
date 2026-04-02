@@ -226,6 +226,7 @@ class _CommerceProductsPageState extends State<CommerceProductsPage> {
       );
     }
     if (_products.isEmpty) {
+      final muted = Theme.of(context).colorScheme.onSurfaceVariant;
       return RefreshIndicator(
         onRefresh: _loadProducts,
         child: SingleChildScrollView(
@@ -236,11 +237,11 @@ class _CommerceProductsPageState extends State<CommerceProductsPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.inventory_2, size: 64, color: AppColors.gray),
+                  Icon(Icons.inventory_2, size: 64, color: muted),
                   const SizedBox(height: 16),
-                  const Text(
+                  Text(
                     'No hay productos',
-                    style: TextStyle(fontSize: 18, color: AppColors.gray),
+                    style: TextStyle(fontSize: 18, color: muted),
                   ),
                   const SizedBox(height: 8),
                   ElevatedButton.icon(

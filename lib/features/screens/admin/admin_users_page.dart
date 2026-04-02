@@ -232,7 +232,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                 )
               : null,
           filled: true,
-          fillColor: isDark ? AppColors.grayDark : AppColors.grayLight,
+          fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
@@ -308,7 +308,11 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
 
   Widget _buildBody(bool isDark) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: CircularProgressIndicator(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      );
     }
     if (_error != null) {
       return Center(
@@ -500,7 +504,7 @@ class _AdminUsersPageState extends State<AdminUsersPage> {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: AppColors.textMutedGray,
+                      color: Theme.of(ctx).colorScheme.outline.withValues(alpha: 0.45),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),

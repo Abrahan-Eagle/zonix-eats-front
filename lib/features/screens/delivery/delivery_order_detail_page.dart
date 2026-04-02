@@ -250,7 +250,6 @@ class _DeliveryOrderDetailPageState extends State<DeliveryOrderDetailPage> {
     final canScanPickup = status == 'processing' && hasDelivery;
     final canNotifyArrived = status == 'shipped' && hasDelivery;
     final notes = order['notes']?.toString() ?? '';
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final etaMin = safeInt(order['estimated_delivery_time'], 0);
     final hasEta = etaMin > 0;
     final showMap = hasDelivery && (status == 'processing' || status == 'shipped');
@@ -360,20 +359,20 @@ class _DeliveryOrderDetailPageState extends State<DeliveryOrderDetailPage> {
             ],
             const SizedBox(height: 20),
 
-            _buildSection(context, icon: Icons.store, title: 'Comercio', isDark: isDark, children: [
-              _buildRow('Nombre', commerceName),
-              if (commerceAddress.isNotEmpty) _buildRow('Dirección', commerceAddress),
+            _buildSection(context, icon: Icons.store, title: 'Comercio', children: [
+              _buildRow(context, 'Nombre', commerceName),
+              if (commerceAddress.isNotEmpty) _buildRow(context, 'Dirección', commerceAddress),
             ]),
             const SizedBox(height: 12),
 
-            _buildSection(context, icon: Icons.person, title: 'Cliente', isDark: isDark, children: [
-              if (customerName.isNotEmpty) _buildRow('Nombre', customerName),
-              if (customerPhone.isNotEmpty) _buildRow('Teléfono', customerPhone),
-              _buildRow('Dirección entrega', deliveryAddress),
+            _buildSection(context, icon: Icons.person, title: 'Cliente', children: [
+              if (customerName.isNotEmpty) _buildRow(context, 'Nombre', customerName),
+              if (customerPhone.isNotEmpty) _buildRow(context, 'Teléfono', customerPhone),
+              _buildRow(context, 'Dirección entrega', deliveryAddress),
             ]),
             const SizedBox(height: 12),
 
-            _buildSection(context, icon: Icons.shopping_bag, title: 'Productos (${items.length})', isDark: isDark, children: items.map<Widget>((item) {
+            _buildSection(context, icon: Icons.shopping_bag, title: 'Productos (${items.length})', children: items.map<Widget>((item) {
               final product = item['product'] as Map<String, dynamic>?;
               final productName = product?['name']?.toString() ?? 'Producto';
               final qty = item['quantity']?.toString() ?? '1';
@@ -390,20 +389,26 @@ class _DeliveryOrderDetailPageState extends State<DeliveryOrderDetailPage> {
             const SizedBox(height: 12),
 
             if (notes.isNotEmpty) ...[
-              _buildSection(context, icon: Icons.notes, title: 'Notas', isDark: isDark, children: [Text(notes)]),
+              _buildSection(context, icon: Icons.notes, title: 'Notas', children: [Text(notes)]),
               const SizedBox(height: 12),
             ],
 
-            _buildSection(context, icon: Icons.receipt_long, title: 'Resumen', isDark: isDark, children: [
-              if (subtotal > 0) _buildRow('Subtotal', '\$${subtotal.toStringAsFixed(2)}'),
-              if (deliveryFee > 0) _buildRow('Delivery fee', '\$${deliveryFee.toStringAsFixed(2)}'),
+            _buildSection(context, icon: Icons.receipt_long, title: 'Resumen', children: [
+              if (subtotal > 0) _buildRow(context, 'Subtotal', '\$${subtotal.toStringAsFixed(2)}'),
+              if (deliveryFee > 0) _buildRow(context, 'Delivery fee', '\$${deliveryFee.toStringAsFixed(2)}'),
               const Divider(),
-              _buildRow('Total', '\$${total.toStringAsFixed(2)}', bold: true),
+              _buildRow(context, 'Total', '\$${total.toStringAsFixed(2)}', bold: true),
             ]),
             const SizedBox(height: 24),
 
             if (canScanPickup) ...[
-              const Text('En el comercio, pide que muestre el código QR de recogida y escanéalo.', style: TextStyle(color: AppColors.grayDark, fontSize: 13)),
+              Text(
+                'En el comercio, pide que muestre el código QR de recogida y escanéalo.',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 13,
+                ),
+              ),
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
@@ -416,7 +421,13 @@ class _DeliveryOrderDetailPageState extends State<DeliveryOrderDetailPage> {
               ),
             ],
             if (canNotifyArrived) ...[
-              const Text('Cuando llegues al domicilio del cliente, toca el botón para notificarle y escanear su QR.', style: TextStyle(color: AppColors.grayDark, fontSize: 13)),
+              Text(
+                'Cuando llegues al domicilio del cliente, toca el botón para notificarle y escanear su QR.',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 13,
+                ),
+              ),
               const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
@@ -465,25 +476,57 @@ class _DeliveryOrderDetailPageState extends State<DeliveryOrderDetailPage> {
     );
   }
 
-  Widget _buildSection(BuildContext context, {required IconData icon, required String title, required bool isDark, required List<Widget> children}) {
+  Widget _buildSection(BuildContext context, {required IconData icon, required String title, required List<Widget> children}) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: isDark ? AppColors.grayDark : AppColors.grayLight, borderRadius: BorderRadius.circular(12), border: Border.all(color: AppColors.textMutedGray.withValues(alpha: 0.2))),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: cs.outline.withValues(alpha: 0.25)),
+      ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Row(children: [Icon(icon, size: 18, color: AppColors.gray), const SizedBox(width: 8), Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15))]),
+        Row(children: [
+          Icon(icon, size: 18, color: cs.onSurfaceVariant),
+          const SizedBox(width: 8),
+          Text(
+            title,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 15,
+              color: cs.onSurface,
+            ),
+          ),
+        ]),
         const SizedBox(height: 10),
         ...children,
       ]),
     );
   }
 
-  Widget _buildRow(String label, String value, {bool bold = false}) {
+  Widget _buildRow(BuildContext context, String label, String value, {bool bold = false}) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        SizedBox(width: 130, child: Text('$label:', style: const TextStyle(color: AppColors.gray, fontSize: 13))),
-        Expanded(child: Text(value, style: TextStyle(fontSize: 13, fontWeight: bold ? FontWeight.bold : FontWeight.w500))),
+        SizedBox(
+          width: 130,
+          child: Text(
+            '$label:',
+            style: TextStyle(color: cs.onSurfaceVariant, fontSize: 13),
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: bold ? FontWeight.bold : FontWeight.w500,
+              color: cs.onSurface,
+            ),
+          ),
+        ),
       ]),
     );
   }

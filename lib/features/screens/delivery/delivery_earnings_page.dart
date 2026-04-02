@@ -74,14 +74,16 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(title: const Text('Ganancias')),
       body: Consumer<DeliveryService>(
         builder: (context, service, _) {
           if (service.earningsLoading && service.earningsMap.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            );
           }
           if (service.earningsError != null && service.earningsMap.isEmpty) {
             return _buildErrorState(service.earningsError!);
@@ -102,22 +104,22 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                _buildPeriodChips(isDark),
+                _buildPeriodChips(context),
                 const SizedBox(height: 16),
                 _buildSummaryCards(
-                  isDark,
+                  context,
                   todayEarnings: todayEarnings,
                   weeklyEarnings: weeklyEarnings,
                   monthlyEarnings: monthlyEarnings,
                   totalEarnings: totalEarnings,
                 ),
                 const SizedBox(height: 16),
-                _buildStatsRow(isDark, totalDeliveries, avgTime),
+                _buildStatsRow(context, totalDeliveries, avgTime),
                 const SizedBox(height: 20),
                 if (fees.isEmpty)
                   _buildEmptyState()
                 else
-                  _buildRecentFees(isDark, fees, dates),
+                  _buildRecentFees(context, fees, dates),
               ],
             ),
           );
@@ -126,8 +128,9 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
     );
   }
 
-  Widget _buildPeriodChips(bool isDark) {
+  Widget _buildPeriodChips(BuildContext context) {
     const periods = ['Hoy', 'Esta semana', 'Este mes'];
+    final muted = Theme.of(context).colorScheme.onSurfaceVariant;
     return Wrap(
       spacing: 8,
       children: periods.map((p) {
@@ -137,9 +140,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
           selected: selected,
           selectedColor: AppColors.orange.withValues(alpha: 0.2),
           labelStyle: TextStyle(
-            color: selected
-                ? AppColors.orange
-                : (isDark ? AppColors.white70 : AppColors.gray),
+            color: selected ? AppColors.orange : muted,
             fontWeight: selected ? FontWeight.bold : FontWeight.normal,
           ),
           onSelected: (_) {
@@ -152,7 +153,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
   }
 
   Widget _buildSummaryCards(
-    bool isDark, {
+    BuildContext context, {
     required double todayEarnings,
     required double weeklyEarnings,
     required double monthlyEarnings,
@@ -162,20 +163,20 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
       children: [
         Row(
           children: [
-            _earningsCard('Hoy', todayEarnings, AppColors.green, isDark,
+            _earningsCard(context, 'Hoy', todayEarnings, AppColors.green,
                 highlighted: _selectedPeriod == 'Hoy'),
             const SizedBox(width: 10),
-            _earningsCard('Semana', weeklyEarnings, AppColors.blue, isDark,
+            _earningsCard(context, 'Semana', weeklyEarnings, AppColors.blue,
                 highlighted: _selectedPeriod == 'Esta semana'),
           ],
         ),
         const SizedBox(height: 10),
         Row(
           children: [
-            _earningsCard('Mes', monthlyEarnings, AppColors.purple, isDark,
+            _earningsCard(context, 'Mes', monthlyEarnings, AppColors.purple,
                 highlighted: _selectedPeriod == 'Este mes'),
             const SizedBox(width: 10),
-            _earningsCard('Total', totalEarnings, AppColors.orange, isDark),
+            _earningsCard(context, 'Total', totalEarnings, AppColors.orange),
           ],
         ),
       ],
@@ -183,17 +184,17 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
   }
 
   Widget _earningsCard(
+    BuildContext context,
     String label,
     double amount,
-    Color color,
-    bool isDark, {
+    Color color, {
     bool highlighted = false,
   }) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.grayDark : AppColors.white,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: highlighted ? color : color.withValues(alpha: 0.25),
@@ -231,14 +232,15 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
     );
   }
 
-  Widget _buildStatsRow(bool isDark, int deliveries, double avgTime) {
+  Widget _buildStatsRow(BuildContext context, int deliveries, double avgTime) {
+    final bg = Theme.of(context).colorScheme.surfaceContainerHighest;
     return Row(
       children: [
         Expanded(
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.grayDark : AppColors.grayLight,
+              color: bg,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -267,7 +269,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.grayDark : AppColors.grayLight,
+              color: bg,
               borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
@@ -295,7 +297,7 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
     );
   }
 
-  Widget _buildRecentFees(bool isDark, List<double> fees, List<String> dates) {
+  Widget _buildRecentFees(BuildContext context, List<double> fees, List<String> dates) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -320,14 +322,15 @@ class _DeliveryEarningsPageState extends State<DeliveryEarningsPage> {
             }
           }
 
+          final cs = Theme.of(context).colorScheme;
           return Container(
             margin: const EdgeInsets.only(bottom: 8),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
-              color: isDark ? AppColors.grayDark : AppColors.white,
+              color: cs.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
-                color: isDark ? AppColors.white12 : AppColors.black12,
+                color: cs.outline.withValues(alpha: 0.25),
               ),
             ),
             child: Row(

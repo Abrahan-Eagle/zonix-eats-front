@@ -25,14 +25,16 @@ class _DeliveryCompanyEarningsPageState extends State<DeliveryCompanyEarningsPag
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(title: const Text('Ganancias')),
       body: Consumer<DeliveryCompanyService>(
         builder: (context, service, _) {
           if (service.earningsLoading && service.earningsData.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            );
           }
           if (service.earningsError != null && service.earningsData.isEmpty) {
             return _buildError(service.earningsError!, () => service.loadEarnings());
@@ -67,18 +69,18 @@ class _DeliveryCompanyEarningsPageState extends State<DeliveryCompanyEarningsPag
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  _buildPeriodChips(isDark),
+                  _buildPeriodChips(context),
                   const SizedBox(height: 16),
-                  _buildMainEarnings(highlighted, isDark),
+                  _buildMainEarnings(highlighted),
                   const SizedBox(height: 16),
-                  _buildSummaryRow(todayEarnings, weekEarnings, monthEarnings, totalEarnings, isDark),
+                  _buildSummaryRow(todayEarnings, weekEarnings, monthEarnings, totalEarnings),
                   const SizedBox(height: 20),
                   _buildSectionTitle('Desglose por agente'),
                   const SizedBox(height: 12),
                   if (breakdown.isEmpty)
                     _buildEmpty()
                   else
-                    ...breakdown.map((a) => _buildAgentRow(a, isDark)),
+                    ...breakdown.map(_buildAgentRow),
                 ],
               ),
             ),
@@ -88,7 +90,8 @@ class _DeliveryCompanyEarningsPageState extends State<DeliveryCompanyEarningsPag
     );
   }
 
-  Widget _buildPeriodChips(bool isDark) {
+  Widget _buildPeriodChips(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     const periods = ['Hoy', 'Esta semana', 'Este mes'];
     return Wrap(
       spacing: 8,
@@ -99,7 +102,7 @@ class _DeliveryCompanyEarningsPageState extends State<DeliveryCompanyEarningsPag
           selected: selected,
           selectedColor: AppColors.orange.withValues(alpha: 0.2),
           labelStyle: TextStyle(
-            color: selected ? AppColors.orange : (isDark ? AppColors.white70 : AppColors.gray),
+            color: selected ? AppColors.orange : cs.onSurfaceVariant,
             fontWeight: selected ? FontWeight.bold : FontWeight.normal,
           ),
           onSelected: (_) => setState(() => _selectedPeriod = p),
@@ -108,7 +111,7 @@ class _DeliveryCompanyEarningsPageState extends State<DeliveryCompanyEarningsPag
     );
   }
 
-  Widget _buildMainEarnings(double amount, bool isDark) {
+  Widget _buildMainEarnings(double amount) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -129,26 +132,27 @@ class _DeliveryCompanyEarningsPageState extends State<DeliveryCompanyEarningsPag
     );
   }
 
-  Widget _buildSummaryRow(double today, double week, double month, double total, bool isDark) {
+  Widget _buildSummaryRow(double today, double week, double month, double total) {
     return Row(
       children: [
-        _smallCard('Hoy', today, AppColors.green, isDark),
+        _smallCard('Hoy', today, AppColors.green),
         const SizedBox(width: 6),
-        _smallCard('Semana', week, AppColors.blue, isDark),
+        _smallCard('Semana', week, AppColors.blue),
         const SizedBox(width: 6),
-        _smallCard('Mes', month, AppColors.purple, isDark),
+        _smallCard('Mes', month, AppColors.purple),
         const SizedBox(width: 6),
-        _smallCard('Total', total, AppColors.orange, isDark),
+        _smallCard('Total', total, AppColors.orange),
       ],
     );
   }
 
-  Widget _smallCard(String label, double value, Color color, bool isDark) {
+  Widget _smallCard(String label, double value, Color color) {
+    final cs = Theme.of(context).colorScheme;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.grayDark : AppColors.white,
+          color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
@@ -163,7 +167,8 @@ class _DeliveryCompanyEarningsPageState extends State<DeliveryCompanyEarningsPag
     );
   }
 
-  Widget _buildAgentRow(Map<String, dynamic> agent, bool isDark) {
+  Widget _buildAgentRow(Map<String, dynamic> agent) {
+    final cs = Theme.of(context).colorScheme;
     final name = agent['name'] as String? ?? 'Agente';
     final deliveries = safeInt(agent['deliveries']);
     final earnings = _num(agent['earnings']);
@@ -172,9 +177,9 @@ class _DeliveryCompanyEarningsPageState extends State<DeliveryCompanyEarningsPag
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.grayDark : AppColors.white,
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: isDark ? AppColors.white12 : AppColors.black12),
+        border: Border.all(color: cs.outline.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [

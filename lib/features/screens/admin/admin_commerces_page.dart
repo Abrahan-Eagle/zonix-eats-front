@@ -147,7 +147,6 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
   }
 
   void _showCommerceSheet(Map<String, dynamic> commerce) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isOpen = commerce['open'] == true || commerce['open'] == 1;
     final id = safeInt(commerce['id']);
 
@@ -178,7 +177,7 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
                         height: 4,
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: isDark ? AppColors.white38 : AppColors.black26,
+                          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.45),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -369,7 +368,7 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
       backgroundColor: AppColors.scaffoldBg(context),
       appBar: AppBar(
         title: const Text('Comercios'),
-        backgroundColor: isDark ? AppColors.grayDark : AppColors.blueDark,
+        backgroundColor: isDark ? Theme.of(context).colorScheme.surfaceContainerHigh : AppColors.blueDark,
         foregroundColor: AppColors.white,
         elevation: 0,
       ),
@@ -397,7 +396,7 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
                       )
                     : null,
                 filled: true,
-                fillColor: isDark ? AppColors.grayDark : AppColors.grayLight,
+                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -455,16 +454,13 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
   }
 
   Widget _filterChip(String label, bool selected, VoidCallback onTap) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: selected
-              ? AppColors.blue
-              : Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.grayDark
-                  : AppColors.grayLight,
+          color: selected ? AppColors.blue : cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -482,7 +478,11 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: CircularProgressIndicator(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      );
     }
     if (_error != null) {
       return Center(
@@ -531,9 +531,13 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
           itemCount: _commerces.length + (_isLoadingMore ? 1 : 0),
           itemBuilder: (context, index) {
             if (index == _commerces.length) {
-              return const Padding(
-                padding: EdgeInsets.all(16),
-                child: Center(child: CircularProgressIndicator()),
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Center(
+                  child: CircularProgressIndicator(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
               );
             }
             return _buildCommerceCard(_commerces[index]);
@@ -544,7 +548,6 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
   }
 
   Widget _buildCommerceCard(Map<String, dynamic> commerce) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final name = safeString(commerce['business_name'], 'Sin nombre');
     final isOpen = commerce['open'] == true || commerce['open'] == 1;
     final status = safeString(commerce['status'], 'approved');
@@ -558,7 +561,7 @@ class _AdminCommercesPageState extends State<AdminCommercesPage> {
           color: AppColors.cardBg(context),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isDark ? AppColors.white12 : AppColors.black12,
+            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.25),
           ),
         ),
         child: Padding(

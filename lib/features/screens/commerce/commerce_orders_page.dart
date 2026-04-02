@@ -221,7 +221,8 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
     }
   }
 
-  Color _statusColor(String status) {
+  Color _statusColor(BuildContext context, String status) {
+    final cs = Theme.of(context).colorScheme;
     switch (status) {
       case 'paid':
       case 'processing':
@@ -233,7 +234,7 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
       case 'cancelled':
         return AppColors.red;
       default:
-        return AppColors.gray;
+        return cs.onSurfaceVariant;
     }
   }
 
@@ -314,21 +315,22 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
       );
     }
     if (_orders.isEmpty) {
+      final muted = Theme.of(context).colorScheme.onSurfaceVariant;
       return RefreshIndicator(
         onRefresh: _loadOrders,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: SizedBox(
             height: MediaQuery.of(context).size.height - 200,
-            child: const Center(
+            child: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.receipt_long, size: 64, color: AppColors.gray),
-                  SizedBox(height: 16),
+                  Icon(Icons.receipt_long, size: 64, color: muted),
+                  const SizedBox(height: 16),
                   Text(
                     'No hay órdenes',
-                    style: TextStyle(fontSize: 18, color: AppColors.gray),
+                    style: TextStyle(fontSize: 18, color: muted),
                   ),
                 ],
               ),
@@ -356,7 +358,7 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
               ),
               trailing: Chip(
                 label: Text(order.statusText, style: const TextStyle(fontSize: 11)),
-                backgroundColor: _statusColor(order.status),
+                backgroundColor: _statusColor(context, order.status),
                 labelStyle: const TextStyle(color: AppColors.white),
               ),
               onTap: () async {

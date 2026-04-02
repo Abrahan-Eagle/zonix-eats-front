@@ -165,7 +165,8 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
     }
   }
 
-  Color _statusColor(String status) {
+  Color _statusColor(BuildContext context, String status) {
+    final cs = Theme.of(context).colorScheme;
     switch (status) {
       case 'paid':
       case 'processing':
@@ -177,7 +178,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
       case 'cancelled':
         return AppColors.red;
       default:
-        return AppColors.gray;
+        return cs.onSurfaceVariant;
     }
   }
 
@@ -203,8 +204,12 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
       );
     }
     if (_error != null) {
@@ -388,17 +393,23 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
             ),
             const SizedBox(height: 8),
             if (_recentOrders.isEmpty)
-              const Card(
+              Card(
                 child: Padding(
-                  padding: EdgeInsets.all(32),
+                  padding: const EdgeInsets.all(32),
                   child: Center(
                     child: Column(
                       children: [
-                        Icon(Icons.receipt_long, size: 48, color: AppColors.gray),
-                        SizedBox(height: 8),
+                        Icon(
+                          Icons.receipt_long,
+                          size: 48,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(height: 8),
                         Text(
                           'No hay órdenes recientes',
-                          style: TextStyle(color: AppColors.gray),
+                          style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
@@ -423,7 +434,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
                         _statusText(order['status'] ?? ''),
                         style: const TextStyle(fontSize: 11),
                       ),
-                      backgroundColor: _statusColor(order['status'] ?? ''),
+                      backgroundColor: _statusColor(context, order['status'] ?? ''),
                       labelStyle: const TextStyle(color: AppColors.white),
                     ),
                     onTap: () async {
@@ -514,7 +525,13 @@ class _StatCard extends StatelessWidget {
                 color: color,
               ),
             ),
-            Text(label, style: const TextStyle(fontSize: 12, color: AppColors.gray)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       ),
@@ -543,9 +560,19 @@ class _QuickActionButton extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
             children: [
-              Icon(icon, color: AppColors.orange, size: 32),
+              Icon(
+                icon,
+                color: Theme.of(context).colorScheme.primary,
+                size: 32,
+              ),
               const SizedBox(height: 8),
-              Text(label, style: const TextStyle(fontSize: 12)),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
             ],
           ),
         ),

@@ -87,6 +87,15 @@ class AppColors {
   static const Color greenLight100 = Color(0xFFDCFCE7);
   static const Color slateLight50 = Color(0xFFF8FAFC);
 
+  /// Gradientes del banner "salud del sistema" en admin dashboard (evita `Color(0x)` en la pantalla).
+  static const Color adminHealthPositiveStartDark = Color(0xFF0D4A2E);
+  static const Color adminHealthPositiveEndDark = Color(0xFF064E3B);
+  static const Color adminHealthNegativeStartDark = Color(0xFF4A0D0D);
+  static const Color adminHealthNegativeEndDark = Color(0xFF7F1D1D);
+  static const Color adminHealthPositiveEndLight = Color(0xFFA7F3D0);
+  static const Color adminHealthNegativeStartLight = Color(0xFFFEE2E2);
+  static const Color adminHealthNegativeEndLight = Color(0xFFFCA5A5);
+
   // Helpers para modo claro/oscuro
   static Color scaffoldBg(BuildContext context) =>
       Theme.of(context).brightness == Brightness.dark ? backgroundDark : white;

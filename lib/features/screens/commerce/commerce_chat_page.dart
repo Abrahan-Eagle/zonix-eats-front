@@ -49,8 +49,12 @@ class _CommerceChatPageState extends State<CommerceChatPage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
       );
     }
     if (_error != null) {
@@ -77,13 +81,22 @@ class _CommerceChatPageState extends State<CommerceChatPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('Chat con clientes')),
       body: _conversations.isEmpty
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.chat_bubble_outline, size: 64, color: AppColors.textMutedGray),
-                  SizedBox(height: 16),
-                  Text('No hay conversaciones'),
+                  Icon(
+                    Icons.chat_bubble_outline,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No hay conversaciones',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ],
               ),
             )

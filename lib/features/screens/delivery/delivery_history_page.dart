@@ -52,14 +52,16 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(title: const Text('Historial de entregas')),
       body: Consumer<DeliveryService>(
         builder: (context, service, _) {
           if (service.historyLoading && service.historyOrders.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            );
           }
           if (service.historyError != null && service.historyOrders.isEmpty) {
             return _buildErrorState(service.historyError!);
@@ -70,14 +72,14 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
             child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                _buildPeriodChips(isDark),
+                _buildPeriodChips(context),
                 const SizedBox(height: 16),
-                _buildSummaryRow(service.historyOrders, isDark),
+                _buildSummaryRow(context, service.historyOrders),
                 const SizedBox(height: 20),
                 if (service.historyOrders.isEmpty)
                   _buildEmptyState()
                 else
-                  ...service.historyOrders.map((o) => _buildOrderCard(o, isDark)),
+                  ...service.historyOrders.map((o) => _buildOrderCard(context, o)),
               ],
             ),
           );
@@ -86,8 +88,9 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
     );
   }
 
-  Widget _buildPeriodChips(bool isDark) {
+  Widget _buildPeriodChips(BuildContext context) {
     const periods = ['Hoy', 'Esta semana', 'Este mes', 'Todo'];
+    final muted = Theme.of(context).colorScheme.onSurfaceVariant;
     return Wrap(
       spacing: 8,
       children: periods.map((p) {
@@ -97,9 +100,7 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
           selected: selected,
           selectedColor: AppColors.orange.withValues(alpha: 0.2),
           labelStyle: TextStyle(
-            color: selected
-                ? AppColors.orange
-                : (isDark ? AppColors.white70 : AppColors.gray),
+            color: selected ? AppColors.orange : muted,
             fontWeight: selected ? FontWeight.bold : FontWeight.normal,
           ),
           onSelected: (_) {
@@ -111,28 +112,28 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
     );
   }
 
-  Widget _buildSummaryRow(List<Order> orders, bool isDark) {
+  Widget _buildSummaryRow(BuildContext context, List<Order> orders) {
     final total = orders.length;
     final delivered = orders.where((o) => o.status == 'delivered').length;
     final cancelled = orders.where((o) => o.status == 'cancelled').length;
 
     return Row(
       children: [
-        _summaryTile('Total', '$total', AppColors.orange, isDark),
+        _summaryTile(context, 'Total', '$total', AppColors.orange),
         const SizedBox(width: 8),
-        _summaryTile('Completadas', '$delivered', AppColors.green, isDark),
+        _summaryTile(context, 'Completadas', '$delivered', AppColors.green),
         const SizedBox(width: 8),
-        _summaryTile('Canceladas', '$cancelled', AppColors.red, isDark),
+        _summaryTile(context, 'Canceladas', '$cancelled', AppColors.red),
       ],
     );
   }
 
-  Widget _summaryTile(String label, String value, Color color, bool isDark) {
+  Widget _summaryTile(BuildContext context, String label, String value, Color color) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
         decoration: BoxDecoration(
-          color: isDark ? AppColors.grayDark : AppColors.white,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
@@ -154,7 +155,7 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
     );
   }
 
-  Widget _buildOrderCard(Order order, bool isDark) {
+  Widget _buildOrderCard(BuildContext context, Order order) {
     final isDelivered = order.status == 'delivered';
     final statusColor = isDelivered ? AppColors.green : AppColors.red;
     final statusLabel = isDelivered ? 'Entregada' : 'Cancelada';
@@ -163,7 +164,9 @@ class _DeliveryHistoryPageState extends State<DeliveryHistoryPage> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: isDark ? AppColors.grayDark : null,
+      color: Theme.of(context).brightness == Brightness.dark
+          ? Theme.of(context).colorScheme.surfaceContainerHighest
+          : null,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),

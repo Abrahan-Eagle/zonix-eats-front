@@ -24,8 +24,6 @@ class _DeliveryCompanyAgentsPageState extends State<DeliveryCompanyAgentsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(title: const Text('Mis Agentes')),
       floatingActionButton: FloatingActionButton(
@@ -42,7 +40,11 @@ class _DeliveryCompanyAgentsPageState extends State<DeliveryCompanyAgentsPage> {
       body: Consumer<DeliveryCompanyService>(
         builder: (context, service, _) {
           if (service.agentsLoading && service.agents.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            );
           }
           if (service.agentsError != null && service.agents.isEmpty) {
             return _buildError(service.agentsError!, () => service.loadAgents());
@@ -58,7 +60,7 @@ class _DeliveryCompanyAgentsPageState extends State<DeliveryCompanyAgentsPage> {
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: service.agents.length,
-                itemBuilder: (context, i) => _buildAgentCard(service.agents[i], isDark),
+                itemBuilder: (context, i) => _buildAgentCard(service.agents[i]),
               ),
             ),
           );
@@ -67,7 +69,8 @@ class _DeliveryCompanyAgentsPageState extends State<DeliveryCompanyAgentsPage> {
     );
   }
 
-  Widget _buildAgentCard(Map<String, dynamic> agent, bool isDark) {
+  Widget _buildAgentCard(Map<String, dynamic> agent) {
+    final cs = Theme.of(context).colorScheme;
     final name = agent['name'] as String? ?? 'Sin nombre';
     final working = agent['working'] == true;
     final status = agent['status'] as String? ?? 'inactive';
@@ -82,9 +85,9 @@ class _DeliveryCompanyAgentsPageState extends State<DeliveryCompanyAgentsPage> {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.grayDark : AppColors.white,
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: isDark ? AppColors.white12 : AppColors.black12),
+        border: Border.all(color: cs.outline.withValues(alpha: 0.25)),
       ),
       child: Row(
         children: [
@@ -102,9 +105,9 @@ class _DeliveryCompanyAgentsPageState extends State<DeliveryCompanyAgentsPage> {
                   width: 12,
                   height: 12,
                   decoration: BoxDecoration(
-                    color: working ? AppColors.green : AppColors.gray,
+                    color: working ? AppColors.green : cs.onSurfaceVariant,
                     shape: BoxShape.circle,
-                    border: Border.all(color: isDark ? AppColors.grayDark : AppColors.white, width: 2),
+                    border: Border.all(color: cs.surface, width: 2),
                   ),
                 ),
               ),
@@ -221,8 +224,9 @@ class _DeliveryCompanyAgentsPageState extends State<DeliveryCompanyAgentsPage> {
   }
 
   Widget _buildStatusBadge(String status, bool working) {
+    final cs = Theme.of(context).colorScheme;
     final label = working ? 'Disponible' : (status == 'active' ? 'Inactivo' : status);
-    final color = working ? AppColors.green : AppColors.gray;
+    final color = working ? AppColors.green : cs.onSurfaceVariant;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(

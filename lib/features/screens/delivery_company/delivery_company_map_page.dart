@@ -245,8 +245,6 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
 
   static double _deg2rad(double deg) => deg * (pi / 180);
 
-  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
-
   // ─────────────────── BUILD ───────────────────
 
   @override
@@ -275,7 +273,11 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
       body: Consumer<DeliveryCompanyService>(
         builder: (context, svc, _) {
           if (svc.mapAgentsLoading && svc.mapAgents.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            );
           }
           if (svc.mapAgentsError != null && svc.mapAgents.isEmpty) {
             return Center(
@@ -475,6 +477,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
   }
 
   Widget _buildTopControls(int visibleCount, int totalCount) {
+    final cs = Theme.of(context).colorScheme;
     return Positioned(
       top: 8,
       left: 8,
@@ -484,7 +487,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
           children: [
             Container(
               decoration: BoxDecoration(
-                color: (_isDark ? AppColors.grayDark : AppColors.white).withAlpha(230),
+                color: cs.surfaceContainerHighest.withAlpha(230),
                 borderRadius: BorderRadius.circular(14),
                 boxShadow: const [
                   BoxShadow(color: AppColors.black12, blurRadius: 8),
@@ -506,7 +509,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
                               prefixIcon: const Icon(Icons.search, size: 20),
                               contentPadding: EdgeInsets.zero,
                               filled: true,
-                              fillColor: _isDark ? AppColors.black26 : AppColors.grayLight,
+                              fillColor: cs.surfaceContainerHighest,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
                                 borderSide: BorderSide.none,
@@ -554,6 +557,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
   }
 
   Widget _filterChip(String label, String value) {
+    final cs = Theme.of(context).colorScheme;
     final selected = _statusFilter == value;
     return GestureDetector(
       onTap: () {
@@ -563,7 +567,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         decoration: BoxDecoration(
-          color: selected ? AppColors.blue : (_isDark ? AppColors.black26 : AppColors.grayLight),
+          color: selected ? AppColors.blue : cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -579,6 +583,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
   }
 
   Widget _buildRadiusSlider() {
+    final cs = Theme.of(context).colorScheme;
     return Positioned(
       bottom: 24,
       left: 16,
@@ -586,7 +591,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
       child: SafeArea(
         child: Container(
           decoration: BoxDecoration(
-            color: (_isDark ? AppColors.grayDark : AppColors.white).withAlpha(230),
+            color: cs.surfaceContainerHighest.withAlpha(230),
             borderRadius: BorderRadius.circular(14),
             boxShadow: const [
               BoxShadow(color: AppColors.black12, blurRadius: 8),
@@ -608,7 +613,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
                   max: (_radiusOptions.length - 1).toDouble(),
                   divisions: _radiusOptions.length - 1,
                   label: '${_radiusKm.toStringAsFixed(0)} km',
-                  activeColor: AppColors.blue,
+                  activeColor: cs.primary,
                   onChanged: (v) {
                     setState(() {
                       _radiusKm = _radiusOptions[v.round()];
@@ -654,7 +659,7 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
                 height: 4,
                 margin: const EdgeInsets.only(bottom: 16),
                 decoration: BoxDecoration(
-                  color: AppColors.textMutedGray,
+                  color: Theme.of(ctx).colorScheme.outline.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -891,11 +896,12 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
   }
 
   Widget _statChip(IconData icon, String value, String label) {
+    final cs = Theme.of(context).colorScheme;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
-          color: _isDark ? AppColors.black26 : AppColors.grayLight,
+          color: cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(

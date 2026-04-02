@@ -123,7 +123,11 @@ class _CommerceProductFormPageState extends State<CommerceProductFormPage> {
         title: Text(isEdit ? 'Editar producto' : 'Nuevo producto'),
       ),
       body: _saving
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Form(
@@ -136,9 +140,13 @@ class _CommerceProductFormPageState extends State<CommerceProductFormPage> {
                       child: Container(
                         height: 150,
                         decoration: BoxDecoration(
-                          color: AppColors.grayLight,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.textMutedGray),
+                          border: Border.all(
+                            color: Theme.of(context).colorScheme.outlineVariant,
+                          ),
                         ),
                         child: _imageFile != null
                             ? ClipRRect(

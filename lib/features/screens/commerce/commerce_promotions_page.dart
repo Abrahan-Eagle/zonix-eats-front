@@ -47,8 +47,12 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
       );
     }
     if (_error != null) {
@@ -75,13 +79,22 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('Promociones')),
       body: _promotions.isEmpty
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.local_offer, size: 64, color: AppColors.textMutedGray),
-                  SizedBox(height: 16),
-                  Text('No hay promociones'),
+                  Icon(
+                    Icons.local_offer,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No hay promociones',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ],
               ),
             )
@@ -107,8 +120,14 @@ class _CommercePromotionsPageState extends State<CommercePromotionsPage> {
                       ),
                       trailing: Chip(
                         label: Text(active ? 'Activa' : 'Inactiva'),
-                        backgroundColor: active ? AppColors.green : AppColors.textMutedGray,
-                        labelStyle: const TextStyle(color: AppColors.white),
+                        backgroundColor: active
+                            ? AppColors.green
+                            : Theme.of(context).colorScheme.surfaceContainerHighest,
+                        labelStyle: TextStyle(
+                          color: active
+                              ? AppColors.white
+                              : Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       onTap: () async {
                         if (id != null) {

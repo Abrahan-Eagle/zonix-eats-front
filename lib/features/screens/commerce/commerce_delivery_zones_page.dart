@@ -76,13 +76,22 @@ class _CommerceDeliveryZonesPageState extends State<CommerceDeliveryZonesPage> {
     return Scaffold(
       appBar: AppBar(title: const Text('Zonas de delivery')),
       body: _zones.isEmpty
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.map, size: 64, color: AppColors.textMutedGray),
-                  SizedBox(height: 16),
-                  Text('No hay zonas configuradas'),
+                  Icon(
+                    Icons.map,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No hay zonas configuradas',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ],
               ),
             )
@@ -108,7 +117,10 @@ class _CommerceDeliveryZonesPageState extends State<CommerceDeliveryZonesPage> {
                         'Radio: $radius km · Tarifa: \$${fee.toStringAsFixed(2)}'
                         '${time != null ? ' · $time min' : ''}',
                       ),
-                      trailing: const Icon(Icons.info_outline, color: AppColors.gray),
+                      trailing: Icon(
+                        Icons.info_outline,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   );
                 },

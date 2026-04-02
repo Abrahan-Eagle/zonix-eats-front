@@ -145,7 +145,13 @@ class _GlobalRateTabState extends State<_GlobalRateTab>
   Widget build(BuildContext context) {
     super.build(context);
 
-    if (_isLoading) return const Center(child: CircularProgressIndicator());
+    if (_isLoading) {
+      return Center(
+        child: CircularProgressIndicator(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      );
+    }
 
     if (_error != null) {
       return _buildErrorState();
@@ -153,7 +159,7 @@ class _GlobalRateTabState extends State<_GlobalRateTab>
 
     return RefreshIndicator(
       onRefresh: _loadSettings,
-      color: AppColors.blue,
+      color: Theme.of(context).colorScheme.primary,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 24, 16, 40),
@@ -232,7 +238,7 @@ class _GlobalRateTabState extends State<_GlobalRateTab>
               'cuando no hay zona específica.',
               style: TextStyle(
                 fontSize: 13,
-                color: _isDark ? AppColors.white70 : AppColors.gray,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -254,7 +260,7 @@ class _GlobalRateTabState extends State<_GlobalRateTab>
         labelText: label,
         prefixIcon: Icon(icon),
         filled: true,
-        fillColor: _isDark ? AppColors.grayDark : AppColors.grayLight,
+        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -357,7 +363,13 @@ class _DeliveryZonesTabState extends State<_DeliveryZonesTab>
   Widget build(BuildContext context) {
     super.build(context);
 
-    if (_isLoading) return const Center(child: CircularProgressIndicator());
+    if (_isLoading) {
+      return Center(
+        child: CircularProgressIndicator(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      );
+    }
 
     if (_error != null) return _buildErrorState();
 
@@ -367,7 +379,7 @@ class _DeliveryZonesTabState extends State<_DeliveryZonesTab>
           ? _buildEmptyState()
           : RefreshIndicator(
               onRefresh: _loadZones,
-              color: AppColors.blue,
+              color: Theme.of(context).colorScheme.primary,
               child: ResponsiveCenter(
                 maxWidth: 900,
                 child: ListView.builder(

@@ -205,7 +205,7 @@ class _CommercePromotionFormPageState extends State<CommercePromotionFormPage> {
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: AppColors.grayLight,
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: _imagePath != null
@@ -219,18 +219,27 @@ class _CommercePromotionFormPageState extends State<CommercePromotionFormPage> {
                               child: Image.network(
                                 imageUrl,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => const Icon(
+                                errorBuilder: (_, __, ___) => Icon(
                                   Icons.image_not_supported,
                                   size: 48,
-                                  color: AppColors.textMutedGray,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             )
-                          : const Column(
+                          : Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Icon(Icons.add_photo_alternate, size: 48, color: AppColors.textMutedGray),
-                                Text('Imagen', style: TextStyle(color: AppColors.textMutedGray)),
+                                Icon(
+                                  Icons.add_photo_alternate,
+                                  size: 48,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                                Text(
+                                  'Imagen',
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
                               ],
                             ),
                 ),
@@ -327,7 +336,14 @@ class _CommercePromotionFormPageState extends State<CommercePromotionFormPage> {
             FilledButton.icon(
               onPressed: _saving ? null : _save,
               icon: _saving
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.white))
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Theme.of(context).colorScheme.onPrimary,
+                      ),
+                    )
                   : const Icon(Icons.save),
               label: Text(_saving ? 'Guardando...' : 'Guardar'),
             ),

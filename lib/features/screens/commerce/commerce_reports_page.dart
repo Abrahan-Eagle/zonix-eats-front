@@ -323,7 +323,13 @@ class _StatCard extends StatelessWidget {
                 color: color,
               ),
             ),
-            Text(label, style: const TextStyle(fontSize: 12, color: AppColors.gray)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       ),

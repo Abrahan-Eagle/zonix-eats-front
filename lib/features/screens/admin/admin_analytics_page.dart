@@ -125,13 +125,19 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
   }
 
   Widget _buildBody() {
-    if (_isLoading) return const Center(child: CircularProgressIndicator());
+    if (_isLoading) {
+      return Center(
+        child: CircularProgressIndicator(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      );
+    }
 
     if (_error != null) return _buildErrorState();
 
     return RefreshIndicator(
       onRefresh: _loadData,
-      color: AppColors.blue,
+      color: Theme.of(context).colorScheme.primary,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 20, 16, 32),
@@ -739,12 +745,13 @@ class _AdminAnalyticsPageState extends State<AdminAnalyticsPage> {
   }
 
   Widget _obsChip(String label, String value) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: _isDark ? AppColors.grayDark : AppColors.grayLight,
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _isDark ? AppColors.white12 : AppColors.black12),
+        border: Border.all(color: cs.outline.withValues(alpha: 0.25)),
       ),
       child: RichText(
         text: TextSpan(

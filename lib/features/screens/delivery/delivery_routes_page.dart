@@ -80,8 +80,6 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Rutas activas'),
@@ -92,7 +90,11 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
       body: Consumer<DeliveryService>(
         builder: (context, service, _) {
           if (service.routesLoading && service.routesList.isEmpty) {
-            return const Center(child: CircularProgressIndicator());
+            return Center(
+              child: CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            );
           }
           if (service.routesError != null && service.routesList.isEmpty) {
             return _buildErrorState(service.routesError!);
@@ -107,7 +109,7 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
               padding: const EdgeInsets.all(16),
               itemCount: service.routesList.length,
               itemBuilder: (context, index) {
-                return _buildRouteCard(service.routesList[index], isDark);
+                return _buildRouteCard(context, service.routesList[index]);
               },
             ),
           );
@@ -116,7 +118,7 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
     );
   }
 
-  Widget _buildRouteCard(Map<String, dynamic> route, bool isDark) {
+  Widget _buildRouteCard(BuildContext context, Map<String, dynamic> route) {
     final order = route['order'] as Map<String, dynamic>?;
     final orderNumber = order?['order_number']?.toString() ??
         route['order_number']?.toString() ??
@@ -134,7 +136,9 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: isDark ? AppColors.grayDark : null,
+      color: Theme.of(context).brightness == Brightness.dark
+          ? Theme.of(context).colorScheme.surfaceContainerHighest
+          : null,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -200,28 +204,28 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
               children: [
                 Expanded(
                   child: _metricChip(
+                    context,
                     Icons.timer_outlined,
                     '$estimatedTime min',
                     AppColors.orange,
-                    isDark,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: _metricChip(
+                    context,
                     Icons.straighten,
                     '${distance.toStringAsFixed(1)} km',
                     AppColors.blue,
-                    isDark,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: _metricChip(
+                    context,
                     Icons.attach_money,
                     '\$${total.toStringAsFixed(2)}',
                     AppColors.green,
-                    isDark,
                   ),
                 ),
               ],
@@ -300,11 +304,16 @@ class _DeliveryRoutesPageState extends State<DeliveryRoutesPage> {
     );
   }
 
-  Widget _metricChip(IconData icon, String value, Color color, bool isDark) {
+  Widget _metricChip(
+    BuildContext context,
+    IconData icon,
+    String value,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.backgroundDark : AppColors.grayLight,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(

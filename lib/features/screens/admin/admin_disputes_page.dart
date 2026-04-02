@@ -231,7 +231,6 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
   }
 
   void _showDisputeSheet(Map<String, dynamic> dispute) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final disputeId = safeInt(dispute['id']);
     final status = safeString(dispute['status']);
     final canResolve = status == 'pending' || status == 'in_review';
@@ -265,7 +264,7 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
                         height: 4,
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: isDark ? AppColors.white38 : AppColors.black26,
+                          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.45),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -322,9 +321,7 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.backgroundDark
-                            : AppColors.grayLight,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Text(
@@ -354,8 +351,7 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
                             color: AppColors.secondaryText(context),
                           ),
                           filled: true,
-                          fillColor:
-                              isDark ? AppColors.grayDark : AppColors.grayLight,
+                          fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -390,8 +386,7 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
                             color: AppColors.secondaryText(context),
                           ),
                           filled: true,
-                          fillColor:
-                              isDark ? AppColors.grayDark : AppColors.grayLight,
+                          fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
@@ -494,7 +489,7 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
       backgroundColor: AppColors.scaffoldBg(context),
       appBar: AppBar(
         title: const Text('Disputas'),
-        backgroundColor: isDark ? AppColors.grayDark : AppColors.blueDark,
+        backgroundColor: isDark ? Theme.of(context).colorScheme.surfaceContainerHigh : AppColors.blueDark,
         foregroundColor: AppColors.white,
         elevation: 0,
       ),
@@ -527,7 +522,6 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
   }
 
   Widget _buildStatsBar() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final pending =
         safeInt(_stats['pending'], safeInt(_stats['data']?['pending']));
     final resolved =
@@ -566,11 +560,12 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
     final slaColor = _slaColor(slaLevel);
     final slaLabel = _slaLabel(slaLevel);
 
+    final cs = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 12, 16, 0),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.grayDark : AppColors.grayLight,
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
@@ -738,23 +733,18 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
     return Container(
       width: 1,
       height: 30,
-      color: Theme.of(context).brightness == Brightness.dark
-          ? AppColors.white12
-          : AppColors.black12,
+      color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.28),
     );
   }
 
   Widget _filterChip(String label, bool selected, VoidCallback onTap) {
+    final cs = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: selected
-              ? AppColors.blue
-              : Theme.of(context).brightness == Brightness.dark
-                  ? AppColors.grayDark
-                  : AppColors.grayLight,
+          color: selected ? AppColors.blue : cs.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
         ),
         child: Text(
@@ -772,7 +762,11 @@ class _AdminDisputesPageState extends State<AdminDisputesPage> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(
+        child: CircularProgressIndicator(
+          color: Theme.of(context).colorScheme.primary,
+        ),
+      );
     }
     if (_error != null) {
       return Center(
