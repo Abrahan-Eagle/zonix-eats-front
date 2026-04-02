@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/services/delivery_company_service.dart';
 import 'package:zonix/features/services/pusher_service.dart';
+import 'package:zonix/features/services/realtime_event_utils.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
 import '../../utils/responsive_helper.dart';
@@ -78,11 +79,14 @@ class _DeliveryCompanyOrdersPageState extends State<DeliveryCompanyOrdersPage> w
 
     _pusherSub?.cancel();
     _pusherSub = PusherService.instance.eventStream.listen((event) {
-      final eventName = event['eventName']?.toString() ?? '';
+      final rawEventName =
+          event['canonicalEventName']?.toString() ??
+          event['eventName']?.toString() ??
+          '';
+      final eventName = RealtimeEventUtils.normalizeEventName(rawEventName);
       final channelName = event['channelName']?.toString() ?? '';
 
-      final isRelevant = channelName == _companyChannel ||
-          (eventName.contains('NotificationCreated') || eventName.contains('PaymentValidated'));
+      final isRelevant = channelName == _companyChannel;
 
       if (isRelevant &&
           (eventName.contains('OrderStatusChanged') ||

@@ -10,9 +10,9 @@
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
 - **Fecha:** 1 Abril 2026
-- **Resumen:** Cierre transversal de hardening frontend aplicado: consumo realtime homogeneizado con `canonicalEventName` en pantallas críticas de órdenes/chat, deduplicación de notificaciones por `eventId` en `NotificationService`, consistencia de URLs de media en detalle de órdenes y eliminación de catches silenciosos críticos en tracking/pagos/onboarding con trazas de diagnóstico. La app queda alineada con el endurecimiento backend de auth/eventos para release estable.
-- **Áreas tocadas:** `lib/features/services/notification_service.dart`, `lib/features/screens/orders/order_detail_page.dart`, `lib/features/screens/orders/current_order_detail_page.dart`, `lib/features/screens/orders/buyer_order_chat_page.dart`, `lib/features/screens/onboarding/client_onboarding_flow.dart`, `AGENTS.md`.
-- **Próximos pasos sugeridos:** mantener monitoreo de ruido realtime en producción y, tras una ventana estable, simplificar rutas/alias legacy de contratos en conjunto con backend.
+- **Resumen:** Cierre final del hardening frontend con foco en contratos/realtime: listeners críticos de commerce/delivery/company alineados a evento canónico, eliminación de recargas espurias por canal no relevante en delivery company, y parsing de respuestas normalizado en `OrderService`, `CommerceOrderService` y `AdminService` para reducir variabilidad canónico/legacy y mejorar robustez de errores.
+- **Áreas tocadas:** `lib/features/screens/commerce/commerce_orders_page.dart`, `lib/features/screens/delivery/delivery_orders_page.dart`, `lib/features/screens/delivery_company/delivery_company_orders_page.dart`, `lib/features/services/order_service.dart`, `lib/features/services/commerce_order_service.dart`, `lib/features/services/admin_service.dart`, `AGENTS.md`.
+- **Próximos pasos sugeridos:** cerrar deuda E2E por rol en `integration_test` y, tras estabilización, retirar aliases legacy de respuesta no usados.
 
 ---
 

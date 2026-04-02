@@ -10,6 +10,26 @@ import '../utils/http_retry.dart';
 class AdminService extends ChangeNotifier {
   static String get baseUrl => AppConfig.apiUrl;
 
+  dynamic _extractDataPayload(dynamic decoded) {
+    if (decoded is Map<String, dynamic> && decoded.containsKey('data')) {
+      return decoded['data'];
+    }
+    return decoded;
+  }
+
+  Map<String, dynamic> _extractMapPayload(dynamic decoded) {
+    final payload = _extractDataPayload(decoded);
+    if (payload is Map<String, dynamic>) return payload;
+    if (decoded is Map<String, dynamic>) return decoded;
+    return <String, dynamic>{};
+  }
+
+  List<Map<String, dynamic>> _extractListPayload(dynamic decoded) {
+    final payload = _extractDataPayload(decoded);
+    if (payload is List) return List<Map<String, dynamic>>.from(payload);
+    return <Map<String, dynamic>>[];
+  }
+
   String _extractErrorMessage(http.Response response, {required String fallback}) {
     try {
       if (response.body.isEmpty) return '$fallback: ${response.statusCode}';
@@ -65,7 +85,7 @@ class AdminService extends ChangeNotifier {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final list = List<Map<String, dynamic>>.from(data['data'] ?? []);
+        final list = _extractListPayload(data);
         if (role == null && status == null) {
           CacheService.setRawJson('admin_users', jsonEncode(list), expiration: const Duration(minutes: 10));
         }
@@ -177,7 +197,7 @@ class AdminService extends ChangeNotifier {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final result = data is Map ? Map<String, dynamic>.from(data) : <String, dynamic>{};
+        final result = _extractMapPayload(data);
         CacheService.setRawJson('admin_stats', jsonEncode(result), expiration: const Duration(minutes: 5));
         return result;
       } else {
@@ -206,10 +226,10 @@ class AdminService extends ChangeNotifier {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (data is Map && data['logs'] != null) {
+        if (data is Map && data['logs'] is List) {
           return List<Map<String, dynamic>>.from(data['logs']);
         }
-        return [];
+        return _extractListPayload(data);
       } else {
         throw Exception('Error fetching security logs: ${response.statusCode}');
       }
@@ -364,7 +384,7 @@ class AdminService extends ChangeNotifier {
     );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return Map<String, dynamic>.from(data['data'] ?? data);
+      return _extractMapPayload(data);
     }
     throw Exception('Error: ${response.statusCode}');
   }
@@ -390,8 +410,7 @@ class AdminService extends ChangeNotifier {
     );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      final list = data['data'] ?? data;
-      return List<Map<String, dynamic>>.from(list is List ? list : []);
+      return _extractListPayload(data);
     }
     throw Exception('Error: ${response.statusCode}');
   }
@@ -505,7 +524,7 @@ class AdminService extends ChangeNotifier {
     );
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return List<Map<String, dynamic>>.from(data['data'] ?? []);
+      return _extractListPayload(data);
     }
     throw Exception('Error: ${response.statusCode}');
   }

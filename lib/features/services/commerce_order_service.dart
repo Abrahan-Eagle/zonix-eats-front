@@ -9,6 +9,53 @@ import '../utils/http_retry.dart';
 
 class CommerceOrderService {
   static String get baseUrl => AppConfig.apiUrl;
+  static List<dynamic> _extractListFromEnvelope(dynamic body) {
+    if (body is List) return body;
+    if (body is! Map<String, dynamic>) return const [];
+    final payload = body['data'];
+    if (payload is List) return payload;
+    if (payload is Map<String, dynamic>) {
+      final items = payload['items'];
+      if (items is List) return items;
+      final nestedData = payload['data'];
+      if (nestedData is List) return nestedData;
+    }
+    return const [];
+  }
+
+  static Map<String, dynamic>? _extractMapFromEnvelope(dynamic body) {
+    if (body is! Map<String, dynamic>) return null;
+    final payload = body['data'];
+    if (payload is Map<String, dynamic>) return payload;
+    return body;
+  }
+
+  static String _extractErrorMessage(http.Response response, String fallback) {
+    try {
+      if (response.body.isEmpty) return '$fallback: ${response.statusCode}';
+      final decoded = jsonDecode(response.body);
+      if (decoded is Map<String, dynamic>) {
+        final message = decoded['message']?.toString();
+        if (message != null && message.trim().isNotEmpty) return message.trim();
+        final error = decoded['error']?.toString();
+        if (error != null && error.trim().isNotEmpty) return error.trim();
+        final errors = decoded['errors'];
+        if (errors is Map) {
+          for (final value in errors.values) {
+            if (value is List && value.isNotEmpty) {
+              final first = value.first?.toString();
+              if (first != null && first.trim().isNotEmpty) return first.trim();
+            } else if (value is String && value.trim().isNotEmpty) {
+              return value.trim();
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint('[CommerceOrderService] parse error: $e');
+    }
+    return '$fallback: ${response.statusCode}';
+  }
 
   /// Stale-while-revalidate: returns cached commerce orders instantly.
   static Future<List<CommerceOrder>?> getCachedOrders() async {
@@ -42,18 +89,8 @@ class CommerceOrderService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        List<dynamic> list;
-        if (data is List) {
-          list = data;
-        } else if (data is Map<String, dynamic> && data['data'] is List) {
-          list = data['data'] as List;
-        } else if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
-          final payload = data['data'] as Map<String, dynamic>;
-          final rawItems = payload['items'] ?? payload['data'] ?? [];
-          list = rawItems is List ? rawItems : <dynamic>[];
-        } else {
-          return [];
-        }
+        final list = _extractListFromEnvelope(data);
+        if (list.isEmpty) return [];
         if (status == null) {
           CacheService.setRawJson('commerce_orders', jsonEncode(list), expiration: const Duration(minutes: 10));
         }
@@ -84,12 +121,13 @@ class CommerceOrderService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        if (data is Map<String, dynamic> && data['data'] is Map<String, dynamic>) {
-          return CommerceOrder.fromJson(data['data'] as Map<String, dynamic>);
+        final orderMap = _extractMapFromEnvelope(data);
+        if (orderMap == null) {
+          throw Exception('Respuesta inválida');
         }
-        return CommerceOrder.fromJson(data as Map<String, dynamic>);
+        return CommerceOrder.fromJson(orderMap);
       } else {
-        throw Exception('Error al obtener orden: ${response.statusCode}');
+        throw Exception(_extractErrorMessage(response, 'Error al obtener orden'));
       }
     } catch (e) {
       throw Exception('Error al obtener orden: $e');
@@ -131,15 +169,7 @@ class CommerceOrderService {
         // El backend puede devolver solo success/message; reobtener la orden actualizada.
         return getOrder(id);
       } else {
-        String message = 'Error al actualizar estado: ${response.statusCode}';
-        try {
-          final body = jsonDecode(response.body);
-          final msg = body['message']?.toString();
-          if (msg != null && msg.isNotEmpty) message = msg;
-        } catch (e) {
-          debugPrint('[CommerceOrderService] error parse: $e');
-        }
-        throw Exception(message);
+        throw Exception(_extractErrorMessage(response, 'Error al actualizar estado'));
       }
     } catch (e) {
       if (e is Exception) rethrow;
@@ -164,8 +194,7 @@ class CommerceOrderService {
         if (data['success'] == true) return;
         throw Exception(data['message'] ?? 'Error al rechazar orden');
       } else {
-        final data = response.body.isNotEmpty ? jsonDecode(response.body) : null;
-        throw Exception(data?['message'] ?? 'Error al rechazar orden: ${response.statusCode}');
+        throw Exception(_extractErrorMessage(response, 'Error al rechazar orden'));
       }
     } catch (e) {
       throw Exception('Error al rechazar orden: $e');
@@ -186,8 +215,7 @@ class CommerceOrderService {
         if (data['success'] == true) return;
         throw Exception(data['message'] ?? 'Error al aprobar orden para pago');
       } else {
-        final data = response.body.isNotEmpty ? jsonDecode(response.body) : null;
-        throw Exception(data?['message'] ?? 'Error al aprobar orden para pago: ${response.statusCode}');
+        throw Exception(_extractErrorMessage(response, 'Error al aprobar orden para pago'));
       }
     } catch (e) {
       throw Exception('Error al aprobar orden para pago: $e');

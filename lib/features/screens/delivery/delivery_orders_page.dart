@@ -7,6 +7,7 @@ import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/services/delivery_service.dart';
 import 'package:zonix/features/services/notification_service.dart';
 import 'package:zonix/features/services/pusher_service.dart';
+import 'package:zonix/features/services/realtime_event_utils.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/user_provider.dart';
@@ -147,7 +148,11 @@ class DeliveryOrdersPageState extends State<DeliveryOrdersPage>
       if (ok && mounted) {
         _pusherSub?.cancel();
         _pusherSub = PusherService.instance.eventStream.listen((event) {
-          final eventName = event['eventName']?.toString() ?? '';
+          final rawEventName =
+              event['canonicalEventName']?.toString() ??
+              event['eventName']?.toString() ??
+              '';
+          final eventName = RealtimeEventUtils.normalizeEventName(rawEventName);
           final channelName = event['channelName']?.toString() ?? '';
           if (channelName != channel) return;
           if (eventName.contains('OrderStatusChanged')) {

@@ -12,6 +12,34 @@ import 'connectivity_service.dart';
 import '../utils/http_retry.dart';
 
 class OrderService extends ChangeNotifier {
+  List<dynamic> _extractListFromEnvelope(dynamic body, {String dataKey = 'data'}) {
+    if (body is List) return body;
+    if (body is! Map<String, dynamic>) return const [];
+
+    final payload = body[dataKey];
+    if (payload is List) return payload;
+
+    if (payload is Map<String, dynamic>) {
+      final nestedItems = payload['items'];
+      if (nestedItems is List) return nestedItems;
+      final nestedData = payload['data'];
+      if (nestedData is List) return nestedData;
+      final nestedOrders = payload['orders'];
+      if (nestedOrders is List) return nestedOrders;
+    }
+
+    final rootOrders = body['orders'];
+    if (rootOrders is List) return rootOrders;
+    return const [];
+  }
+
+  Map<String, dynamic>? _extractMapFromEnvelope(dynamic body, {String dataKey = 'data'}) {
+    if (body is! Map<String, dynamic>) return null;
+    final payload = body[dataKey];
+    if (payload is Map<String, dynamic>) return payload;
+    return body;
+  }
+
   /// POST /api/buyer/delivery-fee/calculate — Obtiene tarifa de envío (base + km).
   /// Devuelve { delivery_fee, distance_km } o null si falla.
   Future<Map<String, dynamic>?> calculateDeliveryFee({
@@ -205,38 +233,9 @@ class OrderService extends ChangeNotifier {
       final response = await withRetry(() => http.get(url, headers: headers));
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        List<dynamic> ordersData;
-        if (data is Map<String, dynamic>) {
-          if (data['success'] == true && data['data'] != null) {
-            final payload = data['data'];
-            if (payload is List) {
-              ordersData = payload;
-            } else if (payload is Map<String, dynamic>) {
-              if (payload['items'] is List) {
-                ordersData = payload['items'] as List<dynamic>;
-              } else if (payload['data'] is List) {
-                ordersData = payload['data'] as List<dynamic>;
-              } else if (payload['orders'] is List) {
-                ordersData = payload['orders'] as List<dynamic>;
-              } else {
-                return [];
-              }
-            } else {
-              return [];
-            }
-          } else if (data.containsKey('data') && data['data'] is List) {
-            ordersData = data['data'] as List<dynamic>;
-          } else if (data.containsKey('orders')) {
-            ordersData = data['orders'];
-          } else {
-            return [];
-          }
-        } else if (data is List) {
-          ordersData = data;
-        } else {
-          return [];
-        }
+        final decoded = jsonDecode(response.body);
+        final ordersData = _extractListFromEnvelope(decoded);
+        if (ordersData.isEmpty) return [];
 
         if (!isCommerce) {
           CacheService.setRawJson(_ordersCacheKey, jsonEncode(ordersData), expiration: const Duration(minutes: 10));
@@ -266,13 +265,12 @@ class OrderService extends ChangeNotifier {
     );
     
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>?;
+      final decoded = jsonDecode(response.body);
+      final data = decoded is Map<String, dynamic> ? decoded : null;
       if (data == null) throw Exception('Respuesta inválida');
       if (data['error'] != null) throw Exception(data['error'].toString());
-      // Backend devuelve { success: true, data: order } o la orden directamente
-      final orderMap = (data['success'] == true && data['data'] != null)
-          ? data['data'] as Map<String, dynamic>
-          : data;
+      final orderMap = _extractMapFromEnvelope(data);
+      if (orderMap == null) throw Exception('Orden inválida');
       return Order.fromJson(orderMap);
     } else {
       final data = response.body.isNotEmpty ? jsonDecode(response.body) : null;
@@ -502,17 +500,17 @@ class OrderService extends ChangeNotifier {
     
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      if (data is List) {
-        return List<Map<String, dynamic>>.from(data);
+      final list = _extractListFromEnvelope(data);
+      if (list.isNotEmpty) {
+        return List<Map<String, dynamic>>.from(list);
       }
-      if (data is Map && data['success'] == true) {
-        final list = data['data'] ?? data['messages'];
-        if (list != null && list is List) {
-          return List<Map<String, dynamic>>.from(list);
-        }
-        return [];
+      if (data is Map<String, dynamic> && data['messages'] is List) {
+        return List<Map<String, dynamic>>.from(data['messages'] as List);
       }
-      throw Exception(data['message'] ?? 'Error al obtener mensajes');
+      if (data is Map<String, dynamic>) {
+        throw Exception(data['message'] ?? 'Error al obtener mensajes');
+      }
+      return [];
     } else {
       throw Exception('Error al obtener mensajes: ${response.statusCode}');
     }
