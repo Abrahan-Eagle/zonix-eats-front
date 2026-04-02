@@ -16,11 +16,16 @@ class ApiService {
     }
 
     final decodedData = jsonDecode(result); // Decodificar el JSON
+    final token = decodedData['token']?.toString();
+    if (token == null || token.trim().isEmpty) {
+      logger.e('Error: token Google ausente en payload para backend');
+      throw Exception('Google token ausente');
+    }
 
     try {
       final body = jsonEncode({
         'success': true,
-        'token': decodedData['token'],
+        'token': token,
         'data': decodedData['profile'],
         'message': 'Datos recibidos correctamente.',
       });

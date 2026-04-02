@@ -25,21 +25,38 @@ class GoogleSignInService {
 
       final accessToken = googleAuth.accessToken;
       final idToken = googleAuth.idToken;
-      if (accessToken == null && idToken == null) {
-        logger.e('Error: Tanto el accessToken como el idToken son null');
-        return null; // Retorna null si no hay ni accessToken ni idToken
+      final backendToken = (idToken != null && idToken.isNotEmpty)
+          ? idToken
+          : accessToken;
+      if (backendToken == null || backendToken.isEmpty) {
+        logger.e('Error: tokens Google ausentes, no se puede autenticar con backend');
+        await AuthUtils.clearTokens();
+        return null;
       }
+      final usingIdToken = idToken != null && idToken.isNotEmpty;
+      logger.i(
+        usingIdToken
+            ? 'Google auth: usando idToken para backend'
+            : 'Google auth: idToken ausente, usando accessToken fallback para backend',
+      );
 
       // Guardar tokens de Google (id token) solo como referencia local temporal.
-      if (idToken != null) {
+      if (idToken != null && idToken.isNotEmpty) {
         await _storage.write(key: 'google_idToken', value: idToken);
       }
 
-      // Obtener datos del perfil del usuario utilizando el accessToken
+      // Obtener datos del perfil del usuario utilizando access token.
+      // Para backend SIEMPRE usamos idToken verificado por Google tokeninfo.
+      if (accessToken == null || accessToken.isEmpty) {
+        logger.e('Error: Google accessToken ausente para consultar userinfo');
+        await AuthUtils.clearTokens();
+        return null;
+      }
+
       final profileResponse = await http.get(
         Uri.parse('https://www.googleapis.com/oauth2/v3/userinfo'),
         headers: {
-          'Authorization': 'Bearer ${accessToken ?? idToken}',
+          'Authorization': 'Bearer $accessToken',
         },
       );
 
@@ -49,7 +66,7 @@ class GoogleSignInService {
 
         // Enviar el token al backend
         final processedResult = jsonEncode({
-          'token': accessToken ?? idToken,
+          'token': backendToken,
           'profile': profileData,
         });
 
