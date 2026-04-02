@@ -4,6 +4,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:zonix/models/commerce_order.dart';
 import 'package:zonix/features/services/commerce_order_service.dart';
 import 'package:zonix/features/services/pusher_service.dart';
+import 'package:zonix/features/services/realtime_event_utils.dart';
 import 'package:zonix/features/screens/commerce/commerce_chat_messages_page.dart';
 import '../../utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
@@ -66,7 +67,11 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
     if (ok && mounted) {
       _pusherSubscription?.cancel();
       _pusherSubscription = PusherService.instance.eventStream.listen((event) {
-        final eventName = event['eventName']?.toString() ?? '';
+        final rawEventName =
+            event['canonicalEventName']?.toString() ??
+            event['eventName']?.toString() ??
+            '';
+        final eventName = RealtimeEventUtils.normalizeEventName(rawEventName);
         final channelName = event['channelName']?.toString() ?? '';
 
         if (channelName == 'private-orders.${widget.orderId}') {

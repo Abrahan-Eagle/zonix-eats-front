@@ -12,6 +12,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../config/app_config.dart';
 import '../../services/delivery_company_service.dart';
 import '../../services/pusher_service.dart';
+import '../../services/realtime_event_utils.dart';
 import '../../../helpers/auth_helper.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/safe_parse.dart';
@@ -162,7 +163,11 @@ class _DeliveryCompanyMapPageState extends State<DeliveryCompanyMapPage> {
     _pusherSub?.cancel();
     _pusherSub = PusherService.instance.eventStream.listen((event) {
       if (!mounted) return;
-      final eventName = event['eventName']?.toString() ?? '';
+      final rawEventName =
+          event['canonicalEventName']?.toString() ??
+          event['eventName']?.toString() ??
+          '';
+      final eventName = RealtimeEventUtils.normalizeEventName(rawEventName);
       final channelName = event['channelName']?.toString() ?? '';
 
       if (channelName == _companyChannel &&

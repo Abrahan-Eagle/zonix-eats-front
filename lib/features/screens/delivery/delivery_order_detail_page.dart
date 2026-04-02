@@ -11,6 +11,7 @@ import 'package:zonix/features/services/delivery_location_tracker.dart';
 import 'package:zonix/features/services/delivery_service.dart';
 import 'package:zonix/features/services/location_service.dart';
 import 'package:zonix/features/services/pusher_service.dart';
+import 'package:zonix/features/services/realtime_event_utils.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/features/utils/safe_parse.dart';
 
@@ -73,7 +74,11 @@ class _DeliveryOrderDetailPageState extends State<DeliveryOrderDetailPage> {
     if (ok && mounted) {
       _pusherSub?.cancel();
       _pusherSub = PusherService.instance.eventStream.listen((event) {
-        final eventName = event['eventName']?.toString() ?? '';
+        final rawEventName =
+            event['canonicalEventName']?.toString() ??
+            event['eventName']?.toString() ??
+            '';
+        final eventName = RealtimeEventUtils.normalizeEventName(rawEventName);
         final channelName = event['channelName']?.toString() ?? '';
         if (channelName == channel && eventName.contains('OrderStatusChanged') && mounted) {
           _reloadOrder();

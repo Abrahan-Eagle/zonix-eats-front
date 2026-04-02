@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:zonix/features/services/chat_service.dart';
 import 'package:zonix/features/services/pusher_service.dart';
+import 'package:zonix/features/services/realtime_event_utils.dart';
 import '../../utils/app_colors.dart';
 
 /// Chat comercio-cliente. Usa Pusher para mensajes en tiempo real.
@@ -53,7 +54,11 @@ class _CommerceChatMessagesPageState extends State<CommerceChatMessagesPage> {
 
     _pusherSubscription?.cancel();
     _pusherSubscription = PusherService.instance.eventStream.listen((event) {
-      final eventName = event['eventName']?.toString() ?? '';
+      final rawEventName =
+          event['canonicalEventName']?.toString() ??
+          event['eventName']?.toString() ??
+          '';
+      final eventName = RealtimeEventUtils.normalizeEventName(rawEventName);
       final channelName = event['channelName']?.toString() ?? '';
 
       if (channelName == 'private-orders.${widget.orderId}') {
