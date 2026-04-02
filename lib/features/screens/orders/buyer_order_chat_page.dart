@@ -54,7 +54,8 @@ class _BuyerOrderChatPageState extends State<BuyerOrderChatPage> {
     if (ok && mounted) {
       _pusherSubscription?.cancel();
       _pusherSubscription = PusherService.instance.eventStream.listen((event) {
-        final eventName = event['eventName']?.toString() ?? '';
+        final eventName =
+            (event['canonicalEventName'] ?? event['eventName'])?.toString() ?? '';
         final channelName = event['channelName']?.toString() ?? '';
 
         if (channelName == 'private-orders.${widget.orderId}') {

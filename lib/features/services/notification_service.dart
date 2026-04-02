@@ -34,6 +34,8 @@ class NotificationService extends ChangeNotifier {
   String? _error;
   StreamSubscription? _pusherSubscription;
   final _newNotificationController = StreamController<NotificationItem>.broadcast();
+  final Set<String> _recentRealtimeEventIds = <String>{};
+  final List<String> _recentRealtimeEventIdQueue = <String>[];
 
   List<NotificationItem> get items => _items;
   int get unreadCount => _unreadCount;
@@ -58,7 +60,9 @@ class NotificationService extends ChangeNotifier {
 
   void _initPusherListener() {
     _pusherSubscription = PusherService.instance.eventStream.listen((event) {
-      final eventName = event['eventName']?.toString() ?? '';
+      final eventName =
+          (event['canonicalEventName'] ?? event['eventName'])?.toString() ?? '';
+      final eventId = event['eventId']?.toString();
       final data = _coerceEventData(event['data']);
 
       // Solo log en debug y solo para notificaciones in-app (evita ruido de OrderStatusChanged, etc.)
@@ -68,9 +72,22 @@ class NotificationService extends ChangeNotifier {
 
       // El nombre del evento en Pusher suele omitir el namespace o usar el definido en broadcastAs()
       if (eventName.contains('NotificationCreated')) {
+        if (!_shouldAcceptRealtimeEventId(eventId)) return;
         _handleNewNotification(data);
       }
     });
+  }
+
+  bool _shouldAcceptRealtimeEventId(String? eventId) {
+    if (eventId == null || eventId.isEmpty) return true;
+    if (_recentRealtimeEventIds.contains(eventId)) return false;
+    _recentRealtimeEventIds.add(eventId);
+    _recentRealtimeEventIdQueue.add(eventId);
+    if (_recentRealtimeEventIdQueue.length > 200) {
+      final removed = _recentRealtimeEventIdQueue.removeAt(0);
+      _recentRealtimeEventIds.remove(removed);
+    }
+    return true;
   }
 
   /// Pusher a veces entrega `data` como String JSON.

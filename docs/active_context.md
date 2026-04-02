@@ -10,9 +10,9 @@
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
 - **Fecha:** 1 Abril 2026
-- **Resumen:** Módulo Tiempo Real y Notificaciones reforzado para cierre técnico 9.6/10 y ruta segura a 10/10. Se centralizó normalización de eventos y dedupe fuerte por `event_id` en capa realtime (`realtime_event_utils.dart` + integración en `PusherService`), con compatibilidad para payload legacy y descarte básico de eventos fuera de orden por `order_id`. Se alineó consumo de eventos en pantallas buyer (`orders_page`, tracking en `order_detail/current_order_detail`), se mitigó ruido de notificaciones foreground (`main.dart` + `NotificationService`) y se retiró expectativa inválida de `OrderPendingAssignment` en delivery-agent. Validación técnica: tests específicos de dedupe/normalización en verde y analyze sin issues.
-- **Áreas tocadas:** `lib/features/services/pusher_service.dart`, `lib/features/services/realtime_event_utils.dart`, `lib/features/services/notification_service.dart`, `lib/main.dart`, `lib/features/screens/orders/orders_page.dart`, `lib/features/screens/orders/order_detail_page.dart`, `lib/features/screens/orders/current_order_detail_page.dart`, `lib/features/screens/delivery/delivery_orders_page.dart`, `test/features/services/realtime_event_utils_test.dart`, `AGENTS.md`.
-- **Próximos pasos sugeridos:** completar E2E de resiliencia por rol (reconexión, background/terminated, red inestable) y conectar métricas backend a alertado operativo para cerrar 10/10 en operación real.
+- **Resumen:** Cierre transversal de hardening frontend aplicado: consumo realtime homogeneizado con `canonicalEventName` en pantallas críticas de órdenes/chat, deduplicación de notificaciones por `eventId` en `NotificationService`, consistencia de URLs de media en detalle de órdenes y eliminación de catches silenciosos críticos en tracking/pagos/onboarding con trazas de diagnóstico. La app queda alineada con el endurecimiento backend de auth/eventos para release estable.
+- **Áreas tocadas:** `lib/features/services/notification_service.dart`, `lib/features/screens/orders/order_detail_page.dart`, `lib/features/screens/orders/current_order_detail_page.dart`, `lib/features/screens/orders/buyer_order_chat_page.dart`, `lib/features/screens/onboarding/client_onboarding_flow.dart`, `AGENTS.md`.
+- **Próximos pasos sugeridos:** mantener monitoreo de ruido realtime en producción y, tras una ventana estable, simplificar rutas/alias legacy de contratos en conjunto con backend.
 
 ---
 

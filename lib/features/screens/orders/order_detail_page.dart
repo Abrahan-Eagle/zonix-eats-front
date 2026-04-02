@@ -121,7 +121,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       
       _pusherSubscription?.cancel();
       _pusherSubscription = PusherService.instance.eventStream.listen((event) {
-        final eventName = event['eventName']?.toString() ?? '';
+        final eventName =
+            (event['canonicalEventName'] ?? event['eventName'])?.toString() ?? '';
         final channelName = event['channelName']?.toString() ?? '';
         final data = event['data'] is Map<String, dynamic>
             ? event['data'] as Map<String, dynamic>
@@ -207,7 +208,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           if (route.isNotEmpty) _routePoints = route;
         });
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error loading initial tracking in OrderDetailPage: $e');
+    }
   }
 
   double? _parseCoord(dynamic v) {
@@ -254,7 +257,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
       } else {
         availableMethods = await OrderService().getAvailablePaymentMethodsForOrder(widget.orderId);
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error fetching payment methods in OrderDetailPage: $e');
+    }
     if (!mounted) return;
 
     final dialogTitle = type == 'delivery' ? 'Pagar envío' : 'Pagar comida';
@@ -365,7 +370,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
     if (path == null || path.isEmpty) return '';
     if (path.startsWith('http')) return path;
     final base = AppConfig.apiUrl.replaceAll('/api', '');
-    return path.startsWith('/') ? '$base/storage/$path' : '$base/storage/$path';
+    if (path.startsWith('/storage/')) return '$base$path';
+    if (path.startsWith('/')) return '$base$path';
+    return '$base/storage/$path';
   }
 
   bool get _canCancel {
@@ -1163,7 +1170,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         final data = await rootBundle.load('assets/images/logo_login.png');
         logoBytes = data.buffer.asUint8List(
             data.offsetInBytes, data.offsetInBytes + data.lengthInBytes);
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('Logo asset not available for receipt PDF: $e');
+      }
 
       final bytes =
           await ReceiptPdfBuilder.build(order, logoImageBytes: logoBytes);

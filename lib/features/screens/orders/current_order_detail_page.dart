@@ -82,7 +82,8 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
       if (ok && mounted) {
         _pusherSubscription?.cancel();
         _pusherSubscription = PusherService.instance.eventStream.listen((event) {
-          final eventName = event['eventName']?.toString() ?? '';
+          final eventName =
+              (event['canonicalEventName'] ?? event['eventName'])?.toString() ?? '';
           final channelName = event['channelName']?.toString() ?? '';
           final eventData = event['data'] is Map<String, dynamic>
               ? event['data'] as Map<String, dynamic>
@@ -187,7 +188,9 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
           }
         });
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error loading initial tracking in CurrentOrderDetailPage: $e');
+    }
   }
 
   bool _isTrackableStatus(String s) =>
@@ -206,7 +209,9 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
           _loadInitialTracking();
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error refreshing current order detail: $e');
+    }
   }
 
   Future<void> _recalculateRoute(double agentLat, double agentLng) async {
@@ -232,7 +237,9 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
           setState(() => _routePoints = points);
         }
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error recalculating delivery route: $e');
+    }
   }
 
   Future<void> _loadDeliveryAgent() async {
@@ -242,7 +249,9 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
       if (mounted) {
         setState(() => _deliveryAgent = data);
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Error loading delivery agent detail: $e');
+    }
   }
 
   int _progressStep(Order order) {
@@ -297,7 +306,9 @@ class _CurrentOrderDetailPageState extends State<CurrentOrderDetailPage> {
       return path;
     }
     final base = AppConfig.apiUrl.replaceAll('/api', '');
-    return path.startsWith('/') ? '$base$path' : '$base/storage/$path';
+    if (path.startsWith('/storage/')) return '$base$path';
+    if (path.startsWith('/')) return '$base$path';
+    return '$base/storage/$path';
   }
 
   @override

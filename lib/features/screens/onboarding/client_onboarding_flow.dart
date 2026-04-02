@@ -478,7 +478,9 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
             lat_lng.LatLng(_latitude!, _longitude!),
             15,
           );
-        } catch (_) {}
+        } catch (e) {
+          debugPrint('Error refreshing user details in buyer onboarding submit: $e');
+        }
       });
 
       await _autoFillFromLocation(position.latitude, position.longitude);
@@ -1066,7 +1068,11 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       debugPrint('$stackTrace');
       if (!mounted) return;
       if (dialogShown) {
-        try { Navigator.of(context).pop(); } catch (_) {}
+        try {
+          Navigator.of(context).pop();
+        } catch (e) {
+          debugPrint('Error closing loading dialog in buyer onboarding submit: $e');
+        }
       }
       final message = _userFriendlyErrorMessage(e);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1096,7 +1102,9 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
         try {
           final details = await userProvider.getUserDetails(forceRefresh: true);
           userId = details['userId'] ?? userProvider.userId;
-        } catch (_) {}
+        } catch (e) {
+          debugPrint('Error refreshing user details in commerce onboarding submit: $e');
+        }
       }
       if (userId <= 0) {
         if (mounted) {
@@ -1312,7 +1320,11 @@ class _ClientOnboardingFlowState extends State<ClientOnboardingFlow> {
       debugPrint('$stackTrace');
       if (!mounted) return;
       if (dialogShown) {
-        try { Navigator.of(context).pop(); } catch (_) {}
+        try {
+          Navigator.of(context).pop();
+        } catch (e) {
+          debugPrint('Error closing loading dialog in commerce onboarding submit: $e');
+        }
       }
       final message = _userFriendlyErrorMessage(e);
       ScaffoldMessenger.of(context).showSnackBar(
