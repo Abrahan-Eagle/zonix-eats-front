@@ -411,10 +411,14 @@ class _OrdersPageState extends State<OrdersPage> {
             Text(_error!,
                 style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
             const SizedBox(height: 16),
-            FilledButton.icon(
-              onPressed: _loadOrders,
-              icon: const Icon(Icons.refresh, size: 20),
-              label: const Text('Reintentar'),
+            Semantics(
+              button: true,
+              label: 'Reintentar cargar pedidos',
+              child: FilledButton.icon(
+                onPressed: _loadOrders,
+                icon: const Icon(Icons.refresh, size: 20),
+                label: const Text('Reintentar'),
+              ),
             ),
           ],
         ),
@@ -445,15 +449,19 @@ class _OrdersPageState extends State<OrdersPage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 20),
-            FilledButton.icon(
-              onPressed: () => Navigator.pushNamed(context, '/restaurants'),
-              icon: const Icon(Icons.storefront, size: 20),
-              label: const Text('Explorar Restaurantes'),
+            Semantics(
+              button: true,
+              label: 'Explorar restaurantes',
+              child: FilledButton.icon(
+                onPressed: () => Navigator.pushNamed(context, '/restaurants'),
+                icon: const Icon(Icons.storefront, size: 20),
+                label: const Text('Explorar Restaurantes'),
               style: FilledButton.styleFrom(
                 backgroundColor: Theme.of(context).brightness == Brightness.dark
                     ? AppColors.accentButton(context)
                     : _templatePrimary,
               ),
+            ),
             ),
           ],
         ),

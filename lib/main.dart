@@ -5,379 +5,73 @@
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:logger/logger.dart';
-import 'package:flutter_native_splash/flutter_native_splash.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:provider/provider.dart';
-import 'package:zonix/features/utils/user_provider.dart';
-import 'package:zonix/features/utils/search_radius_provider.dart';
-import 'package:zonix/features/utils/bottom_nav_persistence.dart';
-import 'dart:async';
-import 'dart:convert';
 import 'package:flutter/services.dart';
-import 'package:zonix/models/notification_item.dart';
-import 'package:zonix/features/screens/orders/buyer_order_chat_page.dart';
-import 'package:zonix/features/screens/commerce/commerce_chat_messages_page.dart';
-
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:intl/date_symbol_data_local.dart';
-
-import 'package:zonix/features/screens/settings/settings_page_2.dart';
+import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
+import 'package:zonix/app/fcm_bootstrap.dart';
+import 'package:zonix/app/main_router.dart';
+import 'package:zonix/app/notification_navigation.dart';
 import 'package:zonix/features/screens/auth/sign_in_screen.dart';
+import 'package:zonix/features/screens/commerce/commerce_chat_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_order_detail_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_orders_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_product_form_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_products_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_profile_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_reports_page.dart';
+import 'package:zonix/features/screens/notifications/notifications_page.dart';
 import 'package:zonix/features/screens/onboarding/onboarding_screen.dart';
-
-import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
-
-
-import 'package:zonix/features/screens/products/products_page.dart';
-import 'package:zonix/features/screens/cart/cart_page.dart';
-import 'package:zonix/features/screens/orders/orders_page.dart';
+import 'package:zonix/features/screens/onboarding/onboarding_provider.dart';
 import 'package:zonix/features/screens/orders/order_detail_page.dart';
 import 'package:zonix/features/screens/restaurants/restaurants_page.dart';
-
-
-import 'package:zonix/features/services/cart_service.dart';
-import 'package:zonix/features/services/order_service.dart';
-import 'package:zonix/features/services/commerce_service.dart';
-import 'package:zonix/features/services/delivery_service.dart';
-import 'package:zonix/features/services/delivery_company_service.dart';
-import 'package:zonix/features/services/notification_service.dart';
-import 'package:zonix/features/services/location_service.dart';
-import 'package:zonix/features/services/payment_service.dart';
-import 'package:zonix/features/services/commerce_analytics_service.dart';
 import 'package:zonix/features/services/admin_service.dart';
+import 'package:zonix/features/services/cart_service.dart';
+import 'package:zonix/features/services/commerce_analytics_service.dart';
+import 'package:zonix/features/services/commerce_service.dart';
 import 'package:zonix/features/services/connectivity_service.dart';
-import 'package:zonix/widgets/app_offline_banner.dart';
-import 'package:zonix/features/screens/commerce/commerce_dashboard_page.dart';
-import 'package:zonix/features/screens/commerce/commerce_orders_page.dart';
-import 'package:zonix/features/screens/commerce/commerce_order_detail_page.dart';
-import 'package:zonix/features/screens/commerce/commerce_products_page.dart';
-import 'package:zonix/features/screens/commerce/commerce_product_form_page.dart';
-import 'package:zonix/features/screens/commerce/commerce_reports_page.dart';
+import 'package:zonix/features/services/delivery_company_service.dart';
+import 'package:zonix/features/services/delivery_service.dart';
+import 'package:zonix/features/services/location_service.dart';
+import 'package:zonix/features/services/notification_service.dart';
+import 'package:zonix/features/services/order_service.dart';
+import 'package:zonix/features/services/payment_service.dart';
+import 'package:zonix/features/utils/app_theme.dart';
+import 'package:zonix/features/utils/search_radius_provider.dart';
+import 'package:zonix/features/utils/user_provider.dart';
 import 'package:zonix/models/commerce_product.dart';
 import 'package:zonix/models/order.dart';
-import 'package:zonix/features/screens/delivery/delivery_order_detail_page.dart';
-import 'package:zonix/features/screens/delivery/delivery_orders_page.dart';
-import 'package:zonix/features/screens/delivery/delivery_history_page.dart';
-import 'package:zonix/features/screens/delivery/delivery_routes_page.dart';
-import 'package:zonix/features/screens/delivery/delivery_earnings_page.dart';
-import 'package:zonix/features/screens/delivery_company/delivery_company_dashboard_page.dart';
-import 'package:zonix/features/screens/delivery_company/delivery_company_agents_page.dart';
-import 'package:zonix/features/screens/delivery_company/delivery_company_orders_page.dart';
-import 'package:zonix/features/screens/delivery_company/delivery_company_map_page.dart';
-import 'package:zonix/features/screens/admin/admin_dashboard_page.dart';
-import 'package:zonix/features/screens/admin/admin_users_page.dart';
-import 'package:zonix/features/screens/admin/admin_orders_page.dart';
-import 'package:zonix/features/screens/admin/admin_analytics_page.dart';
-
-import 'package:zonix/features/utils/app_colors.dart';
-import 'package:zonix/features/utils/app_theme.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:zonix/features/screens/commerce/commerce_chat_page.dart';
-import 'package:zonix/features/screens/notifications/notifications_page.dart';
-import 'package:zonix/features/screens/commerce/commerce_profile_page.dart';
-import 'package:zonix/features/screens/onboarding/onboarding_provider.dart';
-import 'package:zonix/features/screens/location/location_search_page.dart';
-import 'package:zonix/features/widgets/buyer_shell.dart';
 
 /*
  * ZONIX EATS - Aplicación Multi-Rol
  *
  * Niveles de usuario (según roles):
  * 0 - Comprador (users): Productos, Carrito, Mis Órdenes, Restaurantes
- * 1 - Tiendas/Comercio (commerce): Dashboard, Órdenes, Productos, Reportes
- * 2 - Delivery (delivery/delivery_agent): Entregas, Historial, Rutas, Ganancias
- * 3 - Empresa de Delivery (delivery_company): Dashboard, Agentes, Órdenes, Ganancias
- * 4 - Administrador (admin): Dashboard, Usuarios, Órdenes, Analytics
+ * 1 - Comercio: Dashboard, Órdenes, Productos, Reportes
+ * 2 - Delivery: Entregas, Historial, Rutas, Ganancias
+ * 3 - Empresa de Delivery: Dashboard, Agentes, Órdenes, Mapa
+ * 4 - Admin: Dashboard, Usuarios, Órdenes, Analytics
  */
+
+/// Re-export para código que importa `showLocalNotification` desde main.
+export 'package:zonix/app/fcm_bootstrap.dart' show showLocalNotification;
 
 // Configuración del logger
 final logger = Logger();
 
-/// Llave global para navegar desde callbacks sin context (ej. al tocar notificación FCM).
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
-/// Navega según el payload de la notificación (order_id, type: order|chat|commerce_order).
-/// Para chat, redirige a la pantalla correcta según el rol del usuario.
-void _navigateFromNotificationPayload(String? payload) {
-  if (payload == null || payload.isEmpty) {
-    navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => const NotificationsPage()));
-    return;
-  }
-  try {
-    final data = jsonDecode(payload) as Map<String, dynamic>?;
-    if (data == null) {
-      navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => const NotificationsPage()));
-      return;
-    }
-    final orderId = data['order_id'] != null ? int.tryParse(data['order_id'].toString()) : null;
-    final type = data['type']?.toString() ?? '';
-    final ctx = navigatorKey.currentContext;
-    final role = ctx != null
-        ? Provider.of<UserProvider>(ctx, listen: false).userRole
-        : '';
-
-    if (orderId != null && orderId > 0) {
-      if (type == 'commerce_order') {
-        navigatorKey.currentState?.push(MaterialPageRoute(
-          builder: (_) => CommerceOrderDetailPage(orderId: orderId),
-        ));
-      } else if (type == 'chat') {
-        _navigateToChatByRole(orderId, data);
-      } else if (role == 'delivery_company') {
-        navigatorKey.currentState?.push(MaterialPageRoute(
-          builder: (_) => DeliveryCompanyOrdersPage(highlightOrderId: orderId),
-        ));
-      } else if (role == 'delivery_agent' || role == 'delivery') {
-        navigatorKey.currentState?.push(MaterialPageRoute(
-          builder: (_) => DeliveryOrderDetailLoaderPage(orderId: orderId),
-        ));
-      } else {
-        navigatorKey.currentState?.push(MaterialPageRoute(
-          builder: (_) => OrderDetailPage(orderId: orderId, order: null),
-        ));
-      }
-    } else {
-      navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => const NotificationsPage()));
-    }
-  } catch (_) {
-    navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => const NotificationsPage()));
-  }
-}
-
-/// Abre la pantalla de chat correcta según el rol del usuario autenticado.
-void _navigateToChatByRole(int orderId, Map<String, dynamic> data) {
-  final ctx = navigatorKey.currentContext;
-  final role = ctx != null
-      ? Provider.of<UserProvider>(ctx, listen: false).userRole
-      : '';
-  final senderName = data['sender_name']?.toString() ?? '';
-
-  if (role == 'commerce') {
-    navigatorKey.currentState?.push(MaterialPageRoute(
-      builder: (_) => CommerceChatMessagesPage(
-        orderId: orderId,
-        customerName: senderName.isNotEmpty ? senderName : 'Cliente',
-      ),
-    ));
-  } else if (role == 'delivery_agent' || role == 'delivery') {
-    navigatorKey.currentState?.push(MaterialPageRoute(
-      builder: (_) => CommerceChatMessagesPage(
-        orderId: orderId,
-        customerName: senderName.isNotEmpty ? senderName : 'Cliente',
-      ),
-    ));
-  } else if (role == 'delivery_company') {
-    navigatorKey.currentState?.push(MaterialPageRoute(
-      builder: (_) => DeliveryCompanyOrdersPage(highlightOrderId: orderId),
-    ));
-  } else {
-    navigatorKey.currentState?.push(MaterialPageRoute(
-      builder: (_) => BuyerOrderChatPage(orderId: orderId),
-    ));
-  }
-}
-
-/// Navega desde un RemoteMessage (app abierta desde notificación en background/terminated).
-void _navigateFromRemoteMessage(RemoteMessage message) {
-  final data = message.data;
-  if (data.isEmpty) {
-    _navigateFromNotificationPayload(null);
-    return;
-  }
-  _navigateFromNotificationPayload(jsonEncode(data));
-}
-
-const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
-
-/// ID del canal de notificaciones (sonido + vibración).
-const String _fcmNotificationChannelId = 'zonix_eats_fcm';
-const String _fcmNotificationChannelName = 'Notificaciones Zonix Eats';
-DateTime? _lastForegroundLocalNotificationAt;
-
-/// true = usa res/raw/zonix_notification.mp3; false = sonido por defecto del sistema.
-const bool _useCustomNotificationSound = true;
-
-final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
-
-AndroidNotificationChannel _buildFcmChannel() {
-  return const AndroidNotificationChannel(
-    _fcmNotificationChannelId,
-    _fcmNotificationChannelName,
-    description: 'Notificaciones push de pedidos y mensajes',
-    importance: Importance.high,
-    playSound: true,
-    enableVibration: true,
-    showBadge: true,
-    sound: _useCustomNotificationSound ? RawResourceAndroidNotificationSound('zonix_notification') : null,
-  );
-}
-
-AndroidNotificationDetails _buildFcmNotificationDetails() {
-  return const AndroidNotificationDetails(
-    _fcmNotificationChannelId,
-    _fcmNotificationChannelName,
-    channelDescription: 'Notificaciones push de pedidos y mensajes',
-    importance: Importance.high,
-    priority: Priority.high,
-    playSound: true,
-    enableVibration: true,
-    showWhen: true,
-    sound: _useCustomNotificationSound ? RawResourceAndroidNotificationSound('zonix_notification') : null,
-  );
-}
-
-/// Crea el canal de notificaciones con sonido y vibración (Android).
-Future<void> _createFcmNotificationChannel() async {
-  if (defaultTargetPlatform != TargetPlatform.android) return;
-  final androidPlugin = _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-  if (androidPlugin == null) return;
-  await androidPlugin.createNotificationChannel(_buildFcmChannel());
-}
-
-/// Muestra una notificación local con sonido, vibración y [payload] para navegación al tocar.
-Future<void> _showFcmNotification({
-  required String title,
-  required String body,
-  int id = 0,
-  String? payload,
-}) async {
-  final details = NotificationDetails(android: _buildFcmNotificationDetails());
-  await _localNotifications.show(id, title, body, details, payload: payload);
-}
-
-/// Acceso público para que NotificationService pueda mostrar notificación local con sonido
-/// cuando llega un evento Pusher (backup cuando FCM no está disponible).
-Future<void> showLocalNotification({
-  required String title,
-  required String body,
-  String? payload,
-}) async {
-  final id = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-  await _showFcmNotification(title: title, body: body, id: id, payload: payload);
-}
-
-/// Inicializa notificaciones locales (canal con sonido y vibración).
-Future<void> _initLocalNotifications() async {
-  if (kIsWeb) return;
-  const android = AndroidInitializationSettings('@mipmap/ic_launcher');
-  const initSettings = InitializationSettings(android: android);
-  await _localNotifications.initialize(
-    initSettings,
-    onDidReceiveNotificationResponse: (NotificationResponse response) {
-      if (response.payload != null && response.payload!.isNotEmpty) {
-        _navigateFromNotificationPayload(response.payload);
-      } else {
-        _navigateFromNotificationPayload(null);
-      }
-    },
-  );
-  await _createFcmNotificationChannel();
-}
-
-/// Handler de mensajes FCM en segundo plano (debe ser función top-level).
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  logger.i('FCM background: ${message.messageId}');
-
-  // Mostrar notificación con sonido y vibración en background
-  final plugin = FlutterLocalNotificationsPlugin();
-  const android = AndroidInitializationSettings('@mipmap/ic_launcher');
-  await plugin.initialize(const InitializationSettings(android: android));
-  final androidPlugin = plugin.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
-  if (androidPlugin != null) {
-    await androidPlugin.createNotificationChannel(_buildFcmChannel());
-  }
-  final title = message.notification?.title ?? message.data['title'] ?? 'Zonix Eats';
-  final body = message.notification?.body ?? message.data['body'] ?? 'Nueva notificación';
-  final payload = message.data.isNotEmpty ? jsonEncode(message.data) : null;
-  await plugin.show(
-    message.hashCode % 0x7FFFFFFF,
-    title,
-    body,
-    NotificationDetails(android: _buildFcmNotificationDetails()),
-    payload: payload,
-  );
-}
-
-/// Solicita permiso de notificaciones, obtiene el token FCM y lo guarda en almacenamiento seguro.
-/// En Android 13+ pide POST_NOTIFICATIONS; el backend recibe el token vía UserProvider._registerFcmToken().
-Future<void> _initFcmToken() async {
-  if (kIsWeb) return;
-  try {
-    if (defaultTargetPlatform == TargetPlatform.android) {
-      final status = await Permission.notification.request();
-      if (!status.isGranted) {
-        logger.w('FCM: permiso de notificaciones no concedido');
-        return;
-      }
-    } else if (defaultTargetPlatform == TargetPlatform.iOS) {
-      final settings = await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-      );
-      if (settings.authorizationStatus != AuthorizationStatus.authorized &&
-          settings.authorizationStatus != AuthorizationStatus.provisional) {
-        logger.w('FCM: permiso iOS no concedido');
-        return;
-      }
-    }
-
-    final token = await FirebaseMessaging.instance.getToken();
-    if (token != null && token.isNotEmpty) {
-      await _secureStorage.write(key: 'fcm_token', value: token);
-      logger.i('FCM token guardado');
-    }
-
-    FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-      if (newToken.isNotEmpty) {
-        await _secureStorage.write(key: 'fcm_token', value: newToken);
-        logger.i('FCM token actualizado');
-      }
-    });
-  } catch (e) {
-    logger.w('FCM init error: $e');
-  }
-}
-
 Future<void> main() async {
   await dotenv.load(fileName: '.env');
-  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   await Firebase.initializeApp();
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  await _initLocalNotifications();
-  await _initFcmToken();
-
-  // Foreground: mostrar notificación con sonido/vibración y payload para navegación al tocar
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    final title = message.notification?.title ?? message.data['title'] ?? 'Zonix Eats';
-    final body = message.notification?.body ?? message.data['body'] ?? 'Nueva notificación';
-    final payload = message.data.isNotEmpty ? jsonEncode(message.data) : null;
-    final now = DateTime.now();
-    if (_lastForegroundLocalNotificationAt == null ||
-        now.difference(_lastForegroundLocalNotificationAt!).inSeconds >= 2) {
-      _showFcmNotification(
-        title: title,
-        body: body,
-        id: message.hashCode % 0x7FFFFFFF,
-        payload: payload,
-      );
-      _lastForegroundLocalNotificationAt = now;
-    }
-    NotificationService.instance?.incrementUnreadFromFcm();
-  });
-
-  // App abierta desde notificación (estaba en background)
-  FirebaseMessaging.onMessageOpenedApp.listen(_navigateFromRemoteMessage);
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+  await initLocalNotifications();
+  await initFcmToken();
+  registerFcmForegroundListeners();
 
   initialization();
   await initializeDateFormatting('es');
@@ -387,7 +81,6 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  // Bypass de login para tests de integración
   const bool isIntegrationTest = String.fromEnvironment('INTEGRATION_TEST', defaultValue: 'false') == 'true';
 
   runApp(
@@ -408,19 +101,18 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => AdminService()),
         ChangeNotifierProvider(create: (_) => ConnectivityService()),
       ],
-      child: const MyApp(isIntegrationTest: isIntegrationTest),
+      child: isIntegrationTest
+          ? const MyApp(isIntegrationTest: true)
+          : const MyApp(),
     ),
   );
 }
 
 void initialization() async {
   logger.i('Initializing...');
-  // Breve retardo para que el primer frame pinte; 3s fijos alargaban innecesariamente el arranque.
   await Future.delayed(const Duration(milliseconds: 400));
   FlutterNativeSplash.remove();
 }
-
-// Theme extraído a lib/features/utils/app_theme.dart
 
 class MyApp extends StatefulWidget {
   final bool isIntegrationTest;
@@ -431,7 +123,6 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  /// [checkAuthentication] no debe ir en [build]: cada notifyListeners duplicaba GET y FCM.
   bool _initialAuthScheduled = false;
 
   @override
@@ -508,667 +199,6 @@ class _MyAppState extends State<MyApp> {
         }
         return null;
       },
-    );
-  }
-}
-
-class MainRouter extends StatefulWidget {
-  const MainRouter({super.key});
-
-  @override
-  MainRouterState createState() => MainRouterState();
-}
-
-class MainRouterState extends State<MainRouter> {
-  int _selectedLevel = 0;
-  int _bottomNavIndex = 0;
-  List<int> _allowedLevels = [];
-  String? _lastRole;
-  String? _positionLoadedForRole;
-  StreamSubscription<NotificationItem>? _notificationSubscription;
-  Future<Map<String, dynamic>>? _userDetailsFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadLastPosition();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadProfile();
-      _userDetailsFuture = context.read<UserProvider>().getUserDetails();
-      final notifService = context.read<NotificationService>();
-      notifService.loadCachedNotifications();
-      Future.delayed(
-          const Duration(seconds: 1), () => notifService.loadInitialData());
-
-      // Escuchar nuevas notificaciones en tiempo real para mostrar feedback global
-      _notificationSubscription = notifService.newNotificationStream.listen((n) {
-        if (mounted) {
-          _showGlobalNotification(n);
-        }
-      });
-
-      // Si la app se abrió tocando una notificación (estaba cerrada), navegar
-      if (!kIsWeb) {
-        FirebaseMessaging.instance.getInitialMessage().then((RemoteMessage? message) {
-          if (message != null && mounted) _navigateFromRemoteMessage(message);
-        });
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _notificationSubscription?.cancel();
-    super.dispose();
-  }
-
-  void _showGlobalNotification(NotificationItem notification) {
-    if (!mounted) return;
-
-    // Si estamos en la página de notificaciones, no mostramos el snackbar para evitar ruido
-    // (ya se verá en la lista directamente) - opcional según UX deseada.
-    
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        backgroundColor: isDark ? AppColors.slateBorder : AppColors.white,
-        duration: const Duration(seconds: 5),
-        content: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.blue.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.notifications_active, color: AppColors.blue, size: 20),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    notification.title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: isDark ? AppColors.white : AppColors.stitchTextDark,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    notification.body,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isDark ? AppColors.textMutedGray : AppColors.textMutedGray,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        action: SnackBarAction(
-          label: 'VER',
-          textColor: AppColors.blue,
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const NotificationsPage()),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-
-   Future<void> _loadProfile() async {
-      try {
-        await ProfileService().getMyProfile();
-        if (mounted) setState(() {});
-      } catch (e) {
-        logger.e('Error obteniendo el perfil: $e');
-      }
-    }
-
-  Future<void> _loadLastPosition() async {
-    // Sin rol aún: dejamos índice en 0; la posición por rol se carga en build() cuando haya rol.
-    if (!mounted) return;
-    setState(() {
-      _bottomNavIndex = 0;
-      logger.i('Loaded last position - bottomNavIndex: 0 (sin rol aún)');
-    });
-  }
-
-  /// Carga la última posición guardada para [role] (clave bottomNavIndex_$role).
-  Future<void> _loadPositionForRole(String role) async {
-    final prefs = await SharedPreferences.getInstance();
-    final key = bottomNavStorageKey(role);
-    final value = prefs.getInt(key) ?? 0;
-    if (!mounted) return;
-    setState(() {
-      _bottomNavIndex = value;
-      _positionLoadedForRole = role;
-      logger.i('Loaded last position for $role - bottomNavIndex: $value');
-    });
-  }
-
-  /// Guarda el índice de la bottom nav por rol. Si [index] se pasa, se guarda ese valor.
-  /// [role] si no se pasa se toma del UserProvider (debe estar disponible en build/tap).
-  Future<void> _saveLastPosition([int? index, String? role]) async {
-    final valueToSave = index ?? _bottomNavIndex;
-    final r = role ?? Provider.of<UserProvider>(context, listen: false).userRole;
-    final key = bottomNavStorageKey(r);
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(key, valueToSave);
-    if (!mounted) return;
-    logger.i('Saved last position for ${r.isEmpty ? 'users' : r} - bottomNavIndex: $valueToSave');
-  }
-
-  String _labelForLevel(int level) {
-    switch (level) {
-      case 0:
-        return 'Comprador';
-      case 1:
-        return 'Comercio';
-      case 2:
-        return 'Delivery Rider';
-      case 3:
-        return 'Delivery Company';
-      case 4:
-        return 'Admin';
-      default:
-        return 'Desconocido';
-    }
-  }
-
-  IconData _iconForLevel(int level) {
-    switch (level) {
-      case 0:
-        return Icons.shopping_bag;
-      case 1:
-        return Icons.storefront;
-      case 2:
-        return Icons.delivery_dining;
-      case 3:
-        return Icons.local_shipping; // Delivery Company
-      case 4:
-        return Icons.admin_panel_settings;
-      default:
-        return Icons.help_outline;
-    }
-  }
-
-  void _showLevelSelector() {
-    if (_allowedLevels.length <= 1) return;
-
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
-                  'Cambiar modo',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-              ..._allowedLevels.map((level) {
-                final selected = level == _selectedLevel;
-                return ListTile(
-                  leading: Icon(
-                    _iconForLevel(level),
-                    color: selected ? stitchPrimary : stitchSlate400,
-                  ),
-                  title: Text(_labelForLevel(level)),
-                  trailing: selected
-                      ? const Icon(Icons.check, color: stitchPrimary)
-                      : null,
-                  onTap: () {
-                    setState(() {
-                      _selectedLevel = level;
-                      _bottomNavIndex = 0;
-                      _saveLastPosition(0, _lastRole ?? 'users');
-                    });
-                    Navigator.pop(context);
-                  },
-                );
-              }),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  // Función para obtener los items del BottomNavigationBar
-  List<BottomNavigationBarItem> _getBottomNavItems(int level, String role, [int cartItemCount = 0]) {
-    List<BottomNavigationBarItem> items = [];
-
-    switch (level) {
-      case 0: // Comprador (template: badge en Carrito)
-        final cartIcon = cartItemCount > 0
-            ? Badge(
-                label: Text('${cartItemCount > 99 ? '99+' : cartItemCount}'),
-                child: const Icon(Icons.shopping_cart),
-              )
-            : const Icon(Icons.shopping_cart);
-        items = [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.storefront),
-            label: 'Productos',
-          ),
-          BottomNavigationBarItem(
-            icon: cartIcon,
-            label: 'Carrito',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
-            label: 'Mis Órdenes',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.restaurant),
-            label: 'Restaurantes',
-          ),
-        ];
-        break;
-      case 1: // Tiendas/Comercio
-        items = [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.assignment),
-            label: 'Órdenes',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.inventory),
-            label: 'Productos',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.analytics),
-            label: 'Reportes',
-          ),
-        ];
-        break;
-      case 2: // Delivery Rider
-        items = [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.delivery_dining),
-            label: 'Entregas',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.history),
-            label: 'Historial',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.location_on),
-            label: 'Rutas',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet),
-            label: 'Ganancias',
-          ),
-        ];
-        break;
-      case 3: // Delivery Company
-        items = [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.people),
-            label: 'Agentes',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
-            label: 'Órdenes',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.map_rounded),
-            label: 'Mapa',
-          ),
-        ];
-        break;
-      case 4: // Administrador
-        items = [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline),
-            label: 'Usuarios',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
-            label: 'Órdenes',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.analytics),
-            label: 'Analytics',
-          ),
-        ];
-        break;
-      default:
-        items = [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Inicio',
-          ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.help),
-            label: 'Ayuda',
-          ),
-        ];
-    }
-
-    // Agregar el item de configuración siempre
-    items.add(
-      const BottomNavigationBarItem(
-        icon: Icon(Icons.settings),
-        label: 'Configuración',
-      ),
-    );
-
-
-    // Devolver los items y el contador
-    return items;
-  }
-
-  // Función para manejar el tap en el BottomNavigationBar
-  void _onBottomNavTapped(int index, int itemCount) {
-    logger.i('Bottom navigation tapped: $index, Total items: $itemCount');
-
-    // Verifica si el índice seleccionado es el último item
-    if (index == itemCount - 1) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const SettingsPage2()),
-      );
-    } else {
-      setState(() {
-        _bottomNavIndex = index; // Actualiza el índice seleccionado
-        logger.i('Bottom nav index changed to: $_bottomNavIndex');
-        _saveLastPosition(index); // Guardar el índice actual para no pisarlo en async
-      });
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final userProvider = Provider.of<UserProvider>(context);
-
-    // Calcular niveles permitidos según el rol del usuario
-    final rawRole = userProvider.userRole;
-    final role = rawRole.isEmpty ? 'users' : rawRole;
-
-    // Solo sincronizar _lastRole cuando tenemos un rol real del backend (no vacío).
-    // Si userRole está vacío estamos en carga y no debemos guardar 'users' como _lastRole,
-    // o en el siguiente build pensaremos que el rol "cambió" y resetearemos la pestaña a 0.
-    if (rawRole.isNotEmpty && _lastRole != role) {
-      final wasUnset = _lastRole?.isEmpty ?? true;
-      _lastRole = role;
-      _positionLoadedForRole = null;
-      _allowedLevels = levelsForRole(role);
-      _selectedLevel = defaultLevelForRole(role);
-      _userDetailsFuture = userProvider.getUserDetails();
-      if (!wasUnset) {
-        _bottomNavIndex = 0;
-        _saveLastPosition(0, role);
-      }
-      _loadPositionForRole(role);
-    } else if (rawRole.isNotEmpty && _positionLoadedForRole != role) {
-      // Primera vez que tenemos rol en esta sesión: cargar posición guardada para este rol
-      _loadPositionForRole(role);
-    } else if (_allowedLevels.isEmpty) {
-      // Primera vez que se calculan los niveles permitidos
-      _allowedLevels = levelsForRole(role);
-      if (!_allowedLevels.contains(_selectedLevel)) {
-        _selectedLevel = defaultLevelForRole(role);
-        _bottomNavIndex = 0;
-        _saveLastPosition(0, role);
-      }
-    }
-
-    final isBuyerLevel = _selectedLevel == 0;
-
-    return Scaffold(
-      appBar: isBuyerLevel ? null : AppBar(
-        automaticallyImplyLeading: false,
-        elevation: 0,
-        title: RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: 'ZONI',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color:
-                      Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white
-                          : AppColors.stitchTextDark,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              TextSpan(
-                text: 'X',
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  color: stitchPrimary,
-                  letterSpacing: 1.2,
-                ),
-              ),
-            ],
-          ),
-        ),
-        centerTitle: false,
-        actions: [
-          if (_allowedLevels.length > 1)
-            IconButton(
-              icon: const Icon(Icons.swap_horiz),
-              tooltip: 'Cambiar modo',
-              onPressed: _showLevelSelector,
-            ),
-          Consumer<NotificationService>(
-            builder: (context, notificationService, child) {
-              return IconButton(
-                icon: Badge(
-                  label: Text('${notificationService.unreadCount}'),
-                  isLabelVisible: notificationService.unreadCount > 0,
-                  child: Icon(
-                    Icons.notifications_none,
-                    color: Theme.of(context).brightness == Brightness.dark
-                        ? Colors.white70
-                        : AppColors.stitchTextDark,
-                  ),
-                ),
-                tooltip: 'Notificaciones',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const NotificationsPage()),
-                  );
-                },
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(
-              Icons.gps_fixed,
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white70
-                  : AppColors.stitchTextDark,
-            ),
-            tooltip: 'Ubicación / GPS',
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const LocationSearchPage()),
-              );
-            },
-          ),
-        ],
-      ),
-      body: AppOfflineBanner(child: FutureBuilder<Map<String, dynamic>>(
-            future: _userDetailsFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                if (snapshot.error is SessionRejectedByApiException) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                logger.e('Error fetching user details: ${snapshot.error}');
-                return Center(child: Text('Error: ${snapshot.error}'));
-              } else {
-                logger.i('Role fetched: $role');
-
-                // Forzar SIEMPRE el nivel según el rol para evitar que quede en 0 por defecto
-                _selectedLevel = defaultLevelForRole(role);
-
-                // Nivel 0: Comprador - BuyerShell (header Delivering to + search) + nav original
-                if (_selectedLevel == 0) {
-                  final page = switch (_bottomNavIndex) {
-                    0 => const ProductsPage(),
-                    1 => const CartPage(),
-                    2 => const OrdersPage(),
-                    3 => const RestaurantsPage(),
-                    _ => const ProductsPage(),
-                  };
-                  return BuyerShell(child: page);
-                }
-
-                // Nivel 1: Tiendas/Comercio
-                if (_selectedLevel == 1) {
-                  switch (_bottomNavIndex) {
-                    case 0:
-                      return const CommerceDashboardPage(); // Dashboard
-                    case 1:
-                      return const CommerceOrdersPage(); // Órdenes
-                    case 2:
-                      return const CommerceProductsPage(); // Productos
-                    case 3:
-                      return const CommerceReportsPage(); // Reportes
-                    default:
-                      return const CommerceDashboardPage();
-                  }
-                }
-
-                // Nivel 2: Delivery Rider (motorizado / conductor)
-                if (_selectedLevel == 2) {
-                  switch (_bottomNavIndex) {
-                    case 0:
-                      return const DeliveryOrdersPage(); // Entregas
-                    case 1:
-                      return const DeliveryHistoryPage(); // Historial
-                    case 2:
-                      return const DeliveryRoutesPage(); // Rutas
-                    case 3:
-                      return const DeliveryEarningsPage(); // Ganancias
-                    default:
-                      return const DeliveryOrdersPage();
-                  }
-                }
-
-                // Nivel 3: Delivery Company
-                if (_selectedLevel == 3) {
-                  switch (_bottomNavIndex) {
-                    case 0:
-                      return const DeliveryCompanyDashboardPage();
-                    case 1:
-                      return const DeliveryCompanyAgentsPage();
-                    case 2:
-                      return const DeliveryCompanyOrdersPage();
-                    case 3:
-                      return const DeliveryCompanyMapPage();
-                    default:
-                      return const DeliveryCompanyDashboardPage();
-                  }
-                }
-
-                // Nivel 4: Administrador
-                if (_selectedLevel == 4) {
-                  switch (_bottomNavIndex) {
-                    case 0:
-                      return const AdminDashboardPage();
-                    case 1:
-                      return const AdminUsersPage();
-                    case 2:
-                      return const AdminOrdersPage();
-                    case 3:
-                      return const AdminAnalyticsPage();
-                    default:
-                      return const AdminDashboardPage();
-                  }
-                }
-
-                // Si no se cumplen ninguna de las condiciones anteriores, puedes manejar un caso por defecto.
-                return const Center(
-                  child: Text('Rol no reconocido o página no encontrada'),
-                );
-              }
-            },
-          ),
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? stitchNavBg
-              : stitchBgLight,
-          border: Border(
-            top: BorderSide(
-              color: Colors.white.withValues(alpha: 0.05),
-              width: 1,
-            ),
-          ),
-        ),
-        child: Consumer<CartService>(
-          builder: (context, cartService, _) {
-            final cartCount = _selectedLevel == 0
-                ? cartService.items.fold<int>(0, (s, i) => s + i.quantity)
-                : 0;
-            return BottomNavigationBar(
-              items: _getBottomNavItems(_selectedLevel, userProvider.userRole, cartCount),
-          currentIndex: _bottomNavIndex,
-          selectedItemColor: stitchNavActive,
-          unselectedItemColor: stitchSlate400,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          onTap: (index) {
-            final cartCount = context.read<CartService>().items.fold<int>(0, (s, i) => s + i.quantity);
-            List<BottomNavigationBarItem> items = _getBottomNavItems(
-              _selectedLevel,
-              userProvider.userRole,
-              _selectedLevel == 0 ? cartCount : 0,
-            );
-            int itemCount = items.length;
-            _onBottomNavTapped(index, itemCount);
-          },
-        );
-          },
-        ),
-      ),
     );
   }
 }

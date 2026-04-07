@@ -9,10 +9,14 @@
 
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
-- **Fecha:** 2 Abril 2026
+- **Fecha:** 7 Abril 2026
+- **Resumen:** Remediación plan forense: `main.dart` dividido en `lib/app/main_router.dart`, `fcm_bootstrap.dart`, `fcm_hooks.dart`, `notification_navigation.dart`; accesibilidad básica con `Semantics` en login, órdenes, carrito y checkout. `flutter analyze` OK; `flutter test` **190 OK**, 1 skip.
+- **Áreas tocadas:** `lib/main.dart`, `lib/app/*.dart`, `lib/features/screens/auth/sign_in_screen.dart`, `orders/orders_page.dart`, `cart/cart_page.dart`, `cart/checkout_page.dart`, `AGENTS.md`.
+- **Próximos pasos sugeridos:** ampliar Semantics/imágenes en más pantallas si se prioriza a11y; i18n sigue en backlog.
+
+- **Fecha (histórico):** 2 Abril 2026
 - **Resumen:** Cierre formal del módulo UI/tema (Bloque B): pantallas admin, commerce, delivery y delivery_company alineadas a tema claro/oscuro con `AppColors` y `colorScheme`; tokens `adminHealth*` para el banner de salud en admin dashboard; documentación de prompts maestros y verificación solo estética en `docs/`.
 - **Áreas tocadas:** `lib/features/screens/admin/*`, `commerce/*`, `delivery/*`, `delivery_company/*`, `lib/features/utils/app_colors.dart`, `AGENTS.md`, `docs/PROMPT_MAESTRO_*.md`, `docs/PROMPT_VERIFICACION_SOLO_ESTETICA.md`.
-- **Próximos pasos sugeridos:** smoke manual por rol (claro/oscuro) si falta; E2E por rol en `integration_test` cuando se priorice; retirar aliases legacy de respuesta en servicios cuando toque hardening de parsing.
 
 ---
 

@@ -365,7 +365,10 @@ class CartPage extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
-              Material(
+              Semantics(
+                button: true,
+                label: 'Ir a pagar, continuar al checkout',
+                child: Material(
                 color: AppColors.orange,
                 borderRadius: BorderRadius.circular(999),
                 child: InkWell(
@@ -406,6 +409,7 @@ class CartPage extends StatelessWidget {
                     ),
                   ),
                 ),
+              ),
               ),
             ],
           ),

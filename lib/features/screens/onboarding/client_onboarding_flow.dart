@@ -27,7 +27,7 @@ import 'package:zonix/features/DomainProfiles/Phones/api/phone_service.dart';
 import 'package:zonix/features/DomainProfiles/Documents/api/document_service.dart';
 import 'package:zonix/features/DomainProfiles/Documents/models/document.dart';
 import 'package:zonix/config/app_config.dart';
-import 'package:zonix/main.dart';
+import 'package:zonix/app/main_router.dart';
 
 /// Flujo de onboarding para Buyer (2 pasos) y Commerce (4 pasos).
 ///

@@ -17,7 +17,8 @@ import 'cache_service.dart';
 import 'connectivity_service.dart';
 import '../utils/http_retry.dart';
 import 'package:zonix/models/notification_item.dart';
-import 'package:zonix/main.dart' show showLocalNotification;
+import 'package:zonix/app/fcm_bootstrap.dart' show showLocalNotification;
+import 'package:zonix/app/fcm_hooks.dart';
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 import 'error_handler.dart';
@@ -48,6 +49,7 @@ class NotificationService extends ChangeNotifier {
 
   NotificationService() {
     _instance = this;
+    onFcmForegroundUnreadBump = incrementUnreadFromFcm;
     _initPusherListener();
   }
 

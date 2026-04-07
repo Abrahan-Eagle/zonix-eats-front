@@ -12,7 +12,7 @@ import 'package:zonix/widgets/app_skeleton.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
 import 'package:zonix/features/services/notification_service.dart';
-import 'package:zonix/main.dart' show showLocalNotification;
+import 'package:zonix/app/fcm_bootstrap.dart' show showLocalNotification;
 
 class CommerceOrdersPage extends StatefulWidget {
   const CommerceOrdersPage({super.key});

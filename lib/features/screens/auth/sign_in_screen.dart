@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
 import 'package:zonix/features/services/auth/api_service.dart';
-import 'package:zonix/main.dart';
+import 'package:zonix/app/main_router.dart';
 import 'package:zonix/features/services/auth/google_sign_in_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
@@ -320,7 +320,10 @@ class SignInScreenState extends State<SignInScreen> {
           ),
         ],
         // Botón Continuar con Google (pill-shaped)
-        SizedBox(
+        Semantics(
+          button: true,
+          label: 'Continuar con Google',
+          child: SizedBox(
           width: double.infinity,
           height: 56,
           child: Material(
@@ -361,6 +364,7 @@ class SignInScreenState extends State<SignInScreen> {
               ),
             ),
           ),
+        ),
         ),
         const SizedBox(height: 20),
         Text(

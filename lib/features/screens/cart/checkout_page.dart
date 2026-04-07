@@ -530,38 +530,48 @@ class _CheckoutPageState extends State<CheckoutPage> {
             Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _couponController,
-                    decoration: InputDecoration(
-                      hintText: 'Código de cupón',
-                      isDense: true,
-                      suffixIcon: _appliedCoupon != null
-                          ? IconButton(
-                              icon: const Icon(Icons.close, size: 18),
-                              onPressed: () {
-                                setState(() {
-                                  _appliedCoupon = null;
-                                  _couponDiscount = 0.0;
-                                  _couponController.clear();
-                                });
-                              },
-                            )
-                          : null,
+                  child: Semantics(
+                    textField: true,
+                    label: 'Código de cupón de descuento',
+                    child: TextField(
+                      controller: _couponController,
+                      decoration: InputDecoration(
+                        hintText: 'Código de cupón',
+                        isDense: true,
+                        suffixIcon: _appliedCoupon != null
+                            ? IconButton(
+                                icon: const Icon(Icons.close, size: 18),
+                                onPressed: () {
+                                  setState(() {
+                                    _appliedCoupon = null;
+                                    _couponDiscount = 0.0;
+                                    _couponController.clear();
+                                  });
+                                },
+                              )
+                            : null,
+                      ),
+                      enabled: _appliedCoupon == null,
                     ),
-                    enabled: _appliedCoupon == null,
                   ),
                 ),
                 const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _appliedCoupon != null || _validatingCoupon
-                      ? null
-                      : () => _validateCoupon(subtotal + delivery),
-                  child: _validatingCoupon
-                      ? const SizedBox(
-                          height: 18,
-                          width: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2))
-                      : Text(_appliedCoupon != null ? 'Aplicado' : 'Aplicar'),
+                Semantics(
+                  button: true,
+                  label: _appliedCoupon != null
+                      ? 'Cupón ya aplicado'
+                      : 'Aplicar cupón de descuento',
+                  child: ElevatedButton(
+                    onPressed: _appliedCoupon != null || _validatingCoupon
+                        ? null
+                        : () => _validateCoupon(subtotal + delivery),
+                    child: _validatingCoupon
+                        ? const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2))
+                        : Text(_appliedCoupon != null ? 'Aplicado' : 'Aplicar'),
+                  ),
                 ),
               ],
             ),
@@ -924,32 +934,35 @@ class _CheckoutPageState extends State<CheckoutPage> {
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.orange,
-                  foregroundColor: AppColors.white,
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+              child: Semantics(
+                button: true,
+                label: 'Confirmar pedido y crear orden',
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.orange,
+                    foregroundColor: AppColors.white,
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
-                ),
-                onPressed: (_loading ||
-                        (_deliveryType == 'delivery' &&
-                            (_deliveryFeeLoading || _calculatedDeliveryFee == null)))
-                    ? null
-                    : _handleCheckout,
-                child: _loading
-                    ? const SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(AppColors.white),
-                        ),
-                      )
-                    : const Row(
+                  onPressed: (_loading ||
+                          (_deliveryType == 'delivery' &&
+                              (_deliveryFeeLoading || _calculatedDeliveryFee == null)))
+                      ? null
+                      : _handleCheckout,
+                  child: _loading
+                      ? const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(AppColors.white),
+                          ),
+                        )
+                      : const Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -968,6 +981,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           ),
                         ],
                       ),
+                ),
               ),
             ),
             const SizedBox(height: 8),
