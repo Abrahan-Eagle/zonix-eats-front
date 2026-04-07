@@ -10,6 +10,7 @@ import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart'
 import '../../utils/app_colors.dart';
 import 'package:zonix/config/app_config.dart';
 import 'package:zonix/features/screens/commerce/commerce_promotions_page.dart';
+import 'package:zonix/features/screens/commerce/commerce_share_qr_page.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
 import 'package:zonix/features/services/notification_service.dart';
 
@@ -34,6 +35,8 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
   List<dynamic> _recentOrders = [];
   bool _commerceOpen = false;
   int _commerceId = 0;
+  String _commerceName = '';
+  String _commerceImageUrl = '';
   String _commerceStatus = 'approved';
   bool _pusherSubscribed = false;
   StreamSubscription<Map<String, dynamic>>? _pusherSubscription;
@@ -98,10 +101,14 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
         final commerceData = await CommerceDataService.getCommerceData();
         _commerceOpen = commerceData['open'] == true;
         _commerceId = commerceData['id'] ?? 0;
+        _commerceName = (commerceData['business_name'] ?? '').toString();
+        _commerceImageUrl = (commerceData['image'] ?? '').toString().trim();
         _commerceStatus = (commerceData['status'] ?? 'approved').toString();
       } catch (_) {
         _commerceOpen = false;
         _commerceId = 0;
+        _commerceName = '';
+        _commerceImageUrl = '';
         _commerceStatus = 'approved';
       }
 
@@ -483,6 +490,41 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
                         builder: (_) => const CommercePromotionsPage(),
                       ),
                     ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: _QuickActionButton(
+                    icon: Icons.qr_code_2,
+                    label: 'Mi QR (comercio)',
+                    onTap: () {
+                      if (_commerceId <= 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('No hay comercio asociado.'),
+                          ),
+                        );
+                        return;
+                      }
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute<void>(
+                          builder: (_) => CommerceShareQrPage(
+                            commerceId: _commerceId,
+                            businessName: _commerceName.isNotEmpty
+                                ? _commerceName
+                                : 'Mi restaurante',
+                            commerceImageUrl: _commerceImageUrl.isNotEmpty
+                                ? _commerceImageUrl
+                                : null,
+                          ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],

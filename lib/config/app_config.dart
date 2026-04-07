@@ -95,4 +95,65 @@ class AppConfig {
       dotenv.env['SUPPORT_URL'] ?? 'https://zonixeats.com/soporte';
   static String get supportEmail =>
       dotenv.env['SUPPORT_EMAIL'] ?? 'soporte@zonixeats.com';
+
+  /// Base pública para enlaces compartibles (HTTPS `.../r/{commerceId}`).
+  /// Resolución alineada a entornos (local / tests / producción), igual que [apiUrl]:
+  /// 1) `APP_LINK_BASE` si está definido (override para cualquier entorno)
+  /// 2) Según `ENVIRONMENT`: `development|local|dev` → `APP_LINK_BASE_LOCAL` o `APP_LINK_BASE_DEV`;
+  ///    `staging|test|testing` → `APP_LINK_BASE_STAGING` o `APP_LINK_BASE_TEST`;
+  ///    `production|prod` → `APP_LINK_BASE_PROD`
+  /// 3) Build release (`dart.vm.product`): `APP_LINK_BASE_PROD` si existe
+  /// 4) Fallback: `APP_LINK_BASE_LOCAL` / `APP_LINK_BASE_DEV`
+  /// 5) Legacy: `PUBLIC_LINK_BASE`
+  /// Si todo queda vacío, [buildCommerceShareUrl] usa solo el deep link `zonix://`.
+  static String get appLinkBase {
+    final override = dotenv.env['APP_LINK_BASE']?.trim();
+    if (override != null && override.isNotEmpty) return override;
+
+    final env =
+        (dotenv.env['ENVIRONMENT'] ?? 'development').toLowerCase().trim();
+
+    if (env == 'production' || env == 'prod') {
+      final p = dotenv.env['APP_LINK_BASE_PROD']?.trim();
+      if (p != null && p.isNotEmpty) return p;
+    }
+    if (env == 'staging' ||
+        env == 'test' ||
+        env == 'testing' ||
+        env == 'qa') {
+      final s = dotenv.env['APP_LINK_BASE_STAGING']?.trim() ??
+          dotenv.env['APP_LINK_BASE_TEST']?.trim();
+      if (s != null && s.isNotEmpty) return s;
+    }
+    if (env == 'development' ||
+        env == 'local' ||
+        env == 'dev') {
+      final d = dotenv.env['APP_LINK_BASE_LOCAL']?.trim() ??
+          dotenv.env['APP_LINK_BASE_DEV']?.trim();
+      if (d != null && d.isNotEmpty) return d;
+    }
+
+    if (_isProduction) {
+      final p = dotenv.env['APP_LINK_BASE_PROD']?.trim();
+      if (p != null && p.isNotEmpty) return p;
+    }
+
+    final local = dotenv.env['APP_LINK_BASE_LOCAL']?.trim() ??
+        dotenv.env['APP_LINK_BASE_DEV']?.trim();
+    if (local != null && local.isNotEmpty) return local;
+
+    return (dotenv.env['PUBLIC_LINK_BASE'] ?? '').trim();
+  }
+
+  /// Payload QR obligatorio en app: `zonix://restaurant/{commerceId}`.
+  static String buildCommerceDeepLink(int commerceId) =>
+      'zonix://restaurant/$commerceId';
+
+  /// URL para compartir (HTTPS si [appLinkBase] está definido; si no, el mismo deep link).
+  static String buildCommerceShareUrl(int commerceId) {
+    final base = appLinkBase;
+    if (base.isEmpty) return buildCommerceDeepLink(commerceId);
+    final b = base.endsWith('/') ? base.substring(0, base.length - 1) : base;
+    return '$b/r/$commerceId';
+  }
 }

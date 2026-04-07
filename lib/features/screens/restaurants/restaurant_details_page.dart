@@ -36,6 +36,15 @@ class RestaurantDetailsPage extends StatefulWidget {
   final double? latitude;
   final double? longitude;
 
+  /// Cabecera: prioriza [Restaurant.image] del detalle API; si no, [explicitLogoUrl] (lista manual).
+  static String? _resolveLogoUrl(Restaurant? restaurant, String? explicitLogoUrl) {
+    final fromApi = restaurant?.image?.trim();
+    if (fromApi != null && fromApi.isNotEmpty) return fromApi;
+    final ex = explicitLogoUrl?.trim();
+    if (ex != null && ex.isNotEmpty) return ex;
+    return null;
+  }
+
   RestaurantDetailsPage({
     super.key,
     Restaurant? restaurant,
@@ -47,7 +56,7 @@ class RestaurantDetailsPage extends StatefulWidget {
     double? latitude,
     double? longitude,
     this.horario,
-    this.logoUrl,
+    String? logoUrl,
     this.rating,
     this.tiempoEntrega,
     this.banco,
@@ -59,7 +68,8 @@ class RestaurantDetailsPage extends StatefulWidget {
         telefono = restaurant?.telefono ?? telefono ?? '',
         abierto = restaurant?.abierto ?? abierto ?? false,
         latitude = restaurant?.latitude ?? latitude,
-        longitude = restaurant?.longitude ?? longitude;
+        longitude = restaurant?.longitude ?? longitude,
+        logoUrl = _resolveLogoUrl(restaurant, logoUrl);
 
   factory RestaurantDetailsPage.fromRestaurant(Restaurant restaurant) {
     return RestaurantDetailsPage(restaurant: restaurant);

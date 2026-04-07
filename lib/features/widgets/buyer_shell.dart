@@ -3,6 +3,7 @@ import 'package:zonix/features/utils/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:zonix/features/screens/location/location_search_page.dart';
+import 'package:zonix/features/screens/restaurants/storefront_qr_scanner_page.dart';
 import 'package:zonix/features/screens/notifications/notifications_page.dart';
 import 'package:zonix/features/screens/settings/settings_page_2.dart';
 import 'package:geolocator/geolocator.dart';
@@ -82,6 +83,13 @@ class _BuyerShellState extends State<BuyerShell> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const NotificationsPage()),
+    );
+  }
+
+  void _onStorefrontQrTap() {
+    Navigator.push(
+      context,
+      MaterialPageRoute<void>(builder: (_) => const StorefrontQrScannerPage()),
     );
   }
 
@@ -191,6 +199,17 @@ class _BuyerShellState extends State<BuyerShell> {
                       ),
                     ],
                   ),
+                ),
+              ),
+              IconButton(
+                onPressed: _onStorefrontQrTap,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 40, minHeight: 40),
+                tooltip: 'Escanear QR del restaurante',
+                icon: Icon(
+                  Icons.qr_code_scanner,
+                  color: isDark ? AppColors.white70 : AppColors.black54,
+                  size: 26,
                 ),
               ),
               Consumer<NotificationService>(

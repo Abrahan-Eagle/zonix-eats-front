@@ -12,6 +12,7 @@ import 'package:zonix/features/utils/user_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:zonix/features/screens/onboarding/onboarding_screen.dart';
 import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix/features/screens/restaurants/storefront_qr_scanner_page.dart';
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
@@ -365,6 +366,30 @@ class SignInScreenState extends State<SignInScreen> {
             ),
           ),
         ),
+        ),
+        const SizedBox(height: 16),
+        TextButton.icon(
+          onPressed: () {
+            Navigator.push<void>(
+              context,
+              MaterialPageRoute<void>(
+                builder: (_) => const StorefrontQrScannerPage(),
+              ),
+            );
+          },
+          icon: Icon(
+            Icons.qr_code_scanner,
+            color: AppColors.blueLight.withValues(alpha: 0.85),
+            size: 22,
+          ),
+          label: Text(
+            'Escanear QR de un restaurante',
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppColors.blueLight.withValues(alpha: 0.9),
+            ),
+          ),
         ),
         const SizedBox(height: 20),
         Text(

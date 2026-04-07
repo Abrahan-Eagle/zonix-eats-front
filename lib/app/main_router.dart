@@ -31,6 +31,9 @@ import 'package:zonix/features/screens/notifications/notifications_page.dart';
 import 'package:zonix/features/screens/orders/orders_page.dart';
 import 'package:zonix/features/screens/products/products_page.dart';
 import 'package:zonix/features/screens/restaurants/restaurants_page.dart';
+import 'package:zonix/features/screens/restaurants/restaurant_details_page.dart';
+import 'package:zonix/features/services/restaurant_service.dart';
+import 'package:zonix/features/utils/storefront_qr_pending.dart';
 import 'package:zonix/features/screens/settings/settings_page_2.dart';
 import 'package:zonix/features/services/cart_service.dart';
 import 'package:zonix/features/services/notification_service.dart';
@@ -60,6 +63,7 @@ class MainRouterState extends State<MainRouter> {
   String? _positionLoadedForRole;
   StreamSubscription<NotificationItem>? _notificationSubscription;
   Future<Map<String, dynamic>>? _userDetailsFuture;
+  bool _storefrontQrConsumeScheduled = false;
 
   @override
   void initState() {
@@ -168,6 +172,29 @@ class MainRouterState extends State<MainRouter> {
       if (mounted) setState(() {});
     } catch (e) {
       _mainRouterLogger.e('Error obteniendo el perfil: $e');
+    }
+  }
+
+  Future<void> _consumePendingStorefrontQr() async {
+    final id = await StorefrontQrPending.consume();
+    if (!mounted || id == null) return;
+    try {
+      final restaurant = await RestaurantService().fetchRestaurantDetails(id);
+      if (!mounted) return;
+      await Navigator.of(context).push(
+        MaterialPageRoute<void>(
+          builder: (_) => RestaurantDetailsPage.fromRestaurant(restaurant),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'No se pudo abrir el restaurante: ${e.toString().replaceFirst('Exception: ', '')}',
+          ),
+        ),
+      );
     }
   }
 
@@ -437,6 +464,10 @@ class MainRouterState extends State<MainRouter> {
     final rawRole = userProvider.userRole;
     final role = rawRole.isEmpty ? 'users' : rawRole;
 
+    if (role != 'users') {
+      _storefrontQrConsumeScheduled = false;
+    }
+
     if (rawRole.isNotEmpty && _lastRole != role) {
       final wasUnset = _lastRole?.isEmpty ?? true;
       _lastRole = role;
@@ -567,6 +598,12 @@ class MainRouterState extends State<MainRouter> {
                   3 => const RestaurantsPage(),
                   _ => const ProductsPage(),
                 };
+                if (role == 'users' && !_storefrontQrConsumeScheduled) {
+                  _storefrontQrConsumeScheduled = true;
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _consumePendingStorefrontQr();
+                  });
+                }
                 return BuyerShell(child: page);
               }
 
