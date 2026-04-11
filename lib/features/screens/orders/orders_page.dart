@@ -216,13 +216,15 @@ class _OrdersPageState extends State<OrdersPage> {
   List<Order> get _activeOrders =>
       _orders.where((o) => !o.isDelivered && !o.isCancelled).toList();
 
+  /// Activas más recientes primero (misma semántica que quiere ver el usuario en paralelo).
+  List<Order> get _sortedActiveOrders {
+    final list = List<Order>.from(_activeOrders);
+    list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return list;
+  }
+
   List<Order> get _historyOrders =>
       _orders.where((o) => o.isDelivered || o.isCancelled).toList();
-
-  Order? get _currentActiveOrder {
-    final active = _activeOrders;
-    return active.isEmpty ? null : active.first;
-  }
 
   String _commerceName(Order order) {
     final c = order.commerce;
@@ -476,15 +478,15 @@ class _OrdersPageState extends State<OrdersPage> {
     Color borderColor,
     Color primary,
   ) {
-    final active = _currentActiveOrder;
+    final activeList = _sortedActiveOrders;
     final historyForActivas = _historyOrders.take(3).toList();
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
       children: [
-        if (active != null) ...[
+        if (activeList.isNotEmpty) ...[
           Text(
-            'Pedido Actual',
+            activeList.length == 1 ? 'Pedido activo' : 'Pedidos activos',
             style: GoogleFonts.plusJakartaSans(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -493,8 +495,17 @@ class _OrdersPageState extends State<OrdersPage> {
                     : AppColors.primaryText(context)),
           ),
           const SizedBox(height: 12),
-          _buildCurrentOrderCard(
-              context, active, theme, surfaceColor, borderColor, primary),
+          for (var i = 0; i < activeList.length; i++) ...[
+            _buildCurrentOrderCard(
+              context,
+              activeList[i],
+              theme,
+              surfaceColor,
+              borderColor,
+              primary,
+            ),
+            if (i != activeList.length - 1) const SizedBox(height: 16),
+          ],
           const SizedBox(height: 24),
         ],
         Text(

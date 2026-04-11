@@ -165,6 +165,9 @@ class OrderService extends ChangeNotifier {
           }
         } else if (code == 'ORDER_IDEMPOTENCY_CONFLICT') {
           errorMessage = 'Se detectó un reintento inválido de compra. Intenta de nuevo.';
+        } else if (code == 'ORDER_MAX_CONCURRENT_OPEN') {
+          errorMessage = data['message']?.toString() ??
+              'Has alcanzado el máximo de pedidos activos. Cancela uno o espera a que finalice antes de crear otro.';
         }
       }
       
