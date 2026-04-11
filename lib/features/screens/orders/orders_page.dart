@@ -642,73 +642,73 @@ class _OrdersPageState extends State<OrdersPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            name,
-                            style: GoogleFonts.plusJakartaSans(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.onSurface),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                    Text(
+                      name,
+                      style: GoogleFonts.plusJakartaSans(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: primary.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(999),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: primary.withValues(alpha: 0.10),
-                            borderRadius: BorderRadius.circular(999),
-                          ),
-                          child: Text(
-                            order.statusText.toUpperCase(),
-                            style: GoogleFonts.plusJakartaSans(
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 0.5,
-                                color: primary),
-                          ),
+                        child: Text(
+                          order.statusText.toUpperCase(),
+                          style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                              color: primary),
                         ),
-                      ],
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '$itemCount ${itemCount == 1 ? 'item' : 'items'}',
+                      '$itemCount ${itemCount == 1 ? 'producto' : 'productos'}',
                       style: TextStyle(
                           fontSize: 12,
                           color: theme.colorScheme.onSurface
                               .withValues(alpha: 0.55)),
                     ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(999),
-                            child: LinearProgressIndicator(
-                              value: _progressForStatus(order.status),
-                              backgroundColor: isDark
-                                  ? AppColors.grayDark
-                                  : AppColors.grayLight,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(primary),
-                              minHeight: 6,
+                    if (!order.isPendingPayment) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(999),
+                              child: LinearProgressIndicator(
+                                value: _progressForStatus(order.status),
+                                backgroundColor: isDark
+                                    ? AppColors.grayDark
+                                    : AppColors.grayLight,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(primary),
+                                minHeight: 6,
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '15 min',
-                          style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.bold,
-                              color: theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.5)),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '15 min',
+                            style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.onSurface
+                                    .withValues(alpha: 0.5)),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -753,7 +753,10 @@ class _OrdersPageState extends State<OrdersPage> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text('Seguir Pedido',
+                        Text(
+                            order.isPendingPayment
+                                ? 'Ver pedido'
+                                : 'Seguir pedido',
                             style: GoogleFonts.plusJakartaSans(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,

@@ -9,10 +9,14 @@
 
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
-- **Fecha:** 7 Abril 2026
-- **Resumen:** Remediación plan forense: `main.dart` dividido en `lib/app/main_router.dart`, `fcm_bootstrap.dart`, `fcm_hooks.dart`, `notification_navigation.dart`; accesibilidad básica con `Semantics` en login, órdenes, carrito y checkout. `flutter analyze` OK; `flutter test` **190 OK**, 1 skip.
+- **Fecha:** 11 Abril 2026
+- **Resumen:** Cierre módulo **Mis pedidos (activas)**: `orders_page` — lista de pedidos activos múltiples, layout nombre comercio + chip estado debajo, copy en español, sin barra/ETA ficticia en `pending_payment`, CTA contextual; `order_service` — error `ORDER_MAX_CONCURRENT_OPEN`. Coordinado con backend (expiración `pending_payment`, push previo en `dev`).
+- **Áreas tocadas:** `lib/features/screens/orders/orders_page.dart`, `lib/features/services/order_service.dart`, `AGENTS.md`, `docs/active_context.md`.
+- **Próximos pasos sugeridos:** sustituir “15 min” fijo por ETA real cuando exista en API; commit/push si hay cambios locales pendientes de esta sesión.
+
+- **Fecha (histórico):** 7 Abril 2026
+- **Resumen:** Remediación plan forense: `main.dart` dividido en `lib/app/main_router.dart`, `fcm_bootstrap.dart`, `fcm_hooks.dart`, `notification_navigation.dart`; accesibilidad básica con `Semantics` en login, órdenes, carrito y checkout.
 - **Áreas tocadas:** `lib/main.dart`, `lib/app/*.dart`, `lib/features/screens/auth/sign_in_screen.dart`, `orders/orders_page.dart`, `cart/cart_page.dart`, `cart/checkout_page.dart`, `AGENTS.md`.
-- **Próximos pasos sugeridos:** ampliar Semantics/imágenes en más pantallas si se prioriza a11y; i18n sigue en backlog.
 
 - **Fecha (histórico):** 2 Abril 2026
 - **Resumen:** Cierre formal del módulo UI/tema (Bloque B): pantallas admin, commerce, delivery y delivery_company alineadas a tema claro/oscuro con `AppColors` y `colorScheme`; tokens `adminHealth*` para el banner de salud en admin dashboard; documentación de prompts maestros y verificación solo estética en `docs/`.

@@ -23,10 +23,11 @@
 | **Servicios**            | 32                                       |
 | **Tests**                | 206 pasaron ✅, 1 omitido, 0 fallaron    |
 | **Plataformas**          | Android + iOS                            |
-| **Última actualización** | 7 Abril 2026                             |
+| **Última actualización** | 11 Abril 2026                            |
 
 ### Cambios recientes (documentar aquí los avances)
 
+- **11 Abr 2026:** Cierre módulo **Mis pedidos (buyer) — lista de activas**: varias órdenes activas visibles a la vez, ordenadas por fecha (más reciente primero); títulos de comercio sin compartir fila con el chip de estado (evita cortes tipo “Restaur/ante”); texto **producto(s)** en español; en `pending_payment` se ocultan barra de progreso y “15 min” genéricos (no sugieren entrega antes de pagar); CTA **“Ver pedido”** vs **“Seguir pedido”** según estado; `OrderService` muestra mensaje backend para `ORDER_MAX_CONCURRENT_OPEN`. Validación: `flutter analyze` sin issues en archivos tocados.
 - **7 Abr 2026:** Alineación backlog **QR buyer (escáner escaparate)**: verificado en código que el acceso principal es el `IconButton` QR en [`buyer_shell.dart`](lib/features/widgets/buyer_shell.dart) (sin `FloatingActionButton` en flujo buyer/restaurantes; otros roles conservan sus FAB propios); tests unitarios [`storefront_qr_test.dart`](test/features/utils/storefront_qr_test.dart) para `StorefrontQrParser` y `StorefrontQrPending`. Validación: `flutter test` completo **206 OK**, 1 skip.
 - **7 Abr 2026:** Cierre módulo **QR comercio / storefront** — `CommerceShareQrPage`: tarjeta compartible (QR con deep link `zonix://restaurant/{id}`, logo Zonix embebido, export PNG con fondo opaco vía `RepaintBoundary`); compartir y copiar enlace HTTP usando `AppConfig.appLinkBase` (`APP_LINK_BASE_*` en `.env`); `commerce_dashboard_page` pasa la imagen del comercio al flujo QR; `RestaurantDetailsPage` resuelve `logoUrl` desde `Restaurant.image` al abrir por deep link (corrige cabecera sin imagen). Validación: `flutter analyze` sin issues; `flutter test` según entorno.
 - **7 Abr 2026:** Remediación plan forense (arquitectura de arranque + a11y): extracción de `main.dart` a `lib/app/main_router.dart`, `fcm_bootstrap.dart`, `fcm_hooks.dart`, `notification_navigation.dart`; `Semantics` en CTAs críticos (login Google, órdenes, carrito/checkout: Ir a pagar, cupón, confirmar pedido). Validación: `flutter analyze` sin issues; `flutter test` **190 OK**, 1 skip.
