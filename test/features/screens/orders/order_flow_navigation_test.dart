@@ -30,7 +30,7 @@ Order _order({required int id, required String status}) {
 
 void main() {
   group('Flujo de navegación - OrderConfirmationPage', () {
-    testWidgets('Seguir mi pedido con orden pending_payment navega a OrderDetailPage',
+    testWidgets('SEGUIR PEDIDO con orden pending_payment navega a OrderDetailPage',
         (WidgetTester tester) async {
       final order = _order(id: 12, status: 'pending_payment');
       await tester.pumpWidget(
@@ -40,8 +40,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Seguir mi pedido'), findsOneWidget);
-      await tester.tap(find.text('Seguir mi pedido'));
+      expect(find.text('SEGUIR PEDIDO'), findsOneWidget);
+      await tester.tap(find.text('SEGUIR PEDIDO'));
       for (int i = 0; i < 10; i++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
@@ -49,7 +49,7 @@ void main() {
       expect(find.byType(OrderDetailPage), findsOneWidget);
     });
 
-    testWidgets('Seguir mi pedido con orden pending navega a OrderDetailPage',
+    testWidgets('SEGUIR PEDIDO con orden pending navega a OrderDetailPage',
         (WidgetTester tester) async {
       final order = _order(id: 13, status: 'pending');
       await tester.pumpWidget(
@@ -59,7 +59,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Seguir mi pedido'));
+      await tester.tap(find.text('SEGUIR PEDIDO'));
       for (int i = 0; i < 10; i++) {
         await tester.pump(const Duration(milliseconds: 100));
       }
@@ -67,7 +67,7 @@ void main() {
       expect(find.byType(OrderDetailPage), findsOneWidget);
     });
 
-    testWidgets('Seguir mi pedido con orden paid navega a OrderDetailPage',
+    testWidgets('SEGUIR PEDIDO con orden paid navega a OrderDetailPage',
         (WidgetTester tester) async {
       final order = _order(id: 14, status: 'paid');
       await tester.pumpWidget(
@@ -75,15 +75,18 @@ void main() {
           home: OrderConfirmationPage(order: order),
         ),
       );
-      await tester.pumpAndSettle();
+      // OrderConfirmationPage anima el punto "En preparación" (loop); pumpAndSettle no termina.
+      await tester.pump(const Duration(milliseconds: 50));
 
-      await tester.tap(find.text('Seguir mi pedido'));
-      await tester.pumpAndSettle();
+      await tester.tap(find.text('SEGUIR PEDIDO'));
+      for (int i = 0; i < 10; i++) {
+        await tester.pump(const Duration(milliseconds: 100));
+      }
 
       expect(find.byType(OrderDetailPage), findsOneWidget);
     });
 
-    testWidgets('Muestra título Pedido creado y próximo paso cuando pending_payment',
+    testWidgets('Muestra título Pedido registrado y pendiente de pago cuando pending_payment',
         (WidgetTester tester) async {
       final order = _order(id: 15, status: 'pending_payment');
       await tester.pumpWidget(
@@ -93,8 +96,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('¡Pedido creado!'), findsOneWidget);
-      expect(find.text('Volver al inicio'), findsOneWidget);
+      expect(find.text('Pedido registrado'), findsOneWidget);
+      expect(find.text('Completa el pago'), findsOneWidget);
+      expect(find.text('SEGUIR PEDIDO'), findsOneWidget);
     });
   });
 

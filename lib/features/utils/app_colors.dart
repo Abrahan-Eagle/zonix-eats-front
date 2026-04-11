@@ -119,4 +119,8 @@ class AppColors {
   static Color accentButton(BuildContext context) => blue;
   static Color error(BuildContext context) => red;
   static Color success(BuildContext context) => green;
+
+  /// Tokens Stitch (plantilla confirmación pedido — buyer): canvas y contenedor de sección.
+  static const Color stitchCanvasDark = Color(0xFF0A141E);
+  static const Color stitchSurfaceContainer = Color(0xFF16202A);
 }
