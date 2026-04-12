@@ -175,6 +175,8 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
   Color _statusColor(BuildContext context, String status) {
     final cs = Theme.of(context).colorScheme;
     switch (status) {
+      case 'pending_payment':
+        return AppColors.orange;
       case 'paid':
       case 'processing':
         return AppColors.orange;
@@ -185,8 +187,15 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
       case 'cancelled':
         return AppColors.red;
       default:
-        return cs.onSurfaceVariant;
+        return cs.surfaceContainerHighest;
     }
+  }
+
+  /// Texto legible sobre [background] (evita blanco sobre gris claro en tema oscuro).
+  Color _onChipBackground(Color background) {
+    return ThemeData.estimateBrightnessForColor(background) == Brightness.dark
+        ? AppColors.white
+        : const Color(0xFF1C1B1F);
   }
 
   String _statusText(String status) {
@@ -199,6 +208,23 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
       'cancelled': 'Cancelado',
     };
     return map[status] ?? status;
+  }
+
+  String _statusTextForRecentOrder(Map<dynamic, dynamic> order) {
+    final status = order['status']?.toString() ?? '';
+    final pickup = order['is_pickup'] == true || order['delivery_type'] == 'pickup';
+    if (status == 'shipped') {
+      return pickup ? 'Listo' : 'En camino';
+    }
+    return _statusText(status);
+  }
+
+  String? _fulfillmentHint(Map<dynamic, dynamic> order) {
+    if (order['delivery_type'] == null && order['is_pickup'] == null) {
+      return null;
+    }
+    final pickup = order['is_pickup'] == true || order['delivery_type'] == 'pickup';
+    return pickup ? 'Recoger en tienda' : 'Envío a domicilio';
   }
 
   /// Acepta total desde API como num o String (JSON suele devolver números como string).
@@ -327,6 +353,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
                   ),
                 ),
               Card(
+                color: Theme.of(context).colorScheme.surfaceContainerLow,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Row(
@@ -401,6 +428,7 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
             const SizedBox(height: 8),
             if (_recentOrders.isEmpty)
               Card(
+                color: Theme.of(context).colorScheme.surfaceContainerLow,
                 child: Padding(
                   padding: const EdgeInsets.all(32),
                   child: Center(
@@ -425,24 +453,40 @@ class _CommerceDashboardPageState extends State<CommerceDashboardPage> {
               )
             else
               ...(_recentOrders).map((o) {
-                final order = o is Map ? o : {};
+                final order = o is Map ? Map<dynamic, dynamic>.from(o) : <dynamic, dynamic>{};
+                final statusBg = _statusColor(context, order['status']?.toString() ?? '');
+                final hint = _fulfillmentHint(order);
                 return Card(
+                  color: Theme.of(context).colorScheme.surfaceContainerLow,
                   margin: const EdgeInsets.only(bottom: 8),
                   child: ListTile(
                     title: Text(
                       order['customer_name'] ?? 'Cliente',
                       style: const TextStyle(fontWeight: FontWeight.w500),
                     ),
-                    subtitle: Text(
-                      '\$${_parseNum(order['total']).toStringAsFixed(2)} · ${_statusText(order['status'] ?? '')}',
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '\$${_parseNum(order['total']).toStringAsFixed(2)} · ${_statusTextForRecentOrder(order)}',
+                        ),
+                        if (hint != null)
+                          Text(
+                            hint,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                          ),
+                      ],
                     ),
+                    isThreeLine: hint != null,
                     trailing: Chip(
                       label: Text(
-                        _statusText(order['status'] ?? ''),
-                        style: const TextStyle(fontSize: 11),
+                        _statusTextForRecentOrder(order),
+                        style: TextStyle(fontSize: 11, color: _onChipBackground(statusBg)),
                       ),
-                      backgroundColor: _statusColor(context, order['status'] ?? ''),
-                      labelStyle: const TextStyle(color: AppColors.white),
+                      backgroundColor: statusBg,
                     ),
                     onTap: () async {
                       final id = order['id'];
@@ -553,6 +597,7 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -595,6 +640,7 @@ class _QuickActionButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),

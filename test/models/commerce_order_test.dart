@@ -16,6 +16,21 @@ void main() {
 
     expect(order.status, 'shipped');
     expect(order.isOnWay, true);
-    expect(order.statusText, 'En Camino');
+    expect(order.statusText, 'En camino');
+  });
+
+  test('CommerceOrder shipped pickup muestra listo para recoger', () {
+    final order = CommerceOrder.fromJson({
+      'id': 2,
+      'profile_id': 1,
+      'commerce_id': 1,
+      'delivery_type': 'pickup',
+      'status': 'shipped',
+      'total': 25.0,
+      'created_at': '2024-01-01T00:00:00.000Z',
+      'updated_at': '2024-01-01T00:00:00.000Z',
+    });
+
+    expect(order.statusText, 'Listo para recoger');
   });
 }

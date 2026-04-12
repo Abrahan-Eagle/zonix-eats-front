@@ -30,6 +30,23 @@ class CommerceOrderService {
     return body;
   }
 
+  /// Evita mostrar al usuario URLs de red, Pusher o trazas largas.
+  static String _sanitizeUserMessage(String message) {
+    final t = message.trim();
+    final lower = t.toLowerCase();
+    if (t.contains('http://') ||
+        t.contains('https://') ||
+        lower.contains('curl error') ||
+        lower.contains('pusher') ||
+        lower.contains('could not resolve host')) {
+      return 'No se pudo completar la acción. Revisa tu conexión e intenta de nuevo.';
+    }
+    if (t.length > 280) {
+      return '${t.substring(0, 277)}...';
+    }
+    return t;
+  }
+
   static String _extractErrorMessage(http.Response response, String fallback) {
     try {
       if (response.body.isEmpty) return '$fallback: ${response.statusCode}';
@@ -169,11 +186,14 @@ class CommerceOrderService {
         // El backend puede devolver solo success/message; reobtener la orden actualizada.
         return getOrder(id);
       } else {
-        throw Exception(_extractErrorMessage(response, 'Error al actualizar estado'));
+        throw Exception(_sanitizeUserMessage(
+            _extractErrorMessage(response, 'Error al actualizar estado')));
       }
     } catch (e) {
-      if (e is Exception) rethrow;
-      throw Exception('Error al actualizar estado: $e');
+      final msg = e is Exception
+          ? e.toString().replaceFirst('Exception: ', '')
+          : e.toString();
+      throw Exception(_sanitizeUserMessage(msg));
     }
   }
 
@@ -252,10 +272,12 @@ class CommerceOrderService {
                         : data['errors'].values.first)
                     : null))
             : null;
-        throw Exception((message ?? 'Error al validar pago: ${response.statusCode}').toString());
+        throw Exception(_sanitizeUserMessage(
+            (message ?? 'Error al validar pago: ${response.statusCode}').toString()));
       }
     } catch (e) {
-      throw Exception('Error al validar pago: $e');
+      final raw = e.toString().replaceFirst('Exception: ', '');
+      throw Exception(_sanitizeUserMessage(raw));
     }
   }
 

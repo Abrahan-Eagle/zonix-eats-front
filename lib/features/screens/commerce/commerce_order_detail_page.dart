@@ -123,6 +123,39 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
     }
   }
 
+  String _statusUpdatedMessage(String status, CommerceOrder? o) {
+    switch (status) {
+      case 'processing':
+        return 'Pedido en preparación';
+      case 'shipped':
+        if (o?.isPickup == true) {
+          return 'Pedido listo para recoger';
+        }
+        return 'Pedido en camino';
+      case 'delivered':
+        return 'Pedido entregado';
+      case 'cancelled':
+        return 'Orden cancelada';
+      case 'paid':
+        return 'Pago registrado';
+      default:
+        return 'Estado actualizado';
+    }
+  }
+
+  String _userFacingError(Object e) {
+    final raw = e.toString().replaceFirst('Exception: ', '');
+    final lower = raw.toLowerCase();
+    if (raw.length > 220 ||
+        raw.contains('http://') ||
+        raw.contains('https://') ||
+        lower.contains('curl') ||
+        lower.contains('pusher')) {
+      return 'No se pudo completar la acción. Revisa tu conexión e intenta de nuevo.';
+    }
+    return raw;
+  }
+
   Future<void> _updateStatus(String status) async {
     setState(() => _updating = true);
     try {
@@ -131,7 +164,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Estado actualizado a $status'),
+            content: Text(_statusUpdatedMessage(status, _order)),
             backgroundColor: AppColors.green,
           ),
         );
@@ -140,7 +173,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString().replaceFirst('Exception: ', '')}'),
+            content: Text(_userFacingError(e)),
             backgroundColor: AppColors.red,
           ),
         );
@@ -176,7 +209,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString().replaceFirst('Exception: ', '')}'),
+            content: Text(_userFacingError(e)),
             backgroundColor: AppColors.red,
           ),
         );
@@ -218,7 +251,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error: ${e.toString().replaceFirst('Exception: ', '')}'),
+            content: Text(_userFacingError(e)),
             backgroundColor: AppColors.red,
           ),
         );
@@ -292,6 +325,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
     }
 
     final order = _order!;
+    final surfaceCard = Theme.of(context).colorScheme.surfaceContainerLow;
 
     return Scaffold(
       appBar: AppBar(
@@ -324,7 +358,10 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    _FulfillmentModeBanner(order: order),
+                    const SizedBox(height: 12),
                     Card(
+                      color: surfaceCard,
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -352,6 +389,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                       final price = _parseNum(item['unit_price'] ?? item['price'] ?? 0);
                       final name = item['product']?['name'] ?? 'Producto';
                       return Card(
+                        color: surfaceCard,
                         margin: const EdgeInsets.only(bottom: 4),
                         child: ListTile(
                           title: Text(name),
@@ -369,6 +407,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                           style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 8),
                       Card(
+                        color: surfaceCard,
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Row(
@@ -393,6 +432,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                     ],
                     const SizedBox(height: 16),
                     Card(
+                      color: surfaceCard,
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -404,7 +444,9 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                             if (order.estimatedDeliveryMinutes != null &&
                                 order.estimatedDeliveryMinutes! > 0)
                               _TotalRow(
-                                'Tiempo estimado de entrega',
+                                order.isPickup
+                                    ? 'Tiempo estimado (listo)'
+                                    : 'Tiempo estimado de entrega',
                                 '~${order.estimatedDeliveryMinutes} min',
                               ),
                           ],
@@ -442,9 +484,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
                                           SnackBar(
-                                            content: Text(
-                                              'Error: ${e.toString().replaceFirst('Exception: ', '')}',
-                                            ),
+                                            content: Text(_userFacingError(e)),
                                             backgroundColor: AppColors.red,
                                           ),
                                         );
@@ -475,6 +515,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                           style: Theme.of(context).textTheme.titleMedium),
                       const SizedBox(height: 8),
                       Card(
+                        color: surfaceCard,
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
@@ -628,6 +669,7 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
                       const SizedBox(height: 8),
                       if (order.paymentMethod != null || order.referenceNumber != null)
                         Card(
+                          color: surfaceCard,
                           child: Padding(
                             padding: const EdgeInsets.all(12),
                             child: Column(
@@ -774,6 +816,62 @@ class _CommerceOrderDetailPageState extends State<CommerceOrderDetailPage> {
   }
 }
 
+/// Diferencia explícita pedido **sin delivery** (recogida) vs **con delivery**.
+class _FulfillmentModeBanner extends StatelessWidget {
+  const _FulfillmentModeBanner({required this.order});
+
+  final CommerceOrder order;
+
+  @override
+  Widget build(BuildContext context) {
+    final pickup = order.isPickup;
+    final cs = Theme.of(context).colorScheme;
+    return Card(
+      color: pickup
+          ? AppColors.green.withValues(alpha: 0.12)
+          : AppColors.blue.withValues(alpha: 0.12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              pickup ? Icons.storefront_outlined : Icons.delivery_dining,
+              color: pickup ? AppColors.green : AppColors.blue,
+              size: 28,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    pickup ? 'Modo: recoger en tienda' : 'Modo: envío a domicilio',
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: cs.onSurface,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    pickup
+                        ? 'Sin reparto: el cliente retira el pedido en tu local.'
+                        : 'Con reparto: el pedido se entrega en la dirección del cliente.',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: cs.onSurfaceVariant,
+                          height: 1.3,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _TotalRow extends StatelessWidget {
   final String label;
   final String value;
@@ -785,8 +883,26 @@ class _TotalRow extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [Text(label), Text(value, style: const TextStyle(fontWeight: FontWeight.bold))],
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Flexible(
+            child: Text(
+              value,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              textAlign: TextAlign.end,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }

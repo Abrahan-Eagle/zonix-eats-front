@@ -228,7 +228,10 @@ class CommerceOrder {
       case 'processing':
         return 'En Preparación';
       case 'shipped':
-        return 'En Camino';
+        if (isPickup) {
+          return 'Listo para recoger';
+        }
+        return 'En camino';
       case 'delivered':
         return 'Entregado';
       case 'cancelled':

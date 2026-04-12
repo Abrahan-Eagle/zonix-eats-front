@@ -224,6 +224,8 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
   Color _statusColor(BuildContext context, String status) {
     final cs = Theme.of(context).colorScheme;
     switch (status) {
+      case 'pending_payment':
+        return AppColors.orange;
       case 'paid':
       case 'processing':
         return AppColors.orange;
@@ -234,8 +236,14 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
       case 'cancelled':
         return AppColors.red;
       default:
-        return cs.onSurfaceVariant;
+        return cs.surfaceContainerHighest;
     }
+  }
+
+  Color _onChipBackground(Color background) {
+    return ThemeData.estimateBrightnessForColor(background) == Brightness.dark
+        ? AppColors.white
+        : const Color(0xFF1C1B1F);
   }
 
   @override
@@ -346,20 +354,37 @@ class _CommerceOrdersPageState extends State<CommerceOrdersPage>
         itemCount: _orders.length,
         itemBuilder: (context, index) {
           final order = _orders[index];
+          final statusBg = _statusColor(context, order.status);
           return Card(
+            color: Theme.of(context).colorScheme.surfaceContainerLow,
             margin: const EdgeInsets.only(bottom: 8),
             child: ListTile(
               title: Text(
                 order.customerName,
                 style: const TextStyle(fontWeight: FontWeight.w500),
               ),
-              subtitle: Text(
-                '\$${order.total.toStringAsFixed(2)} · ${order.statusText} · ${_formatDate(order.createdAt)}',
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '\$${order.total.toStringAsFixed(2)} · ${order.statusText} · ${_formatDate(order.createdAt)}',
+                  ),
+                  Text(
+                    order.isPickup ? 'Recoger en tienda' : 'Envío a domicilio',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
               ),
+              isThreeLine: true,
               trailing: Chip(
-                label: Text(order.statusText, style: const TextStyle(fontSize: 11)),
-                backgroundColor: _statusColor(context, order.status),
-                labelStyle: const TextStyle(color: AppColors.white),
+                label: Text(
+                  order.statusText,
+                  style: TextStyle(fontSize: 11, color: _onChipBackground(statusBg)),
+                ),
+                backgroundColor: statusBg,
               ),
               onTap: () async {
                 await Navigator.pushNamed(
