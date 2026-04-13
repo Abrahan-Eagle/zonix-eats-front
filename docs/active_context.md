@@ -10,9 +10,13 @@
 *(La skill **context-updater** rellena esta sección al final de sesiones con cambios relevantes. Si está vacía, no hay resumen pendiente.)*
 
 - **Fecha:** 11 Abril 2026
-- **Resumen:** Cierre módulo **Mis pedidos (activas)**: `orders_page` — lista de pedidos activos múltiples, layout nombre comercio + chip estado debajo, copy en español, sin barra/ETA ficticia en `pending_payment`, CTA contextual; `order_service` — error `ORDER_MAX_CONCURRENT_OPEN`. Coordinado con backend (expiración `pending_payment`, push previo en `dev`).
-- **Áreas tocadas:** `lib/features/screens/orders/orders_page.dart`, `lib/features/services/order_service.dart`, `AGENTS.md`, `docs/active_context.md`.
-- **Próximos pasos sugeridos:** sustituir “15 min” fijo por ETA real cuando exista en API; commit/push si hay cambios locales pendientes de esta sesión.
+- **Resumen:** PDF recibo — `ReceiptPdfBuilder` con doble estrategia de layout: ≤7 ítems sin notas (`Spacer` + `Inseparable`, totales en la misma hoja al pie); más ítems o con notas (`Flexible` + `LimitedBox` + `Stack`, totales anclados al pie en la última hoja de la tabla). Tests de regresión en `receipt_pdf_builder_test.dart`.
+- **Áreas tocadas:** `lib/features/screens/orders/receipt_pdf_builder.dart`, `test/features/screens/orders/receipt_pdf_builder_test.dart`, `AGENTS.md`, `docs/active_context.md`.
+- **Próximos pasos sugeridos:** si un pedido corto con notas largas mostrara un edge case de paginación, valorar subir umbral o unificar criterios; commit/push cuando el usuario lo indique.
+
+- **Fecha (histórico):** 11 Abril 2026
+- **Resumen (histórico):** Cierre módulo **Mis pedidos (activas)**: `orders_page` — lista de pedidos activos múltiples, layout nombre comercio + chip estado debajo, copy en español, sin barra/ETA ficticia en `pending_payment`, CTA contextual; `order_service` — error `ORDER_MAX_CONCURRENT_OPEN`. Coordinado con backend (expiración `pending_payment`, push previo en `dev`).
+- **Áreas tocadas (histórico):** `lib/features/screens/orders/orders_page.dart`, `lib/features/services/order_service.dart`.
 
 - **Fecha (histórico):** 7 Abril 2026
 - **Resumen:** Remediación plan forense: `main.dart` dividido en `lib/app/main_router.dart`, `fcm_bootstrap.dart`, `fcm_hooks.dart`, `notification_navigation.dart`; accesibilidad básica con `Semantics` en login, órdenes, carrito y checkout.
