@@ -53,7 +53,12 @@ class AppStrings {
   static const String descriptionCol = 'Descripción';
   static const String unitPriceCol = 'Precio unit.';
   static const String subtotalCol = 'Subtotal';
+  /// Suma de líneas en el PDF del recibo (cuando hay ítems cargados).
+  static const String receiptSubtotalProducts = 'Subtotal (productos)';
   static const String shippingCostLabel = 'Costo de envío';
+  /// Etiqueta genérica cuando hay impuesto desglosado (evitar IVA fijo si no aplica).
+  static const String receiptTaxLabel = 'Impuestos';
+  /// Compat: texto antiguo con IVA fijo; preferir [receiptTaxLabel] en PDF.
   static const String taxLabelIva = 'Impuestos (IVA 16%)';
   static const String totalFinalLabel = 'TOTAL FINAL';
   static const String thanksZonixEats = '¡Gracias por elegir ZonixEATS!';

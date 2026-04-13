@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:printing/printing.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:zonix/models/order.dart';
 import 'package:zonix/features/screens/orders/receipt_pdf_builder.dart';
@@ -1160,42 +1159,29 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
   }
 
   /// Genera el PDF del recibo con los datos de la orden y abre la hoja de compartir
-  /// (guardar, WhatsApp, etc.). Siempre usa ReceiptPdfBuilder para imprimir los valores.
+  /// (guardar, WhatsApp, etc.). Delega en [ReceiptPdfBuilder.shareOrderReceipt].
   Future<void> _onDownloadPdf(Order order) async {
     if (!mounted) return;
-    setState(() => _updating = true);
-    try {
-      Uint8List? logoBytes;
-      try {
-        final data = await rootBundle.load('assets/images/logo_login.png');
-        logoBytes = data.buffer.asUint8List(
-            data.offsetInBytes, data.offsetInBytes + data.lengthInBytes);
-      } catch (e) {
-        debugPrint('Logo asset not available for receipt PDF: $e');
-      }
-
-      final bytes =
-          await ReceiptPdfBuilder.build(order, logoImageBytes: logoBytes);
-      if (bytes == null || !mounted) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-                content: Text('Error al generar el PDF'),
-                backgroundColor: AppColors.red),
-          );
-        }
-        return;
-      }
-      await Printing.sharePdf(bytes: bytes, filename: 'recibo-${order.id}.pdf');
-      if (!mounted) return;
+    final ok = await ReceiptPdfBuilder.shareOrderReceipt(
+      order,
+      onLoadingChanged: (loading) {
+        if (mounted) setState(() => _updating = loading);
+      },
+    );
+    if (!mounted) return;
+    if (!ok) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text('PDF listo para guardar o compartir'),
-            backgroundColor: AppColors.green),
+            content: Text('Error al generar el PDF'),
+            backgroundColor: AppColors.red),
       );
-    } finally {
-      if (mounted) setState(() => _updating = false);
+      return;
     }
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+          content: Text('PDF listo para guardar o compartir'),
+          backgroundColor: AppColors.green),
+    );
   }
 
   Widget _buildBottomBar(Order order,

@@ -92,6 +92,10 @@ class Order {
   final DateTime? paymentValidatedAt;
   final DateTime? paymentProofUploadedAt;
   final List<Map<String, dynamic>> orderPayments;
+  /// Reseñas del comercio para esta orden (`withCount` en API buyer).
+  final int restaurantReviewCount;
+  /// Reseñas al repartidor para esta orden (`withCount` en API buyer).
+  final int deliveryReviewCount;
 
   Order({
     required this.id,
@@ -128,6 +132,8 @@ class Order {
     this.paymentValidatedAt,
     this.paymentProofUploadedAt,
     this.orderPayments = const [],
+    this.restaurantReviewCount = 0,
+    this.deliveryReviewCount = 0,
   });
 
   factory Order.fromJson(Map<String, dynamic> json) {
@@ -187,6 +193,8 @@ class Order {
       orderPayments: (json['order_payments'] as List<dynamic>?)
           ?.map((e) => Map<String, dynamic>.from(e as Map))
           .toList() ?? [],
+      restaurantReviewCount: safeInt(json['restaurant_review_count'], 0),
+      deliveryReviewCount: safeInt(json['delivery_review_count'], 0),
     );
   }
 
@@ -227,6 +235,8 @@ class Order {
       'payment_validated_at': paymentValidatedAt?.toIso8601String(),
       'payment_proof_uploaded_at': paymentProofUploadedAt?.toIso8601String(),
       'order_payments': orderPayments,
+      'restaurant_review_count': restaurantReviewCount,
+      'delivery_review_count': deliveryReviewCount,
     };
   }
 
@@ -265,6 +275,8 @@ class Order {
     DateTime? paymentValidatedAt,
     DateTime? paymentProofUploadedAt,
     List<Map<String, dynamic>>? orderPayments,
+    int? restaurantReviewCount,
+    int? deliveryReviewCount,
   }) {
     return Order(
       id: id ?? this.id,
@@ -302,6 +314,8 @@ class Order {
       paymentValidatedAt: paymentValidatedAt ?? this.paymentValidatedAt,
       paymentProofUploadedAt: paymentProofUploadedAt ?? this.paymentProofUploadedAt,
       orderPayments: orderPayments ?? this.orderPayments,
+      restaurantReviewCount: restaurantReviewCount ?? this.restaurantReviewCount,
+      deliveryReviewCount: deliveryReviewCount ?? this.deliveryReviewCount,
     );
   }
 
@@ -345,6 +359,32 @@ class Order {
   bool get isOutForDelivery => status == 'shipped';
   bool get isDelivered => status == 'delivered';
   bool get isCancelled => status == 'cancelled';
+
+  /// Mostrar CTA de calificación: entregado y falta reseña al comercio o (si aplica) al repartidor.
+  bool get shouldShowRateButton {
+    if (!isDelivered) return false;
+    if (restaurantReviewCount < 1) return true;
+    if (isDeliveryOrder &&
+        deliveryAgentId != null &&
+        deliveryReviewCount < 1) {
+      return true;
+    }
+    return false;
+  }
+
+  /// Suma de subtotales por línea de producto (recibo PDF / comprobante).
+  double get itemsSubtotalSum =>
+      items.fold<double>(0, (sum, item) => sum + item.total);
+
+  /// Subtotal mostrado en el PDF: prioriza la suma de ítems; si no hay líneas con monto, [subtotal] inferido del API.
+  double get receiptPdfSubtotal =>
+      itemsSubtotalSum > 0 ? itemsSubtotalSum : subtotal;
+
+  /// Fila de envío en recibo solo si el cliente pagó envío (> 0).
+  bool get receiptPdfShowDeliveryLine => deliveryFee > 0;
+
+  /// Fila de impuestos solo si el backend envía monto de impuesto (> 0).
+  bool get receiptPdfShowTaxLine => tax > 0;
 
   String get statusText {
     switch (status) {

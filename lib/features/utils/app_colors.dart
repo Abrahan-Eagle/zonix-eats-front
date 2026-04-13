@@ -123,4 +123,6 @@ class AppColors {
   /// Tokens Stitch (plantilla confirmación pedido — buyer): canvas y contenedor de sección.
   static const Color stitchCanvasDark = Color(0xFF0A141E);
   static const Color stitchSurfaceContainer = Color(0xFF16202A);
+  /// Extremo del degradado en CTA primarios (Tailwind `inverse-primary` en plantillas Stitch).
+  static const Color stitchInversePrimary = Color(0xFF0060AB);
 }

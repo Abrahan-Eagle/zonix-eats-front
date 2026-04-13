@@ -3,6 +3,20 @@ import 'package:zonix/features/services/buyer_review_service.dart';
 import 'package:zonix/features/utils/app_colors.dart';
 import 'package:zonix/models/order.dart';
 
+/// Resultado al cerrar el modal de calificación tras envío exitoso (parcial o total).
+class OrderRatingModalResult {
+  const OrderRatingModalResult({
+    required this.restaurantRated,
+    required this.deliveryRated,
+  });
+
+  /// Reseña al comercio guardada en esta sesión.
+  final bool restaurantRated;
+
+  /// Reseña al repartidor guardada, o no requerida (sin agente).
+  final bool deliveryRated;
+}
+
 class OrderRatingPage extends StatefulWidget {
   const OrderRatingPage({
     super.key,
@@ -311,7 +325,13 @@ class _OrderRatingPageState extends State<OrderRatingPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('¡Gracias por tu calificación!')),
         );
-        Navigator.of(context).pop();
+        final noDeliveryReviewNeeded = widget.order.deliveryAgentId == null;
+        Navigator.of(context).pop(
+          OrderRatingModalResult(
+            restaurantRated: restaurantOk,
+            deliveryRated: noDeliveryReviewNeeded || deliveryOk,
+          ),
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
