@@ -23,10 +23,11 @@
 | **Servicios**            | 32                                       |
 | **Tests**                | 213 pasaron ✅, 1 omitido, 0 fallaron    |
 | **Plataformas**          | Android + iOS                            |
-| **Última actualización** | 11 Abril 2026                            |
+| **Última actualización** | 14 Abril 2026                            |
 
 ### Cambios recientes (documentar aquí los avances)
 
+- **14 Abr 2026:** Documentación **módulo Chat (app)** — `AGENTS.md` sección **Módulo Chat (Flutter)** (API `/api/chat/*` vía `ChatService`, pantallas comercio/comprador, `PusherService` + evento `NewMessage`). Coordinado con backend `README.md` / `AGENTS.md` (superficies `/api/chat` vs `/api/buyer/chat` vs alias buyer). Validación: `flutter test` completo en verde.
 - **11 Abr 2026:** PDF recibo (`ReceiptPdfBuilder`): totales al pie del área útil sin segunda hoja innecesaria — **pedidos cortos** (≤7 ítems y sin notas especiales): `pw.Spacer` + `pw.Inseparable` con resumen; **pedidos largos o con notas**: `pw.Flexible` + `pw.LimitedBox` + `pw.Stack` con resumen en `Positioned` inferior (última página de tabla). Constante `_maxItemsForSpacerSummaryFooter`. Regresión en `test/features/screens/orders/receipt_pdf_builder_test.dart`. Validación: `flutter test` (bloque recibo), `flutter analyze` en archivo tocado.
 - **11 Abr 2026:** Cierre módulo **Mis pedidos (buyer) — lista de activas**: varias órdenes activas visibles a la vez, ordenadas por fecha (más reciente primero); títulos de comercio sin compartir fila con el chip de estado (evita cortes tipo “Restaur/ante”); texto **producto(s)** en español; en `pending_payment` se ocultan barra de progreso y “15 min” genéricos (no sugieren entrega antes de pagar); CTA **“Ver pedido”** vs **“Seguir pedido”** según estado; `OrderService` muestra mensaje backend para `ORDER_MAX_CONCURRENT_OPEN`. Validación: `flutter analyze` sin issues en archivos tocados.
 - **7 Abr 2026:** Alineación backlog **QR buyer (escáner escaparate)**: verificado en código que el acceso principal es el `IconButton` QR en [`buyer_shell.dart`](lib/features/widgets/buyer_shell.dart) (sin `FloatingActionButton` en flujo buyer/restaurantes; otros roles conservan sus FAB propios); tests unitarios [`storefront_qr_test.dart`](test/features/utils/storefront_qr_test.dart) para `StorefrontQrParser` y `StorefrontQrPending`. Validación: `flutter test` completo **206 OK**, 1 skip.
@@ -61,6 +62,19 @@
 - **6 Mar 2026:** Documentado en AGENTS.md: Profile como entidad principal; uso de getMyProfile() y fetchMyPhones/fetchMyDocuments cuando el API es por usuario autenticado.
 - **4 Mar 2026:** Colores centralizados en `AppColors`: eliminado hardcode en vistas de usuario y onboarding (onboarding, checkout, detalle de orden/delivery, restaurantes). Paleta alineada con logo y psicología del color (marketplace comida rápida). En vistas de usuario y onboarding usar solo `AppColors` o `Theme.of(context).colorScheme`.
 - **11 Feb 2026:** Cupón: validación envía `code` y `order_amount`; mensajes de error del backend (422/404/400) mostrados al usuario. Configuración desde `.env` (AppConfig, Pusher, timeouts). Auth Pusher con `shared_secret`.
+
+---
+
+## Módulo Chat (Flutter)
+
+| Pieza | Ubicación | Notas |
+| ----- | --------- | ----- |
+| API HTTP | `lib/features/services/chat_service.dart` | Base `GET/POST … /api/chat/*` (conversaciones, mensajes, envío). Alineado con backend `Chat\ChatController`. |
+| Tiempo real | `lib/features/services/pusher_service.dart` + `UserProvider` | Suscripción a canales de orden; evento **`NewMessage`** en canal privado `orders.{id}` (ver backend `App\Events\NewMessage`). |
+| Comercio | `lib/features/screens/commerce/commerce_chat_page.dart`, `commerce_chat_messages_page.dart` | Lista y hilo por pedido. |
+| Comprador | `lib/features/screens/orders/buyer_order_chat_page.dart` | Chat del pedido (buyer). |
+
+**Backend:** existen también `/api/buyer/chat/*` y `GET/POST /api/buyer/orders/{orderId}/messages` (mismo caso de uso que conversaciones); si se unifica todo en `ChatService`, evitar mezclar contratos en la misma pantalla sin revisar payloads. Detalle en **Zonix Eats Backend** `README.md` (§ Chat) y `AGENTS.md` (§ Módulo Chat API).
 
 ---
 

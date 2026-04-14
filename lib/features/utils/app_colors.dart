@@ -125,4 +125,7 @@ class AppColors {
   static const Color stitchSurfaceContainer = Color(0xFF16202A);
   /// Extremo del degradado en CTA primarios (Tailwind `inverse-primary` en plantillas Stitch).
   static const Color stitchInversePrimary = Color(0xFF0060AB);
+
+  /// AppBar fija chat Stitch (`#121c27` en plantilla claro/oscuro).
+  static const Color stitchChatAppBar = Color(0xFF121C27);
 }
