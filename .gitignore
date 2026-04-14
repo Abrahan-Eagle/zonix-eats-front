@@ -1,3 +1,6 @@
+# Stitch / diseño: exports HTML y capturas (referencia local; no versionar)
+stitch_zonix_eats/
+
 # Miscellaneous
 *.class
 *.log
