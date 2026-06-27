@@ -8,8 +8,7 @@ plugins {
 }
 
 android {
-    namespace = "com.zonix.eats"
-    //   namespace = "com.zonix.eats_app"
+    namespace = "com.zonix.glasses"
     //compileSdk = flutter.compileSdkVersion
    // ndkVersion = flutter.ndkVersion
     
@@ -31,7 +30,7 @@ android {
 
     defaultConfig {
         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.zonix.eats"
+        applicationId = "com.zonix.glasses"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         //minSdk = flutter.minSdkVersion
@@ -110,8 +109,8 @@ flutter {
     source = "../.."
 }
 
-// Firebase (google-services.json en este módulo)
-apply plugin: 'com.google.gms.google-services'
+// Firebase (google-services.json en android/app/ — crear proyecto Firebase para com.zonix.glasses)
+// apply plugin: 'com.google.gms.google-services'
 
 // plugins {
 //     id "com.android.application"
@@ -121,7 +120,7 @@ apply plugin: 'com.google.gms.google-services'
 // }
 
 // android {
-//     namespace = "com.zonix.eats"
+//     namespace = "com.zonix.glasses"
 //     compileSdk = flutter.compileSdkVersion
 //     ndkVersion = flutter.ndkVersion
 
@@ -136,7 +135,7 @@ apply plugin: 'com.google.gms.google-services'
 
 //     defaultConfig {
 //         // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-//         applicationId = "com.zonix.eats"
+//         applicationId = "com.zonix.glasses"
 //         // You can update the following values to match your application needs.
 //         // For more information, see: https://flutter.dev/to/review-gradle-config.
 //         minSdk = flutter.minSdkVersion

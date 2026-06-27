@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import '../services/account_deletion_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import 'package:provider/provider.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Profiles/api/profile_service.dart';
+import 'package:zonix_glasses/features/screens/auth/sign_in_screen.dart';
+import 'package:zonix_glasses/features/utils/user_provider.dart';
 
+/// Solicitud de eliminación de cuenta (GDPR). Usa DELETE /api/user/account.
 class AccountDeletionPage extends StatefulWidget {
   const AccountDeletionPage({super.key});
 
@@ -10,503 +13,87 @@ class AccountDeletionPage extends StatefulWidget {
 }
 
 class _AccountDeletionPageState extends State<AccountDeletionPage> {
-  Map<String, dynamic> deletionStatus = {};
-  bool isLoading = true;
-  bool isRequestingDeletion = false;
-  bool isConfirmingDeletion = false;
-  bool isCancellingDeletion = false;
-
-  final TextEditingController _reasonController = TextEditingController();
-  final TextEditingController _feedbackController = TextEditingController();
-  final TextEditingController _confirmationCodeController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-
-  String? selectedReason;
-  bool immediateDeletion = false;
-
-  final List<String> deletionReasons = [
-    'Ya no uso la aplicación',
-    'Problemas con el servicio',
-    'Preocupaciones de privacidad',
-    'Creé una nueva cuenta',
-    'Otro',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadDeletionStatus();
-  }
+  final _reasonController = TextEditingController();
+  bool _confirmed = false;
+  bool _submitting = false;
 
   @override
   void dispose() {
     _reasonController.dispose();
-    _feedbackController.dispose();
-    _confirmationCodeController.dispose();
-    _passwordController.dispose();
     super.dispose();
   }
 
-  Future<void> _loadDeletionStatus() async {
-    try {
-      if (!mounted) return;
-      setState(() => isLoading = true);
-
-      final status = await AccountDeletionService.getDeletionStatus();
-      if (!mounted) return;
-      setState(() {
-        deletionStatus = status;
-        isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => isLoading = false);
-      _showErrorSnackBar('Error al cargar estado: $e');
-    }
-  }
-
-  Future<void> _requestAccountDeletion() async {
-    if (selectedReason == null) {
-      _showErrorSnackBar('Selecciona una razón para la eliminación');
-      return;
-    }
-
-    try {
-      setState(() {
-        isRequestingDeletion = true;
-      });
-
-      await AccountDeletionService.requestAccountDeletion(
-        reason: selectedReason,
-        feedback: _feedbackController.text.isNotEmpty ? _feedbackController.text : null,
-        immediate: immediateDeletion,
+  Future<void> _submit() async {
+    if (!_confirmed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Confirma que entiendes que la acción es irreversible.')),
       );
-
-      _showSuccessSnackBar('Solicitud de eliminación enviada');
-      _loadDeletionStatus(); // Recargar estado
-    } catch (e) {
-      _showErrorSnackBar('Error al solicitar eliminación: $e');
-    } finally {
-      setState(() {
-        isRequestingDeletion = false;
-      });
-    }
-  }
-
-  Future<void> _confirmAccountDeletion() async {
-    if (_confirmationCodeController.text.isEmpty) {
-      _showErrorSnackBar('Ingresa el código de confirmación');
       return;
     }
 
-    if (_passwordController.text.isEmpty) {
-      _showErrorSnackBar('Ingresa tu contraseña');
-      return;
-    }
-
+    setState(() => _submitting = true);
     try {
-      setState(() {
-        isConfirmingDeletion = true;
-      });
-
-      await AccountDeletionService.confirmAccountDeletion(
-        confirmationCode: _confirmationCodeController.text,
-        password: _passwordController.text,
+      await ProfileService().deleteAccount();
+      if (!mounted) return;
+      await context.read<UserProvider>().logout();
+      if (!mounted) return;
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const SignInScreen()),
+        (_) => false,
       );
-      if (!mounted) return;
-      _showSuccessSnackBar('Cuenta eliminada correctamente');
-      Navigator.of(context).popUntil((route) => route.isFirst);
     } catch (e) {
       if (!mounted) return;
-      _showErrorSnackBar('Error al confirmar eliminación: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
     } finally {
-      setState(() {
-        isConfirmingDeletion = false;
-      });
+      if (mounted) setState(() => _submitting = false);
     }
-  }
-
-  Future<void> _cancelDeletionRequest() async {
-    try {
-      setState(() {
-        isCancellingDeletion = true;
-      });
-
-      await AccountDeletionService.cancelDeletionRequest();
-      _showSuccessSnackBar('Solicitud de eliminación cancelada');
-      _loadDeletionStatus(); // Recargar estado
-    } catch (e) {
-      _showErrorSnackBar('Error al cancelar eliminación: $e');
-    } finally {
-      setState(() {
-        isCancellingDeletion = false;
-      });
-    }
-  }
-
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.red,
-      ),
-    );
-  }
-
-  void _showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: AppColors.green,
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.scaffoldBg(context),
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(100),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppColors.headerGradientStart(context),
-                AppColors.headerGradientMid(context),
-                AppColors.headerGradientEnd(context),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+      appBar: AppBar(title: const Text('Eliminar cuenta')),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const Text(
+            'Esta acción eliminará tu cuenta y datos asociados de forma permanente.',
+            style: TextStyle(fontSize: 16),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _reasonController,
+            maxLines: 3,
+            decoration: const InputDecoration(
+              labelText: 'Motivo (opcional)',
+              border: OutlineInputBorder(),
             ),
           ),
-          child: AppBar(
-            backgroundColor: AppColors.transparent,
-            elevation: 0,
-            title: const Text('Eliminar Cuenta', style: TextStyle(color: AppColors.white, fontWeight: FontWeight.bold, fontSize: 24)),
-            iconTheme: const IconThemeData(color: AppColors.white),
+          const SizedBox(height: 16),
+          CheckboxListTile(
+            value: _confirmed,
+            onChanged: (v) => setState(() => _confirmed = v ?? false),
+            title: const Text('Entiendo que esta acción no se puede deshacer'),
+            controlAffinity: ListTileControlAffinity.leading,
           ),
-        ),
-      ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Card(
-                    color: AppColors.red.withValues(alpha: 0.08),
-                    shadowColor: AppColors.red.withValues(alpha: 0.15),
-                    elevation: 8,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    child: const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.warning, color: AppColors.red),
-                              SizedBox(width: 8),
-                              Text(
-                                'Advertencia importante',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.red,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            'La eliminación de tu cuenta es permanente e irreversible. Todos tus datos, pedidos, reseñas y configuraciones serán eliminados definitivamente.',
-                            style: TextStyle(color: AppColors.red),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  if (deletionStatus.isNotEmpty) ...[
-                    _buildDeletionStatusCard(),
-                    const SizedBox(height: 16),
-                  ],
-                  if (deletionStatus['has_pending_request'] != true) ...[
-                    _buildDeletionRequestForm(),
-                  ] else ...[
-                    _buildPendingRequestCard(),
-                  ],
-                  const SizedBox(height: 24),
-                  Card(
-                    color: AppColors.cardBg(context),
-                    shadowColor: AppColors.red.withValues(alpha: 0.10),
-                    elevation: 8,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    child: const Padding(
-                      padding: EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '¿Qué se elimina?',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          SizedBox(height: 8),
-                          Text('• Tu perfil y información personal'),
-                          Text('• Historial completo de pedidos'),
-                          Text('• Reseñas y calificaciones'),
-                          Text('• Direcciones guardadas'),
-                          Text('• Configuraciones de la app'),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+          const SizedBox(height: 24),
+          FilledButton(
+            onPressed: _submitting ? null : _submit,
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
-    );
-  }
-
-  Widget _buildDeletionStatusCard() {
-    final status = deletionStatus['status'] ?? '';
-    final requestedAt = deletionStatus['requested_at'];
-    final scheduledFor = deletionStatus['scheduled_for'];
-
-    return Card(
-      color: AppColors.orange.withValues(alpha: 0.08),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Row(
-              children: [
-                Icon(Icons.schedule, color: AppColors.orange),
-                SizedBox(width: 8),
-                Text(
-                  'Estado de eliminación',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text('Estado: $status'),
-            if (requestedAt != null)
-              Text('Solicitado: ${_formatDate(DateTime.parse(requestedAt))}'),
-            if (scheduledFor != null)
-              Text('Programado para: ${_formatDate(DateTime.parse(scheduledFor))}'),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDeletionRequestForm() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Solicitar eliminación de cuenta',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 16),
-            
-            // Razón de eliminación
-            DropdownButtonFormField<String>(
-              initialValue: selectedReason,
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Razón de eliminación *',
-                border: OutlineInputBorder(),
-              ),
-              items: deletionReasons.map((reason) => DropdownMenuItem(
-                value: reason,
-                child: Text(reason, overflow: TextOverflow.ellipsis),
-              )).toList(),
-              onChanged: (String? value) {
-                setState(() {
-                  selectedReason = value;
-                });
-              },
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Feedback opcional
-            TextField(
-              controller: _feedbackController,
-              decoration: const InputDecoration(
-                labelText: 'Comentarios (opcional)',
-                border: OutlineInputBorder(),
-                hintText: 'Cuéntanos cómo podemos mejorar...',
-              ),
-              maxLines: 3,
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Eliminación inmediata
-            SwitchListTile(
-              title: const Text('Eliminación inmediata'),
-              subtitle: const Text('Eliminar la cuenta de inmediato (no recomendado)'),
-              value: immediateDeletion,
-              onChanged: (bool value) {
-                setState(() {
-                  immediateDeletion = value;
-                });
-              },
-            ),
-            
-            const SizedBox(height: 16),
-            
-            // Botón de solicitar eliminación
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: isRequestingDeletion ? null : _requestAccountDeletion,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.red,
-                  foregroundColor: AppColors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: isRequestingDeletion
-                    ? const CircularProgressIndicator(color: AppColors.white)
-                    : const Text(
-                        'Solicitar Eliminación',
-                        style: TextStyle(fontSize: 16),
-                      ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPendingRequestCard() {
-    return Card(
-      color: AppColors.orange.withValues(alpha: 0.08),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Solicitud pendiente',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Tienes una solicitud de eliminación pendiente. '
-              'Puedes cancelarla o confirmarla.',
-            ),
-            const SizedBox(height: 16),
-            
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: isCancellingDeletion ? null : _cancelDeletionRequest,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.textMutedGray,
-                      foregroundColor: AppColors.white,
-                    ),
-                    child: isCancellingDeletion
-                        ? const CircularProgressIndicator(color: AppColors.white)
-                        : const Text('Cancelar'),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _showConfirmationDialog,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.red,
-                      foregroundColor: AppColors.white,
-                    ),
-                    child: const Text('Confirmar'),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showConfirmationDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar eliminación'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Para confirmar la eliminación, ingresa el código de confirmación '
-              'que se envió a tu email y tu contraseña actual.',
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _confirmationCodeController,
-              decoration: const InputDecoration(
-                labelText: 'Código de confirmación',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(
-                labelText: 'Contraseña actual',
-                border: OutlineInputBorder(),
-              ),
-              obscureText: true,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: isConfirmingDeletion ? null : () {
-              Navigator.of(context).pop();
-              _confirmAccountDeletion();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.red,
-              foregroundColor: AppColors.white,
-            ),
-            child: isConfirmingDeletion
-                ? const CircularProgressIndicator(color: AppColors.white)
-                : const Text('Eliminar'),
+            child: _submitting
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Eliminar mi cuenta'),
           ),
         ],
       ),
     );
   }
-
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
-  }
-} 
+}

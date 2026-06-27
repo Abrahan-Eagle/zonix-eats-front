@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
-import 'package:zonix/features/screens/auth/sign_in_screen.dart';
-import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Profiles/api/profile_service.dart';
+import 'package:zonix_glasses/features/screens/auth/sign_in_screen.dart';
+import 'package:zonix_glasses/features/utils/user_provider.dart';
 import 'package:logger/logger.dart';
 
 final logger = Logger();
@@ -21,8 +21,6 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
 
   // Controllers para los switches
   bool _profileVisible = true;
-  bool _reviewsVisible = true;
-  bool _orderHistoryVisible = true;
   bool _activityVisible = true;
   bool _emailNotifications = true;
   bool _pushNotifications = true;
@@ -43,8 +41,6 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
       final data = await _profileService.getPrivacySettings();
       setState(() {
         _profileVisible = data['privacy_settings']['profile_visible'] ?? true;
-        _reviewsVisible = data['privacy_settings']['reviews_visible'] ?? true;
-        _orderHistoryVisible = data['privacy_settings']['order_history_visible'] ?? true;
         _activityVisible = data['privacy_settings']['activity_visible'] ?? true;
         _emailNotifications = data['privacy_settings']['email_notifications'] ?? true;
         _pushNotifications = data['privacy_settings']['push_notifications'] ?? true;
@@ -63,8 +59,6 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
     try {
       final settings = {
         'profile_visible': _profileVisible,
-        'reviews_visible': _reviewsVisible,
-        'order_history_visible': _orderHistoryVisible,
         'activity_visible': _activityVisible,
         'email_notifications': _emailNotifications,
         'push_notifications': _pushNotifications,
@@ -127,8 +121,7 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
         content: const Text(
           'Esta es tu última oportunidad. Al eliminar tu cuenta:\n\n'
           '• Se eliminarán todos tus datos personales\n'
-          '• Se cancelarán todas tus órdenes pendientes\n'
-          '• Se perderá acceso a tu historial\n'
+          '• Se revocará el acceso a la aplicación\n'
           '• No podrás recuperar tu cuenta\n\n'
           '¿Estás completamente seguro?',
         ),
@@ -250,30 +243,8 @@ class _PrivacySettingsPageState extends State<PrivacySettingsPage> {
                     ),
                     
                     SwitchListTile(
-                      title: const Text('Reseñas Visibles'),
-                      subtitle: const Text('Mostrar tus reseñas públicamente'),
-                      value: _reviewsVisible,
-                      onChanged: (value) {
-                        setState(() {
-                          _reviewsVisible = value;
-                        });
-                      },
-                    ),
-                    
-                    SwitchListTile(
-                      title: const Text('Historial de Órdenes'),
-                      subtitle: const Text('Permitir acceso al historial de compras'),
-                      value: _orderHistoryVisible,
-                      onChanged: (value) {
-                        setState(() {
-                          _orderHistoryVisible = value;
-                        });
-                      },
-                    ),
-                    
-                    SwitchListTile(
-                      title: const Text('Actividad Visible'),
-                      subtitle: const Text('Mostrar tu actividad reciente'),
+                      title: const Text('Actividad visible'),
+                      subtitle: const Text('Mostrar tu actividad reciente en la app'),
                       value: _activityVisible,
                       onChanged: (value) {
                         setState(() {

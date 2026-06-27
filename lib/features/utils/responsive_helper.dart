@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Breakpoints and responsive utilities for Admin & Delivery Company roles.
+/// Breakpoints and responsive utilities for admin layouts.
 ///
 /// - Mobile:  width < 600
 /// - Tablet:  600 <= width < 1024

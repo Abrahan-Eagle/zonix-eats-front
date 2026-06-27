@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
 
 const Color stitchPrimary = AppColors.blue;
 const Color stitchBgLight = AppColors.scaffoldBgLight;

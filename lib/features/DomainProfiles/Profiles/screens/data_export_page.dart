@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Profiles/api/profile_service.dart';
 
 final logger = Logger();
 
@@ -71,7 +71,7 @@ class _DataExportPageState extends State<DataExportPage> {
           : _formatDataAsText(_exportData!);
       final String ext = _selectedFormat == 'json' ? 'json' : 'txt';
       final String filename =
-          'zonix_export_datos_${DateTime.now().toIso8601String().replaceAll(':', '-').split('.').first}.$ext';
+          'app_export_datos_${DateTime.now().toIso8601String().replaceAll(':', '-').split('.').first}.$ext';
 
       final Directory dir = await getApplicationDocumentsDirectory();
       final File file = File('${dir.path}/$filename');
@@ -80,8 +80,8 @@ class _DataExportPageState extends State<DataExportPage> {
       await SharePlus.instance.share(
         ShareParams(
           files: [XFile(file.path)],
-          text: 'Exportación de mis datos personales - Zonix',
-          subject: 'Mis datos Zonix',
+          text: 'Exportación de mis datos personales - Zonix Glasses',
+          subject: 'Mis datos - Zonix Glasses',
         ),
       );
 
@@ -164,38 +164,31 @@ class _DataExportPageState extends State<DataExportPage> {
       buffer.writeln('');
     }
     
-    // Órdenes
-    if (data['orders'] != null && data['orders'].isNotEmpty) {
-      buffer.writeln('ÓRDENES (${data['orders'].length}):');
-      for (int i = 0; i < data['orders'].length; i++) {
-        final order = data['orders'][i];
-        buffer.writeln('  ${i + 1}. Orden #${order['id']} - ${order['status']} - \$${order['total']}');
+    // Teléfonos
+    if (data['phones'] != null && (data['phones'] as List).isNotEmpty) {
+      buffer.writeln('TELÉFONOS:');
+      for (int i = 0; i < (data['phones'] as List).length; i++) {
+        final phone = data['phones'][i];
+        buffer.writeln('  ${i + 1}. ${phone['full_number'] ?? phone['number'] ?? 'N/A'}');
       }
       buffer.writeln('');
     }
-    
-    // Reseñas
-    if (data['reviews'] != null && data['reviews'].isNotEmpty) {
-      buffer.writeln('RESEÑAS (${data['reviews'].length}):');
-      for (int i = 0; i < data['reviews'].length; i++) {
-        final review = data['reviews'][i];
-        buffer.writeln('  ${i + 1}. ${review['rating']} estrellas - ${review['comment']}');
+
+    // Documentos
+    if (data['documents'] != null && (data['documents'] as List).isNotEmpty) {
+      buffer.writeln('DOCUMENTOS:');
+      for (int i = 0; i < (data['documents'] as List).length; i++) {
+        final doc = data['documents'][i];
+        buffer.writeln('  ${i + 1}. ${doc['type'] ?? 'documento'} - ${doc['number'] ?? 'N/A'}');
       }
       buffer.writeln('');
     }
-    
-    // Actividad
-    if (data['activity'] != null && data['activity'].isNotEmpty) {
-      buffer.writeln('ACTIVIDAD RECIENTE (${data['activity'].length}):');
-      for (int i = 0; i < data['activity'].length; i++) {
-        final activity = data['activity'][i];
-        final type = activity['activity_type'] ?? activity['type'] ?? '';
-        buffer.writeln('  ${i + 1}. $type - ${activity['description']}');
-      }
-      buffer.writeln('');
+
+    if (data['exported_at'] != null) {
+      buffer.writeln('Fecha de exportación: ${data['exported_at']}');
+    } else {
+      buffer.writeln('Fecha de exportación: ${DateTime.now()}');
     }
-    
-    buffer.writeln('Fecha de exportación: ${DateTime.now()}');
     
     return buffer.toString();
   }
@@ -229,10 +222,9 @@ class _DataExportPageState extends State<DataExportPage> {
                     const SizedBox(height: 12),
                     _buildInfoItem('Perfil personal', Icons.person),
                     _buildInfoItem('Direcciones guardadas', Icons.location_on),
-                    _buildInfoItem('Historial de órdenes', Icons.shopping_cart),
-                    _buildInfoItem('Reseñas y calificaciones', Icons.star),
-                    _buildInfoItem('Actividad reciente', Icons.history),
-                    _buildInfoItem('Preferencias', Icons.settings),
+                    _buildInfoItem('Teléfonos registrados', Icons.phone),
+                    _buildInfoItem('Documentos de identidad', Icons.badge),
+                    _buildInfoItem('Preferencias de privacidad', Icons.settings),
                   ],
                 ),
               ),
@@ -342,10 +334,9 @@ class _DataExportPageState extends State<DataExportPage> {
                       ),
                       const SizedBox(height: 12),
                       _buildDataSummary('Perfil', _exportData!['profile'] != null),
-                      _buildDataSummary('Direcciones', _exportData!['addresses']?.isNotEmpty ?? false),
-                      _buildDataSummary('Órdenes', _exportData!['orders']?.isNotEmpty ?? false),
-                      _buildDataSummary('Reseñas', _exportData!['reviews']?.isNotEmpty ?? false),
-                      _buildDataSummary('Actividad', _exportData!['activity']?.isNotEmpty ?? false),
+                      _buildDataSummary('Direcciones', (_exportData!['addresses'] as List?)?.isNotEmpty ?? false),
+                      _buildDataSummary('Teléfonos', (_exportData!['phones'] as List?)?.isNotEmpty ?? false),
+                      _buildDataSummary('Documentos', (_exportData!['documents'] as List?)?.isNotEmpty ?? false),
                       const SizedBox(height: 16),
                       Row(
                         children: [

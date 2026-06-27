@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zonix/features/DomainProfiles/Documents/models/document.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Documents/models/document.dart';
 
 void main() {
   group('Document', () {

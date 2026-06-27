@@ -2,17 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:logger/logger.dart';
-import 'package:zonix/features/services/auth/api_service.dart';
-import 'package:zonix/app/main_router.dart';
-import 'package:zonix/features/services/auth/google_sign_in_service.dart';
+import 'package:zonix_glasses/features/services/auth/api_service.dart';
+import 'package:zonix_glasses/app/main_router.dart';
+import 'package:zonix_glasses/features/services/auth/google_sign_in_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix/features/utils/auth_utils.dart';
-import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix_glasses/features/utils/auth_utils.dart';
+import 'package:zonix_glasses/features/utils/user_provider.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:zonix/features/screens/onboarding/onboarding_screen.dart';
-import 'package:zonix/features/utils/app_colors.dart';
-import 'package:zonix/features/screens/restaurants/storefront_qr_scanner_page.dart';
+import 'package:zonix_glasses/features/screens/onboarding/onboarding_screen.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
 
 const FlutterSecureStorage _storage = FlutterSecureStorage();
 final ApiService apiService = ApiService();
@@ -366,30 +365,6 @@ class SignInScreenState extends State<SignInScreen> {
             ),
           ),
         ),
-        ),
-        const SizedBox(height: 16),
-        TextButton.icon(
-          onPressed: () {
-            Navigator.push<void>(
-              context,
-              MaterialPageRoute<void>(
-                builder: (_) => const StorefrontQrScannerPage(),
-              ),
-            );
-          },
-          icon: Icon(
-            Icons.qr_code_scanner,
-            color: AppColors.blueLight.withValues(alpha: 0.85),
-            size: 22,
-          ),
-          label: Text(
-            'Escanear QR de un restaurante',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 15,
-              fontWeight: FontWeight.w600,
-              color: AppColors.blueLight.withValues(alpha: 0.9),
-            ),
-          ),
         ),
         const SizedBox(height: 20),
         Text(

@@ -1,16 +1,15 @@
-import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:zonix/features/DomainProfiles/Documents/api/document_service.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Documents/api/document_service.dart';
 import '../models/document.dart';
 import 'package:flutter/services.dart';
-import 'package:zonix/features/utils/document_input_formatters.dart';
-import 'package:zonix/features/utils/rif_formatter.dart';
+import 'package:zonix_glasses/features/utils/document_input_formatters.dart';
+import 'package:zonix_glasses/features/utils/rif_formatter.dart';
 import 'package:logger/logger.dart';
-import 'package:image/image.dart' as img;
-import 'package:zonix/features/utils/user_provider.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:google_mlkit_document_scanner/google_mlkit_document_scanner.dart';
+import 'package:zonix_glasses/features/utils/user_provider.dart';
 
 final logger = Logger();
 final documentService = DocumentService();
@@ -44,9 +43,7 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
   final TextEditingController _numberCiController = TextEditingController();
   final TextEditingController _rifNumberController = TextEditingController();
   final TextEditingController _taxDomicileController = TextEditingController();
-
-  DocumentScanner? _documentScanner;
-  DocumentScanningResult? _result;
+  final ImagePicker _imagePicker = ImagePicker();
 
   @override
   void initState() {
@@ -70,7 +67,6 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
 
   @override
   void dispose() {
-    _documentScanner?.close();
     super.dispose();
   }
 
@@ -89,95 +85,16 @@ class DocumentEditScreenState extends State<DocumentEditScreen> {
 
   Future<void> _scanDocument() async {
     try {
-      setState(() {
-        _result = null;
-      });
-
-      _documentScanner = DocumentScanner(
-        options: DocumentScannerOptions(
-          documentFormat: DocumentFormat.jpeg,
-          mode: ScannerMode.full,
-          isGalleryImport: false,
-          pageLimit: 1,
-        ),
-      );
-
-      _result = await _documentScanner?.scanDocument();
-      if (_result?.images.isNotEmpty == true) {
-        final scannedImage = _result!.images.first;
-        final compressedImage = await _compressImage(scannedImage);
-        setState(() {
-          _frontImage = compressedImage;
-        });
-      }
+      final picked = await _imagePicker.pickImage(source: ImageSource.gallery);
+      if (picked == null) return;
+      setState(() => _frontImage = picked.path);
     } catch (e) {
-      debugPrint("Error al escanear el documento: $e");
       if (!mounted) return;
-      _showCustomSnackBar(
-        context,
-        'Error al escanear el documento',
-        AppColors.red,
-      );
+      _showCustomSnackBar(context, 'Error al seleccionar imagen', AppColors.red);
     }
   }
 
-  Future<String?> _compressImage(String filePath) async {
-    try {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext context) {
-          return const Center(child: CircularProgressIndicator());
-        },
-      );
-
-      final imageFile = File(filePath);
-
-      if (await imageFile.length() <= 2 * 1024 * 1024) {
-        if (!mounted) return null;
-        Navigator.of(context).pop();
-        return filePath;
-      }
-
-      final originalImage = img.decodeImage(await imageFile.readAsBytes());
-      if (!mounted) return null;
-      if (originalImage == null) {
-        Navigator.of(context).pop();
-        throw Exception("No se pudo decodificar la imagen.");
-      }
-
-      String extension = filePath.split('.').last.toLowerCase();
-      int quality = 85;
-      List<int> compressedBytes;
-
-      if (extension == 'png') {
-        compressedBytes = img.encodePng(originalImage, level: 6);
-      } else {
-        compressedBytes = img.encodeJpg(originalImage, quality: quality);
-
-        while (compressedBytes.length > 2 * 1024 * 1024 && quality > 10) {
-          quality -= 5;
-          compressedBytes = img.encodeJpg(originalImage, quality: quality);
-        }
-      }
-
-      final compressedImageFile = await File(
-        '${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}',
-      ).writeAsBytes(compressedBytes);
-
-      debugPrint("Imagen comprimida guardada en: ${compressedImageFile.path}");
-
-      if (!mounted) return null;
-      Navigator.of(context).pop();
-
-      return compressedImageFile.path;
-    } catch (e) {
-      debugPrint("Error al comprimir la imagen: $e");
-      if (!mounted) return null;
-      Navigator.of(context).pop();
-      throw Exception("Error al comprimir la imagen: $e");
-    }
-  }
+  Future<String?> _compressImage(String filePath) async => filePath;
 
   void _showCustomSnackBar(
     BuildContext context,

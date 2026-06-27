@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
-import 'package:zonix/config/app_config.dart';
-import 'package:zonix/features/DomainProfiles/Addresses/api/adresse_service.dart';
-import 'package:zonix/helpers/auth_helper.dart';
-import 'package:zonix/features/utils/rif_formatter.dart';
+import 'package:zonix_glasses/config/app_config.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Addresses/api/adresse_service.dart';
+import 'package:zonix_glasses/helpers/auth_helper.dart';
+import 'package:zonix_glasses/features/utils/rif_formatter.dart';
 import '../models/document.dart';
 
 final logger = Logger();

@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/phone.dart';
 import '../api/phone_service.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
-import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Profiles/api/profile_service.dart';
+import 'package:zonix_glasses/features/utils/user_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix/features/utils/app_colors.dart';
-import 'package:zonix/features/services/commerce_list_service.dart';
-import 'package:zonix/models/my_commerce.dart';
-import 'package:zonix/features/utils/safe_parse.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
+import 'package:zonix_glasses/features/utils/safe_parse.dart';
 
 class CreatePhoneScreen extends StatefulWidget {
   final int userId;
@@ -30,21 +28,11 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
   bool _isLoading = false;
   bool _isPrimary = true;
   String _context = PhoneContext.personal;
-  List<MyCommerce> _commerces = [];
-  int? _selectedCommerceId;
 
   @override
   void initState() {
     super.initState();
     _loadOperatorCodes();
-    _loadCommerces();
-  }
-
-  Future<void> _loadCommerces() async {
-    try {
-      final list = await CommerceListService.getMyCommerces();
-      if (mounted) setState(() => _commerces = list);
-    } catch (_) {}
   }
 
   Future<void> _loadOperatorCodes() async {
@@ -100,8 +88,6 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
         id: 0,
         profileId: profile.id,
         context: _context,
-        commerceId: _context == PhoneContext.commerce ? _selectedCommerceId : null,
-        deliveryCompanyId: _context == PhoneContext.deliveryCompany ? null : null,
         operatorCodeId: _selectedOperatorCodeId!,
         operatorCodeName: _operatorCodes.firstWhere(
             (code) => code['id'] == _selectedOperatorCodeId)['name'],
@@ -229,7 +215,7 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Registra un número para recibir actualizaciones de tus pedidos en Zonix Eats.',
+                  'Registra un número de contacto para tu cuenta.',
                   style: TextStyle(
                     fontSize: 12,
                     color: AppColors.secondaryText(context),
@@ -283,35 +269,9 @@ class CreatePhoneScreenState extends State<CreatePhoneScreen> {
                   ))
               .toList(),
           onChanged: (value) {
-            if (value != null) {
-              setState(() {
-                _context = value;
-                if (value != PhoneContext.commerce) _selectedCommerceId = null;
-              });
-            }
+            if (value != null) setState(() => _context = value);
           },
         ),
-        if (_context == PhoneContext.commerce) ...[
-          const SizedBox(height: 16),
-          DropdownButtonFormField<int>(
-            initialValue: _selectedCommerceId,
-            decoration: InputDecoration(
-              labelText: 'Comercio',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: borderColor),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-            ),
-            items: _commerces
-                .map((c) => DropdownMenuItem<int>(value: c.id, child: Text(c.businessName)))
-                .toList(),
-            onChanged: (value) => setState(() => _selectedCommerceId = value),
-            validator: _context == PhoneContext.commerce
-                ? (v) => v == null ? 'Selecciona un comercio' : null
-                : null,
-          ),
-        ],
       ],
     );
   }

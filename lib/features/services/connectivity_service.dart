@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import 'package:zonix/config/app_config.dart';
+import 'package:zonix_glasses/config/app_config.dart';
 
 /// Network link (Wi-Fi / mobile) + periodic API reachability check.
 ///

@@ -26,7 +26,7 @@ class AppColors {
   static const Color black26 = Colors.black26;
   static const Color black12 = Colors.black12;
   static const Color transparent = Colors.transparent;
-  static const Color surfaceDarkLighter = Color(0xFF2D3A48); // Superficie oscura (product detail)
+  static const Color surfaceDarkLighter = Color(0xFF2D3A48); // Superficie oscura elevada
   static const Color scaffoldBgLight = Color(0xFFF5F7F8); // Fondo claro settings
   static const Color textMutedGray = Color(0xFF9CA3AF); // Texto apagado
   static const Color grayLight = Color(0xFFF5F5F5);
@@ -54,22 +54,17 @@ class AppColors {
   static const Color stitchPink400 = Color(0xFFF472B6);
   static const Color whatsappGreen = Color(0xFF25D366);
 
-  // ── Paleta logo (splash) + psicología comida rápida / marketplace ──
-  // Azul oscuro: confianza, estabilidad (fondos, navegación)
-  // Azul vibrante: velocidad, frescura (CTAs, enlaces)
-  // Crema: limpieza, claridad (fondos de tarjetas, texto sobre oscuro)
-  // Dorado/Naranja: energía, hambre, CTA (botones primarios, ofertas)
-  // Rojo: urgencia, ofertas (badges, alertas)
+  // Paleta principal (splash y tema)
   static const Color cream = Color(0xFFF5F0E6); // Off-white / “bun” logo
   static const Color inputBg = Color(0xFFF8F9FA); // Fondos inputs/forms
   static const Color borderLight = Color(0xFFE8E8E8); // Bordes inputs
   static const Color textSecondaryDark = Color(0xFF2C3E50); // Texto secundario forms
-  static const Color onboardingCompanyBlue = Color(0xFF2E86C1); // Rol commerce/company
-  static const Color onboardingDeliveryPurple = Color(0xFF8E44AD); // Rol delivery agent
+  static const Color onboardingCompanyBlue = Color(0xFF2E86C1);
+  static const Color onboardingAccentPurple = Color(0xFF8E44AD);
   static const Color surfaceHighlight = Color(0xFF233040); // Superficie destacada (onboarding)
   static const Color onboardingPurpleAccent = Color(0xFFA78BFA); // Acento púrpura onboarding
   static const Color backgroundDarker = Color(0xFF0D1218); // Gradiente fondo oscuro
-  static const Color cardDarkSlate = Color(0xFF1E293B); // Card oscuro (detalle restaurante)
+  static const Color cardDarkSlate = Color(0xFF1E293B);
   static const Color ratingAmberLight = Color(0xFFFBBF24);
   static const Color ratingAmberDark = Color(0xFFD97706);
 
@@ -120,7 +115,7 @@ class AppColors {
   static Color error(BuildContext context) => red;
   static Color success(BuildContext context) => green;
 
-  /// Tokens Stitch (plantilla confirmación pedido — buyer): canvas y contenedor de sección.
+  /// Tokens Stitch: canvas y contenedor de sección.
   static const Color stitchCanvasDark = Color(0xFF0A141E);
   static const Color stitchSurfaceContainer = Color(0xFF16202A);
   /// Extremo del degradado en CTA primarios (Tailwind `inverse-primary` en plantillas Stitch).

@@ -3,15 +3,15 @@ import 'dart:io';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
-import 'package:zonix/features/DomainProfiles/Addresses/api/adresse_service.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
-// import 'package:zonix/features/DomainProfiles/Profiles/utils/constants.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Addresses/api/adresse_service.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Profiles/models/profile_model.dart';
+// import 'package:zonix_glasses/features/DomainProfiles/Profiles/utils/constants.dart';
 import 'package:logger/logger.dart';
-import 'package:zonix/config/app_config.dart';
-import 'package:zonix/features/utils/safe_parse.dart';
-import 'package:zonix/features/services/cache_service.dart';
-import 'package:zonix/features/services/connectivity_service.dart';
-import 'package:zonix/features/utils/http_retry.dart';
+import 'package:zonix_glasses/config/app_config.dart';
+import 'package:zonix_glasses/features/utils/safe_parse.dart';
+import 'package:zonix_glasses/features/services/cache_service.dart';
+import 'package:zonix_glasses/features/services/connectivity_service.dart';
+import 'package:zonix_glasses/features/utils/http_retry.dart';
 
 final logger = Logger();
 
@@ -267,20 +267,6 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
   }
 }
 
-  // Obtener historial de actividad del usuario
-  Future<Map<String, dynamic>> getActivityHistory() async {
-    final token = await _getToken();
-    final response = await http.get(
-      Uri.parse('${AppConfig.apiUrl}/api/user/activity-history'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Error al obtener el historial de actividad');
-    }
-  }
-
   // Exportar todos los datos personales del usuario (GET /api/profile/export, cualquier rol)
   Future<Map<String, dynamic>> exportPersonalData() async {
     final token = await _getToken();
@@ -321,8 +307,6 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
       return {
         'privacy_settings': {
           'profile_visible': d['profile_visibility'] ?? true,
-          'reviews_visible': true,
-          'order_history_visible': d['order_history_visibility'] ?? true,
           'activity_visible': d['activity_visibility'] ?? true,
           'email_notifications': d['marketing_emails'] ?? true,
           'push_notifications': d['push_notifications'] ?? true,
@@ -338,7 +322,6 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
     final token = await _getToken();
     final body = {
       'profile_visibility': settings['profile_visible'],
-      'order_history_visibility': settings['order_history_visible'],
       'activity_visibility': settings['activity_visible'],
       'marketing_emails': settings['email_notifications'],
       'push_notifications': settings['push_notifications'],
@@ -360,7 +343,7 @@ Future<void> updateStatusCheckScanner(int userId, int selectedOptionId) async {
   Future<void> deleteAccount() async {
     final token = await _getToken();
     final response = await http.delete(
-      Uri.parse('${AppConfig.apiUrl}/api/buyer/account'),
+      Uri.parse('${AppConfig.apiUrl}/api/user/account'),
       headers: {'Authorization': 'Bearer $token'},
     );
     if (response.statusCode != 200 && response.statusCode != 204) {

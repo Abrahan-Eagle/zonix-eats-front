@@ -1,11 +1,11 @@
 {
-    "name": "zonix",
-    "short_name": "zonix",
+    "name": "Zonix Glasses",
+    "short_name": "Zonix Glasses",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Zonix Glasses — Flutter boilerplate.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

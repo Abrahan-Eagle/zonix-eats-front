@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
 
 /// Shared empty-state widget with icon, message and optional action buttons.
 class AppEmptyState extends StatelessWidget {

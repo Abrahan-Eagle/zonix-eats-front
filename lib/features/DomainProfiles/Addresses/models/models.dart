@@ -1,4 +1,4 @@
-import 'package:zonix/features/utils/safe_parse.dart';
+import 'package:zonix_glasses/features/utils/safe_parse.dart';
 
 class Country {
   final int id;

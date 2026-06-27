@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/screens/edit_profile_page.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/screens/create_profile_page.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Profiles/api/profile_service.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Profiles/models/profile_model.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Profiles/screens/edit_profile_page.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Profiles/screens/create_profile_page.dart';
 import 'package:logger/logger.dart';
 import 'package:intl/intl.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
 
 final logger = Logger();
 
@@ -119,18 +119,6 @@ class ProfilePagex extends StatelessWidget {
                         // Información de contacto
                         _buildContactInfoCard(context, profileModel.profile!),
                         const SizedBox(height: 16),
-                        
-                        // Información de negocio (si aplica)
-                        if (_hasBusinessInfo(profileModel.profile!))
-                          _buildBusinessInfoCard(context, profileModel.profile!),
-                        if (_hasBusinessInfo(profileModel.profile!))
-                          const SizedBox(height: 16),
-                        
-                        // Información de delivery (si aplica)
-                        if (_hasDeliveryInfo(profileModel.profile!))
-                          _buildDeliveryInfoCard(context, profileModel.profile!),
-                        if (_hasDeliveryInfo(profileModel.profile!))
-                          const SizedBox(height: 16),
                         
                         // Estado del perfil
                         _buildProfileStatusCard(context, profileModel.profile!),
@@ -317,100 +305,6 @@ class ProfilePagex extends StatelessWidget {
     );
   }
 
-  Widget _buildBusinessInfoCard(BuildContext context, Profile profile) {
-    return Card(
-      color: AppColors.cardBg(context),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.orange.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.business,
-                    color: AppColors.orange,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Información de Negocio',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primaryText(context),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            if (profile.businessName != null && profile.businessName!.isNotEmpty)
-              _buildInfoRow(context, 'Nombre del Negocio', profile.businessName!, Icons.store),
-            if (profile.businessType != null && profile.businessType!.isNotEmpty)
-              _buildInfoRow(context, 'Tipo de Negocio', profile.businessType!, Icons.category),
-            if (profile.taxId != null && profile.taxId!.isNotEmpty)
-              _buildInfoRow(context, 'RFC', profile.taxId!, Icons.receipt),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDeliveryInfoCard(BuildContext context, Profile profile) {
-    return Card(
-      color: AppColors.cardBg(context),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.purple.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.delivery_dining,
-                    color: AppColors.purple,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Text(
-                  'Información de Delivery',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primaryText(context),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            if (profile.vehicleType != null && profile.vehicleType!.isNotEmpty)
-              _buildInfoRow(context, 'Tipo de Vehículo', profile.vehicleType!, Icons.two_wheeler),
-            if (profile.licenseNumber != null && profile.licenseNumber!.isNotEmpty)
-              _buildInfoRow(context, 'Número de Licencia', profile.licenseNumber!, Icons.card_membership),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildProfileStatusCard(BuildContext context, Profile profile) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
@@ -519,17 +413,6 @@ class ProfilePagex extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  bool _hasBusinessInfo(Profile profile) {
-    return (profile.businessName != null && profile.businessName!.isNotEmpty) ||
-           (profile.businessType != null && profile.businessType!.isNotEmpty) ||
-           (profile.taxId != null && profile.taxId!.isNotEmpty);
-  }
-
-  bool _hasDeliveryInfo(Profile profile) {
-    return (profile.vehicleType != null && profile.vehicleType!.isNotEmpty) ||
-           (profile.licenseNumber != null && profile.licenseNumber!.isNotEmpty);
   }
 
   String _translateMaritalStatus(String status) {

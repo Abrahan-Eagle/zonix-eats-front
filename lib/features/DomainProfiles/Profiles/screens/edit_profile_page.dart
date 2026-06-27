@@ -1,10 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
-import 'package:image/image.dart' as img;
+import 'package:zonix_glasses/features/DomainProfiles/Profiles/api/profile_service.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Profiles/models/profile_model.dart';
 import 'package:intl/intl.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -22,7 +20,6 @@ class EditProfilePageState extends State<EditProfilePage> {
   final TextEditingController _dateController = TextEditingController();
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
-  bool _isDetecting = false;
 
   // Opciones para el DropdownButtonFormField
   static const maritalStatusOptions = [
@@ -96,140 +93,11 @@ Future<void> _pickDate(BuildContext context) async {
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.camera);
     if (pickedFile != null) {
-      String? compressedImagePath = await _compressImage(pickedFile.path);
-      if (compressedImagePath != null) {
-        setState(() {
-          _imageFile = File(compressedImagePath);
-        });
-        await _faceDetect(); // Detectar rostros después de cargar la imagen
-      }
-    } else {
-      if (!mounted) return;
+      setState(() => _imageFile = File(pickedFile.path));
+    } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('No se seleccionó ninguna imagen.'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.fixed,
-          action: SnackBarAction(label: 'OK', onPressed: () {}),
-        ),
+        const SnackBar(content: Text('No se seleccionó ninguna imagen.')),
       );
-    }
-  }
-
-  Future<String?> _compressImage(String filePath) async {
-    try {
-      showDialog(
-        context: context,
-        barrierDismissible: false, // Impide cerrar el diálogo tocando fuera
-        builder: (BuildContext context) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
-        },
-      );
-
-      final imageFile = File(filePath);
-
-      if (await imageFile.length() <= 2 * 1024 * 1024) return filePath;
-
-      final originalImage = img.decodeImage(await imageFile.readAsBytes());
-      if (!mounted) return null;
-      if (originalImage == null) return null;
-
-      List<int> compressedBytes;
-      String extension = filePath.split('.').last.toLowerCase();
-      int quality = 85;
-
-      if (extension == 'png') {
-        compressedBytes = img.encodePng(originalImage, level: 6);
-      } else {
-        compressedBytes = img.encodeJpg(originalImage, quality: quality);
-        while (compressedBytes.length > 2 * 1024 * 1024 && quality > 10) {
-          quality -= 5;
-          compressedBytes = img.encodeJpg(originalImage, quality: quality);
-        }
-      }
-
-      final compressedImageFile = await File(
-        '${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}',
-      ).writeAsBytes(compressedBytes);
-
-      if (!mounted) return null;
-      Navigator.of(context).pop();
-
-      return compressedImageFile.path;
-    } catch (e) {
-      debugPrint("Error al comprimir la imagen: $e");
-      return null;
-    }
-  }
-
-  Future<void> _faceDetect() async {
-    if (_imageFile == null || _isDetecting) return;
-
-    setState(() {
-      _isDetecting = true;
-    });
-
-    try {
-      final InputImage inputImage = InputImage.fromFile(_imageFile!);
-      final FaceDetector faceDetector = FaceDetector(
-        options: FaceDetectorOptions(
-          enableLandmarks: true,
-          enableClassification: true,
-        ),
-      );
-
-      final List<Face> faces = await faceDetector.processImage(inputImage);
-      if (!mounted) return;
-      if (faces.isEmpty) {
-        setState(() {
-          _imageFile = null; // Borra la imagen si no hay rostro
-        });
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text(
-              'No se detectó un rostro. Por favor, asegúrate de que tu cara esté visible.',
-              style: TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.orange,
-            behavior: SnackBarBehavior.fixed,
-            action: SnackBarAction(label: 'OK', onPressed: () {}),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Rostro identificado correctamente: ${faces.length}',
-              style: const TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.fixed,
-            action: SnackBarAction(label: 'OK', onPressed: () {}),
-          ),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Error al procesar la imagen: $e',
-            style: const TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.fixed,
-          action: SnackBarAction(label: 'OK', onPressed: () {}),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isDetecting = false;
-        });
-      }
     }
   }
 
@@ -472,8 +340,8 @@ Future<void> _pickDate(BuildContext context) async {
 // import 'package:flutter/material.dart';
 // import 'package:image_picker/image_picker.dart';
 // import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-// import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
-// import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
+// import 'package:zonix_glasses/features/DomainProfiles/Profiles/api/profile_service.dart';
+// import 'package:zonix_glasses/features/DomainProfiles/Profiles/models/profile_model.dart';
 // import 'package:image/image.dart' as img;
 // import 'package:intl/intl.dart';
 
@@ -950,8 +818,8 @@ Future<void> _pickDate(BuildContext context) async {
 // // import 'package:flutter/material.dart';
 // // import 'package:image_picker/image_picker.dart';
 // // import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-// // import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
-// // import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
+// // import 'package:zonix_glasses/features/DomainProfiles/Profiles/api/profile_service.dart';
+// // import 'package:zonix_glasses/features/DomainProfiles/Profiles/models/profile_model.dart';
 // // import 'package:image/image.dart' as img;
 
 // // class EditProfilePage extends StatefulWidget {

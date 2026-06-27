@@ -1,8 +1,7 @@
-import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// Colores del template Stitch (Onboarding beneficios)
 const Color _kCardDark = AppColors.grayDark;
 
 class OnboardingPage1 extends StatelessWidget {
@@ -26,7 +25,6 @@ class OnboardingPage1 extends StatelessWidget {
                 _buildHeader(context),
                 const SizedBox(height: 32),
                 _buildBenefitCards(context),
-                // Espacio para la barra de navegación inferior del padre
                 const SizedBox(height: 100),
               ],
             ),
@@ -94,7 +92,7 @@ class OnboardingPage1 extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         Text(
-          '¿Por qué elegir Zonix?',
+          'Bienvenido a Zonix Glasses',
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: titleSize,
@@ -105,7 +103,7 @@ class OnboardingPage1 extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Text(
-          'Descubre un universo de sabor entregado directamente en tu puerta espacial.',
+          'Una base lista para construir tu app: perfiles, notificaciones y configuración desde el primer día.',
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
             fontSize: bodySize,
@@ -121,11 +119,11 @@ class OnboardingPage1 extends StatelessWidget {
   Widget _buildBenefitCards(BuildContext context) {
     return Column(
       children: [
-        _buildBenefitCard(context, icon: Icons.bolt, title: 'Velocidad Luz', description: 'Entregas más rápidas que un cometa cruzando la galaxia.'),
+        _buildBenefitCard(context, icon: Icons.bolt, title: 'Arranque rápido', description: 'Estructura modular y servicios listos para conectar con tu API.'),
         const SizedBox(height: 16),
-        _buildBenefitCard(context, icon: Icons.restaurant, title: 'Sabor Estelar', description: 'Los mejores restaurantes seleccionados de todo el sistema solar.'),
+        _buildBenefitCard(context, icon: Icons.person_outline, title: 'Perfiles completos', description: 'Direcciones, teléfonos y documentos con flujos reutilizables.'),
         const SizedBox(height: 16),
-        _buildBenefitCard(context, icon: Icons.savings_outlined, title: 'Ahorro Galáctico', description: 'Ofertas y promociones que literalmente no son de este mundo.'),
+        _buildBenefitCard(context, icon: Icons.notifications_active_outlined, title: 'Notificaciones', description: 'Push FCM y eventos en tiempo real con Pusher integrados.'),
       ],
     );
   }

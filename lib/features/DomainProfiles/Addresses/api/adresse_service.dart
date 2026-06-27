@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
-import 'package:zonix/config/app_config.dart';
+import 'package:zonix_glasses/config/app_config.dart';
 import '../models/adresse.dart';
 import '../models/models.dart';
 
@@ -131,8 +131,7 @@ class AddressService {
   /// Crea una dirección.
   /// [profileId] debe ser el id real de profiles.id (canónico).
   /// Por compatibilidad legacy, el backend también puede resolver por user_id.
-  /// [role] opcional: 'users', 'commerce', 'delivery_company', 'delivery_agent', 'delivery', 'admin'.
-  /// [commerceId] opcional: cuando la dirección es del establecimiento (role commerce), vincula a este comercio.
+  /// [role] opcional: 'user', 'admin', etc.
   String _extractApiErrorMessage(String responseBody) {
     try {
       final decoded = jsonDecode(responseBody);
@@ -162,13 +161,11 @@ class AddressService {
     return responseBody;
   }
 
-  Future<void> createAddress(Address address, int profileId,
-      {String? role, int? commerceId}) async {
+  Future<void> createAddress(Address address, int profileId, {String? role}) async {
     final token = await _getToken();
     try {
-      // Opción A: dirección del establecimiento → solo commerce_id (no enviar profile_id).
-      final isCommerceAddress = commerceId != null && commerceId > 0;
       final body = <String, dynamic>{
+        'profile_id': profileId,
         'street': address.street,
         'house_number': address.houseNumber,
         'city_id': address.cityId,
@@ -177,13 +174,8 @@ class AddressService {
         'longitude': address.longitude,
         'status': address.status,
       };
-      if (isCommerceAddress) {
-        body['commerce_id'] = commerceId;
-        body['role'] = role ?? 'commerce';
-      } else {
-        body['profile_id'] = profileId;
-        if (role != null && role.isNotEmpty) body['role'] = role;
-      }
+      final effectiveRole = role ?? 'user';
+      if (effectiveRole.isNotEmpty) body['role'] = effectiveRole;
 
       final response = await http
           .post(

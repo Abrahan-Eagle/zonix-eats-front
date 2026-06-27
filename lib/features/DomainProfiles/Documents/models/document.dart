@@ -1,4 +1,4 @@
-import 'package:zonix/features/utils/rif_formatter.dart';
+import 'package:zonix_glasses/features/utils/rif_formatter.dart';
 
 class Document {
   final int id;

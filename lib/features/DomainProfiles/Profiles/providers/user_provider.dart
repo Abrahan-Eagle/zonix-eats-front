@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Profiles/models/profile_model.dart';
 
 class UserProvider with ChangeNotifier {
   Profile? _profile;

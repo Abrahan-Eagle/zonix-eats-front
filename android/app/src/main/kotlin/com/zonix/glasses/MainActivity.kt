@@ -1,4 +1,4 @@
-package com.zonix.eats
+package com.zonix.glasses
 
 import android.content.Intent
 import android.os.Bundle

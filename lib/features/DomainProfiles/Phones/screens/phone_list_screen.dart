@@ -4,7 +4,7 @@ import '../api/phone_service.dart';
 import '../screens/create_phone_screen.dart';
 import '../screens/edit_phone_screen.dart';
 import '../screens/phone_detail_screen.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
 
 class PhoneScreen extends StatefulWidget {
   final int userId;
@@ -227,7 +227,7 @@ class PhoneScreenState extends State<PhoneScreen> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Agrega al menos un teléfono para que te contactemos por tu pedido',
+            'Agrega al menos un teléfono para que podamos contactarte',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 14,
@@ -264,7 +264,7 @@ class PhoneScreenState extends State<PhoneScreen> {
 
   IconData _iconForPhone(Phone phone) {
     if (phone.isPrimary) return Icons.call;
-    if (phone.context == 'commerce' || phone.context == 'delivery_company') return Icons.work;
+    if (phone.context == PhoneContext.admin) return Icons.work;
     return Icons.home;
   }
 

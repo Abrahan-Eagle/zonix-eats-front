@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:zonix/config/app_config.dart';
+import 'package:zonix_glasses/config/app_config.dart';
 
 final logger = Logger();
 const FlutterSecureStorage _storage = FlutterSecureStorage();

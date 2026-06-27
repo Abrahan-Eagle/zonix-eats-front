@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'onboarding_page1.dart';
 import 'onboarding_page2.dart';
 import 'onboarding_page3.dart';
 
-import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -22,9 +23,9 @@ class OnboardingScreenState extends State<OnboardingScreen> {
   List<Widget> get onboardingPages {
     return [
       const WelcomePage(),
-      const OnboardingPage1(), // Intro 1 - beneficios
-      const OnboardingPage2(), // Intro 2 - pedidos fáciles
-      const OnboardingPage3(), // Selección de rol (users / commerce) y punto de bifurcación por rol
+      const OnboardingPage1(), // Intro 1 - beneficios de la app
+      const OnboardingPage2(), // Intro 2 - flujo rápido
+      const OnboardingPage3(), // Perfil y activación
     ];
   }
 
@@ -32,11 +33,7 @@ class OnboardingScreenState extends State<OnboardingScreen> {
     if (_isLoading) return;
 
     if (_currentPage == onboardingPages.length - 1) {
-      // Última página: el cierre visual del onboarding se maneja desde los
-      // flujos específicos de rol (Cliente / Restaurante) en OnboardingPage3
-      // y CommerceRegistrationPage. Aquí no marcamos el onboarding como
-      // completado para asegurarnos de que el usuario haya creado su perfil
-      // y dirección/comercio en las pantallas correspondientes.
+      // Última página: el cierre del onboarding se maneja en OnboardingPage3.
       return;
     } else {
       _controller.nextPage(
@@ -268,8 +265,8 @@ class WelcomePage extends StatelessWidget {
                                           child: Stack(
                                             fit: StackFit.expand,
                                             children: [
-                                              Image.asset(
-                                                'assets/onboarding/onboarding_eats.png',
+                                              SvgPicture.asset(
+                                                'assets/onboarding/welcome_image.svg',
                                                 fit: BoxFit.cover,
                                               ),
                                               // Overlay atmósfera

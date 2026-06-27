@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
-import 'package:zonix/config/app_config.dart';
+import 'package:zonix_glasses/config/app_config.dart';
 
 final logger = Logger();
 
@@ -32,8 +32,7 @@ class OnboardingService {
     }
     
     try {
-      // Por ahora marcamos completed_onboarding en true y, si se proporciona,
-      // también actualizamos el rol del usuario (users / commerce).
+      // Marca completed_onboarding y, si se proporciona, actualiza el rol del usuario.
       final Map<String, dynamic> payload = {
         'completed_onboarding': true,
       };

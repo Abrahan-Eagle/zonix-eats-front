@@ -1,5 +1,5 @@
 // profile_model.dart
-import 'package:zonix/features/utils/safe_parse.dart';
+import 'package:zonix_glasses/features/utils/safe_parse.dart';
 
 class Profile {
   int id;
@@ -18,15 +18,6 @@ class Profile {
   List<Map<String, dynamic>>?
       addressesData; // Direcciones estructuradas desde la API
 
-  // Campos específicos para comercios
-  String? businessName; // Nombre del negocio
-  String? businessType; // Tipo de negocio
-  String? taxId; // RFC
-
-  // Campos específicos para delivery
-  String? vehicleType; // Tipo de vehículo
-  String? licenseNumber; // Número de licencia
-
   // Constructor
   Profile({
     required this.id,
@@ -43,11 +34,6 @@ class Profile {
     this.phone,
     this.address,
     this.addressesData,
-    this.businessName,
-    this.businessType,
-    this.taxId,
-    this.vehicleType,
-    this.licenseNumber,
   });
 
   factory Profile.fromJson(Map<String, dynamic> json) {
@@ -84,11 +70,6 @@ class Profile {
       phone: map['phone']?.toString(),
       address: map['address']?.toString(),
       addressesData: parsedAddresses,
-      businessName: map['business_name']?.toString(),
-      businessType: map['business_type']?.toString(),
-      taxId: map['tax_id']?.toString(),
-      vehicleType: map['vehicle_type']?.toString(),
-      licenseNumber: map['license_number']?.toString(),
     );
   }
 
@@ -108,11 +89,6 @@ class Profile {
       'phone': phone,
       'address': address,
       'addresses': addressesData,
-      'business_name': businessName,
-      'business_type': businessType,
-      'tax_id': taxId,
-      'vehicle_type': vehicleType,
-      'license_number': licenseNumber,
     };
   }
 
@@ -132,11 +108,6 @@ class Profile {
     String? phone,
     String? address,
     List<Map<String, dynamic>>? addressesData,
-    String? businessName,
-    String? businessType,
-    String? taxId,
-    String? vehicleType,
-    String? licenseNumber,
   }) {
     return Profile(
       id: id ?? this.id,
@@ -153,11 +124,6 @@ class Profile {
       phone: phone ?? this.phone,
       address: address ?? this.address,
       addressesData: addressesData ?? this.addressesData,
-      businessName: businessName ?? this.businessName,
-      businessType: businessType ?? this.businessType,
-      taxId: taxId ?? this.taxId,
-      vehicleType: vehicleType ?? this.vehicleType,
-      licenseNumber: licenseNumber ?? this.licenseNumber,
     );
   }
 }

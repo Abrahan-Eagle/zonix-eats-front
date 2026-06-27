@@ -114,7 +114,7 @@ class NetworkImageWithFallback extends StatelessWidget {
       child: Center(
         child: isCompact
             ? Icon(
-                fallbackIcon ?? Icons.restaurant,
+                fallbackIcon ?? Icons.image,
                 size: height * 0.4,
                 color: materialColor.shade600,
               )
@@ -129,7 +129,7 @@ class NetworkImageWithFallback extends StatelessWidget {
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
-                      fallbackIcon ?? Icons.restaurant,
+                      fallbackIcon ?? Icons.image,
                       size: height * 0.2,
                       color: materialColor.shade600,
                     ),
@@ -165,65 +165,3 @@ class NetworkImageWithFallback extends StatelessWidget {
     );
   }
 }
-
-// Widget específico para productos
-class ProductImage extends StatelessWidget {
-  final String imageUrl;
-  final String productName;
-  final double width;
-  final double height;
-  final BorderRadius? borderRadius;
-
-  const ProductImage({
-    super.key,
-    required this.imageUrl,
-    required this.productName,
-    required this.width,
-    required this.height,
-    this.borderRadius,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return NetworkImageWithFallback(
-      imageUrl: imageUrl,
-      width: width,
-      height: height,
-      title: productName,
-      fallbackIcon: Icons.restaurant,
-      fallbackColor: Colors.orange,
-      borderRadius: borderRadius,
-    );
-  }
-}
-
-// Widget específico para restaurantes
-class RestaurantImage extends StatelessWidget {
-  final String imageUrl;
-  final String restaurantName;
-  final double width;
-  final double height;
-  final BorderRadius? borderRadius;
-
-  const RestaurantImage({
-    super.key,
-    required this.imageUrl,
-    required this.restaurantName,
-    required this.width,
-    required this.height,
-    this.borderRadius,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return NetworkImageWithFallback(
-      imageUrl: imageUrl,
-      width: width,
-      height: height,
-      title: restaurantName,
-      fallbackIcon: Icons.store,
-      fallbackColor: Colors.blue,
-      borderRadius: borderRadius,
-    );
-  }
-} 

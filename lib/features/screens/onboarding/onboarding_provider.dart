@@ -13,7 +13,7 @@ class OnboardingProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  /// Rol seleccionado en el onboarding: 'users' (comprador) o 'commerce' (comerciante)
+  /// Rol seleccionado en el onboarding (p. ej. 'user', 'admin').
   String? _selectedRole;
   String? get selectedRole => _selectedRole;
 
@@ -23,7 +23,7 @@ class OnboardingProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // --- Draft de perfil comprador/comerciante (campos compartidos mínimos) ---
+  // --- Draft de perfil (campos compartidos mínimos) ---
 
   String? _firstName;
   String? get firstName => _firstName;
@@ -61,7 +61,7 @@ class OnboardingProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // --- Draft de dirección base (comprador o comercio) ---
+  // --- Draft de dirección base ---
 
   double? _latitude;
   double? get latitude => _latitude;

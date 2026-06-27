@@ -1,6 +1,6 @@
-import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:zonix/features/DomainProfiles/Documents/models/document.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Documents/models/document.dart';
 import 'document_edit_screen.dart';
 
 class DocumentDetailScreen extends StatelessWidget {

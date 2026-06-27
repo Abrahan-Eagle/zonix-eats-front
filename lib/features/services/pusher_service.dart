@@ -9,9 +9,9 @@ import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 import 'realtime_event_utils.dart';
 
-/// Servicio de Pusher Channels para eventos en tiempo casi real (Orders, chat, etc.)
+/// Servicio de Pusher Channels para eventos en tiempo casi real (notificaciones, entidades).
 ///
-/// Usa https://pusher.com para notificaciones, mensajes y chat.
+/// Usa https://pusher.com para broadcasting privado autenticado con Sanctum.
 class PusherService {
   // Singleton
   static PusherService? _instance;
@@ -30,10 +30,9 @@ class PusherService {
   final Set<String> _subscribedChannels = {};
 
   /// Cuántas pantallas/servicios piden cada canal. Solo al llegar a 0 se hace unsubscribe real.
-  /// Evita que al cerrar el chat se corte el canal que el detalle de orden sigue usando (y viceversa).
   final Map<String, int> _channelRefCount = {};
 
-  // Stream para eventos de dominio (Orders, chat, notificaciones, etc.)
+  // Stream para eventos de dominio (notificaciones, entidades, etc.)
   final _eventController = StreamController<Map<String, dynamic>>.broadcast();
   Stream<Map<String, dynamic>> get eventStream => _eventController.stream;
   final RealtimeEventDeduper _eventDeduper = RealtimeEventDeduper();
@@ -59,7 +58,7 @@ class PusherService {
 
       if (pusherKey.isEmpty) {
         // ignore: avoid_print
-        print('❌ PUSHER_APP_KEY no configurada en .env de Zonix');
+        print('❌ PUSHER_APP_KEY no configurada en .env');
         _isInitialized = false;
         _isConnected = false;
         return false;
@@ -87,11 +86,11 @@ class PusherService {
 
       _isInitialized = true;
       // ignore: avoid_print
-      print('✅ PusherService (Zonix) inicializado correctamente');
+      print('✅ PusherService (Zonix Glasses) inicializado correctamente');
       return true;
     } catch (e) {
       // ignore: avoid_print
-      print('❌ Error inicializando Pusher (Zonix): $e');
+      print('❌ Error inicializando Pusher (Zonix Glasses): $e');
       _isInitialized = false;
       _isConnected = false;
       return false;
@@ -139,24 +138,11 @@ class PusherService {
     }
   }
 
-  /// Suscribirse al canal de chat de una orden
-  Future<bool> subscribeToOrderChat(int orderId) async {
-    final channelName = 'private-orders.$orderId';
-    return subscribeToChannel(channelName);
-  }
-
-  /// Suscribirse al canal de usuario
+  /// Suscribirse al canal privado del usuario autenticado.
   Future<bool> subscribeToUserChannel(int userId) async {
     final channelName = 'private-user.$userId';
     return subscribeToChannel(channelName);
   }
-
-  /// Suscribirse al canal de comercio
-  Future<bool> subscribeToCommerceChannel(int commerceId) async {
-    final channelName = 'private-commerce.$commerceId';
-    return subscribeToChannel(channelName);
-  }
-
 
   /// Suscribirse a un canal genérico (con conteo de referencias).
   Future<bool> subscribeToChannel(String channelName) async {
@@ -219,7 +205,7 @@ class PusherService {
 
   void _handleConnectionStateChange(String currentState, String? previousState) {
     // ignore: avoid_print
-    print('🔄 Pusher (Zonix) connection: $previousState → $currentState');
+    print('🔄 Pusher (Zonix Glasses) connection: $previousState → $currentState');
     _isConnected = currentState == 'CONNECTED';
   }
 
@@ -270,39 +256,39 @@ class PusherService {
       }
     } catch (e) {
       // ignore: avoid_print
-      print('❌ Error procesando evento Pusher (Zonix): $e');
+      print('❌ Error procesando evento Pusher (Zonix Glasses): $e');
     }
   }
 
   void _handleError(String message, int? code, dynamic e) {
     // ignore: avoid_print
-    print('❌ Pusher (Zonix) error: $message (code: $code)');
+    print('❌ Pusher (Zonix Glasses) error: $message (code: $code)');
     _isConnected = false;
   }
 
   void _handleSubscriptionSucceeded(String channelName, dynamic data) {
     // ignore: avoid_print
-    print('✅ Pusher (Zonix) suscripción exitosa: $channelName');
+    print('✅ Pusher (Zonix Glasses) suscripción exitosa: $channelName');
   }
 
   void _handleSubscriptionError(String message, dynamic e) {
     // ignore: avoid_print
-    print('❌ Pusher (Zonix) error de suscripción: $message');
+    print('❌ Pusher (Zonix Glasses) error de suscripción: $message');
   }
 
   void _handleDecryptionFailure(String event, String reason) {
     // ignore: avoid_print
-    print('❌ Pusher (Zonix) fallo de descifrado: $event - $reason');
+    print('❌ Pusher (Zonix Glasses) fallo de descifrado: $event - $reason');
   }
 
   void _handleMemberAdded(String channelName, PusherMember member) {
     // ignore: avoid_print
-    print('👤 Pusher (Zonix) miembro agregado: ${member.userId} en $channelName');
+    print('👤 Pusher (Zonix Glasses) miembro agregado: ${member.userId} en $channelName');
   }
 
   void _handleMemberRemoved(String channelName, PusherMember member) {
     // ignore: avoid_print
-    print('👤 Pusher (Zonix) miembro removido: ${member.userId} de $channelName');
+    print('👤 Pusher (Zonix Glasses) miembro removido: ${member.userId} de $channelName');
   }
 
   /// Cierra la conexión sin hacer unsubscribe por canal, para evitar
@@ -317,10 +303,10 @@ class PusherService {
       _isInitialized = false;
       await _pusher?.disconnect();
       // ignore: avoid_print
-      print('🛑 PusherService (Zonix): desconectado');
+      print('🛑 PusherService (Zonix Glasses): desconectado');
     } catch (e) {
       // ignore: avoid_print
-      print('❌ Error desconectando Pusher (Zonix): $e');
+      print('❌ Error desconectando Pusher (Zonix Glasses): $e');
     }
   }
 }

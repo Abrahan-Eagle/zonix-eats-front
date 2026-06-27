@@ -1,26 +1,22 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
-import 'package:zonix/config/app_config.dart';
-import 'package:zonix/helpers/auth_helper.dart';
+import 'package:zonix_glasses/config/app_config.dart';
+import 'package:zonix_glasses/helpers/auth_helper.dart';
 import '../models/phone.dart';
 
 final logger = Logger();
 
 class PhoneService {
   /// Lista los teléfonos del usuario autenticado (GET /api/phones/).
-  /// Opcional: [context], [commerceId], [deliveryCompanyId] para filtrar.
+  /// Opcional: [context] para filtrar.
   Future<List<Phone>> fetchMyPhones({
     String? context,
-    int? commerceId,
-    int? deliveryCompanyId,
   }) async {
     try {
       final headers = await AuthHelper.getAuthHeaders();
       final query = <String, String>{};
       if (context != null && context.isNotEmpty) query['context'] = context;
-      if (commerceId != null) query['commerce_id'] = commerceId.toString();
-      if (deliveryCompanyId != null) query['delivery_company_id'] = deliveryCompanyId.toString();
       final uri = Uri.parse('${AppConfig.apiUrl}/api/phones').replace(queryParameters: query.isNotEmpty ? query : null);
       logger.i('Fetching my phones (index)');
       final response = await http
@@ -101,7 +97,7 @@ class PhoneService {
   }
 
   /// Crear teléfono (perfil del usuario autenticado; no se envía profile_id).
-  /// Incluye context; si context=commerce/delivery_company, commerce_id/delivery_company_id deben ir en [phone].
+  /// Incluye [Phone.context] (personal o admin).
   Future<Phone> createPhone(Phone phone, int userId) async {
     try {
       logger.i('Creating phone: ${phone.toString()}');

@@ -1,16 +1,25 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter/services.dart';
-import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix_glasses/features/utils/bottom_nav_persistence.dart';
+import 'package:zonix_glasses/features/utils/user_provider.dart';
 
 class MockUserProvider extends UserProvider {
   final String role;
   final bool _isAuthenticated;
+  final bool _completedOnboarding;
 
-  MockUserProvider({required this.role, required bool isAuthenticated}) 
-      : _isAuthenticated = isAuthenticated;
+  MockUserProvider({
+    required this.role,
+    required bool isAuthenticated,
+    bool completedOnboarding = true,
+  })  : _isAuthenticated = isAuthenticated,
+        _completedOnboarding = completedOnboarding;
 
   @override
   bool get isAuthenticated => _isAuthenticated;
+
+  @override
+  bool get completedOnboarding => _completedOnboarding;
 
   @override
   String get userRole => role;
@@ -32,199 +41,134 @@ class MockUserProvider extends UserProvider {
   }
 
   @override
-  Future<void> logout() async {
-    return;
-  }
+  Future<void> logout() async {}
+}
+
+/// Resumen de rutas en [MyApp] (Zonix Glasses): SignIn → Onboarding → MainRouter.
+enum _AppRoute { signIn, onboarding, mainRouter }
+
+_AppRoute routeFor(MockUserProvider provider) {
+  if (!provider.isAuthenticated) return _AppRoute.signIn;
+  if (!provider.completedOnboarding) return _AppRoute.onboarding;
+  return _AppRoute.mainRouter;
 }
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('Navegación por Roles', () {
+  group('Navegación por roles (Zonix Glasses)', () {
     setUp(() {
-      // Mock the secure storage
-      const MethodChannel channel = MethodChannel('plugins.it_nomads.com/flutter_secure_storage');
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
-        channel,
-        (MethodCall methodCall) async {
-          if (methodCall.method == 'read') {
-            if (methodCall.arguments['key'] == 'token') {
-              return 'mock_token';
-            }
-            return null;
-          }
-          if (methodCall.method == 'write') {
-            return null;
+      const MethodChannel channel =
+          MethodChannel('plugins.it_nomads.com/flutter_secure_storage');
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
+        if (methodCall.method == 'read') {
+          if (methodCall.arguments['key'] == 'token') {
+            return 'mock_token';
           }
           return null;
-        },
-      );
+        }
+        if (methodCall.method == 'write') {
+          return null;
+        }
+        return null;
+      });
     });
 
     tearDown(() {
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(
         const MethodChannel('plugins.it_nomads.com/flutter_secure_storage'),
         null,
       );
     });
 
-    group('Usuario No Autenticado', () {
-      test('Usuario no autenticado debe ir a SignInScreen', () {
-        final userProvider = MockUserProvider(role: '', isAuthenticated: false);
-        
-        expect(userProvider.isAuthenticated, false);
-        expect(userProvider.userRole, '');
-        
-        // En main.dart: si no está autenticado, va a SignInScreen
-        expect(userProvider.isAuthenticated == false, true);
+    group('Usuario no autenticado', () {
+      test('debe ir a SignInScreen', () {
+        final userProvider =
+            MockUserProvider(role: '', isAuthenticated: false);
+
+        expect(routeFor(userProvider), _AppRoute.signIn);
       });
     });
 
-    group('Usuario Autenticado - Rol: users', () {
-      test('Usuario autenticado con rol users debe ir a MainRouter', () {
-        final userProvider = MockUserProvider(role: 'users', isAuthenticated: true);
-        
-        expect(userProvider.isAuthenticated, true);
-        expect(userProvider.userRole, 'users');
-        
-        // En main.dart: si está autenticado y el rol es 'users', va a MainRouter
-        expect(userProvider.isAuthenticated == true && userProvider.userRole == 'users', true);
+    group('Usuario autenticado — rol user', () {
+      test('con onboarding completo va a MainRouter', () {
+        final userProvider =
+            MockUserProvider(role: 'user', isAuthenticated: true);
+
+        expect(userProvider.userRole, 'user');
+        expect(routeFor(userProvider), _AppRoute.mainRouter);
       });
 
-      test('Usuario con rol users tiene acceso a funcionalidades de cliente', () async {
-        final userProvider = MockUserProvider(role: 'users', isAuthenticated: true);
-        final details = await userProvider.getUserDetails();
-        
-        expect(details['role'], 'users');
-        expect(details['userId'], 1);
-        expect(details['userGoogleId'], 'mock_google_id');
-      });
-    });
+      test('sin onboarding va a OnboardingScreen', () {
+        final userProvider = MockUserProvider(
+          role: 'user',
+          isAuthenticated: true,
+          completedOnboarding: false,
+        );
 
-    group('Usuario Autenticado - Rol: commerce', () {
-      test('Usuario autenticado con rol commerce debe ir a CommerceOrdersPage', () {
-        final userProvider = MockUserProvider(role: 'commerce', isAuthenticated: true);
-        
-        expect(userProvider.isAuthenticated, true);
-        expect(userProvider.userRole, 'commerce');
-        
-        // En main.dart: si está autenticado y el rol es 'commerce', va a CommerceOrdersPage
-        expect(userProvider.isAuthenticated == true && userProvider.userRole == 'commerce', true);
+        expect(routeFor(userProvider), _AppRoute.onboarding);
       });
 
-      test('Usuario con rol commerce tiene acceso a funcionalidades de comercio', () async {
-        final userProvider = MockUserProvider(role: 'commerce', isAuthenticated: true);
-        final details = await userProvider.getUserDetails();
-        
-        expect(details['role'], 'commerce');
-        expect(details['userId'], 1);
-        expect(details['userGoogleId'], 'mock_google_id');
+      test('persistencia bottom nav usa clave user', () {
+        expect(bottomNavStorageKey('user'), 'bottomNavIndex_user');
+        expect(defaultLevelForRole('user'), 0);
+        expect(levelsForRole('user'), [0]);
       });
     });
 
-    group('Usuario Autenticado - Rol: delivery', () {
-      test('Usuario autenticado con rol delivery debe ir a MainRouter (fallback)', () {
-        final userProvider = MockUserProvider(role: 'delivery', isAuthenticated: true);
-        
-        expect(userProvider.isAuthenticated, true);
-        expect(userProvider.userRole, 'delivery');
-        
-        // En main.dart: si está autenticado pero el rol no es 'users' ni 'commerce', va a MainRouter
-        expect(userProvider.isAuthenticated == true && 
-               userProvider.userRole != 'users' && 
-               userProvider.userRole != 'commerce', true);
+    group('Usuario autenticado — rol admin', () {
+      test('con onboarding completo va a MainRouter', () {
+        final userProvider =
+            MockUserProvider(role: 'admin', isAuthenticated: true);
+
+        expect(userProvider.userRole, 'admin');
+        expect(routeFor(userProvider), _AppRoute.mainRouter);
       });
 
-      test('Usuario con rol delivery tiene acceso a funcionalidades de repartidor', () async {
-        final userProvider = MockUserProvider(role: 'delivery', isAuthenticated: true);
-        final details = await userProvider.getUserDetails();
-        
-        expect(details['role'], 'delivery');
-        expect(details['userId'], 1);
-        expect(details['userGoogleId'], 'mock_google_id');
+      test('persistencia bottom nav distingue admin', () {
+        expect(bottomNavStorageKey('admin'), 'bottomNavIndex_admin');
+        expect(defaultLevelForRole('admin'), 1);
+        expect(levelsForRole('admin'), [1]);
       });
     });
 
-    group('Usuario Autenticado - Rol Desconocido', () {
-      test('Usuario autenticado con rol desconocido debe ir a MainRouter (fallback)', () {
-        final userProvider = MockUserProvider(role: 'unknown_role', isAuthenticated: true);
-        
-        expect(userProvider.isAuthenticated, true);
-        expect(userProvider.userRole, 'unknown_role');
-        
-        // En main.dart: si está autenticado pero el rol no es 'users' ni 'commerce', va a MainRouter
-        expect(userProvider.isAuthenticated == true && 
-               userProvider.userRole != 'users' && 
-               userProvider.userRole != 'commerce', true);
-      });
-    });
-
-    group('Lógica de Navegación Completa', () {
-      test('Verificar todas las rutas de navegación posibles', () {
-        // Caso 1: No autenticado
-        final notAuthenticated = MockUserProvider(role: '', isAuthenticated: false);
-        expect(notAuthenticated.isAuthenticated, false);
-        
-        // Caso 2: Autenticado como users
-        final usersRole = MockUserProvider(role: 'users', isAuthenticated: true);
-        expect(usersRole.isAuthenticated && usersRole.userRole == 'users', true);
-        
-        // Caso 3: Autenticado como commerce
-        final commerceRole = MockUserProvider(role: 'commerce', isAuthenticated: true);
-        expect(commerceRole.isAuthenticated && commerceRole.userRole == 'commerce', true);
-        
-        // Caso 4: Autenticado como delivery
-        final deliveryRole = MockUserProvider(role: 'delivery', isAuthenticated: true);
-        expect(deliveryRole.isAuthenticated && 
-               deliveryRole.userRole != 'users' && 
-               deliveryRole.userRole != 'commerce', true);
-        
-        // Caso 5: Autenticado con rol desconocido
-        final unknownRole = MockUserProvider(role: 'unknown', isAuthenticated: true);
-        expect(unknownRole.isAuthenticated && 
-               unknownRole.userRole != 'users' && 
-               unknownRole.userRole != 'commerce', true);
-      });
-
-      test('Verificar que cada rol tiene su propia lógica de navegación', () {
-        final roles = ['users', 'commerce', 'delivery', 'unknown'];
-        
-        for (final role in roles) {
-          final userProvider = MockUserProvider(role: role, isAuthenticated: true);
-          
-          if (role == 'users') {
-            expect(userProvider.userRole == 'users', true);
-          } else if (role == 'commerce') {
-            expect(userProvider.userRole == 'commerce', true);
-          } else {
-            // delivery, unknown, o cualquier otro rol
-            expect(userProvider.userRole != 'users' && userProvider.userRole != 'commerce', true);
-          }
+    group('Lógica de navegación completa', () {
+      test('roles user y admin comparten MainRouter tras onboarding', () {
+        for (final role in ['user', 'admin']) {
+          final provider =
+              MockUserProvider(role: role, isAuthenticated: true);
+          expect(routeFor(provider), _AppRoute.mainRouter);
         }
       });
+
+      test('rol desconocido autenticado sigue el flujo estándar', () {
+        final provider =
+            MockUserProvider(role: 'custom_role', isAuthenticated: true);
+
+        expect(routeFor(provider), _AppRoute.mainRouter);
+        expect(bottomNavStorageKey('custom_role'),
+            'bottomNavIndex_custom_role');
+      });
     });
 
-    group('Transiciones de Estado', () {
-      test('Usuario puede cambiar de no autenticado a autenticado', () async {
-        // Simular login
-        final userProvider = MockUserProvider(role: 'users', isAuthenticated: true);
-        
-        expect(userProvider.isAuthenticated, true);
-        expect(userProvider.userRole, 'users');
-        
+    group('Transiciones de estado', () {
+      test('login expone detalles con el rol esperado', () async {
+        final userProvider =
+            MockUserProvider(role: 'user', isAuthenticated: true);
         final details = await userProvider.getUserDetails();
-        expect(details['role'], 'users');
+
+        expect(details['role'], 'user');
+        expect(details['userId'], 1);
       });
 
-      test('Usuario puede hacer logout', () async {
-        final userProvider = MockUserProvider(role: 'users', isAuthenticated: true);
-        
-        expect(userProvider.isAuthenticated, true);
-        
-        // Simular logout
+      test('logout no lanza excepción', () async {
+        final userProvider =
+            MockUserProvider(role: 'admin', isAuthenticated: true);
         await userProvider.logout();
-        expect(true, isTrue); // Si no lanza excepción, el logout fue exitoso
+        expect(true, isTrue);
       });
     });
   });
-} 
+}

@@ -4,21 +4,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
-import 'package:zonix/features/screens/orders/order_detail_page.dart';
-import 'package:zonix/features/screens/orders/buyer_order_chat_page.dart';
-import 'package:zonix/features/screens/commerce/commerce_order_detail_page.dart';
-import 'package:zonix/features/screens/commerce/commerce_chat_messages_page.dart';
-import 'package:zonix/features/screens/delivery/delivery_order_detail_page.dart';
-import 'package:zonix/features/screens/delivery_company/delivery_company_orders_page.dart';
-import 'package:zonix/features/utils/app_colors.dart';
-import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix_glasses/features/screens/notifications/notifications_page.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
 import 'cache_service.dart';
 import 'connectivity_service.dart';
 import '../utils/http_retry.dart';
-import 'package:zonix/models/notification_item.dart';
-import 'package:zonix/app/fcm_bootstrap.dart' show showLocalNotification;
-import 'package:zonix/app/fcm_hooks.dart';
+import 'package:zonix_glasses/models/notification_item.dart';
+import 'package:zonix_glasses/app/fcm_bootstrap.dart' show showLocalNotification;
+import 'package:zonix_glasses/app/fcm_hooks.dart';
 import '../../config/app_config.dart';
 import '../../helpers/auth_helper.dart';
 import 'error_handler.dart';
@@ -67,7 +60,7 @@ class NotificationService extends ChangeNotifier {
       final eventId = event['eventId']?.toString();
       final data = _coerceEventData(event['data']);
 
-      // Solo log en debug y solo para notificaciones in-app (evita ruido de OrderStatusChanged, etc.)
+      // Solo log en debug para NotificationCreated (evita ruido de otros eventos Pusher)
       if (kDebugMode && eventName.contains('NotificationCreated')) {
         debugPrint('🔔 NotificationService: NotificationCreated');
       }
@@ -484,103 +477,15 @@ class NotificationService extends ChangeNotifier {
     );
   }
 
-  // Handle notification tap (Deep Linking)
+  /// Scaffold: abre el centro de notificaciones (payload genérico `type` + `entity_id`).
   void navigateToNotificationDetail(BuildContext context, NotificationItem notification) {
-    final type = notification.type ?? '';
-    final data = notification.data ?? {};
-    final rawId = data['order_id'];
-    int? orderId;
-    if (rawId != null) {
-      orderId = rawId is int ? rawId : int.tryParse(rawId.toString());
+    if (notification.id != null && notification.isUnread) {
+      markAsRead(notification.id!);
     }
-
-    final userProvider = Provider.of<UserProvider>(context, listen: false);
-    final role = userProvider.userRole;
-    final senderName = (data['sender_name'] ?? '').toString();
-
-    void markReadIfNeeded() {
-      if (notification.id != null && notification.isUnread) {
-        markAsRead(notification.id!);
-      }
-    }
-
-    if (orderId == null || orderId <= 0) {
-      markReadIfNeeded();
-      return;
-    }
-    final oid = orderId;
-
-    if (type == 'chat') {
-      if (role == 'commerce' || role == 'delivery_agent' || role == 'delivery') {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => CommerceChatMessagesPage(
-              orderId: oid,
-              customerName: senderName.isNotEmpty ? senderName : 'Cliente',
-            ),
-          ),
-        );
-      } else if (role == 'delivery_company') {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => DeliveryCompanyOrdersPage(highlightOrderId: oid),
-          ),
-        );
-      } else {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => BuyerOrderChatPage(orderId: oid),
-          ),
-        );
-      }
-      markReadIfNeeded();
-      return;
-    }
-
-    final isOrderLike = type == 'order' ||
-        type == 'commerce_order' ||
-        type == 'delivery_order' ||
-        type.isEmpty;
-
-    if (!isOrderLike) {
-      markReadIfNeeded();
-      return;
-    }
-
-    if (role == 'commerce') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => CommerceOrderDetailPage(orderId: oid),
-        ),
-      );
-    } else if (role == 'delivery_company') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => DeliveryCompanyOrdersPage(highlightOrderId: oid),
-        ),
-      );
-    } else if (role == 'delivery_agent' || role == 'delivery') {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => DeliveryOrderDetailLoaderPage(orderId: oid),
-        ),
-      );
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => OrderDetailPage(orderId: oid, order: null),
-        ),
-      );
-    }
-
-    markReadIfNeeded();
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const NotificationsPage()),
+    );
   }
 
   // Handle old notification tap (Map-based, for backward compatibility or direct SnackBar actions)
@@ -592,30 +497,25 @@ class NotificationService extends ChangeNotifier {
   // Get notification icon
   IconData getNotificationIcon(String type) {
     switch (type) {
-      case 'order':
-        return Icons.shopping_cart;
-      case 'commission':
-        return Icons.attach_money;
       case 'maintenance':
         return Icons.build;
       case 'system':
         return Icons.info;
+      case 'alert':
+        return Icons.warning_amber_outlined;
       default:
         return Icons.notifications;
     }
   }
 
-  // Get notification color
   Color getNotificationColor(String type) {
     switch (type) {
-      case 'order':
-        return AppColors.blue;
-      case 'commission':
-        return AppColors.green;
       case 'maintenance':
         return AppColors.orange;
       case 'system':
         return AppColors.purple;
+      case 'alert':
+        return AppColors.red;
       default:
         return AppColors.textMutedGray;
     }

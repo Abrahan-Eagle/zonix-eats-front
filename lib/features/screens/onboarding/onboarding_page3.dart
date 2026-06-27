@@ -1,379 +1,56 @@
-import 'package:zonix/features/utils/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'onboarding_provider.dart';
-import 'client_onboarding_flow.dart';
-import 'commerce_onboarding_flow.dart';
+import 'package:zonix_glasses/app/main_router.dart';
+import 'package:zonix_glasses/features/screens/onboarding/onboarding_service.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
+import 'package:zonix_glasses/features/utils/user_provider.dart';
 
-class OnboardingPage3 extends StatefulWidget {
+/// Último paso del onboarding genérico del scaffold.
+class OnboardingPage3 extends StatelessWidget {
   const OnboardingPage3({super.key});
 
   @override
-  State<OnboardingPage3> createState() => _OnboardingPage3State();
-}
-
-class _OnboardingPage3State extends State<OnboardingPage3> {
-  String? selectedRole;
-
-  @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
-    final isSmall = w < 360;
-    final isTablet = w > 600;
-
-    return Stack(
-      children: [
-        _buildBackground(),
-        SafeArea(
-          child: SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                  minHeight: h -
-                      MediaQuery.of(context).padding.top -
-                      MediaQuery.of(context).padding.bottom),
-              child: Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: isSmall ? 20 : (isTablet ? 32 : 24),
-                  vertical: 24,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Título con icono cohete
-                    _buildHeader(context, isSmall),
-                    const SizedBox(height: 32),
-                    // Cards de rol
-                    _buildRoleCard(
-                      role: 'users',
-                      title: 'Soy Cliente',
-                      subtitle: 'Quiero pedir comida deliciosa',
-                      icon: Icons.shopping_bag_outlined,
-                      iconColor: AppColors.blue,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildRoleCard(
-                      role: 'commerce',
-                      title: 'Tengo un Comercio',
-                      subtitle: 'Quiero vender mis productos',
-                      icon: Icons.storefront_outlined,
-                      iconColor: AppColors.onboardingPurpleAccent,
-                    ),
-                    const SizedBox(height: 24),
-                    // ZONIX EATS UNIVERSE
-                    Center(
-                      child: Text(
-                        'ZONIX EATS UNIVERSE',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.white.withValues(alpha: 0.4),
-                          letterSpacing: 2,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Botón Continuar
-                    _buildContinueButton(context, w),
-                    const SizedBox(height: 16),
-                    // ¿Necesitas ayuda?
-                    TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        '¿Necesitas ayuda para decidir?',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          color: AppColors.white.withValues(alpha: 0.5),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 80),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBackground() {
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [AppColors.backgroundDark, AppColors.backgroundDarker],
-        ),
-      ),
-      child: Stack(
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Estrellas sutiles
-          ..._buildStars(),
-          // Glow top right
-          Positioned(
-            top: -80,
-            right: -80,
-            child: Container(
-              width: 320,
-              height: 320,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.blue.withValues(alpha: 0.2),
-                    AppColors.transparent
-                  ],
-                ),
-              ),
-            ),
+          Icon(Icons.check_circle_outline, size: 72, color: AppColors.blue),
+          const SizedBox(height: 16),
+          Text(
+            '¡Listo para empezar!',
+            style: Theme.of(context).textTheme.headlineSmall,
+            textAlign: TextAlign.center,
           ),
-          // Glow bottom left
-          Positioned(
-            bottom: -80,
-            left: -80,
-            child: Container(
-              width: 320,
-              height: 320,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [AppColors.onboardingPurpleAccent.withValues(alpha: 0.1), AppColors.transparent],
-                ),
-              ),
+          const SizedBox(height: 8),
+          const Text(
+            'Completa tu perfil y dirección desde Ajustes cuando quieras.',
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () async {
+                final userId = context.read<UserProvider>().userId;
+                try {
+                  await OnboardingService().completeOnboarding(userId, role: 'user');
+                } catch (_) {
+                  // Offline o endpoint no disponible: marcar localmente.
+                }
+                if (!context.mounted) return;
+                context.read<UserProvider>().setCompletedOnboarding(true);
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const MainRouter()),
+                  (_) => false,
+                );
+              },
+              child: const Text('Entrar a la app'),
             ),
           ),
         ],
       ),
     );
   }
-
-  List<Widget> _buildStars() {
-    final w = MediaQuery.of(context).size.width;
-    final h = MediaQuery.of(context).size.height;
-    final positions = [
-      Offset(0.1 * w, 0.15 * h),
-      Offset(0.2 * w, 0.35 * h),
-      Offset(0.25 * w, 0.8 * h),
-      Offset(0.45 * w, 0.2 * h),
-      Offset(0.65 * w, 0.4 * h),
-    ];
-    return positions.map((p) {
-      return Positioned(
-        left: p.dx,
-        top: p.dy,
-        child: Container(
-          width: 2,
-          height: 2,
-          decoration: BoxDecoration(
-            color: AppColors.white.withValues(alpha: 0.15),
-            shape: BoxShape.circle,
-          ),
-        ),
-      );
-    }).toList();
-  }
-
-  Widget _buildHeader(BuildContext context, bool isSmall) {
-    final titleSize = isSmall ? 24.0 : 28.0;
-    return Column(
-      children: [
-        // Icono cohete
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.grayDark.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.white.withValues(alpha: 0.05)),
-          ),
-          child:
-              const Icon(Icons.rocket_launch, color: AppColors.blue, size: 32),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          '¿Cómo quieres\nexplorar hoy?',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: titleSize,
-            fontWeight: FontWeight.w800,
-            height: 1.2,
-            color: AppColors.white,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Elige tu misión.',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: isSmall ? 14 : 16,
-            fontWeight: FontWeight.w500,
-            color: AppColors.white.withValues(alpha: 0.6),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRoleCard({
-    required String role,
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color iconColor,
-  }) {
-    final isSelected = selectedRole == role;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() => selectedRole = role);
-        Provider.of<OnboardingProvider>(context, listen: false).setRole(role);
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.surfaceHighlight : AppColors.grayDark,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected ? AppColors.blue : AppColors.transparent,
-            width: 2,
-          ),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                      color: AppColors.blue.withValues(alpha: 0.15),
-                      blurRadius: 30,
-                      spreadRadius: 0)
-                ]
-              : null,
-        ),
-        child: Row(
-          children: [
-            // Icono
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    iconColor.withValues(alpha: 0.2),
-                    iconColor.withValues(alpha: 0.05),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: iconColor.withValues(alpha: 0.2)),
-              ),
-              child: Icon(icon, color: iconColor, size: 28),
-            ),
-            const SizedBox(width: 20),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.white,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      color: AppColors.white.withValues(alpha: 0.6),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Radio/Check
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isSelected ? AppColors.blue : AppColors.transparent,
-                border: Border.all(
-                  color: isSelected
-                      ? AppColors.blue
-                      : AppColors.white.withValues(alpha: 0.3),
-                  width: 2,
-                ),
-              ),
-              child: isSelected
-                  ? const Icon(Icons.check, size: 16, color: AppColors.white)
-                  : null,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContinueButton(BuildContext context, double w) {
-    final enabled = selectedRole != null;
-
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: enabled
-            ? () async {
-                if (selectedRole == null) return;
-                final onboardingProvider =
-                    Provider.of<OnboardingProvider>(context, listen: false);
-
-                if (selectedRole == 'users') {
-                  onboardingProvider.setRole('users');
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ClientOnboardingFlow()),
-                  );
-                } else if (selectedRole == 'commerce') {
-                  onboardingProvider.setRole('commerce');
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const CommerceOnboardingFlow()),
-                  );
-                }
-              }
-            : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor:
-              enabled ? AppColors.blue : AppColors.blue.withValues(alpha: 0.4),
-          foregroundColor: AppColors.white,
-          disabledBackgroundColor: AppColors.blue.withValues(alpha: 0.3),
-          disabledForegroundColor: AppColors.white70,
-          elevation: enabled ? 4 : 0,
-          shadowColor: AppColors.blue.withValues(alpha: 0.4),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              'Continuar',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(width: 8),
-            const Icon(Icons.arrow_forward, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
 }

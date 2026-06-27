@@ -1,6 +1,6 @@
 /// Pantalla de Ayuda y Soporte (Help & FAQ).
 ///
-/// - Contenido por rol: users, commerce, delivery, delivery_company, admin.
+/// - Contenido por rol: user, admin.
 /// - Búsqueda en tiempo real sobre FAQs.
 /// - Temas populares (grid) que filtran por palabra clave.
 /// - Acordeón de preguntas frecuentes con "Ver todas".
@@ -10,9 +10,9 @@ library help_and_faq_page;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:zonix/config/app_config.dart';
-import 'package:zonix/features/utils/app_colors.dart';
-import 'package:zonix/features/utils/user_provider.dart';
+import 'package:zonix_glasses/config/app_config.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
+import 'package:zonix_glasses/features/utils/user_provider.dart';
 
 class HelpAndFAQPage extends StatefulWidget {
   const HelpAndFAQPage({super.key});
@@ -67,7 +67,7 @@ class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.rocket_launch, color: AppColors.blue, size: 24),
-            tooltip: 'Zonix Eats',
+            tooltip: 'Zonix Glasses',
             onPressed: () {},
           ),
         ],
@@ -494,74 +494,30 @@ class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
   }
 
   List<({String title, IconData icon, String searchKeyword})> _popularTopicsForRole(String role) {
-    switch (role) {
-      case 'users':
-        return [
-          (title: 'Mis Pedidos', icon: Icons.shopping_bag, searchKeyword: 'pedido'),
-          (title: 'Pagos y Reembolsos', icon: Icons.payments, searchKeyword: 'pago'),
-          (title: 'Mi Cuenta', icon: Icons.person, searchKeyword: 'cuenta'),
-          (title: 'Seguridad', icon: Icons.shield, searchKeyword: 'soporte'),
-        ];
-      case 'commerce':
-        return [
-          (title: 'Gestionar Pedidos', icon: Icons.receipt_long, searchKeyword: 'orden'),
-          (title: 'Productos y Menú', icon: Icons.restaurant_menu, searchKeyword: 'producto'),
-          (title: 'Promociones', icon: Icons.campaign, searchKeyword: 'promoción'),
-          (title: 'Reportes', icon: Icons.analytics, searchKeyword: 'reporte'),
-        ];
-      case 'delivery':
-      case 'delivery_agent':
-        return [
-          (title: 'Mis Entregas', icon: Icons.delivery_dining, searchKeyword: 'entrega'),
-          (title: 'Rutas', icon: Icons.route, searchKeyword: 'ruta'),
-          (title: 'Ganancias', icon: Icons.attach_money, searchKeyword: 'ganancia'),
-          (title: 'Mi Estado', icon: Icons.toggle_on, searchKeyword: 'estado'),
-        ];
-      case 'delivery_company':
-        return [
-          (title: 'Entregas', icon: Icons.local_shipping, searchKeyword: 'entrega'),
-          (title: 'Pagos', icon: Icons.payments, searchKeyword: 'pago'),
-          (title: 'Configuración', icon: Icons.settings, searchKeyword: 'soporte'),
-          (title: 'Soporte', icon: Icons.support, searchKeyword: 'soporte'),
-        ];
-      case 'admin':
-        return [
-          (title: 'Usuarios', icon: Icons.people, searchKeyword: 'usuario'),
-          (title: 'Seguridad', icon: Icons.security, searchKeyword: 'seguridad'),
-          (title: 'Analíticas', icon: Icons.bar_chart, searchKeyword: 'analítica'),
-          (title: 'Soporte', icon: Icons.support_agent, searchKeyword: 'soporte'),
-        ];
-      default:
-        return [
-          (title: 'Mis Pedidos', icon: Icons.shopping_bag, searchKeyword: 'pedido'),
-          (title: 'Pagos', icon: Icons.payments, searchKeyword: 'pago'),
-          (title: 'Mi Cuenta', icon: Icons.person, searchKeyword: 'cuenta'),
-          (title: 'Ayuda', icon: Icons.help, searchKeyword: ''),
-        ];
+    if (role == 'admin') {
+      return [
+        (title: 'Usuarios', icon: Icons.people, searchKeyword: 'usuario'),
+        (title: 'Seguridad', icon: Icons.security, searchKeyword: 'seguridad'),
+        (title: 'Notificaciones', icon: Icons.notifications, searchKeyword: 'notificación'),
+        (title: 'Soporte', icon: Icons.support_agent, searchKeyword: 'soporte'),
+      ];
     }
+    return [
+      (title: 'Mi perfil', icon: Icons.person, searchKeyword: 'perfil'),
+      (title: 'Direcciones', icon: Icons.location_on, searchKeyword: 'dirección'),
+      (title: 'Notificaciones', icon: Icons.notifications, searchKeyword: 'notificación'),
+      (title: 'Seguridad', icon: Icons.shield, searchKeyword: 'soporte'),
+    ];
   }
 
   List<({String question, String answer})> _faqForRole(String role) {
-    switch (role) {
-      case 'users':
-        return _faqUsers;
-      case 'commerce':
-        return _faqCommerce;
-      case 'delivery':
-      case 'delivery_agent':
-        return _faqDelivery;
-      case 'delivery_company':
-        return _faqDeliveryCompany;
-      case 'admin':
-        return _faqAdmin;
-      default:
-        return _faqUsers;
-    }
+    if (role == 'admin') return _faqAdmin;
+    return _faqUsers;
   }
 
   Future<void> _launchEmail(BuildContext context) async {
     final uri = Uri.parse(
-      'mailto:$_supportEmail?subject=${Uri.encodeComponent('Zonix Eats - Comentarios o soporte')}',
+      'mailto:$_supportEmail?subject=${Uri.encodeComponent('Zonix Glasses - Soporte')}',
     );
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
@@ -594,50 +550,17 @@ class _HelpAndFAQPageState extends State<HelpAndFAQPage> {
   }
 
   static final List<({String question, String answer})> _faqUsers = [
-    (question: '¿Cómo hago un pedido?', answer: 'Entra en Restaurantes o Productos, elige el restaurante y los platos. Añádelos al carrito (solo de un restaurante a la vez). En Checkout confirmas tu dirección y tipo de entrega. Después se crea la orden y podrás subir el comprobante de pago. El comercio validará el pago y preparará tu pedido.'),
-    (question: '¿Cómo cambio o agrego mi dirección de entrega?', answer: 'En Configuración (Mi perfil) → "Direcciones guardadas" puedes añadir o editar. La predeterminada se usa para buscar restaurantes; en cada pedido puedes elegir otra.'),
-    (question: '¿Qué métodos de pago puedo usar?', answer: 'Cada restaurante define los suyos: efectivo, transferencia, tarjeta, pago móvil, etc. Verás las opciones del comercio al subir el comprobante de pago en el detalle de la orden. Para transferencia o pago móvil deberás subir el comprobante en el tiempo indicado.'),
-    (question: '¿Cómo sigo mi pedido?', answer: 'En "Mis Órdenes" verás el estado: Pendiente de pago, Pagado, En preparación, Enviado, Entregado. Toca una orden para el detalle. Si hay repartidor, verás seguimiento en tiempo real.'),
-    (question: '¿Cómo cancelo mi pedido en curso?', answer: 'Solo mientras esté en "Pendiente de pago". Después depende del comercio. Si tienes un problema, contacta soporte con el número de orden.'),
-    (question: '¿Mi pedido llegó incompleto, qué hago?', answer: 'Contacta a soporte (correo o chat) e indica el número de orden y qué faltó. El equipo revisará con el comercio y te responderá.'),
-    (question: '¿Cuánto tardan los reembolsos?', answer: 'Los reembolsos se gestionan de forma manual. Una vez aprobado, el tiempo depende del método de pago (transferencia suele ser 3-5 días hábiles). Consulta con soporte para tu caso.'),
-    (question: '¿Cómo uso un cupón o promoción?', answer: 'En el checkout verás un campo para el código. Introdúcelo y aplica; se descontará si es válido. Las promociones del restaurante pueden aplicarse automáticamente.'),
-    (question: '¿Cómo contacto a soporte?', answer: 'Correo a $_supportEmail o el enlace de soporte más abajo. Para un pedido, incluye el número de orden.'),
-  ];
-
-  static final List<({String question, String answer})> _faqCommerce = [
-    (question: '¿Cómo gestiono las órdenes que me llegan?', answer: 'En el panel, pestaña "Órdenes", ves todas con filtros por estado. Toca una para ver detalle, aceptar o rechazar, y actualizar estado. Las notificaciones avisan de nuevos pedidos.'),
-    (question: '¿Cómo acepto o rechazo un pedido?', answer: 'En el detalle de la orden: Aceptar o Rechazar (con razón). Luego actualiza a "En preparación" y cuando salga con el repartidor a "Enviado".'),
-    (question: '¿Cómo doy de alta o edito mis productos?', answer: 'Panel → "Productos": ver catálogo, crear, editar, eliminar y activar/desactivar disponibilidad. El botón "+" crea un nuevo producto.'),
-    (question: '¿Cómo creo promociones o cupones?', answer: 'Configuración (Más) → "Promociones y cupones", o desde el Dashboard "Promociones". Crea promos y códigos; los clientes los usan en el checkout.'),
-    (question: '¿Dónde registro mis cuentas bancarias?', answer: 'Configuración (Más) → CONFIGURACIÓN DE NEGOCIO → "Métodos de pago". Añade cuentas bancarias y pago móvil para recibir las ventas.'),
-    (question: '¿Cómo configuro horarios y abierto/cerrado?', answer: 'En el Dashboard está el interruptor "Comercio abierto/cerrado". En Configuración → "Horarios" defines días y horas de apertura.'),
-    (question: '¿Qué son las zonas de delivery?', answer: 'Son las áreas donde ofreces envío. Configuración → "Zonas de delivery". La app usa esto para saber si un cliente puede pedirte.'),
-    (question: '¿Cómo veo mis reportes e ingresos?', answer: 'Panel → "Reportes": resumen de ventas e ingresos por periodo (hoy, semana, mes). El Dashboard muestra pendientes, órdenes hoy e ingresos hoy.'),
-    (question: '¿Cómo contacto a soporte?', answer: 'Correo a $_supportEmail o enlace de soporte. Para órdenes o pagos, incluye número de orden o referencia.'),
-  ];
-
-  static final List<({String question, String answer})> _faqDelivery = [
-    (question: '¿Cómo recibo y acepto entregas?', answer: 'Panel → "Entregas": órdenes asignadas o disponibles. Entra al detalle, revisa dirección y acepta o rechaza con motivo.'),
-    (question: '¿Qué hago si debo rechazar una entrega?', answer: 'En el detalle tienes Rechazar con razón. Si no estás disponible, pon tu estado como no disponible en vez de rechazar muchas seguidas.'),
-    (question: '¿Cómo actualizo el estado de la entrega?', answer: 'En el detalle: marca en camino, recogida o entregado. Así el cliente y el comercio siguen el pedido en tiempo real.'),
-    (question: '¿Cómo veo la ruta o dirección del cliente?', answer: 'En el detalle de la entrega ves dirección de entrega y del comercio. Puedes abrir en mapa o en tu app de navegación.'),
-    (question: '¿Dónde veo mis ganancias?', answer: 'Panel → "Ganancias": lo que has ganado por entregas. Recibes el monto según las reglas de la plataforma.'),
-    (question: '¿Qué es el estado Disponible / Trabajando?', answer: 'Indica si aceptas nuevas entregas. Con "Disponible" o "Trabajando" la app puede asignarte órdenes. Desactívalo si no estás disponible.'),
-    (question: '¿Cómo contacto a soporte?', answer: 'Correo a $_supportEmail o enlace de soporte. Para una entrega, incluye el número de orden.'),
-  ];
-
-  static final List<({String question, String answer})> _faqDeliveryCompany = [
-    (question: '¿Cómo gestiono las entregas de mi empresa?', answer: 'Tienes acceso al panel de entregas: órdenes de tus repartidores, estados y rutas. "Entregas" e "Historial" para operación.'),
-    (question: '¿Dónde registro métodos de pago de la empresa?', answer: 'Configuración (Más) → PAGOS o CONFIGURACIÓN DE EMPRESA. Ahí configuras las cuentas donde la empresa recibe.'),
-    (question: '¿Cómo contacto a soporte?', answer: 'Correo a $_supportEmail o enlace de soporte. Para facturación u operación, incluye nombre de tu empresa.'),
+    (question: '¿Cómo completo mi perfil?', answer: 'Ve a Configuración → Mi perfil y completa tus datos personales. Puedes añadir foto, teléfonos y direcciones desde las secciones correspondientes.'),
+    (question: '¿Cómo cambio o agrego una dirección?', answer: 'En Configuración → Direcciones guardadas puedes añadir, editar o marcar una como predeterminada.'),
+    (question: '¿Cómo gestiono mis métodos de pago?', answer: 'Los métodos de pago se gestionan vía API REST (/api/payment-methods). Puedes añadir una pantalla dedicada en Configuración cuando el producto lo requiera.'),
+    (question: '¿Cómo activo las notificaciones?', answer: 'La app solicita permiso al iniciar. También puedes revisar el estado en Configuración → Notificaciones.'),
+    (question: '¿Cómo contacto a soporte?', answer: 'Correo a $_supportEmail o usa el enlace de chat más abajo. Indica tu correo de cuenta para una respuesta más rápida.'),
   ];
 
   static final List<({String question, String answer})> _faqAdmin = [
-    (question: '¿Cómo gestiono usuarios?', answer: 'Panel admin → "Usuarios": buscar y gestionar cuentas (compradores, comercios, repartidores). Según permisos: ver datos, activar/desactivar, roles.'),
-    (question: '¿Dónde está la configuración de seguridad?', answer: 'Panel admin → "Seguridad": opciones de seguridad, políticas de acceso y auditoría.'),
-    (question: '¿Cómo veo las analíticas?', answer: 'Panel admin → "Sistema" o "Analíticas": vistas globales de órdenes, ingresos, comercios, repartidores y uso por periodo.'),
-    (question: '¿Cómo doy soporte a comercios o usuarios?', answer: 'Revisa órdenes, disputas o reportes desde el panel. Los usuarios contactan por correo y página de soporte; tú tienes acceso a la información para resolver.'),
-    (question: '¿Cómo contacto a soporte técnico?', answer: 'Correo a $_supportEmail o enlace de soporte. Indica que eres administrador y el tipo de consulta (técnica, facturación, etc.).'),
+    (question: '¿Cómo gestiono usuarios?', answer: 'Desde el panel admin puedes listar usuarios, ver detalle con perfil y actualizar roles (user/admin).'),
+    (question: '¿Dónde está la configuración de seguridad?', answer: 'Panel admin → Seguridad: políticas de acceso y opciones de la plataforma.'),
+    (question: '¿Cómo veo actividad reciente?', answer: 'El dashboard muestra métricas básicas y actividad reciente de la plataforma.'),
+    (question: '¿Cómo contacto a soporte técnico?', answer: 'Correo a $_supportEmail o enlace de soporte. Indica que eres administrador y el tipo de consulta.'),
   ];
 }

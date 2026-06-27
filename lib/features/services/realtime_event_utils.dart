@@ -4,13 +4,8 @@ class RealtimeEventUtils {
   static const String defaultSchemaVersion = 'legacy';
 
   static String normalizeEventName(String eventName) {
-    if (eventName.contains('OrderStatusChanged')) return 'OrderStatusChanged';
-    if (eventName.contains('OrderCreated')) return 'OrderCreated';
-    if (eventName.contains('PaymentValidated')) return 'PaymentValidated';
-    if (eventName.contains('DeliveryLocationUpdated')) return 'DeliveryLocationUpdated';
-    if (eventName.contains('OrderPendingAssignment')) return 'OrderPendingAssignment';
+    if (eventName.contains('EntityUpdated')) return 'EntityUpdated';
     if (eventName.contains('NotificationCreated')) return 'NotificationCreated';
-    if (eventName.contains('NewMessage')) return 'NewMessage';
     return eventName;
   }
 
@@ -33,8 +28,8 @@ class RealtimeEventUtils {
     return (value == null || value.isEmpty) ? defaultSchemaVersion : value;
   }
 
-  static int? extractOrderId(Map<String, dynamic> data) {
-    final raw = data['order_id'];
+  static int? extractEntityId(Map<String, dynamic> data) {
+    final raw = data['entity_id'];
     if (raw == null) return null;
     if (raw is int) return raw;
     return int.tryParse(raw.toString());
@@ -79,10 +74,10 @@ class RealtimeEventDeduper {
       }
     }
 
-    final orderId = RealtimeEventUtils.extractOrderId(data);
+    final entityId = RealtimeEventUtils.extractEntityId(data);
     final occurredAt = RealtimeEventUtils.extractOccurredAt(data);
-    if (orderId != null && occurredAt != null) {
-      final key = '$canonicalEventName:$orderId';
+    if (entityId != null && occurredAt != null) {
+      final key = '$canonicalEventName:$entityId';
       final latest = _latestByEntityKey[key];
       if (latest != null && occurredAt.isBefore(latest)) {
         _lastDropReason = 'out_of_order';

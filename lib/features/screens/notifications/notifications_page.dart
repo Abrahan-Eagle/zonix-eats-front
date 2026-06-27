@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix/models/notification_item.dart';
-import 'package:zonix/features/services/notification_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix_glasses/models/notification_item.dart';
+import 'package:zonix_glasses/features/services/notification_service.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
 
 /// Agrupa notificaciones por "Hoy", "Ayer" o fecha formateada.
 Map<String, List<NotificationItem>> _groupByDate(List<NotificationItem> items) {
@@ -47,7 +47,7 @@ List<String> _sectionOrder(Map<String, List<NotificationItem>> groups) {
   return ordered.isEmpty ? keys : ordered;
 }
 
-/// Icono y color según tipo de notificación (template: order, promo, points, support).
+/// Icono y color según tipo de notificación (system, info, alert).
 ({IconData icon, Color bgColor, Color iconColor}) _styleForType(String? type, BuildContext context) {
   final theme = Theme.of(context);
   final isDark = theme.brightness == Brightness.dark;
@@ -55,36 +55,35 @@ List<String> _sectionOrder(Map<String, List<NotificationItem>> groups) {
   final mutedFg = isDark ? AppColors.stitchSlate400 : AppColors.textMutedGray;
 
   switch (type?.toLowerCase()) {
-    case 'order':
-    case 'pedido':
-      return (icon: Icons.shopping_bag_outlined, bgColor: AppColors.blue.withValues(alpha: 0.2), iconColor: AppColors.blue);
-    case 'promotion':
-    case 'promoción':
-    case 'promo':
-      return (icon: Icons.local_offer_outlined, bgColor: AppColors.amber.withValues(alpha: 0.2), iconColor: AppColors.amber);
-    case 'points':
-    case 'puntos':
-    case 'loyalty':
-      return (icon: Icons.star_outline, bgColor: AppColors.green.withValues(alpha: 0.2), iconColor: AppColors.green);
+    case 'info':
+    case 'información':
+      return (icon: Icons.info_outline, bgColor: AppColors.blue.withValues(alpha: 0.2), iconColor: AppColors.blue);
+    case 'alert':
+    case 'alerta':
+    case 'warning':
+      return (icon: Icons.warning_amber_outlined, bgColor: AppColors.amber.withValues(alpha: 0.2), iconColor: AppColors.amber);
+    case 'system':
+    case 'sistema':
     case 'support':
     case 'soporte':
-    case 'consulta':
-      return (icon: Icons.support_agent_outlined, bgColor: mutedBg, iconColor: mutedFg);
+      return (icon: Icons.settings_outlined, bgColor: mutedBg, iconColor: mutedFg);
     default:
       break;
   }
-  return (icon: Icons.check_circle_outline, bgColor: mutedBg, iconColor: mutedFg);
+  return (icon: Icons.notifications_outlined, bgColor: mutedBg, iconColor: mutedFg);
 }
 
 /// Inferir tipo desde título/cuerpo cuando el backend no envía type.
 String? _inferType(NotificationItem n) {
   final t = n.title.toLowerCase();
   final b = n.body.toLowerCase();
-  if (t.contains('pedido') || t.contains('entregado') || t.contains('confirmado') || b.contains('pedido')) return 'order';
-  if (t.contains('promo') || t.contains('descuento') || t.contains('oferta') || t.contains('% off')) return 'promotion';
-  if (t.contains('puntos') || t.contains('points') || b.contains('puntos') || b.contains('points')) return 'points';
-  if (t.contains('soporte') || t.contains('consulta') || t.contains('resuelta') || b.contains('solicitud')) return 'support';
-  return null;
+  if (t.contains('alerta') || t.contains('importante') || t.contains('urgente') || b.contains('alerta')) {
+    return 'alert';
+  }
+  if (t.contains('sistema') || t.contains('soporte') || t.contains('consulta') || b.contains('solicitud')) {
+    return 'system';
+  }
+  return 'info';
 }
 
 class NotificationsPage extends StatefulWidget {

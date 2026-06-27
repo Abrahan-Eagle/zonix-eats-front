@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:zonix/config/app_config.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix_glasses/config/app_config.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
 
 /// Pantalla con enlaces legales: Términos, Privacidad, Cookies, Seguridad.
 /// Se accede desde Ajustes → Más → Información legal.

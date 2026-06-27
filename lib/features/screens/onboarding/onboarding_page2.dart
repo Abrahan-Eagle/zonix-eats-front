@@ -1,9 +1,9 @@
-import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// Colores del template Stitch (Onboarding 2 - Pedidos fáciles)
+// Onboarding 2 — flujo rápido (Zonix Glasses)
 
 class OnboardingPage2 extends StatefulWidget {
   const OnboardingPage2({super.key});
@@ -65,11 +65,10 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                     ),
                     child: Column(
                       children: [
-                        // Título: "Pide en un" + "par de clics" con subrayado curvo (como HTML)
                         Column(
                           children: [
                             Text(
-                              'Pide en un',
+                              'Configura en',
                               textAlign: TextAlign.center,
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: titleSize,
@@ -83,7 +82,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Text(
-                                  'par de clics',
+                                  'pocos pasos',
                                   textAlign: TextAlign.center,
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: titleSize,
@@ -105,7 +104,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Elige tu antojo, confirma tu ubicación y espera a que aterrice en tu puerta.',
+                          'Completa tu perfil, activa notificaciones y entra a la app con todo listo.',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: bodySize,
@@ -188,7 +187,8 @@ class _OnboardingPage2State extends State<OnboardingPage2>
     final ringSize = 288.0 * scale;
     final dashedSize = 352.0 * scale;
     final centerSize = 128.0 * scale;
-    final orbSizes = [64.0 * scale, 56.0 * scale, 48.0 * scale]; // burger, pizza, taco
+    final orbSizes = [64.0 * scale, 56.0 * scale, 48.0 * scale];
+    final orbIcons = [Icons.person_outline, Icons.notifications_outlined, Icons.settings_outlined];
 
     return Stack(
       alignment: Alignment.center,
@@ -273,7 +273,6 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                   color: AppColors.white.withValues(alpha: 0.9),
                 ),
               ),
-              // Burger: -top-4 right-4, rotate-12 (HTML)
               AnimatedBuilder(
                 animation: _floatController,
                 builder: (context, _) {
@@ -283,12 +282,11 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                     right: 16 * scale,
                     child: Transform.rotate(
                       angle: 12 * math.pi / 180,
-                      child: _buildFoodOrb('🍔', orbSizes[0]),
+                      child: _buildFeatureOrb(orbIcons[0], orbSizes[0]),
                     ),
                   );
                 },
               ),
-              // Pizza: bottom-0 -left-2, -rotate-12
               AnimatedBuilder(
                 animation: _floatController,
                 builder: (context, _) {
@@ -298,12 +296,11 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                     left: -8 * scale,
                     child: Transform.rotate(
                       angle: -12 * math.pi / 180,
-                      child: _buildFoodOrb('🍕', orbSizes[1]),
+                      child: _buildFeatureOrb(orbIcons[1], orbSizes[1]),
                     ),
                   );
                 },
               ),
-              // Taco: bottom-8 -right-6, rotate-6
               AnimatedBuilder(
                 animation: _floatController,
                 builder: (context, _) {
@@ -313,7 +310,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
                     right: -24 * scale,
                     child: Transform.rotate(
                       angle: 6 * math.pi / 180,
-                      child: _buildFoodOrb('🌮', orbSizes[2]),
+                      child: _buildFeatureOrb(orbIcons[2], orbSizes[2]),
                     ),
                   );
                 },
@@ -329,7 +326,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
     );
   }
 
-  Widget _buildFoodOrb(String emoji, double size) {
+  Widget _buildFeatureOrb(IconData icon, double size) {
     return Container(
       width: size,
       height: size,
@@ -345,12 +342,7 @@ class _OnboardingPage2State extends State<OnboardingPage2>
           ),
         ],
       ),
-      child: Center(
-        child: Text(
-          emoji,
-          style: TextStyle(fontSize: size * 0.5),
-        ),
-      ),
+      child: Icon(icon, color: AppColors.blue, size: size * 0.45),
     );
   }
 

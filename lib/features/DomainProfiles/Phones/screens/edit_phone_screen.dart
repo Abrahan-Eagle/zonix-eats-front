@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/phone.dart';
 import '../api/phone_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
-import 'package:zonix/features/utils/user_provider.dart';
-import 'package:zonix/features/services/commerce_list_service.dart';
-import 'package:zonix/models/my_commerce.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
+import 'package:zonix_glasses/features/utils/user_provider.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix/features/utils/safe_parse.dart';
+import 'package:zonix_glasses/features/utils/safe_parse.dart';
 
 class EditPhoneScreen extends StatefulWidget {
   final Phone phone;
@@ -34,22 +32,12 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
   bool _isActive = true;
   bool _isLoading = false;
   String _context = PhoneContext.personal;
-  List<MyCommerce> _commerces = [];
-  int? _selectedCommerceId;
 
   @override
   void initState() {
     super.initState();
     _initializeData();
     _loadOperatorCodes();
-    _loadCommerces();
-  }
-
-  Future<void> _loadCommerces() async {
-    try {
-      final list = await CommerceListService.getMyCommerces();
-      if (mounted) setState(() => _commerces = list);
-    } catch (_) {}
   }
 
   void _initializeData() {
@@ -58,7 +46,6 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
     _isPrimary = widget.phone.isPrimary;
     _isActive = widget.phone.status;
     _context = widget.phone.context;
-    _selectedCommerceId = widget.phone.commerceId;
 
     debugPrint('DEBUG: Initializing data for phone: ${widget.phone.id}');
     debugPrint('DEBUG: Original number: ${widget.phone.number}');
@@ -120,15 +107,6 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
         'is_primary': _isPrimary ? 1 : 0,
         'status': _isActive ? 1 : 0,
       };
-      if (_context == PhoneContext.commerce) {
-        updates['commerce_id'] = _selectedCommerceId;
-      } else {
-        updates['commerce_id'] = null;
-        updates['delivery_company_id'] = null;
-      }
-      if (_context == PhoneContext.deliveryCompany) {
-        updates['delivery_company_id'] = widget.phone.deliveryCompanyId;
-      }
 
       debugPrint('DEBUG: Phone ID: ${widget.phone.id}');
       debugPrint('DEBUG: Updates: $updates');
@@ -192,35 +170,9 @@ class EditPhoneScreenState extends State<EditPhoneScreen> {
                   ))
               .toList(),
           onChanged: (value) {
-            if (value != null) {
-              setState(() {
-                _context = value;
-                if (value != PhoneContext.commerce) _selectedCommerceId = null;
-              });
-            }
+            if (value != null) setState(() => _context = value);
           },
         ),
-        if (_context == PhoneContext.commerce) ...[
-          const SizedBox(height: 16),
-          DropdownButtonFormField<int>(
-            initialValue: _selectedCommerceId,
-            decoration: InputDecoration(
-              labelText: 'Comercio',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: borderColor),
-              ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
-            ),
-            items: _commerces
-                .map((c) => DropdownMenuItem<int>(value: c.id, child: Text(c.businessName)))
-                .toList(),
-            onChanged: (value) => setState(() => _selectedCommerceId = value),
-            validator: _context == PhoneContext.commerce
-                ? (v) => v == null ? 'Selecciona un comercio' : null
-                : null,
-          ),
-        ],
       ],
     );
   }

@@ -2,11 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
-import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/api/profile_service.dart';
-import 'package:zonix/features/DomainProfiles/Profiles/models/profile_model.dart';
-import 'package:zonix/features/utils/user_provider.dart';
-import 'package:image/image.dart' as img;
+import 'package:zonix_glasses/features/DomainProfiles/Profiles/api/profile_service.dart';
+import 'package:zonix_glasses/features/DomainProfiles/Profiles/models/profile_model.dart';
+import 'package:zonix_glasses/features/utils/user_provider.dart';
 import 'package:intl/intl.dart';
 
 class CreateProfilePage extends StatefulWidget {
@@ -24,7 +22,7 @@ class CreateProfilePageState extends State<CreateProfilePage> {
   final TextEditingController _dateController = TextEditingController();
   File? _imageFile;
   final ImagePicker _picker = ImagePicker();
-  bool _isDetecting = false;
+  bool _isSubmitting = false;
 
   @override
   void initState() {
@@ -49,162 +47,19 @@ class CreateProfilePageState extends State<CreateProfilePage> {
     super.dispose();
   }
 
-  Future<String?> _compressImage(String filePath) async {
-    try {
-      // Mostrar el indicador de carga
-      bool isDialogOpen = true;
-      showDialog(
-        context: context,
-        barrierDismissible: false, // Impide cerrar el diálogo tocando fuera
-        builder: (BuildContext context) {
-          return const Center(child: CircularProgressIndicator());
-        },
-      );
-
-      final imageFile = File(filePath);
-
-      // Verifica el tamaño de la imagen antes de decodificarla
-      final imageSize = await imageFile.length();
-      if (imageSize <= 2 * 1024 * 1024) {
-        if (!mounted) return null;
-        Navigator.of(context).pop();
-        return filePath;
-      }
-
-      // Decodificar la imagen
-      final originalImage = img.decodeImage(await imageFile.readAsBytes());
-      if (!mounted) return null;
-      if (originalImage == null) {
-        Navigator.of(context).pop();
-        return null; // Error al decodificar la imagen
-      }
-
-      List<int> compressedBytes;
-      String extension = filePath.split('.').last.toLowerCase();
-      int quality = 85;
-
-      // Comprimir según el tipo de imagen
-      if (extension == 'png') {
-        compressedBytes = img.encodePng(originalImage, level: 6);
-      } else {
-        compressedBytes = img.encodeJpg(originalImage, quality: quality);
-        // Reducir la calidad si es necesario para que la imagen no sea mayor a 2MB
-        while (compressedBytes.length > 2 * 1024 * 1024 && quality > 10) {
-          quality -= 5;
-          compressedBytes = img.encodeJpg(originalImage, quality: quality);
-        }
-      }
-
-      // Guardar la imagen comprimida en el sistema de archivos
-      final compressedImageFile = await File(
-        '${imageFile.parent.path}/compressed_${imageFile.uri.pathSegments.last}',
-      ).writeAsBytes(compressedBytes);
-
-      if (!mounted) return null;
-      // Cerrar el diálogo de carga
-      if (isDialogOpen) {
-        Navigator.of(context).pop();
-        isDialogOpen = false;
-      }
-
-      return compressedImageFile.path;
-    } catch (e) {
-      if (!mounted) return null;
-      Navigator.of(context).pop(); // Cerrar el diálogo si hay un error
-      debugPrint("Error al comprimir la imagen: $e");
-      return null;
-    }
-  }
+  Future<String?> _compressImage(String filePath) async => filePath;
 
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.camera);
     if (pickedFile != null) {
-      String? compressedImagePath = await _compressImage(pickedFile.path);
-      if (compressedImagePath != null) {
-        setState(() {
-          _imageFile = File(compressedImagePath);
-          _profile = _profile.copyWith(photo: _imageFile!.path);
-        });
-        await _faceDetect();
-      }
-    } else {
-      if (!mounted) return;
+      setState(() {
+        _imageFile = File(pickedFile.path);
+        _profile = _profile.copyWith(photo: _imageFile!.path);
+      });
+    } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('No se seleccionó ninguna imagen.'),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.fixed,
-          action: SnackBarAction(label: 'OK', onPressed: () {}),
-        ),
+        const SnackBar(content: Text('No se seleccionó ninguna imagen.')),
       );
-    }
-  }
-
-  Future<void> _faceDetect() async {
-    if (_imageFile == null || _isDetecting) return;
-
-    setState(() {
-      _isDetecting = true;
-    });
-
-    try {
-      final InputImage inputImage = InputImage.fromFile(_imageFile!);
-      final FaceDetector faceDetector = FaceDetector(
-        options: FaceDetectorOptions(
-          enableLandmarks: true,
-          enableClassification: true,
-        ),
-      );
-
-      final List<Face> faces = await faceDetector.processImage(inputImage);
-      if (!mounted) return;
-      if (faces.isEmpty) {
-        setState(() {
-          _imageFile = null;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text(
-              'No se detectó un rostro. Por favor, asegúrate de que tu cara esté visible.',
-              style: TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.orange,
-            behavior: SnackBarBehavior.fixed,
-            action: SnackBarAction(label: 'OK', onPressed: () {}),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Rostro identificado correctamente: ${faces.length}',
-              style: const TextStyle(color: Colors.white),
-            ),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.fixed,
-            action: SnackBarAction(label: 'OK', onPressed: () {}),
-          ),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Error al procesar la imagen: $e',
-            style: const TextStyle(color: Colors.white),
-          ),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.fixed,
-          action: SnackBarAction(label: 'OK', onPressed: () {}),
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isDetecting = false;
-        });
-      }
     }
   }
 

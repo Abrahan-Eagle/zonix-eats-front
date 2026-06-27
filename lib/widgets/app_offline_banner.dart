@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:zonix/features/services/connectivity_service.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix_glasses/features/services/connectivity_service.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
 
 /// Sticky banner that appears at the top of the body when the device is offline.
 /// Wrap your `Scaffold.body` with this widget or place it inside a [Column].

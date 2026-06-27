@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zonix/features/utils/rif_formatter.dart';
+import 'package:zonix_glasses/features/utils/rif_formatter.dart';
 
 void main() {
   group('formatRifDisplay', () {

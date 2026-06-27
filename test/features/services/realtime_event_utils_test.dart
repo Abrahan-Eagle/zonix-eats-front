@@ -1,12 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:zonix/features/services/realtime_event_utils.dart';
+import 'package:zonix_glasses/features/services/realtime_event_utils.dart';
 
 void main() {
   group('RealtimeEventUtils', () {
     test('normaliza nombres con namespace', () {
       expect(
-        RealtimeEventUtils.normalizeEventName(r'App\Events\OrderStatusChanged'),
-        'OrderStatusChanged',
+        RealtimeEventUtils.normalizeEventName(r'App\Events\EntityUpdated'),
+        'EntityUpdated',
       );
       expect(
         RealtimeEventUtils.normalizeEventName('NotificationCreated'),
@@ -31,15 +31,15 @@ void main() {
       final now = DateTime.parse('2026-01-01T00:00:00Z');
       final event = {
         'event_id': 'evt-dup',
-        'order_id': 10,
+        'entity_id': 10,
         'occurred_at': '2026-01-01T00:00:00Z',
       };
       expect(
-        deduper.shouldAccept(canonicalEventName: 'OrderStatusChanged', data: event, now: now),
+        deduper.shouldAccept(canonicalEventName: 'EntityUpdated', data: event, now: now),
         isTrue,
       );
       expect(
-        deduper.shouldAccept(canonicalEventName: 'OrderStatusChanged', data: event, now: now.add(const Duration(seconds: 5))),
+        deduper.shouldAccept(canonicalEventName: 'EntityUpdated', data: event, now: now.add(const Duration(seconds: 5))),
         isFalse,
       );
     });
@@ -49,20 +49,20 @@ void main() {
       final base = DateTime.parse('2026-01-01T00:00:00Z');
       final newEvent = {
         'event_id': 'evt-new',
-        'order_id': 11,
+        'entity_id': 11,
         'occurred_at': '2026-01-01T00:01:00Z',
       };
       final oldEvent = {
         'event_id': 'evt-old',
-        'order_id': 11,
+        'entity_id': 11,
         'occurred_at': '2026-01-01T00:00:30Z',
       };
       expect(
-        deduper.shouldAccept(canonicalEventName: 'OrderStatusChanged', data: newEvent, now: base),
+        deduper.shouldAccept(canonicalEventName: 'EntityUpdated', data: newEvent, now: base),
         isTrue,
       );
       expect(
-        deduper.shouldAccept(canonicalEventName: 'OrderStatusChanged', data: oldEvent, now: base.add(const Duration(seconds: 1))),
+        deduper.shouldAccept(canonicalEventName: 'EntityUpdated', data: oldEvent, now: base.add(const Duration(seconds: 1))),
         isFalse,
       );
     });

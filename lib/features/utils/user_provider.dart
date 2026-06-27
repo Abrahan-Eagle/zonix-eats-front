@@ -2,16 +2,13 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:zonix/config/app_config.dart';
+import 'package:zonix_glasses/config/app_config.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:zonix/features/utils/auth_utils.dart';
-import 'package:zonix/features/services/pusher_service.dart';
-import 'package:zonix/features/services/commerce_data_service.dart';
+import 'package:zonix_glasses/features/utils/auth_utils.dart';
+import 'package:zonix_glasses/features/services/pusher_service.dart';
 import 'package:logger/logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:provider/provider.dart';
-import 'package:zonix/features/services/delivery_service.dart';
 
 final logger = Logger();
 const FlutterSecureStorage _storage = FlutterSecureStorage();
@@ -33,7 +30,6 @@ class UserProvider with ChangeNotifier {
   bool _profileCreated = false;
   bool _adresseCreated = false;
   bool _documentCreated = false;
-  bool _gasCylindersCreated = false;
   bool _phoneCreated = false;
   bool _emailCreated = false;
 
@@ -60,7 +56,6 @@ class UserProvider with ChangeNotifier {
   bool get profileCreated => _profileCreated;
   bool get adresseCreated => _adresseCreated;
   bool get documentCreated => _documentCreated;
-  bool get gasCylindersCreated => _gasCylindersCreated;
   bool get phoneCreated => _phoneCreated;
   bool get emailCreated => _emailCreated;
   String get userName => _userName;
@@ -101,12 +96,6 @@ class UserProvider with ChangeNotifier {
   void setDocumentCreated(bool value) {
     _documentCreated = value;
     _storage.write(key: 'documentCreated', value: value.toString());
-    notifyListeners();
-  }
-
-  void setGasCylindersCreated(bool value) {
-    _gasCylindersCreated = value;
-    _storage.write(key: 'gasCylindersCreated', value: value.toString());
     notifyListeners();
   }
 
@@ -158,18 +147,8 @@ class UserProvider with ChangeNotifier {
     // Reintento por si el token FCM llegó después del login (permiso notificaciones)
     Future.delayed(const Duration(seconds: 3), () => _registerFcmToken());
 
-    if (_role == 'commerce') {
-      try {
-        final data = await CommerceDataService.getCommerceData();
-        final commerceId = data['id'] is int
-            ? data['id'] as int
-            : int.tryParse(data['id']?.toString() ?? '0') ?? 0;
-        if (commerceId > 0) {
-          PusherService.instance.subscribeToCommerceChannel(commerceId);
-        }
-      } catch (e) {
-        logger.w('Could not subscribe to commerce channel: $e');
-      }
+    if (_role == 'admin') {
+      // Reservado para canales admin en futuros módulos.
     }
   }
 
@@ -208,7 +187,7 @@ class UserProvider with ChangeNotifier {
 
       logger.i('FCM: registrando token en backend...');
       final response = await http.post(
-        Uri.parse('${AppConfig.apiUrl}/api/chat/fcm/register'),
+        Uri.parse('${AppConfig.apiUrl}/api/notifications/fcm/register'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -251,7 +230,6 @@ class UserProvider with ChangeNotifier {
       _profileCreated = (await _storage.read(key: 'profileCreated')) == 'true';
       _adresseCreated = (await _storage.read(key: 'adresseCreated')) == 'true';
       _documentCreated = (await _storage.read(key: 'documentCreated')) == 'true';
-      _gasCylindersCreated = (await _storage.read(key: 'gasCylindersCreated')) == 'true';
       _phoneCreated = (await _storage.read(key: 'phoneCreated')) == 'true';
       _emailCreated = (await _storage.read(key: 'emailCreated')) == 'true';
     } catch (e) {
@@ -450,7 +428,7 @@ class UserProvider with ChangeNotifier {
   Future<void> _unregisterFcmTokenWithToken(String token) async {
     try {
       await http.post(
-        Uri.parse('${AppConfig.apiUrl}/api/chat/fcm/unregister'),
+        Uri.parse('${AppConfig.apiUrl}/api/notifications/fcm/unregister'),
         headers: {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
@@ -468,7 +446,6 @@ class UserProvider with ChangeNotifier {
     _profileCreated = false;
     _adresseCreated = false;
     _documentCreated = false;
-    _gasCylindersCreated = false;
     _phoneCreated = false;
     _emailCreated = false;
     _userName = '';
@@ -489,7 +466,6 @@ class UserProvider with ChangeNotifier {
     await _storage.delete(key: 'profileCreated');
     await _storage.delete(key: 'adresseCreated');
     await _storage.delete(key: 'documentCreated');
-    await _storage.delete(key: 'gasCylindersCreated');
     await _storage.delete(key: 'phoneCreated');
     await _storage.delete(key: 'emailCreated');
     await _storage.delete(key: 'token');
@@ -499,28 +475,14 @@ class UserProvider with ChangeNotifier {
   }
 
   // Bypass de login para tests de integración
-  void setAuthenticatedForTest({String role = 'commerce'}) {
+  void setAuthenticatedForTest({String role = 'user'}) {
     _isAuthenticated = true;
     _role = role;
     _userId = 9999;
-    _userName = 'Test Commerce';
-    _userEmail = 'test@commerce.com';
+    _userName = 'Test User';
+    _userEmail = 'test@zonix-glasses.local';
     _userPhotoUrl = '';
+    _completedOnboarding = true;
     notifyListeners();
   }
-}
-
-/// Si [DeliveryService] detectó 401/403 o token inválido, limpia [UserProvider] y muestra aviso.
-Future<void> syncDeliverySessionAfterApi(BuildContext context, DeliveryService delivery) async {
-  if (!delivery.consumeSessionInvalidated()) return;
-  if (!context.mounted) return;
-  await context.read<UserProvider>().invalidateSessionLocally();
-  if (!context.mounted) return;
-  ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(
-      content: Text(
-        'Tu sesión expiró o el servidor reinició los datos. Vuelve a iniciar sesión.',
-      ),
-    ),
-  );
 }

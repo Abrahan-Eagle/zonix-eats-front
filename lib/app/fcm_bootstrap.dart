@@ -7,16 +7,16 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:logger/logger.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:zonix/app/fcm_hooks.dart';
-import 'package:zonix/app/notification_navigation.dart';
+import 'package:zonix_glasses/app/fcm_hooks.dart';
+import 'package:zonix_glasses/app/notification_navigation.dart';
 
 final Logger _fcmLogger = Logger();
 
 const FlutterSecureStorage _secureStorage = FlutterSecureStorage();
 
 /// ID del canal de notificaciones (sonido + vibración).
-const String fcmNotificationChannelId = 'zonix_eats_fcm';
-const String fcmNotificationChannelName = 'Notificaciones Zonix Eats';
+const String fcmNotificationChannelId = 'app_fcm';
+const String fcmNotificationChannelName = 'Notificaciones';
 DateTime? _lastForegroundLocalNotificationAt;
 
 /// true = usa res/raw/zonix_notification.mp3; false = sonido por defecto del sistema.
@@ -28,7 +28,7 @@ AndroidNotificationChannel _buildFcmChannel() {
   return const AndroidNotificationChannel(
     fcmNotificationChannelId,
     fcmNotificationChannelName,
-    description: 'Notificaciones push de pedidos y mensajes',
+    description: 'Notificaciones push de la aplicación',
     importance: Importance.high,
     playSound: true,
     enableVibration: true,
@@ -41,7 +41,7 @@ AndroidNotificationDetails _buildFcmNotificationDetails() {
   return const AndroidNotificationDetails(
     fcmNotificationChannelId,
     fcmNotificationChannelName,
-    channelDescription: 'Notificaciones push de pedidos y mensajes',
+    channelDescription: 'Notificaciones push de la aplicación',
     importance: Importance.high,
     priority: Priority.high,
     playSound: true,
@@ -112,7 +112,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (androidPlugin != null) {
     await androidPlugin.createNotificationChannel(_buildFcmChannel());
   }
-  final title = message.notification?.title ?? message.data['title'] ?? 'Zonix Eats';
+  final title = message.notification?.title ?? message.data['title'] ?? 'Zonix Glasses';
   final body = message.notification?.body ?? message.data['body'] ?? 'Nueva notificación';
   final payload = message.data.isNotEmpty ? jsonEncode(message.data) : null;
   await plugin.show(
@@ -167,7 +167,7 @@ Future<void> initFcmToken() async {
 /// Registra listeners FCM de foreground / opened app (llamar tras [Firebase.initializeApp]).
 void registerFcmForegroundListeners() {
   FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    final title = message.notification?.title ?? message.data['title'] ?? 'Zonix Eats';
+    final title = message.notification?.title ?? message.data['title'] ?? 'Zonix Glasses';
     final body = message.notification?.body ?? message.data['body'] ?? 'Nueva notificación';
     final payload = message.data.isNotEmpty ? jsonEncode(message.data) : null;
     final now = DateTime.now();

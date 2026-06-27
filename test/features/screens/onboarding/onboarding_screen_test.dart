@@ -3,8 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-import 'package:zonix/features/screens/onboarding/onboarding_page3.dart';
-import 'package:zonix/features/screens/onboarding/onboarding_provider.dart';
+import 'package:zonix_glasses/features/screens/onboarding/onboarding_page3.dart';
+import 'package:zonix_glasses/features/utils/user_provider.dart';
 
 void main() {
   setUpAll(() async {
@@ -13,27 +13,17 @@ void main() {
     }
   });
 
-  testWidgets('Seleccionar rol Cliente actualiza OnboardingProvider', (WidgetTester tester) async {
+  testWidgets('OnboardingPage3 muestra CTA de entrada', (WidgetTester tester) async {
     await tester.pumpWidget(
-      ChangeNotifierProvider<OnboardingProvider>(
-        create: (_) => OnboardingProvider(),
+      ChangeNotifierProvider<UserProvider>(
+        create: (_) => UserProvider()..setAuthenticatedForTest(role: 'user'),
         child: const MaterialApp(
           home: OnboardingPage3(),
         ),
       ),
     );
 
-    // Tocar la tarjeta de "Soy Cliente"
-    final clienteTextFinder = find.text('Soy Cliente');
-    expect(clienteTextFinder, findsOneWidget);
-    await tester.tap(clienteTextFinder);
-    await tester.pump();
-
-    // Verificar que el provider global tiene el rol 'users'
-    final context = tester.element(find.byType(OnboardingPage3));
-    final onboardingProvider = Provider.of<OnboardingProvider>(context, listen: false);
-    expect(onboardingProvider.selectedRole, equals('users'));
+    expect(find.text('Entrar a la app'), findsOneWidget);
+    expect(find.text('¡Listo para empezar!'), findsOneWidget);
   });
 }
-
-

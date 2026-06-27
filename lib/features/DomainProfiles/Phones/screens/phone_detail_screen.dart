@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import '../models/phone.dart';
 import '../api/phone_service.dart';
 import 'edit_phone_screen.dart';
-import 'package:zonix/features/utils/app_colors.dart';
+import 'package:zonix_glasses/features/utils/app_colors.dart';
 
 class PhoneDetailScreen extends StatefulWidget {
   final Phone phone;
