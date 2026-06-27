@@ -23,9 +23,12 @@ La IA debe considerar estos tres como parte del estado actual del proyecto al in
 - **Fuente de verdad:** Este repo. `AGENTS.md`, `.cursorrules` y `docs/active_context.md` están en la raíz o en `docs/`.
 - Para que Cursor, Angravity y Copilot vean lo mismo: abrir el **mismo directorio del repo** en cada herramienta (recomendado).
 - Si usás varias carpetas (back y front por separado), cada una tiene su propio `AGENTS.md` y `docs/active_context.md`; el script `scripts/sync-context-for-ia.sh` puede servir para refrescar fechas o comprobar que los archivos existan.
-- Skills: están en `.agents/skills/`. Cursor las referencia desde AGENTS.md. Para Angravity/Copilot, si soportan un directorio de skills, apuntarlo a `.agents/skills/`.
+- **Skills globales JARVIS:** instaladas en `~/.cursor/skills/` vía `jarvis-skills-library/scripts/install.sh`. Cursor las auto-descubre; **no copiar** al repo del producto.
+- **Skills de dominio:** `.agents/skills/zonix-glasses-*/`. Cursor las referencia desde `AGENTS.md`.
+- Para Angravity/Copilot: globales desde IDE; dominio desde `.agents/skills/`.
 
 ## Actualización del contexto
 
-- **Al cerrar una sesión con cambios relevantes:** usar la skill **context-updater** para actualizar `docs/active_context.md`.
-- **Al terminar una tarea:** usar la skill **documentar-avances** para proponer el párrafo de "Cambios recientes" (el usuario aprueba antes de aplicar).
+- **Canon negocio (hub Backend):** `../zonix-glasses-back/docs/PRODUCT_VISION.md`, `docs/MODELO_NEGOCIO/`, `docs/BRAND_ZONIX_GLASSES.md`
+- **Al cerrar sesión:** skill **context-updater** → `docs/active_context.md`
+- **Skills Paso C:** `./scripts/sync-global-skills-from-library.sh` — ver `../zonix-glasses-back/docs/ZONIX_GLASSES_JARVIS_INTEGRATION.md`
