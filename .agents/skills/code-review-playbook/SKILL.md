@@ -291,6 +291,7 @@ cache.set(key, value, CACHE_TTL_SECONDS);
 
 ## Related Skills
 
+- `doubt-driven-development` — revisión adversarial **in-flight** antes de merge; este skill = veredicto **post-hoc** en PR
 - `ork:architecture-patterns` - Enforce testing and architectural best practices during code review
 - `security-scanning` - Automated security checks to complement manual review
 - `ork:testing-patterns` - Comprehensive testing patterns to verify during review

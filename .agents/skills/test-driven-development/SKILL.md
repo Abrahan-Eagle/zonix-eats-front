@@ -1,6 +1,12 @@
 ---
 name: test-driven-development
 description: Use when implementing any feature or bugfix, before writing implementation code
+license: UNLICENSED
+metadata:
+  version: "1.1.0"
+  auto_invoke:
+    - "Implementar feature o bugfix"
+  related-skills: [verification-before-completion, systematic-debugging, doubt-driven-development]
 ---
 
 # Test-Driven Development (TDD)
@@ -353,6 +359,8 @@ Can't check all boxes? You skipped TDD. Start over.
 Bug found? Write failing test reproducing it. Follow TDD cycle. Test proves fix and prevents regression.
 
 Never fix bugs without a test.
+
+Para claims conductuales, el paso RED satisface el ciclo doubt-driven (ver skill `doubt-driven-development`). Para invariantes no verificables por tipos (thread-safety, ordering), usar doubt-driven además de TDD.
 
 ## Testing Anti-Patterns
 

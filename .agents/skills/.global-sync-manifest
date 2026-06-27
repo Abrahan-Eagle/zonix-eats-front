@@ -1,0 +1,54 @@
+# Global skills synced from jarvis-skills-library — Zonix Glasses Front
+# Format: <skill-name> <tier>
+# tier: passthrough | overlay
+
+jarvis-core overlay
+jarvis-experts overlay
+brainstorming-ops overlay
+deep-interview-ops overlay
+task-pipeline-ops overlay
+structured-commits-ops overlay
+session-learner-ops overlay
+git-guardrails-ops overlay
+
+systematic-debugging passthrough
+verification-before-completion passthrough
+test-driven-development passthrough
+executing-plans passthrough
+writing-plans passthrough
+handoff passthrough
+zoom-out passthrough
+code-review-playbook passthrough
+receiving-code-review passthrough
+requesting-code-review passthrough
+using-git-worktrees passthrough
+finishing-a-development-branch passthrough
+skill-creator passthrough
+git-commit passthrough
+
+parallel-judge-ops passthrough
+fan-out-synthesize-ops passthrough
+agent-loop-engineering passthrough
+human-in-the-loop-ops passthrough
+cognitive-doc-design-ops passthrough
+comment-writer-ops passthrough
+
+github-code-review passthrough
+work-unit-commits-ops passthrough
+branch-pr-ops passthrough
+chained-pr-ops passthrough
+docs-alignment-ops passthrough
+backlog-triage-ops passthrough
+engram-router passthrough
+engram-memory-protocol passthrough
+context-updater passthrough
+doubt-driven-development passthrough
+
+clean-architecture passthrough
+flutter-expert passthrough
+flutter-animations passthrough
+mobile-developer passthrough
+responsive-design passthrough
+ui-router passthrough
+ui-ux-pro-max overlay
+webapp-testing passthrough

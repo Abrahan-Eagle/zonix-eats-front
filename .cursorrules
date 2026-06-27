@@ -1,133 +1,76 @@
 ---
-description: "Guía de desarrollo Frontend (Flutter) para Zonix Eats"
+description: "Guía de desarrollo Frontend (Flutter) — Zonix Glasses"
 alwaysApply: true
 ---
 
 ## Jarvis (definición)
 
-**Jarvis** = todo el ecosistema de guía para la IA en este proyecto: este archivo (`.cursorrules`), las skills en `.agents/skills/`, y los documentos de referencia (`AGENTS.md`, `docs/*.md`). Cuando el usuario diga **"Jarvis"** se refiere a este conjunto. Mantener coherencia entre todos estos elementos.
+**Jarvis** = ecosistema de guía IA: `.cursorrules`, `.agents/skills/`, `AGENTS.md`, `docs/*.md`. Mantener coherencia entre todos.
 
-**Cumplir este archivo:** Al iniciar una tarea o ante duda sobre cómo proceder, revisar `.cursorrules` para no salirse de las reglas aquí definidas (colaboración, preguntar antes de actuar, usar skills, etc.).
-
----
-
-## Instrucciones Completas
-
-Para instrucciones completas del proyecto, arquitectura, convenciones, skills disponibles
-y reglas de negocio, consulta el archivo `AGENTS.md` en la raíz del proyecto.
-
-Cursor lee `AGENTS.md` automáticamente. Toda la información de desarrollo está centralizada allí.
-
-**Contexto entre sesiones:** Al iniciar o retomar el proyecto, leer `docs/active_context.md` si existe, para tener el estado reciente de la última sesión sin que el usuario tenga que pedirlo.
-
-**Sugerencias proactivas:** La IA debe ofrecer sugerencias de forma habitual: siguiente paso, mejoras posibles, preguntas de clarificación o recordatorios de reglas/docs relevantes.
+**Al iniciar:** leer `docs/active_context.md` si existe.
 
 ---
 
-## Reglas de Colaboración (Cursor-Específicas)
+## Skills globales JARVIS
 
-**IMPORTANTE: El usuario es el líder del proyecto. No soy un autómata que ejecuta sin pensar.**
-
-1. **SIEMPRE PREGUNTAR** antes de realizar cualquier acción
-2. **NUNCA crear archivos nuevos** si es para editar código existente
-3. **SIEMPRE sugerir detalladamente** qué hacer y esperar aprobación
-4. **NUNCA hacer push/merge a git** sin orden explícita del usuario
-5. **Solo hacer commits locales** cuando se realicen cambios
-6. **El usuario prueba primero** y da la orden cuando está seguro
-7. **Documentar avances:** Usar la skill **documentar-avances**: al finalizar una tarea relevante, proponer el párrafo para "Cambios recientes" (AGENTS.md/README); el usuario aprueba antes de escribir. Al cerrar una sesión con cambios relevantes, usar la skill **context-updater** para actualizar `docs/active_context.md`. Si el cambio afecta una skill de dominio, actualizar la skill y su fecha.
-
-### Cierre de módulo y subida a GitHub
-
-**La decisión de subir actualizaciones a GitHub la toma siempre el usuario.** La IA no hace commit/push/merge sin que el usuario lo autorice.
-
-**Documentar siempre los cambios antes de hacer commit y push**, para que la documentación se guarde en el mismo commit (AGENTS.md, README, `docs/active_context.md`, skills si aplica).
-
-Cuando se termine un módulo o tarea:
-
-1. **Documentar:** Proponer y escribir (con aprobación del usuario) "Cambios recientes" en AGENTS.md/README, actualizar `docs/active_context.md` si la sesión lo amerita, y actualizar skills de dominio si aplica. Así el commit incluirá código + documentación.
-2. **Ejecutar tests** del proyecto (ej. `flutter test` en frontend).
-3. **Si los tests pasan:** Preguntar al usuario: _"Los tests pasaron. ¿Quieres que haga commit y push a la rama [ej. dev]?"_ Solo si el usuario dice que sí, hacer commit y push a esa rama (incluyendo los archivos de documentación ya actualizados).
-4. **Después de actualizar la rama:** Preguntar: _"¿Quieres actualizar la rama main? (sí/no)"_. Si dice **sí**, hacer merge de la rama actual en `main` y push de `main`. Si dice **no**, no tocar `main`.
-5. Nunca asumir que debe subir o actualizar main; siempre preguntar y actuar según la respuesta del usuario.
-
-### Convención de Respuesta
-
-```
-1. Explicar qué se va a hacer y por qué
-2. Mostrar código específico con contexto
-3. Esperar confirmación antes de implementar
-4. Reportar resultado después de implementar
-```
+- Fuente: `/var/www/html/proyectos/AIPP/jarvis-skills-library`
+- Instalación: `bash scripts/install.sh --all` (en ese repo)
+- Cursor las carga desde `~/.cursor/skills/` — **NO copiar** al repo del producto
+- Dominio exclusivo: `.agents/skills/zonix-glasses-*`
+- Mejoras globales → editar solo en `jarvis-skills-library`, nunca duplicar por proyecto
 
 ---
 
-## Recordatorios Rápidos (Ver AGENTS.md para detalles)
+## Instrucciones completas
 
-### Stack
+Ver **`AGENTS.md`** en la raíz. Cursor lo carga automáticamente.
 
-- **Flutter** >=3.5.0 / Dart 3.5.0+ / Provider pattern
-- **Pusher + FCM** para eventos (NO WebSocket)
-- **AppConfig.apiUrl** — NUNCA URLs hardcodeadas
+---
 
-### Roles (6 — Terminología Estándar)
+## Reglas de colaboración
 
-| Código en BD       | Nombre Estándar      | Descripción                         |
-| ------------------ | -------------------- | ----------------------------------- |
-| `users`            | **Buyer**            | Comprador, Cliente                  |
-| `commerce`         | **Commerce**         | Comercio, Restaurante               |
-| `delivery_company` | **Delivery Company** | Empresa que administra repartidores |
-| `delivery_agent`   | **Delivery Agent**   | Repartidor vinculado a empresa      |
-| `delivery`         | **Delivery**         | Repartidor autónomo (sin empresa)   |
-| `admin`            | **Admin**            | Administrador                       |
+1. **Preguntar** antes de actuar en cambios no triviales
+2. **No push/merge** sin orden explícita
+3. **Usuario prueba primero** (`flutter run`, dispositivo/emulador)
+4. Commits solo cuando el usuario lo pida
+5. Al cerrar sesión relevante: skill **`context-updater`** → `docs/active_context.md`
+6. Al terminar tarea: skill **`documentar-avances`** → propuesta para AGENTS.md (aprobación del usuario)
 
-### Patrón de Servicio
+---
+
+## Stack (recordatorio)
+
+- Flutter / Dart — paquete **`zonix`** (nombre técnico legacy)
+- Provider + servicios por feature
+- **`AppConfig.apiUrl`** — nunca URLs hardcodeadas
+- Pusher + FCM cuando el producto lo use
+
+---
+
+## Patrones
 
 ```dart
-class XxxService extends ChangeNotifier {
-  List<Xxx> _items = [];
-  bool _isLoading = false;
-  String? _error;
-  // getters, notifyListeners(), try/catch
-}
+// Servicio: ChangeNotifier + notifyListeners + try/catch
+// Pantalla: initState → load; Consumer<Service> → loading/error/data
 ```
 
-### Patrón de Pantalla
+---
 
-```dart
-// initState → addPostFrameCallback → service.load()
-// build → Consumer<Service> → loading/error/empty/data states
-```
+## Skills recomendadas
 
-### Reglas Clave
+Globales (desde `~/.cursor/skills/`): `flutter-expert`, `ui-ux-pro-max`, `mobile-developer`, `systematic-debugging`, `context-updater`, `documentar-avances`.
 
-- SIEMPRE usar `AppConfig.apiUrl`
-- SIEMPRE usar `AuthHelper.getAuthHeaders()`
-- SIEMPRE `Consumer<Service>` para rebuilds reactivos
-- UN solo comercio por carrito
-- Pusher SOLAMENTE (NO WebSocket)
+Dominio (local): `zonix-glasses-ui-patterns`.
 
-### Skills de dominio recomendadas
+---
 
-- **zonix-ui-design**: para construir o ajustar pantallas, widgets, cards, botones y layouts de la app.
-- **zonix-onboarding**: para cualquier flujo de registro / onboarding por rol, perfiles, teléfonos, direcciones y documentos.
-- **zonix-order-lifecycle**: para UI y servicios relacionados con estados de orden, cancelaciones y tracking de pedidos.
-- **zonix-realtime-events**: para integración de Pusher y FCM en Flutter (suscripciones, manejo de eventos y notificaciones).
-
-### Tests
+## Verificación
 
 ```bash
-flutter test                         # Todos (214)
-flutter test test/services/...       # Específico
-flutter analyze                      # Análisis
+flutter analyze
+flutter test
 ```
-
-### Código limpio (no dejar cochinero)
-
-- **Eliminar código no usado:** Al tocar un archivo, quitar imports no usados, variables/funciones muertas y comentarios obsoletos. No acumular "por si acaso".
-- **Respetar el analizador:** Corregir avisos de `flutter analyze` en los archivos que se modifican (prefer*const, unused*\*, etc.), salvo que haya razón explícita para dejarlos.
-- **Regla práctica:** Si algo no se usa en este archivo, se elimina. Si se necesita después, se recupera del historial o se vuelve a añadir.
 
 ---
 
-**Última actualización:** 31 Marzo 2026
-**Para instrucciones completas:** Ver `AGENTS.md`
+**Última actualización:** Junio 2026

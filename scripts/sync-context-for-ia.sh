@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # sync-context-for-ia.sh — Comprueba y opcionalmente actualiza archivos de contexto para IA (Frontend).
-# Uso: desde la raíz del repo (zonix-eats-front), ejecutar: ./scripts/sync-context-for-ia.sh
+# Uso: desde la raíz del repo (scaffold-front), ejecutar: ./scripts/sync-context-for-ia.sh
 # Opción: SYNC_DATE=1 ./scripts/sync-context-for-ia.sh — actualiza "Última actualización" con la fecha de hoy.
 
 set -e
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
 
-echo "=== Sync contexto IA — Zonix Eats Frontend ==="
+echo "=== Sync contexto IA — Zonix Glasses Frontend ==="
 echo "Raíz: $REPO_ROOT"
 echo ""
 

@@ -1,6 +1,12 @@
 ---
 name: systematic-debugging
 description: Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes
+license: UNLICENSED
+metadata:
+  version: "1.1.0"
+  auto_invoke:
+    - "Encontrar bug o test fallido"
+  related-skills: [verification-before-completion, test-driven-development]
 ---
 
 # Systematic Debugging
