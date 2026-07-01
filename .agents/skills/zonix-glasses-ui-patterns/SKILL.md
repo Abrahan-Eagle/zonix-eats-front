@@ -33,8 +33,8 @@ allowed-tools: [Read, Edit, Write, Glob, Grep, Bash]
 | Mis fórmulas / upload | Manual + OCR status |
 | Catálogo monturas | Grid, filtros, precio |
 | Try-on | Ver skill `zonix-glasses-virtual-tryon` |
-| Carrito | Líneas lente + montura desglosadas |
-| Checkout | Pago manual VE, comprobante |
+| Carrito | Líneas `OrderLineItem` (montura, lentes/lab, courier, delivery) |
+| Checkout | Desglose dinámico v3.1: **total checkout**; IVA incluido (línea `iva_info`); envío gratis por zona; modalidad **4.1** (100%) o **4.2** (30%+70%); comprobante VE |
 | Partner: pacientes | Lista + alta + cargar fórmula |
 
 ## Anti-patrones

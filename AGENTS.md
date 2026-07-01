@@ -7,6 +7,7 @@
 
 ## Cambios recientes
 
+- **2026-06-27:** Espejo hub back v3.1 — forense doc-vs-doc PASS (repaso subagentes); código congelado; front en pausa hasta post-HITL.
 - **2026-06-18:** Proyecto Zonix Glasses; skills globales JARVIS por referencia; paquete `zonix_glasses`, ID nativo `com.zonix.glasses`.
 
 ---
@@ -20,7 +21,7 @@
 | **Paquete** | `zonix_glasses` |
 | **Plataformas** | Android, iOS, Web |
 | **API Backend** | `../zonix-glasses-back/` (Laravel REST) |
-| **Estado** | Bootstrap inicial — listo para desarrollo |
+| **Estado** | Diseño negocio v3.1 — doc-vs-doc PASS; UI **en pausa** hasta post-HITL legal/seguridad |
 | **Agentes IA** | Cursor + skills globales JARVIS |
 
 ---
