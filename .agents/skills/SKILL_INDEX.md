@@ -33,6 +33,7 @@
 | `jarvis-core` | local | overlay | Iniciar módulo; Planificar desarrollo… |
 | `jarvis-experts` | local | overlay | Cualquier tarea no trivial; Decisión cross-rol… |
 | `mobile-developer` | local | passthrough | — |
+| `notebooklm-router` | local | passthrough | Consultar NotebookLM / notebook con citas; Configurar NotebookLM MCP en Cursor… |
 | `parallel-judge-ops` | local | passthrough | Día del juicio / jueces paralelos; Verificación adversarial paralela de un artefacto… |
 | `playwright-skill` | local | local-only | — |
 | `qa-testing-playwright` | local | local-only | — |
@@ -55,5 +56,6 @@
 | `webapp-testing` | local | passthrough | — |
 | `work-unit-commits-ops` | local | passthrough | Dividir implementación en commits reviewables; Preparar commits antes de abrir PR… |
 | `writing-plans` | local | passthrough | Planificar desarrollo |
-| `zonix-glasses-ui-patterns` | local | local-only | UI Zonix Glasses; fórmulas, catálogo, try-on, checkout óptica |
+| `zonix-glasses-ui-patterns` | local | local-only | UI Zonix Glasses; Pantalla óptica |
+| `zonix-glasses-virtual-tryon` | local | local-only | — |
 | `zoom-out` | local | passthrough | — |

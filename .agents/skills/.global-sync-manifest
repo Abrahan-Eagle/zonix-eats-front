@@ -41,6 +41,7 @@ docs-alignment-ops passthrough
 backlog-triage-ops passthrough
 engram-router passthrough
 engram-memory-protocol passthrough
+notebooklm-router passthrough
 context-updater passthrough
 doubt-driven-development passthrough
 

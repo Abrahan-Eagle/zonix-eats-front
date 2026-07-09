@@ -35,30 +35,26 @@ Ver también [docs/UI_UX_PRO_MAX_INTEGRATION.md](../../docs/UI_UX_PRO_MAX_INTEGR
 ## Detección (repo activo)
 
 ```bash
-# Zonix Glasses (Flutter — este repo)
-grep -q 'name: zonix_glasses' pubspec.yaml 2>/dev/null && echo GLASSES_FLUTTER
+# Zonix Pharma (Backend hub)
+test -f docs/BRAND_ZONIX_PHARMA.md && echo ZONIX
 
-# Zonix Glasses (Backend hub espejo)
-test -f ../zonix-glasses-back/docs/MODELO_NEGOCIO/DECISIONES_FOUNDER.md && echo GLASSES
-
-# Zonix Pharma — DEPRECATED en repo Glasses; usar solo en ZonixPharma-Front/Back
-# test -f docs/BRAND_ZONIX_PHARMA.md && echo ZONIX
+# Zonix Pharma (Flutter)
+test -f lib/features/utils/app_colors.dart && grep -q brandTeal lib/features/utils/app_colors.dart 2>/dev/null && echo ZONIX_FLUTTER
 
 # CorralX (Flutter)
 test -f lib/config/corral_x_theme.dart && echo CORRALX
 
 # Overlay local (cualquier producto)
+test -f .cursor/skills/ui-ux-pro-max/ZONIX.md && echo HAS_ZONIX_OVERLAY
 test -f .cursor/skills/ui-ux-pro-max/CORRALX.md && echo HAS_CORRALX_OVERLAY
-test -f .agents/skills/ui-ux-pro-max/OVERLAY.md && echo HAS_AGENTS_OVERLAY
+test -f .agents/skills/ui-ux-pro-max/ZONIX.md && echo HAS_ZONIX_OVERLAY_AGENTS
 ```
 
 | Producto detectado | Skill dominio | Doc marca | Overlay típico |
 |--------------------|---------------|-----------|----------------|
-| **GLASSES / GLASSES_FLUTTER** | `zonix-glasses-ui-patterns` | `../zonix-glasses-back/docs/MODELO_NEGOCIO/DECISIONES_FOUNDER.md` | `ui-ux-pro-max/OVERLAY.md` |
+| ZONIX / ZONIX_FLUTTER | `zonix-ui-design`, `zonix-web-design` (web) | `docs/BRAND_ZONIX_PHARMA.md` | `ZONIX.md` |
 | CORRALX | `corralx-ui-design` | tema en `lib/config/` | `CORRALX.md` |
 | Genérico | `frontend-design` (si no hay dominio) | — | `OVERLAY.md` opcional |
-
-> **Nota repo Glasses:** no enrutar a `zonix-ui-design` / `BRAND_ZONIX_PHARMA.md` (vertical Pharma — copia legacy del manifest global).
 
 ## Precedencia (siempre)
 
