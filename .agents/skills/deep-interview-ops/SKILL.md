@@ -10,7 +10,8 @@ metadata:
     - "Requisitos ambiguos"
   related-skills:
     - brainstorming-ops
-    - product-kyc-ui
+    - speckit-clarify
+    - jarvis-core
 ---
 
 # Deep interview ops — proyecto activo

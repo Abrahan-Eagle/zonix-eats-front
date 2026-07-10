@@ -1,21 +1,27 @@
 ---
 name: code-review-playbook
+description: >
+  Use this skill when conducting or improving code reviews. Provides structured review
+  processes, conventional comments patterns, language-specific checklists, and feedback templates.
+  Trigger: Revisar PRs, estandarizar code review, checklists de review.
 license: MIT
-compatibility: "Claude Code 2.1.49+."
-description: Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices.
-version: 2.0.0
-author: AI Agent Hub
-tags: [code-review, quality, collaboration, best-practices]
-context: fork
-agent: code-quality-reviewer
-user-invocable: false
-hooks:
-  PostToolUse:
-    - matcher: "Write|Edit"
-      command: "${CLAUDE_PLUGIN_ROOT}/src/hooks/bin/run-hook.mjs skill/pattern-consistency-enforcer"
-complexity: low
 metadata:
-  category: document-asset-creation
+  author: JARVIS Global
+  version: "2.0.0"
+  scope: [global]
+  category: review
+  auto_invoke:
+    - "Code review"
+    - "Revisar pull request"
+    - "Estandarizar prácticas de review"
+  triggers: code-review, quality, collaboration, PR review, checklist
+  related-skills:
+    - requesting-code-review
+    - receiving-code-review
+    - comment-writer-ops
+    - branch-pr-ops
+    - jarvis-core
+allowed-tools: [Read, Edit, Write, Glob, Grep, Bash]
 ---
 
 # Code Review Playbook

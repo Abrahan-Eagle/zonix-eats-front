@@ -5,6 +5,8 @@ trigger: Al finalizar una sesión de trabajo con cambios arquitectónicos, de ne
 scope: docs/active_context.md
 author: Scaffold Team
 version: 1.0
+license: UNLICENSED
+
 ---
 
 # Context Updater — Memoria entre sesiones

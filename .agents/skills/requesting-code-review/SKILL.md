@@ -1,20 +1,33 @@
 ---
 name: requesting-code-review
 description: >
-  Code review antes de merge. Trigger: feature UI completa.
+  Pedir code review antes de merge. Delega checklist a code-review-playbook.
+  Trigger: feature lista, pedir review, pre-merge.
 license: UNLICENSED
 metadata:
-  version: "1.0.0"
-  upstream: superpowers:requesting-code-review
+  author: JARVIS Global
+  version: "1.1.0"
+  scope: [global]
+  category: review
+  auto_invoke:
+    - "Pedir code review"
+    - "Code review antes de merge"
+  triggers: requesting review, pre-merge, pedir review
   related-skills:
     - code-review-playbook
-    - product-ui-design
+    - receiving-code-review
+    - verification-before-completion
+    - branch-pr-ops
+allowed-tools: [Read, Edit, Write, Glob, Grep, Bash]
 ---
 
-# Requesting code review — proyecto activo
+# Requesting code review
 
-Revisar: `flutter analyze`, `flutter test`, BuildContext tras async, tema claro/oscuro, accesibilidad básica.
+Antes de pedir review o abrir PR:
 
-Invocar `code-review-playbook` + `{producto}-ui-design` para pantallas visibles.
+1. Invocar `verification-before-completion` (tests/analyze del stack).
+2. Autorevisión con [`code-review-playbook`](../code-review-playbook/SKILL.md).
+3. UI (si aplica): tema claro/oscuro, BuildContext tras async, a11y básica + skill de dominio `{producto}-ui-design`.
+4. Abrir PR con `branch-pr-ops`.
 
-Antes de merge a `dev`.
+Canónico de proceso/checklist: **code-review-playbook** (no `github-code-review` / `code-review-excellence`, deprecados).

@@ -15,7 +15,8 @@ metadata:
   related-skills:
     - deep-interview-ops
     - jarvis-core
-    - product-ui-design
+    - ui-router
+    - writing-plans
 ---
 
 # Brainstorming ops — proyecto activo
