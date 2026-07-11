@@ -8,7 +8,12 @@ license: UNLICENSED
 metadata:
   version: "2.0.0"
   adapted_from: mattpocock/skills (handoff)
-  related-skills: [session-learner-ops, writing-plans, executing-plans, jarvis-core]
+  related-skills:
+    - strategic-compact-ops
+    - session-learner-ops
+    - writing-plans
+    - executing-plans
+    - jarvis-core
   auto_invoke:
     - "Compactar o traspasar sesion"
 ---
@@ -17,11 +22,14 @@ metadata:
 
 Para **traspasos a mitad de tarea**, no para cierre formal de módulo (usar `session-learner-ops`).
 
+Precedencia: si la sesión es larga o hay hito de fase, pasar primero por **`strategic-compact-ops`** (sugerir compactar + OK usuario) y luego escribir este documento.
+
 ## Cuándo usar
 
 - Fin de sesión con trabajo incompleto
 - Cambio de agente / ventana / modelo
 - El usuario pide "déjame un handoff" o "continúa en otro chat"
+- Tras OK de `strategic-compact-ops`
 
 ## Dónde guardar
 
@@ -66,6 +74,7 @@ Una acción concreta para el siguiente agente.
 
 | Situación | Skill |
 |-----------|-------|
+| Sesión larga / sugerir compactar | `strategic-compact-ops` → luego `handoff` |
 | Mitad de tarea | `handoff` |
 | Módulo cerrado | `session-learner-ops` → `docs/active_context.md` |
 | Plan aprobado pendiente | Referenciar `.agents/plans/implementation_plan.md` |

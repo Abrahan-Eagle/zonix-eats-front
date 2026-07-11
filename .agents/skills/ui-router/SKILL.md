@@ -30,7 +30,7 @@ allowed-tools: [Read, Edit, Write, Glob, Grep, Bash]
 
 Router de **proceso UI**, no de dominio. Skills `{producto}-ui-design` y overlays viven en el repo del producto.
 
-Ver también [docs/UI_UX_PRO_MAX_INTEGRATION.md](../../docs/UI_UX_PRO_MAX_INTEGRATION.md).
+Ver también [docs/UI_UX_PRO_MAX_INTEGRATION.md](../../../docs/UI_UX_PRO_MAX_INTEGRATION.md).
 
 ## Detección (repo activo)
 
@@ -76,7 +76,7 @@ test -f .agents/skills/ui-ux-pro-max/ZONIX.md && echo HAS_ZONIX_OVERLAY_AGENTS
 | Solo responsive/breakpoints | `responsive-design` primero; `ui-ux-pro-max` si hay dudas de layout global |
 | Feature con Spec Kit + UI | `sdd-router` → specs → implement; al tocar UI, aplicar esta cadena |
 | Artefacto standalone (carrusel, deck, email, prototipo HTML) | `open-design-router` → `open-design` (no código en repo) |
-| Prototipo web en Google Stitch (MCP) | `stitch-router` → skills upstream ([STITCH_UPSTREAM.md](../../docs/STITCH_UPSTREAM.md)) |
+| Prototipo web en Google Stitch (MCP) | `stitch-router` → skills upstream ([STITCH_UPSTREAM.md](../../../docs/STITCH_UPSTREAM.md)) |
 | Landing con video hero generado por IA (cadena multi-tool: Nano Banana + Veo/Kling + Claude Design/Code) | `ai-media-landing-ops` (assets + draft HTML); implementación en repo → `ui-router` |
 
 ## Comandos antes de implementar UI nueva
@@ -125,8 +125,8 @@ En el repo producto: copiar solo el overlay (ej. `ZONIX.md`) bajo `.cursor/skill
 
 Si la tarea cambia **cómo se ve, se siente, se mueve o se interactúa** en el **código del producto**, usar esta cadena.
 
-Para **entregables visuales standalone** (carrusel RRSS, deck, email HTML sin tocar `lib/`), usar `open-design-router` ([OPEN_DESIGN_INTEGRATION.md](../../docs/OPEN_DESIGN_INTEGRATION.md)).
+Para **entregables visuales standalone** (carrusel RRSS, deck, email HTML sin tocar `lib/`), usar `open-design-router` ([OPEN_DESIGN_INTEGRATION.md](../../../docs/OPEN_DESIGN_INTEGRATION.md)).
 
-Para **prototipos en plataforma Stitch** (MCP + `stitch::generate-design`, `stitch-loop`, etc.), usar `stitch-router` ([STITCH_UPSTREAM.md](../../docs/STITCH_UPSTREAM.md)) — no confundir con Flutter en repo.
+Para **prototipos en plataforma Stitch** (MCP + `stitch::generate-design`, `stitch-loop`, etc.), usar `stitch-router` ([STITCH_UPSTREAM.md](../../../docs/STITCH_UPSTREAM.md)) — no confundir con Flutter en repo.
 
 Para **landings con video hero generado por IA** (cadena Claude → Nano Banana → Veo/Kling → Claude Design/Code), usar `ai-media-landing-ops` — assets + draft HTML; implementación en repo → `ui-router`.

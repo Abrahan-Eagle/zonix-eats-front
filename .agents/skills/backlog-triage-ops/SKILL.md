@@ -29,7 +29,7 @@ allowed-tools: [Read, Edit, Write, Glob, Grep, Bash]
 - **Precedencia:** `jarvis-core` > esta skill. Merge/push: `git-guardrails-ops` (solo OK usuario).
 - **Generalizar filosofía:** leer `AGENTS.md` / `CONTRIBUTING.md` del **repo activo** y adaptar la tabla de principios antes de clasificar (no asumir labels Engram en productos JARVIS).
 - **Review profunda de diff:** `code-review-playbook` o `parallel-judge-ops`.
-- Doc: [docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md](../../docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md).
+- Doc: [docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md](../../../docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md).
 
 # Backlog Triage Ops
 

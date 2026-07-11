@@ -27,7 +27,7 @@ allowed-tools: [Read, Edit, Write, Glob, Grep, Bash]
 
 - **Precedencia:** `jarvis-core` > esta skill. Brownfield spec gaps: `speckit-converge`.
 - **Mismo PR:** docs del cambio van con el código que las afecta (`work-unit-commits-ops`).
-- Doc: [docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md](../../docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md).
+- Doc: [docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md](../../../docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md).
 
 # Docs Alignment Ops
 

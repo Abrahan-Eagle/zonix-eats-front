@@ -13,6 +13,7 @@ metadata:
   auto_invoke:
     - "Compactar contexto"
     - "Sesión larga sugerir compactación"
+    - "Compactar o traspasar sesion"
   triggers: compact, compactación, strategic compact, contexto largo
   related-skills:
     - handoff
@@ -20,6 +21,7 @@ metadata:
     - session-startup-ops
     - learning-loop-router
     - agent-loop-engineering
+    - human-in-the-loop-ops
     - jarvis-core
 allowed-tools: [Read, Edit, Write, Glob, Grep]
 ---
@@ -51,7 +53,7 @@ Proponer al usuario (HITL) cuando ocurra **cualquiera**:
 1. Anunciar: "Sugiero compactar: [motivo]. ¿Procedo a escribir handoff?"
 2. Con OK → skill **`handoff`** (documento `.agents/plans/handoff_*.md`)
 3. Opcional Engram: `mem_save` de decisiones irreversibles
-4. Tras compactación del cliente: **`session-startup-ops`** + `engram-memory-protocol` §post-compactación
+4. Tras compactación del cliente: **`session-startup-ops`** + `engram-memory-protocol` (sección *Tras compactación de contexto*)
 
 ## Qué NO hacer
 
@@ -62,5 +64,6 @@ Proponer al usuario (HITL) cuando ocurra **cualquiera**:
 ## Skills relacionadas
 
 - `handoff` — traspaso/compactación mid-task
-- `engram-memory-protocol` — recuperación post-compactación
+- `engram-memory-protocol` — recuperación post-compactación (*Tras compactación de contexto*)
 - `session-startup-ops` — checklist al retomar
+- `human-in-the-loop-ops` — OK usuario antes de compactar / acciones irreversibles

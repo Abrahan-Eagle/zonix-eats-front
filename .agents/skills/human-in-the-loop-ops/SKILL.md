@@ -33,7 +33,7 @@ allowed-tools: [Read, Edit, Write, Glob, Grep, Bash, Task]
 
 Gobernanza operativa para bucles agénticos y decisiones autónomas: **cuándo** el humano aprueba, supervisa o queda fuera del bucle.
 
-Guía ecosistema: [docs/LOOP_AI_ECOSYSTEM.md](../../docs/LOOP_AI_ECOSYSTEM.md).
+Guía ecosistema: [docs/LOOP_AI_ECOSYSTEM.md](../../../docs/LOOP_AI_ECOSYSTEM.md).
 
 ## IRON LAW
 

@@ -14,6 +14,7 @@ metadata:
     - "Dividir implementación en commits reviewables"
     - "Preparar commits antes de abrir PR"
     - "Evitar PR monolítico desde SDD tasks"
+    - "Crear commit"
   triggers: work unit commits, split commits, atomic commits, commit story, reviewable commits
   related-skills:
     - jarvis-core
@@ -31,7 +32,7 @@ allowed-tools: [Read, Edit, Write, Glob, Grep, Bash]
 - **Precedencia:** `jarvis-core` > esta skill. Mensaje final: `git-commit`. Trailers de decisión: `structured-commits-ops`.
 - **TDD:** tests con el comportamiento que verifican — ver `test-driven-development`.
 - **PR >400 líneas:** promover grupos de commits a `chained-pr-ops`.
-- Doc: [docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md](../../docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md).
+- Doc: [docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md](../../../docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md).
 
 # Work Unit Commits Ops
 

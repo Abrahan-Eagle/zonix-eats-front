@@ -1,12 +1,24 @@
 ---
 name: context-updater
-description: Actualizar el contexto de sesión para que la IA "recuerde" entre sesiones. Resumir cambios relevantes en docs/active_context.md al cerrar o finalizar una sesión de trabajo significativa.
-trigger: Al finalizar una sesión de trabajo con cambios arquitectónicos, de negocio o de convenciones; o cuando el usuario indique que va a cerrar o pausar.
-scope: docs/active_context.md
-author: Scaffold Team
-version: 1.0
+description: >
+  Actualizar el contexto de sesión para que la IA "recuerde" entre sesiones.
+  Resumir cambios relevantes en docs/active_context.md al cerrar o finalizar
+  una sesión de trabajo significativa. Trigger: Cerrar sesión, actualizar active_context.
 license: UNLICENSED
-
+metadata:
+  author: JARVIS Global
+  version: "1.1"
+  scope: [global]
+  category: ops
+  auto_invoke:
+    - "Cerrar sesión"
+  triggers: context updater, active_context, cerrar sesión, memoria entre sesiones
+  related-skills:
+    - session-learner-ops
+    - session-startup-ops
+    - handoff
+    - jarvis-core
+allowed-tools: [Read, Edit, Write, Glob, Grep]
 ---
 
 # Context Updater — Memoria entre sesiones

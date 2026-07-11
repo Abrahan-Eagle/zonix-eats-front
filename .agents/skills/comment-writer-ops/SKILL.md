@@ -29,7 +29,7 @@ allowed-tools: [Read, Glob, Grep, Bash]
 
 - **Precedencia:** `jarvis-core` > esta skill. **Proceso de review:** `code-review-playbook`; **estructura del PR body:** `cognitive-doc-design-ops`.
 - **Review técnico profundo:** `parallel-judge-ops` genera hallazgos; esta skill **redacta** cómo comunicarlos.
-- Doc: [docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md](../../docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md).
+- Doc: [docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md](../../../docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md).
 
 # Comment Writer Ops
 

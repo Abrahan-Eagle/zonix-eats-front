@@ -29,7 +29,7 @@ allowed-tools: [Read, Edit, Write, Glob, Grep, Bash]
 
 Router para [Engram](https://github.com/Gentleman-Programming/engram) (MIT): memoria persistente agent-agnostic vía MCP (`mem_*` tools). **Opt-in** — complementa, no sustituye, `docs/active_context.md` y `context-updater`.
 
-Guía: [docs/ENGRAM_INTEGRATION.md](../../docs/ENGRAM_INTEGRATION.md). Ecosistema: [docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md](../../docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md).
+Guía: [docs/ENGRAM_INTEGRATION.md](../../../docs/ENGRAM_INTEGRATION.md). Ecosistema: [docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md](../../../docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md).
 
 ## Detección runtime
 

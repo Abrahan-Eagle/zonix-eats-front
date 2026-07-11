@@ -35,7 +35,7 @@ allowed-tools: [Read, Edit, Write, Glob, Grep, Bash, Task]
 - **Gobernanza:** todo loop autónomo pasa por `human-in-the-loop-ops` (modo, terminación, gates) **antes** de correr.
 - **Ejecución:** loop declarativo YAML+CLI → `skill-loop-router` → skill `skill-loop`. Orquestación paralela por defecto → `fan-out-synthesize-ops`. Verificación adversarial paralela → `parallel-judge-ops`.
 - **Plataforma:** `/loop`, `/goal`, `goal mode` y dynamic workflows **no existen** en Cursor. Aproximación JARVIS: Task subagents + `using-git-worktrees` + `skill-loop` + `human-in-the-loop-ops`.
-- Doc de origen: [docs/GENTLE_AI_LOOP_INTEGRATION.md](../../docs/GENTLE_AI_LOOP_INTEGRATION.md). Mapa: [docs/LOOP_AI_ECOSYSTEM.md](../../docs/LOOP_AI_ECOSYSTEM.md).
+- Doc de origen: [docs/GENTLE_AI_LOOP_INTEGRATION.md](../../../docs/GENTLE_AI_LOOP_INTEGRATION.md). Mapa: [docs/LOOP_AI_ECOSYSTEM.md](../../../docs/LOOP_AI_ECOSYSTEM.md).
 
 # Agent Loop Engineering
 

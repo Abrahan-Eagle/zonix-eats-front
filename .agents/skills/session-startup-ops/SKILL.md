@@ -19,8 +19,10 @@ metadata:
     - engram-memory-protocol
     - engram-router
     - context-updater
+    - context-packs-ops
     - handoff
     - session-learner-ops
+    - strategic-compact-ops
 allowed-tools: [Read, Glob, Grep, Bash]
 ---
 
@@ -41,7 +43,8 @@ Equivalente conceptual a ECC `session-start.js`, como **protocolo** (no hook SSO
 3. **Handoff / plan pendiente:** buscar `.agents/plans/handoff_*.md` o `implementation_plan.md` recientes; resumir en 3–5 bullets.
 4. **Engram (si MCP activo):** `mem_context` / `mem_search` del proyecto; no inventar si el MCP no responde.
 5. **Declarar** `> Roles:` y `> Skills:` (bootstrap JARVIS).
-6. **activity-log (opcional):** si el producto usa `state/tasks/`, listar tareas `open` con el bin `activity-log`.
+6. **Context pack (opcional):** si la sesión es research / produce / review, declarar `> Context pack: research|produce|review` según `context-packs-ops` (cierra el enlace unidireccional con esa skill).
+7. **activity-log (opcional):** si el producto usa `state/tasks/`, listar tareas `open` con el bin `activity-log`.
 
 ## Qué NO hacer
 
@@ -53,5 +56,6 @@ Equivalente conceptual a ECC `session-start.js`, como **protocolo** (no hook SSO
 
 - `jarvis-core` — precedencia y directiva de memoria
 - `handoff` — traspaso mid-task
+- `context-packs-ops` — modos research/produce/review
 - `engram-memory-protocol` — recuperación post-compactación
 - `strategic-compact-ops` — cuándo sugerir compactar (no en arranque)

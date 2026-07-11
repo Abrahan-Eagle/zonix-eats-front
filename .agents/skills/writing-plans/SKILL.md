@@ -9,6 +9,7 @@ metadata:
   upstream: superpowers:writing-plans
   auto_invoke:
     - "Planificar desarrollo"
+    - "Iniciar módulo"
 ---
 
 # Writing plans — proyecto activo

@@ -29,7 +29,7 @@ allowed-tools: [Read, Edit, Write, Glob, Grep, Bash]
 - **Requiere:** Engram MCP activo (`engram setup cursor` vía `install-engram-runtime.sh`). Router: `engram-router`.
 - **No sustituye:** `session-learner-ops`, `context-updater`, `docs/active_context.md` del producto — usar **ambas capas** cuando Engram esté instalado.
 - **MCP tools:** invocar vía herramientas MCP del agente (`mem_save`, `mem_search`, `mem_context`, `mem_session_summary`, `mem_judge`, `mem_compare`).
-- Doc: [docs/ENGRAM_INTEGRATION.md](../../docs/ENGRAM_INTEGRATION.md).
+- Doc: [docs/ENGRAM_INTEGRATION.md](../../../docs/ENGRAM_INTEGRATION.md).
 
 # Engram Memory Protocol
 

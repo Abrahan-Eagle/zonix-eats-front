@@ -34,7 +34,7 @@ Router para [NotebookLM](https://notebooklm.google.com/) vía MCP
 documentos al contexto del agente. No es API pública: automatiza Chrome y
 reutiliza cookies tras un login único.
 
-Guía: [docs/NOTEBOOKLM_INTEGRATION.md](../../docs/NOTEBOOKLM_INTEGRATION.md).
+Guía: [docs/NOTEBOOKLM_INTEGRATION.md](../../../docs/NOTEBOOKLM_INTEGRATION.md).
 
 ## Gate MCP (obligatorio)
 

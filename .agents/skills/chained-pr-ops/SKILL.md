@@ -30,7 +30,7 @@ allowed-tools: [Read, Edit, Write, Glob, Grep, Bash]
 - **Precedencia:** `jarvis-core` > esta skill. Commits atómicos: `work-unit-commits-ops`. Abrir PR: `branch-pr-ops`.
 - **Push/merge:** solo con orden explícita del usuario — `git-guardrails-ops`.
 - **Review pre-merge:** `code-review-playbook` o `parallel-judge-ops` en PRs de alto riesgo.
-- Doc: [docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md](../../docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md).
+- Doc: [docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md](../../../docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md).
 
 # Chained PR Ops
 

@@ -29,7 +29,7 @@ allowed-tools: [Read, Edit, Write, Glob, Grep, Bash]
 - **Precedencia:** `jarvis-core` > esta skill. **Exactitud vs código:** `docs-alignment-ops`.
 - **PRs encadenados:** enlazar PR anterior/siguiente y "qué revisar primero" — ver `chained-pr-ops`.
 - **Comentarios humanos en review:** `comment-writer-ops` (tono); esta skill cubre **estructura** del doc.
-- Doc: [docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md](../../docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md).
+- Doc: [docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md](../../../docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md).
 
 # Cognitive Doc Design Ops
 

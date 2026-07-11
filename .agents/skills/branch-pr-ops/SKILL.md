@@ -34,7 +34,7 @@ allowed-tools: [Read, Edit, Write, Glob, Grep, Bash]
 - **PR >400 líneas:** `chained-pr-ops` antes de abrir.
 - **Issues desde tasks:** `speckit-taskstoissues` (opcional, OK usuario).
 - Adaptar reglas issue-first / labels al `AGENTS.md` y CI del **repo activo** (no asumir labels de gentle-ai/engram).
-- Doc: [docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md](../../docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md).
+- Doc: [docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md](../../../docs/GENTLEMAN_ECOSYSTEM_INTEGRATION.md).
 
 # Branch & PR Ops
 

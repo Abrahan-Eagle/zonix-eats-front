@@ -36,7 +36,7 @@ allowed-tools: [Read, Edit, Write, Glob, Grep, Bash, Task]
 - **Prohibido** anidar Task desde un subagent — escalar a la sesión principal.
 - **Verify adversarial:** fase Verify de alto riesgo → `parallel-judge-ops` (especialización de esta skill).
 - **Duda in-flight (1 decisión):** `doubt-driven-development` — no sustituye fan-out general.
-- Doc de origen: [docs/LOOP_AI_ECOSYSTEM.md](../../docs/LOOP_AI_ECOSYSTEM.md) — patrón Fan-out-and-synthesize.
+- Doc de origen: [docs/LOOP_AI_ECOSYSTEM.md](../../../docs/LOOP_AI_ECOSYSTEM.md) — patrón Fan-out-and-synthesize.
 
 # Fan-out Synthesize Ops (Map-Reduce agentico)
 

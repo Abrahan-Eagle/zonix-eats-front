@@ -27,7 +27,7 @@ allowed-tools: [Read, Edit, Write, Glob, Grep, Bash, Task]
 
 ## JARVIS / Cursor (mandatory)
 
-- **Router:** `agent-skills-router`. Doc: [docs/AGENT_SKILLS_ADDY_INTEGRATION.md](../../docs/AGENT_SKILLS_ADDY_INTEGRATION.md)
+- **Router:** `agent-skills-router`. Doc: [docs/AGENT_SKILLS_ADDY_INTEGRATION.md](../../../docs/AGENT_SKILLS_ADDY_INTEGRATION.md)
 - **Precedencia:** `jarvis-core` > esta skill. Complementa `code-review-playbook` (post-hoc) y TDD RED (doubt para claims conductuales).
 - **Step 3 DOUBT (Cursor):** invocar **Task** desde la sesión principal con `readonly: true` y `subagent_type: code-reviewer` (o `generalPurpose`). Pegar el prompt adversarial verbatim. **No** anidar Task desde un subagent — si estás dentro de un subagent, escalar al usuario o sesión principal.
 - **Personas upstream `agents/`:** en Cursor usar subagents: `code-reviewer`, `security-reviewer`, `test-runner` según dominio — no cargar `agents/*.md` del pack como globales.
