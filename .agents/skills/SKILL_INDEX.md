@@ -10,9 +10,10 @@
 | `branch-pr-ops` | local | passthrough | Crear o preparar pull request; Naming de branch y checklist pre-PR… |
 | `chained-pr-ops` | local | passthrough | PR supera 400 líneas o presupuesto de review; Stacked PRs o chained PRs… |
 | `clean-architecture` | local | passthrough | — |
-| `code-review-playbook` | local | passthrough | — |
+| `code-review-playbook` | local | passthrough | Code review; Revisar pull request… |
 | `cognitive-doc-design-ops` | local | passthrough | Redactar o mejorar README, RFC, onboarding o guía; Escribir descripción de PR o notas para review… |
 | `comment-writer-ops` | local | passthrough | Redactar comentario de PR o issue; Escribir feedback de code review para humano… |
+| `context-packs-ops` | local | passthrough | Modo research; Modo produce… |
 | `context-updater` | local | passthrough | — |
 | `deep-interview-ops` | local | overlay | Requisitos ambiguos |
 | `docs-alignment-ops` | local | passthrough | Actualizar docs tras cambio de código; Verificar que docs igualan comportamiento actual… |
@@ -27,7 +28,7 @@
 | `flutter-expert` | local | passthrough | — |
 | `git-commit` | local | passthrough | Crear commit |
 | `git-guardrails-ops` | local | overlay | Hacer git push o merge; Comando git destructivo |
-| `github-code-review` | local | passthrough | — |
+| `github-code-review` | local | passthrough | Code review GitHub |
 | `handoff` | local | passthrough | Compactar o traspasar sesion |
 | `human-in-the-loop-ops` | local | passthrough | Human-in-the-loop diseño de loop; Gates humanos antes de acción irreversible… |
 | `jarvis-core` | local | overlay | Iniciar módulo; Planificar desarrollo… |
@@ -38,13 +39,15 @@
 | `playwright-skill` | local | local-only | — |
 | `qa-testing-playwright` | local | local-only | — |
 | `react:components` | local | local-only | — |
-| `receiving-code-review` | local | passthrough | — |
+| `receiving-code-review` | local | passthrough | Recibir code review; Address review feedback |
 | `remotion` | local | local-only | — |
-| `requesting-code-review` | local | passthrough | — |
+| `requesting-code-review` | local | passthrough | Pedir code review; Code review antes de merge |
 | `responsive-design` | local | passthrough | — |
 | `session-learner-ops` | local | overlay | Terminar módulo |
+| `session-startup-ops` | local | passthrough | Iniciar sesión; Retomar proyecto |
 | `shadcn-ui` | local | local-only | — |
 | `skill-creator` | local | passthrough | — |
+| `strategic-compact-ops` | local | passthrough | Compactar contexto; Sesión larga sugerir compactación |
 | `structured-commits-ops` | local | overlay | Crear commit |
 | `systematic-debugging` | local | passthrough | Encontrar bug o test fallido |
 | `task-pipeline-ops` | local | overlay | Iniciar módulo |

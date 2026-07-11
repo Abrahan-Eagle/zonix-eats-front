@@ -17,6 +17,9 @@ test-driven-development passthrough
 executing-plans passthrough
 writing-plans passthrough
 handoff passthrough
+session-startup-ops passthrough
+strategic-compact-ops passthrough
+context-packs-ops passthrough
 zoom-out passthrough
 code-review-playbook passthrough
 receiving-code-review passthrough

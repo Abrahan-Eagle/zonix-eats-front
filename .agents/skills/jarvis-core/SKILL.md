@@ -15,6 +15,7 @@ metadata:
   triggers: jarvis, workflow, módulo, feature, plan, core
   related-skills:
     - jarvis-experts
+    - session-startup-ops
     - sdd-router
     - kitty-router
     - openspec-router
@@ -118,6 +119,7 @@ Cuando `AGENTS.md` lista varias skills para la misma acción, aplicar esta secue
 | Fase | Cadena |
 |------|--------|
 | Integrar / diagnosticar JARVIS (`init jarvis`) | `project-bootstrap-ops` → [PROJECT_ONBOARDING.md](../../docs/PROJECT_ONBOARDING.md) → OK usuario → Paso A/B/C |
+| Iniciar / retomar sesión | `session-startup-ops` → (Roles/Skills) → resto según tarea |
 | Cualquier tarea no trivial | `jarvis-experts` → **`fan-out-synthesize-ops`** → (resto según fase) |
 | Nueva feature de producto (con `.kittify/`) | `kitty-router` → charter/specify/plan/tasks (Cursor) → `spec-kitty next` → review/accept/merge (OK usuario) |
 | Nueva feature de producto (con `openspec/`) | `openspec-router` → `/opsx:propose` → `/opsx:apply` (OK usuario) → `/opsx:archive` |
@@ -163,7 +165,7 @@ Cuando `AGENTS.md` lista varias skills para la misma acción, aplicar esta secue
 
 1. **Honestidad:** Si cometes un error o una petición no es óptima, dilo.
 2. **Proactividad:** Mejoras de negocio, UX o arquitectura aplicables al flujo en curso.
-3. **Memoria:** Consultar `AGENTS.md` y `docs/active_context.md` del proyecto.
+3. **Memoria:** Al arrancar → `session-startup-ops`. En cierre → consultar/actualizar `AGENTS.md` y `docs/active_context.md` del proyecto.
 4. **Panel de expertos:** Declarar `> Roles: <rol1> + <rol2>` en tareas no triviales. Ver `jarvis-experts`.
 
 ## Flujo modular obligatorio

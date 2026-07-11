@@ -96,9 +96,10 @@ export JARVIS_SKILLS_LIBRARY=/var/www/html/proyectos/AIPP/jarvis-skills-library
 | `branch-pr-ops` | Workflow branch + PR: naming conventional, checklist pre-PR, issue linking, presupuesto review, gh integration. Adaptable al AGENTS.md del repo. | [.agents/skills/branch-pr-ops/SKILL.md](.agents/skills/branch-pr-ops/SKILL.md) |
 | `chained-pr-ops` | Divide PRs grandes en cadenas reviewables (stacked o feature-branch chain): regla 400 líneas, diagrama de dependencias, integración gh. | [.agents/skills/chained-pr-ops/SKILL.md](.agents/skills/chained-pr-ops/SKILL.md) |
 | `clean-architecture` | Clean Architecture, SOLID principles, dependency injection, separation of concerns. | [.agents/skills/clean-architecture/SKILL.md](.agents/skills/clean-architecture/SKILL.md) |
-| `code-review-playbook` | Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. Use when reviewing PRs or standardizing review practices. | [.agents/skills/code-review-playbook/SKILL.md](.agents/skills/code-review-playbook/SKILL.md) |
+| `code-review-playbook` | Use this skill when conducting or improving code reviews. Provides structured review processes, conventional comments patterns, language-specific checklists, and feedback templates. | [.agents/skills/code-review-playbook/SKILL.md](.agents/skills/code-review-playbook/SKILL.md) |
 | `cognitive-doc-design-ops` | Diseñar docs con baja carga cognitiva: lead with answer, progressive disclosure, checklists para review. | [.agents/skills/cognitive-doc-design-ops/SKILL.md](.agents/skills/cognitive-doc-design-ops/SKILL.md) |
 | `comment-writer-ops` | Redactar comentarios de colaboración cálidos y directos: PR, issues, reviews, Slack. | [.agents/skills/comment-writer-ops/SKILL.md](.agents/skills/comment-writer-ops/SKILL.md) |
+| `context-packs-ops` | Modos de sesión ligeros research / produce / review (concepto ECC contexts/, sin inyección runtime). Define qué skills primar y qué evitar por modo. | [.agents/skills/context-packs-ops/SKILL.md](.agents/skills/context-packs-ops/SKILL.md) |
 | `context-updater` | Actualizar el contexto de sesión para que la IA "recuerde" entre sesiones. Resumir cambios relevantes en docs/active_context.md al cerrar o finalizar una sesión de trabajo significativa. | [.agents/skills/context-updater/SKILL.md](.agents/skills/context-updater/SKILL.md) |
 | `deep-interview-ops` | Entrevista socrática antes de tareas ambiguas en proyecto activo. Gate claridad mínima 3.5/5. | [.agents/skills/deep-interview-ops/SKILL.md](.agents/skills/deep-interview-ops/SKILL.md) |
 | `docs-alignment-ops` | Alinear documentación con código: docs describen comportamiento actual, mismo PR que el cambio, ejemplos verificables. | [.agents/skills/docs-alignment-ops/SKILL.md](.agents/skills/docs-alignment-ops/SKILL.md) |
@@ -113,7 +114,7 @@ export JARVIS_SKILLS_LIBRARY=/var/www/html/proyectos/AIPP/jarvis-skills-library
 | `flutter-expert` | Flutter advanced patterns, widgets, lifecycle, state management, performance. | [.agents/skills/flutter-expert/SKILL.md](.agents/skills/flutter-expert/SKILL.md) |
 | `git-commit` | Execute git commit with conventional commit message analysis, intelligent staging, and message generation. Use when user asks to commit changes, create a git commit, or mentions "/commit". Supports: (1) Auto-detecting type and scope from changes, (2) Generating conventional commit messages from diff, (3) Interactive commit with optional type/scope/description overrides, (4) Intelligent file staging for logical grouping | [.agents/skills/git-commit/SKILL.md](.agents/skills/git-commit/SKILL.md) |
 | `git-guardrails-ops` | Protección git: bloquea push a main, advierte en dev, exige confirmación antes de comandos destructivos. | [.agents/skills/git-guardrails-ops/SKILL.md](.agents/skills/git-guardrails-ops/SKILL.md) |
-| `github-code-review` | Comprehensive GitHub code review with AI-powered swarm coordination | [.agents/skills/github-code-review/SKILL.md](.agents/skills/github-code-review/SKILL.md) |
+| `github-code-review` | DEPRECATED — usar code-review-playbook. Stub de compatibilidad para manifests legacy. | [.agents/skills/github-code-review/SKILL.md](.agents/skills/github-code-review/SKILL.md) |
 | `handoff` | Compactar la sesion actual en un documento de traspaso para continuar en otro agente o chat. Complementa session-learner-ops (cierre de modulo) y active_context.md. | [.agents/skills/handoff/SKILL.md](.agents/skills/handoff/SKILL.md) |
 | `human-in-the-loop-ops` | Gobernanza humana en bucles agénticos: HITL/HOTL/automation-bounded, umbrales de confianza, condiciones de terminación y escalamiento. | [.agents/skills/human-in-the-loop-ops/SKILL.md](.agents/skills/human-in-the-loop-ops/SKILL.md) |
 | **`jarvis-core`** | **Protocolo base del sistema JARVIS para cualquier proyecto. Define honestidad, foco de negocio y flujo de trabajo modular.** | [.agents/skills/jarvis-core/SKILL.md](.agents/skills/jarvis-core/SKILL.md) |
@@ -124,13 +125,15 @@ export JARVIS_SKILLS_LIBRARY=/var/www/html/proyectos/AIPP/jarvis-skills-library
 | `playwright-skill` | Complete browser automation with Playwright. Auto-detects dev servers, writes clean test scripts to /tmp. Test pages, fill forms, take screenshots, check responsive design, validate UX, test login flows, check links, automate any browser task. Use when user wants to test websites, automate browser interactions, validate web functionality, or perform any browser-based testing. | [.agents/skills/playwright-skill/SKILL.md](.agents/skills/playwright-skill/SKILL.md) |
 | `qa-testing-playwright` | E2E web testing with Playwright. Use when writing tests, debugging flakes, or setting up CI with selectors, sharding, and network mocking. | [.agents/skills/qa-testing-playwright/SKILL.md](.agents/skills/qa-testing-playwright/SKILL.md) |
 | `react:components` | Converts Stitch designs into modular Vite and React components using system-level networking and AST-based validation. | [.agents/skills/react-components/SKILL.md](.agents/skills/react-components/SKILL.md) |
-| `receiving-code-review` | Recibir feedback de review UI/código con verificación. | [.agents/skills/receiving-code-review/SKILL.md](.agents/skills/receiving-code-review/SKILL.md) |
+| `receiving-code-review` | Recibir feedback de review con verificación. Delega estándares a code-review-playbook. | [.agents/skills/receiving-code-review/SKILL.md](.agents/skills/receiving-code-review/SKILL.md) |
 | `remotion` | Generate walkthrough videos from Stitch projects using Remotion with smooth transitions, zooming, and text overlays | [.agents/skills/remotion/SKILL.md](.agents/skills/remotion/SKILL.md) |
-| `requesting-code-review` | Code review antes de merge. | [.agents/skills/requesting-code-review/SKILL.md](.agents/skills/requesting-code-review/SKILL.md) |
+| `requesting-code-review` | Pedir code review antes de merge. Delega checklist a code-review-playbook. | [.agents/skills/requesting-code-review/SKILL.md](.agents/skills/requesting-code-review/SKILL.md) |
 | `responsive-design` | Implement modern responsive layouts using container queries, fluid typography, CSS Grid, and mobile-first breakpoint strategies. Use when building adaptive interfaces, implementing fluid layouts, or creating component-level responsive behavior. | [.agents/skills/responsive-design/SKILL.md](.agents/skills/responsive-design/SKILL.md) |
 | `session-learner-ops` | Tras cerrar módulo UI: patrones en docs/active_context.md y walkthrough. | [.agents/skills/session-learner-ops/SKILL.md](.agents/skills/session-learner-ops/SKILL.md) |
+| `session-startup-ops` | Protocolo de arranque de sesión (concepto ECC session-start, sin hooks). Checklist: active_context, Engram si activo, Roles/Skills, plan/handoff pendiente. | [.agents/skills/session-startup-ops/SKILL.md](.agents/skills/session-startup-ops/SKILL.md) |
 | `shadcn-ui` | Expert guidance for integrating and building applications with shadcn/ui components, including component discovery, installation, customization, and best practices. | [.agents/skills/shadcn-ui/SKILL.md](.agents/skills/shadcn-ui/SKILL.md) |
 | `skill-creator` | Guide for creating effective skills. This skill should be used when users want to create a new skill (or update an existing skill) that extends Claude's capabilities with specialized knowledge, workflows, or tool integrations. | [.agents/skills/skill-creator/SKILL.md](.agents/skills/skill-creator/SKILL.md) |
+| `strategic-compact-ops` | Compactación estratégica (concepto ECC strategic-compact, sin hooks). Sugiere compactar en hitos lógicos; preserva decisiones, verificación y TODOs vía handoff + Engram. | [.agents/skills/strategic-compact-ops/SKILL.md](.agents/skills/strategic-compact-ops/SKILL.md) |
 | `structured-commits-ops` | Commits con trailers de decisión en proyecto activo. Complementa git-commit. | [.agents/skills/structured-commits-ops/SKILL.md](.agents/skills/structured-commits-ops/SKILL.md) |
 | `systematic-debugging` | Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes | [.agents/skills/systematic-debugging/SKILL.md](.agents/skills/systematic-debugging/SKILL.md) |
 | `task-pipeline-ops` | Pipeline multi-paso proyecto activo: Plan → Spec → Exec → Verify → Fix (máx. 3). | [.agents/skills/task-pipeline-ops/SKILL.md](.agents/skills/task-pipeline-ops/SKILL.md) |
@@ -156,6 +159,7 @@ export JARVIS_SKILLS_LIBRARY=/var/www/html/proyectos/AIPP/jarvis-skills-library
 |--------|-------|
 | Abrir PR con gh | `branch-pr-ops` |
 | Actualizar docs tras cambio de código | `docs-alignment-ops` |
+| Address review feedback | `receiving-code-review` |
 | Agent loop engineering / no prompts haz loops | `agent-loop-engineering` |
 | Alta stakes verificar antes de commit | `doubt-driven-development` |
 | Auditar open issues como maintainer | `backlog-triage-ops` |
@@ -164,7 +168,11 @@ export JARVIS_SKILLS_LIBRARY=/var/www/html/proyectos/AIPP/jarvis-skills-library
 | Cambio API CLI setup que afecta documentación | `docs-alignment-ops` |
 | Cierre sesión con mem_session_summary | `engram-memory-protocol` |
 | Clasificar PRs merge request-changes close | `backlog-triage-ops` |
+| Code review | `code-review-playbook` |
+| Code review GitHub | `github-code-review` |
+| Code review antes de merge | `requesting-code-review` |
 | Comando git destructivo | `git-guardrails-ops` |
+| Compactar contexto | `strategic-compact-ops` |
 | Compactar o traspasar sesion | `handoff` |
 | Condiciones de terminación bucle autónomo | `human-in-the-loop-ops` |
 | Configurar NotebookLM MCP en Cursor | `notebooklm-router` |
@@ -191,6 +199,7 @@ export JARVIS_SKILLS_LIBRARY=/var/www/html/proyectos/AIPP/jarvis-skills-library
 | Encontrar bug o test fallido | `systematic-debugging` |
 | Escribir descripción de PR o notas para review | `cognitive-doc-design-ops` |
 | Escribir feedback de code review para humano | `comment-writer-ops` |
+| Estandarizar prácticas de review | `code-review-playbook` |
 | Evitar PR monolítico desde SDD tasks | `work-unit-commits-ops` |
 | Explorar codebase | `fan-out-synthesize-ops` |
 | Gates humanos antes de acción irreversible | `human-in-the-loop-ops` |
@@ -203,26 +212,35 @@ export JARVIS_SKILLS_LIBRARY=/var/www/html/proyectos/AIPP/jarvis-skills-library
 | Iniciar módulo | `brainstorming-ops` |
 | Iniciar módulo | `jarvis-core` |
 | Iniciar módulo | `task-pipeline-ops` |
+| Iniciar sesión | `session-startup-ops` |
 | Investigar bug | `fan-out-synthesize-ops` |
 | Iterar hasta lograr un objetivo medible | `agent-loop-engineering` |
 | Landing page o dashboard | `ui-router` |
 | Landing page o dashboard | `ui-ux-pro-max` |
 | Memoria persistente Engram MCP | `engram-router` |
+| Modo produce | `context-packs-ops` |
+| Modo research | `context-packs-ops` |
+| Modo review | `context-packs-ops` |
 | Naming de branch y checklist pre-PR | `branch-pr-ops` |
 | PR supera 400 líneas o presupuesto de review | `chained-pr-ops` |
 | Paleta de colores o tipografía | `ui-router` |
 | Paleta de colores o tipografía | `ui-ux-pro-max` |
 | Pantalla óptica | `zonix-glasses-ui-patterns` |
+| Pedir code review | `requesting-code-review` |
 | Planificar desarrollo | `brainstorming-ops` |
 | Planificar desarrollo | `jarvis-core` |
 | Planificar desarrollo | `writing-plans` |
 | Preparar commits antes de abrir PR | `work-unit-commits-ops` |
+| Recibir code review | `receiving-code-review` |
 | Redactar comentario de PR o issue | `comment-writer-ops` |
 | Redactar o mejorar README, RFC, onboarding o guía | `cognitive-doc-design-ops` |
 | Requisitos ambiguos | `deep-interview-ops` |
 | Respuesta de maintainer o mensaje async al equipo | `comment-writer-ops` |
+| Retomar proyecto | `session-startup-ops` |
 | Revisar accesibilidad o layout | `ui-router` |
 | Revisar accesibilidad o layout | `ui-ux-pro-max` |
+| Revisar pull request | `code-review-playbook` |
+| Sesión larga sugerir compactación | `strategic-compact-ops` |
 | Stacked PRs o chained PRs | `chained-pr-ops` |
 | Terminar módulo | `finishing-a-development-branch` |
 | Terminar módulo | `jarvis-core` |
